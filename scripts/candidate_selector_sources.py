@@ -137,6 +137,12 @@ def _resolve_code(name: str, mapping: dict[str, str]) -> str | None:
     return mapping.get(normalize_name(name))
 
 
+def _provider_status(result: Any, count: int) -> dict[str, Any]:
+    payload = result.metadata()
+    payload["count"] = count
+    return payload
+
+
 def portfolio_candidates(path: Path, *, as_of: date, code_map: dict[str, str]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     result = PortfolioProvider(path=path, today=as_of).collect()
     rows: list[dict[str, Any]] = []
@@ -156,7 +162,7 @@ def portfolio_candidates(path: Path, *, as_of: date, code_map: dict[str, str]) -
                 reason=reason,
             )
         )
-    return rows, result.to_dict()
+    return rows, _provider_status(result, len(rows))
 
 
 def watchlist_candidates(path: Path, *, as_of: date, code_map: dict[str, str]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
@@ -178,12 +184,12 @@ def watchlist_candidates(path: Path, *, as_of: date, code_map: dict[str, str]) -
                 reason=str(item.get("reason") or text),
             )
         )
-    return rows, result.to_dict()
+    return rows, _provider_status(result, len(rows))
 
 
 def load_owner_picks(path: Path | None) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if path is None or not path.is_file():
-        return [], {"status": "MISSING", "source_reference": str(path) if path else None, "reason": "owner-pick source not configured"}
+        return [], {"status": "MISSING", "source_reference": str(path) if path else None, "reason": "owner-pick source not configured", "count": 0}
     payload = json.loads(path.read_text(encoding="utf-8"))
     items = payload.get("owner_picks") if isinstance(payload, dict) else payload
     if not isinstance(items, list):
@@ -205,7 +211,7 @@ def load_owner_picks(path: Path | None) -> tuple[list[dict[str, Any]], dict[str,
                 owner_pick_note=str(item.get("note") or item.get("reason") or "").strip() or None,
             )
         )
-    return rows, {"status": "OK", "source_reference": str(path), "count": len(rows)}
+    return rows, {"status": "OK", "source_reference": str(path), "reason": None, "count": len(rows)}
 
 
 def build_source_candidates(
@@ -228,6 +234,7 @@ def build_source_candidates(
         "RESEARCH_INDEX": {
             "status": "OK" if research_root.is_dir() else "MISSING",
             "source_reference": str(research_root),
+            "reason": None if research_root.is_dir() else "company research directory not found",
             "count": len(research_rows),
         },
     }
