@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "required_axes": ["relative_strength", "activity", "breadth", "heat", "acceleration"],
+  "weights": {
+    "relative_strength": 0.30,
+    "activity": 0.20,
+    "breadth": 0.25,
+    "acceleration": 0.25
+  },
+  "thresholds": {
+    "warming_score": 55,
+    "inflow_score": 70,
+    "hot_score": 82,
+    "overheated_heat": 85,
+    "max_heat_for_warming": 70,
+    "max_heat_for_inflow": 80
+  },
+  "hysteresis": {
+    "promote_days": 2,
+    "demote_days": 2
+  },
+  "minimum_non_null_axes": 4
+}
