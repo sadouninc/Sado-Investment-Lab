@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "freshness_days": 90,
+  "major_change_threshold": 80,
+  "weights": {
+    "investment_relevance": 0.30,
+    "change_signal": 0.25,
+    "research_gap": 0.20,
+    "theme_relevance": 0.15,
+    "valuation_interest": 0.10
+  }
+}
