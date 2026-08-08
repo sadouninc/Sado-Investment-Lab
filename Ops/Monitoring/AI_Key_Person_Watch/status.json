@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "watch": "AI_Key_Person_Watch",
+  "expected_interval_minutes": 60,
+  "stale_after_minutes": 150,
+  "last_run_at": null,
+  "last_success_at": null,
+  "last_status": "UNKNOWN",
+  "news_delta": null,
+  "last_news_delta_at": null,
+  "news_persisted": null,
+  "persistence_status": "NOT_REQUIRED",
+  "updated_by": "❤️レイ",
+  "note": "Initialized by Issue #124. Updated by the scheduled AI Key Person Watch run."
+}
