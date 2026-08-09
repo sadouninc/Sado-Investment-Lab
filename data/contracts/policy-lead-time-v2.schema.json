@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sadouninc.github.io/Sado-Investment-Lab/contracts/policy-lead-time-v2.schema.json",
+  "title": "Policy Lead-Time Evaluation v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "policy_t0",
+    "raw_first",
+    "reliable_first",
+    "classification",
+    "data_quality",
+    "limitations",
+    "post_policy_persistence",
+    "post_policy_reacceleration",
+    "policy_evidence_in_market_score"
+  ],
+  "properties": {
+    "schema_version": {"const": 2},
+    "policy_t0": {"type": "string", "format": "date"},
+    "raw_first": {"$ref": "#/$defs/firstState"},
+    "reliable_first": {"$ref": "#/$defs/firstState"},
+    "classification": {
+      "enum": [
+        "POLICY_LEADS",
+        "MARKET_LEADS",
+        "POLICY_CONFIRMATION",
+        "REACCELERATION_AFTER_POLICY",
+        "INCONCLUSIVE",
+        "DATA_LIMITED"
+      ]
+    },
+    "data_quality": {"enum": ["OK", "PARTIAL", "LIMITED"]},
+    "limitations": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "post_policy_persistence": {"type": "boolean"},
+    "post_policy_reacceleration": {"type": "boolean"},
+    "policy_evidence_in_market_score": {"const": false}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "nullableDate": {"type": ["string", "null"], "format": "date"},
+    "nullableInteger": {"type": ["integer", "null"]},
+    "firstState": {
+      "type": "object",
+      "required": [
+        "warming_date",
+        "inflow_date",
+        "first_market_date",
+        "policy_to_warming_days",
+        "policy_to_inflow_days"
+      ],
+      "properties": {
+        "warming_date": {"$ref": "#/$defs/nullableDate"},
+        "inflow_date": {"$ref": "#/$defs/nullableDate"},
+        "first_market_date": {"$ref": "#/$defs/nullableDate"},
+        "policy_to_warming_days": {"$ref": "#/$defs/nullableInteger"},
+        "policy_to_inflow_days": {"$ref": "#/$defs/nullableInteger"}
+      },
+      "additionalProperties": false
+    }
+  }
+}
