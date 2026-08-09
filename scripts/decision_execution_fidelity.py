@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Any
 
 ACTIONS = {"BUY", "ADD", "REDUCE", "SELL"}
+ACTUAL_ACTIONS = ACTIONS | {"SHORT_OPEN", "SHORT_ADD", "COVER", "UNKNOWN"}
 ACCOUNT_TYPES = {"CASH", "MARGIN", "UNKNOWN"}
 INTENT_SOURCES = {"OWNER_EXPLICIT", "DECISION_JOURNAL", "UNKNOWN"}
 PRICE_TYPES = {"MARKET", "LIMIT", "RANGE", "NONE", "UNKNOWN"}
@@ -204,7 +205,7 @@ def validate_actual_execution(record: dict[str, Any]) -> dict[str, Any]:
     captured_at = captured_dt.isoformat()
     status = _enum(out.get("execution_status"), "execution_status", EXECUTION_STATUS)
     source_status = _enum(out.get("source_status", "UNKNOWN"), "source_status", SOURCE_STATUS)
-    actual_action = _enum(out.get("actual_action", "UNKNOWN"), "actual_action", ACTIONS | {"UNKNOWN"})
+    actual_action = _enum(out.get("actual_action", "UNKNOWN"), "actual_action", ACTUAL_ACTIONS)
     fills_value = out.get("fills", [])
     if not isinstance(fills_value, list):
         raise ValueError("fills must be an array")
