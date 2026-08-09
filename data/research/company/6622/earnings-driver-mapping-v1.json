@@ -1,0 +1,25 @@
+{
+  "security_code": "6622",
+  "target_fiscal_year": "FY2027",
+  "version": "v1",
+  "segment_labels_ja": {
+    "energy_management": "エネルギーマネジメント",
+    "factory_automation": "ファクトリーオートメーション",
+    "material_processing": "マテリアルプロセシング"
+  },
+  "assumption_labels_ja": {
+    "Material Processing growth moderates": "半導体・AI/DC向け設備需要の伸びが鈍化",
+    "Energy Management order conversion is delayed": "電力インフラ受注が売上・利益へ転換するまで時間がかかる",
+    "Company guidance is missed": "会社計画を下回る",
+    "Company guidance is factual anchor, not Sado Base identity": "会社予想165億円を事実上の基準点として参照するが、Sado Baseとは同一視しない",
+    "Material Processing stays strong": "マテリアルプロセシングの強さが継続",
+    "Energy Management backlog converts progressively": "エネルギーマネジメントの受注残が徐々に売上・利益へ転換",
+    "AI/DC semiconductor investment remains elevated": "AI/DC関連の半導体設備投資が高水準で継続",
+    "Energy Management order growth converts to revenue": "電力インフラ受注増が売上へ転換",
+    "FA recovery broadens": "FA回復が広がる"
+  },
+  "main_risks_ja": [
+    "AI/DC需要だけで全社を説明すると、エネルギーマネジメントやFAの異なるサイクルを見落とす可能性があります。",
+    "エネルギーマネジメントは受注が強くても、売上・利益へ転換する時期が大型案件で振れる可能性があります。"
+  ]
+}
