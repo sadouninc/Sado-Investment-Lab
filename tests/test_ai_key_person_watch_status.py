@@ -56,6 +56,46 @@ class AIKeyPersonWatchStatusTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_status(dict(BASE, last_success_at="2026-08-09T07:30:00"))
 
+    def test_future_success_beyond_clock_skew_is_degraded(self) -> None:
+        payload = dict(
+            BASE,
+            last_run_at="2026-08-09T09:00:00+09:00",
+            last_success_at="2026-08-09T09:00:00+09:00",
+        )
+        health = classify_health(payload, datetime.fromisoformat("2026-08-09T08:30:00+09:00"))
+        self.assertEqual("DEGRADED", health.state)
+        self.assertIn("future", health.reason)
+
+    def test_small_future_clock_skew_is_tolerated(self) -> None:
+        payload = dict(
+            BASE,
+            last_run_at="2026-08-09T08:34:00+09:00",
+            last_success_at="2026-08-09T08:34:00+09:00",
+        )
+        health = classify_health(payload, datetime.fromisoformat("2026-08-09T08:30:00+09:00"))
+        self.assertEqual("HEALTHY", health.state)
+
+    def test_success_after_last_run_is_degraded(self) -> None:
+        payload = dict(
+            BASE,
+            last_run_at="2026-08-09T08:00:00+09:00",
+            last_success_at="2026-08-09T08:01:00+09:00",
+        )
+        health = classify_health(payload, datetime.fromisoformat("2026-08-09T08:30:00+09:00"))
+        self.assertEqual("DEGRADED", health.state)
+        self.assertIn("last_success_at is later than last_run_at", health.reason)
+
+    def test_news_delta_after_last_run_is_degraded(self) -> None:
+        payload = dict(
+            BASE,
+            last_run_at="2026-08-09T08:00:00+09:00",
+            last_success_at="2026-08-09T08:00:00+09:00",
+            last_news_delta_at="2026-08-09T08:01:00+09:00",
+        )
+        health = classify_health(payload, datetime.fromisoformat("2026-08-09T08:30:00+09:00"))
+        self.assertEqual("DEGRADED", health.state)
+        self.assertIn("last_news_delta_at is later than last_run_at", health.reason)
+
 
 if __name__ == "__main__":
     unittest.main()
