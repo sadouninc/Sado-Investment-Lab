@@ -10,6 +10,8 @@
   },
   "scenario_net_income_unit": "million_jpy",
   "scenario_net_income_unit_source": "https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf",
+  "share_basis_field": "shares",
+  "share_basis_role": "valuation_denominator",
   "target_pers": [15, 20, 25],
   "price_warning": "PRICE_STALE_FOR_E2E"
 }
