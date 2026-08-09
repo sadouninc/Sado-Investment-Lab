@@ -215,7 +215,7 @@ def calculate_surprise(
 
     warnings.extend(str(code) for code in frozen.get("reason_codes") or [])
     absolute = actual_num - expected_num
-    pct = absolute / abs(expected_num)
+    pct = (actual_num / expected_num) - 1.0
     return {
         "event_id": event_id,
         "metric": metric,
