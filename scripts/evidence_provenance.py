@@ -4,7 +4,7 @@ import hashlib
 import json
 from copy import deepcopy
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Iterable, Mapping
 
 SOURCE_TYPES = {
@@ -56,6 +56,13 @@ def _optional_text(value: Any) -> str | None:
 
 
 def _timestamp(value: Any, field: str, *, required: bool = True) -> str | None:
+    """Validate and canonicalize an instant to UTC ISO-8601.
+
+    Equivalent timestamp spellings (for example ``Z`` vs ``+00:00`` or a
+    different offset representing the same instant) must serialize identically
+    before they participate in deterministic identities.
+    """
+
     text = _required_text(value, field) if required else _optional_text(value)
     if text is None:
         return None
@@ -65,7 +72,7 @@ def _timestamp(value: Any, field: str, *, required: bool = True) -> str | None:
         raise ProvenanceValidationError(f"{field} must be ISO-8601") from exc
     if parsed.tzinfo is None:
         raise ProvenanceValidationError(f"{field} must include timezone information")
-    return text
+    return parsed.astimezone(timezone.utc).isoformat()
 
 
 def _date(value: Any, field: str) -> str:
