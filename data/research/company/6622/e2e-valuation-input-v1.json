@@ -1,0 +1,15 @@
+{
+  "security_code": "6622",
+  "purpose": "FIRST_E2E_VALIDATION",
+  "reference_price": {
+    "value_jpy": 11900,
+    "as_of": "2026-07-29",
+    "source": "https://stocks.monex.co.jp/6622.T/historical",
+    "freshness": "STALE",
+    "note": "Pipeline integration用の明示的reference price。2026-08-04 Q1決算前の価格であり投資判断用current priceとして扱わない。"
+  },
+  "scenario_net_income_unit": "million_jpy",
+  "scenario_net_income_unit_source": "https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf",
+  "target_pers": [15, 20, 25],
+  "price_warning": "PRICE_STALE_FOR_E2E"
+}
