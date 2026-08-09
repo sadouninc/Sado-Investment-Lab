@@ -30,7 +30,7 @@ class DaihenCockpitPageTests(unittest.TestCase):
         self.assertIn("今の投資仮説は？", page)
         self.assertIn("株価情報が古い場合", page)
         self.assertIn("Consensusを取得できない場合", page)
-        self.assertIn("これは売買指示を生成しません", page)
+        self.assertIn("この画面は売買指示を生成しません", page)
 
     def test_page_preserves_historical_snapshot_and_no_auto_trade_language(self):
         model = MODULE.load_model()
