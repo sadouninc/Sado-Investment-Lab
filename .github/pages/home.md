@@ -12,6 +12,14 @@ permalink: /
   <p class="edition">Research Platform</p>
 </header>
 
+<section class="section-index" aria-labelledby="decision-title">
+  <p class="eyebrow">TODAY'S DECISION</p>
+  <h2 id="decision-title">今日の投資判断</h2>
+  <div class="card-grid">
+    <a class="nav-card" href="{{ '/decision-cockpit/daihen/' | relative_url }}"><strong>🎯 ダイヘン 投資判断コックピット</strong><span>なぜ今日見る？・前回から何が変わった？・投資仮説は生きている？を1画面で確認する</span></a>
+  </div>
+</section>
+
 <section class="book-overview" aria-labelledby="mission-title">
   <h2 id="mission-title">Mission</h2>
   <p>Sado Investment Lab は、企業の本質的な価値と市場評価のギャップを見つけ、そのギャップが解消される過程を投資利益につなげることを目指します。</p>
