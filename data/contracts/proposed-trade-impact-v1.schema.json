@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "proposed-trade-impact-v1.schema.json",
+  "title": "Proposed Trade Impact Snapshot v1",
+  "type": "object",
+  "required": ["snapshot_id", "captured_at", "portfolio_ref", "proposed_action", "before", "after_if_executed", "guardrail_results", "data_status", "trade_action"],
+  "properties": {
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "captured_at": {"type": "string", "minLength": 1},
+    "portfolio_ref": {"type": "string", "minLength": 1},
+    "proposed_action": {
+      "type": "object",
+      "required": ["security_code", "action", "quantity", "price", "notional", "account_type"],
+      "properties": {
+        "security_code": {"type": "string", "minLength": 1},
+        "action": {"enum": ["BUY", "ADD", "REDUCE", "SELL"]},
+        "quantity": {"type": "number", "exclusiveMinimum": 0},
+        "price": {"type": "number", "exclusiveMinimum": 0},
+        "notional": {"type": "number", "exclusiveMinimum": 0},
+        "account_type": {"enum": ["CASH", "MARGIN", "UNKNOWN"]}
+      },
+      "additionalProperties": false
+    },
+    "before": {"type": "object"},
+    "after_if_executed": {"type": "object"},
+    "guardrail_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["guardrail", "result", "rule_source"],
+        "properties": {
+          "guardrail": {"type": "string", "minLength": 1},
+          "result": {"enum": ["PASS", "WARN", "BLOCK_REVIEW", "UNKNOWN"]},
+          "rule_source": {"enum": ["OWNER_DEFINED", "FRAMEWORK_DEFINED", "UNSET"]}
+        },
+        "additionalProperties": true
+      }
+    },
+    "data_status": {"enum": ["CURRENT", "STALE", "PARTIAL", "UNKNOWN"]},
+    "trade_action": {"type": "null"}
+  },
+  "additionalProperties": false
+}
