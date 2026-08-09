@@ -72,6 +72,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Install test dependencies
+        run: python3 -m pip install --disable-pip-version-check pytest==8.4.1
+
       - name: Generate market phase report
         run: python3 -m scripts.market_phase.pipeline
 
@@ -87,7 +90,7 @@ jobs:
         run: python3 -m unittest discover -s .github/pages -p "test_*.py"
 
       - name: Test analysis pipelines
-        run: python3 -m unittest discover -s tests -p "test_*.py"
+        run: python3 -m pytest tests -q
 
       - name: Prepare site
         run: python3 .github/pages/build_site.py
