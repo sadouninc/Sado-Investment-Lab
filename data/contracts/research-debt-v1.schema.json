@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "research-debt-v1.schema.json",
+  "title": "Research Debt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "debt_id",
+    "security_code",
+    "section",
+    "question",
+    "origin_type",
+    "origin_ref",
+    "created_at",
+    "materiality",
+    "expected_evidence",
+    "status",
+    "resolved_at",
+    "resolution_ref",
+    "resolution",
+    "trade_recommendation"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "debt_id": {"type": "string", "minLength": 1},
+    "security_code": {"type": "string", "minLength": 1},
+    "section": {
+      "enum": ["why_candidate", "business_driver", "base_scenario", "bear_bull_range", "valuation", "hypothesis", "invalidation", "market_expectation", "next_evidence"]
+    },
+    "question": {"type": "string", "minLength": 1},
+    "origin_type": {
+      "enum": ["OWNER_ASSUMPTION", "UNKNOWN", "PARTIAL", "STALE", "NOT_YET_DEFINED", "CONFLICTING", "UNAVAILABLE"]
+    },
+    "origin_ref": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "minLength": 1},
+    "materiality": {"type": ["string", "null"], "enum": ["HIGH", "MEDIUM", "LOW", null]},
+    "expected_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "description", "not_before", "expected_by"],
+        "properties": {
+          "type": {"enum": ["EARNINGS", "KPI", "IR", "POLICY", "PRICE_REFRESH", "OWNER_REVIEW", "OTHER"]},
+          "description": {"type": "string", "minLength": 1},
+          "not_before": {"type": ["string", "null"]},
+          "expected_by": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "status": {"enum": ["OPEN", "WAITING_FOR_EVIDENCE", "EVIDENCE_AVAILABLE", "REVIEW_DUE", "RESOLVED", "RETIRED"]},
+    "resolved_at": {"type": ["string", "null"]},
+    "resolution_ref": {"type": ["string", "null"]},
+    "resolution": {"type": ["string", "null"]},
+    "trade_recommendation": {"type": "null"}
+  }
+}
