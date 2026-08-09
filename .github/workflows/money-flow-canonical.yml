@@ -2,16 +2,20 @@ name: Money Flow Canonical Run
 
 on:
   schedule:
-    # 07:15 UTC Monday-Friday = 16:15 JST, after Tokyo cash-market close.
-    - cron: "15 7 * * 1-5"
+    # 17:30 JST, Monday-Friday. Exchange holidays are rejected by the market-session guard.
+    - cron: '30 8 * * 1-5'
   workflow_dispatch:
     inputs:
+      as_of:
+        description: 'YYYY-MM-DD (JST). Empty uses current JST date.'
+        required: false
+        type: string
       backfill_start:
-        description: "Optional YYYY-MM-DD start date for historical backfill"
+        description: 'Optional YYYY-MM-DD start date for historical backfill.'
         required: false
         type: string
       backfill_end:
-        description: "Optional YYYY-MM-DD end date for historical backfill"
+        description: 'Optional YYYY-MM-DD end date for historical backfill.'
         required: false
         type: string
 
@@ -19,53 +23,136 @@ permissions:
   contents: write
 
 concurrency:
-  group: money-flow-canonical
+  group: money-flow-canonical-run
   cancel-in-progress: false
 
 jobs:
   canonical-run:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Verify Money Flow tests
-        run: python3 -m unittest tests.test_money_flow_canonical_run
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-      - name: Run latest market session or requested backfill
-        shell: bash
+      - name: Verify Money Flow tests
+        run: |
+          python -m unittest tests.test_money_flow_canonical_run
+          python -m unittest tests.test_money_flow_scheduled_run
+
+      - name: Resolve run mode
+        id: mode
+        env:
+          INPUT_AS_OF: ${{ inputs.as_of }}
+          BACKFILL_START: ${{ inputs.backfill_start }}
+          BACKFILL_END: ${{ inputs.backfill_end }}
+        run: |
+          set -euo pipefail
+          if [ -n "${BACKFILL_START:-}" ]; then
+            if [ -z "${BACKFILL_END:-}" ]; then
+              echo 'backfill_end is required when backfill_start is supplied' >&2
+              exit 2
+            fi
+            if [ -n "${INPUT_AS_OF:-}" ]; then
+              echo 'as_of cannot be combined with backfill_start/backfill_end' >&2
+              exit 2
+            fi
+            echo 'mode=BACKFILL' >> "$GITHUB_OUTPUT"
+            echo "as_of=${BACKFILL_START}..${BACKFILL_END}" >> "$GITHUB_OUTPUT"
+          else
+            if [ -n "${BACKFILL_END:-}" ]; then
+              echo 'backfill_start is required when backfill_end is supplied' >&2
+              exit 2
+            fi
+            if [ -n "${INPUT_AS_OF:-}" ]; then
+              AS_OF="$INPUT_AS_OF"
+            else
+              AS_OF="$(TZ=Asia/Tokyo date +%F)"
+            fi
+            python - <<'PY' "$AS_OF"
+          import datetime, sys
+          datetime.date.fromisoformat(sys.argv[1])
+          PY
+            echo 'mode=SCHEDULED' >> "$GITHUB_OUTPUT"
+            echo "as_of=$AS_OF" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run guarded current-session snapshot
+        if: steps.mode.outputs.mode == 'SCHEDULED'
+        id: scheduled
+        run: |
+          set -o pipefail
+          python -m scripts.money_flow_scheduled_run --as-of '${{ steps.mode.outputs.as_of }}' | tee /tmp/money-flow-run.json
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          payload = json.loads(Path('/tmp/money-flow-run.json').read_text())
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as fh:
+              fh.write(f"status={payload['status']}\n")
+              fh.write(f"reason={payload['guard']['reason']}\n")
+          PY
+
+      - name: Run bounded historical backfill
+        if: steps.mode.outputs.mode == 'BACKFILL'
         env:
           BACKFILL_START: ${{ inputs.backfill_start }}
           BACKFILL_END: ${{ inputs.backfill_end }}
         run: |
           set -euo pipefail
-          if [[ -n "${BACKFILL_START:-}" ]]; then
-            if [[ -z "${BACKFILL_END:-}" ]]; then
-              echo "backfill_end is required when backfill_start is supplied" >&2
-              exit 2
-            fi
-            python3 scripts/money_flow_canonical_run.py \
-              --backfill-start "$BACKFILL_START" \
-              --backfill-end "$BACKFILL_END" \
-              --backfill-range 2y
-          else
-            python3 scripts/money_flow_canonical_run.py --latest-market-date
-          fi
+          python -m scripts.money_flow_canonical_run \
+            --backfill-start "$BACKFILL_START" \
+            --backfill-end "$BACKFILL_END" \
+            --backfill-range 2y
+
+      - name: Refresh Policy Lead-Time projection
+        if: steps.mode.outputs.mode == 'SCHEDULED' && steps.scheduled.outputs.status == 'COMPLETED'
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.money_flow_canonical_run import evaluate_policy_lead_time
+          from scripts.money_flow_history import load_history
+
+          history = load_history(Path('data/generated/public/money-flow/history.jsonl'))
+          payload = evaluate_policy_lead_time(history, retrospective_membership=False)
+          path = Path('data/generated/public/money-flow/policy-lead-time-ai-dc.json')
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+          PY
 
       - name: Persist canonical Market Evidence
-        shell: bash
+        if: steps.mode.outputs.mode == 'BACKFILL' || steps.scheduled.outputs.status == 'COMPLETED'
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            data/generated/public/money-flow/history.jsonl \
-            data/generated/public/money-flow/policy-lead-time-ai-dc.json
+          git add data/generated/public/money-flow/history.jsonl
+          if [ -f data/generated/public/money-flow/policy-lead-time-ai-dc.json ]; then
+            git add data/generated/public/money-flow/policy-lead-time-ai-dc.json
+          fi
           if git diff --cached --quiet; then
-            echo "No canonical Money Flow changes to persist."
+            echo 'No canonical Money Flow changes to persist (idempotent rerun).'
             exit 0
           fi
-          git commit -m "data: persist Money Flow canonical run [担当: ♦️ソラ automation]"
+          git config user.name 'sado-investment-lab-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'data: persist canonical Money Flow evidence [担当: ♦️ソラ automation]'
           git push origin HEAD:main
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo '## Money Flow Canonical Run'
+            echo '- mode: `${{ steps.mode.outputs.mode }}`'
+            echo '- as_of: `${{ steps.mode.outputs.as_of }}`'
+            echo '- scheduled status: `${{ steps.scheduled.outputs.status }}`'
+            echo '- scheduled guard: `${{ steps.scheduled.outputs.reason }}`'
+            echo '- theme: `theme:ai-data-center-power-infrastructure`'
+            echo ''
+            echo 'Scheduled runs keep the PR #198 market-session guard. Historical backfills are bounded to each as_of so future observations cannot leak into past detector states.'
+          } >> "$GITHUB_STEP_SUMMARY"
