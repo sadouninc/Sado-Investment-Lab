@@ -272,6 +272,7 @@ def verify_position_change(
     portfolio_after: Mapping[str, Any] | None,
     security_code: str,
     direction: str | None,
+    fills: Iterable[Mapping[str, Any]] = (),
 ) -> dict[str, Any]:
     before_status = _portfolio_status(portfolio_before)
     after_status = _portfolio_status(portfolio_after)
@@ -281,6 +282,8 @@ def verify_position_change(
         "after_ref": _portfolio_ref(portfolio_after),
         "before_quantity": None,
         "after_quantity": None,
+        "position_delta": None,
+        "execution_quantity": None,
         "direction": direction,
         "actual_action": "UNKNOWN",
     }
@@ -290,25 +293,45 @@ def verify_position_change(
     if before_status != "VERIFIED" or after_status != "VERIFIED" or direction is None:
         return result
 
+    fill_list = [dict(fill) for fill in fills]
+    if not fill_list:
+        return result
+    try:
+        executed_times = [datetime.fromisoformat(_text(fill.get("executed_at"), "fill.executed_at")) for fill in fill_list]
+    except ValueError as exc:
+        raise DecisionExecutionAdapterError("fill.executed_at must be ISO-8601") from exc
+    if any(item.tzinfo is None for item in executed_times):
+        result["status"] = "UNKNOWN"
+        return result
+
     before_date = _date(portfolio_before.get("as_of"), "portfolio_before.as_of")
     after_date = _date(portfolio_after.get("as_of"), "portfolio_after.as_of")
     if after_date < before_date:
         raise DecisionExecutionAdapterError("portfolio_after must not predate portfolio_before")
 
+    first_execution_date = min(item.date() for item in executed_times)
+    last_execution_date = max(item.date() for item in executed_times)
+    if not (before_date < first_execution_date and after_date > last_execution_date):
+        result["status"] = "NOT_JUDGABLE"
+        return result
+
     side = "SHORT" if direction.startswith("SHORT") else "LONG"
     before_qty = _position_quantity(portfolio_before, security_code, side)
     after_qty = _position_quantity(portfolio_after, security_code, side)
+    execution_qty = sum(float(_number(fill.get("quantity"), "fill.quantity")) for fill in fill_list)
+    delta = after_qty - before_qty
+    expected_delta = execution_qty if direction.endswith("INCREASE") else -execution_qty
+
     result["before_quantity"] = before_qty
     result["after_quantity"] = after_qty
+    result["position_delta"] = delta
+    result["execution_quantity"] = execution_qty
 
-    if direction.endswith("INCREASE"):
-        consistent = after_qty > before_qty
-    else:
-        consistent = after_qty < before_qty
-    result["status"] = "CONSISTENT" if consistent else "MISMATCH"
-
-    if not consistent:
+    if delta != expected_delta:
+        result["status"] = "MISMATCH"
         return result
+
+    result["status"] = "CONSISTENT"
     if direction == "LONG_INCREASE":
         result["actual_action"] = "BUY" if before_qty == 0 else "ADD"
     elif direction == "LONG_DECREASE":
@@ -403,7 +426,7 @@ def build_actual_execution_from_sbi_rows(
         diagnostics.append("MIXED_EXECUTION_DIRECTIONS")
 
     verification = verify_position_change(
-        portfolio_before, portfolio_after, code, direction
+        portfolio_before, portfolio_after, code, direction, fills
     )
     actual_action = verification["actual_action"]
     if (
