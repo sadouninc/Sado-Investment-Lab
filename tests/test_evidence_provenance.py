@@ -58,6 +58,42 @@ class EvidenceProvenanceTests(unittest.TestCase):
             ),
         )
 
+    def test_equivalent_timestamp_spellings_share_source_identity(self) -> None:
+        payload = self.source_payload()
+        zulu = deterministic_source_id(
+            source_type=payload["source_type"],
+            publisher=payload["publisher"],
+            published_at="2026-08-07T06:00:00Z",
+            canonical_ref=payload["canonical_ref"],
+            content_hash=payload["content_hash"],
+        )
+        utc_offset = deterministic_source_id(
+            source_type=payload["source_type"],
+            publisher=payload["publisher"],
+            published_at="2026-08-07T06:00:00+00:00",
+            canonical_ref=payload["canonical_ref"],
+            content_hash=payload["content_hash"],
+        )
+        jst = deterministic_source_id(
+            source_type=payload["source_type"],
+            publisher=payload["publisher"],
+            published_at="2026-08-07T15:00:00+09:00",
+            canonical_ref=payload["canonical_ref"],
+            content_hash=payload["content_hash"],
+        )
+        self.assertEqual(zulu, utc_offset)
+        self.assertEqual(zulu, jst)
+
+    def test_source_timestamps_serialize_in_canonical_utc_form(self) -> None:
+        record = SourceRecord.from_mapping(self.source_payload())
+        self.assertEqual("2026-08-07T06:00:00+00:00", record.published_at)
+        self.assertEqual("2026-08-07T06:12:00+00:00", record.observed_at)
+        payload = ProvenanceLedger()
+        payload.ingest_source(self.source_payload())
+        serialized = payload.to_dict()["sources"][0]
+        self.assertEqual("2026-08-07T06:00:00+00:00", serialized["published_at"])
+        self.assertEqual("2026-08-07T06:12:00+00:00", serialized["observed_at"])
+
     def test_changed_content_hash_changes_source_identity(self) -> None:
         payload = self.source_payload()
         first = SourceRecord.from_mapping(payload)
@@ -161,6 +197,7 @@ class EvidenceProvenanceTests(unittest.TestCase):
             }
         )
         self.assertEqual(edge.from_id, fact.fact_id)
+        self.assertEqual("2026-08-09T00:00:00+00:00", edge.created_at)
 
     def test_serialized_contract_uses_from_and_to_keys(self) -> None:
         ledger = ProvenanceLedger()
