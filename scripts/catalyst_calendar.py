@@ -297,7 +297,19 @@ def reschedule_event(
     changed_at: str,
     reason: str | None = None,
 ) -> EventRecord:
-    """Return a new event version while preserving the previous schedule in history."""
+    """Reschedule a currently SCHEDULED event while preserving old schedule history.
+
+    Rescheduling is intentionally fail-closed for every other lifecycle state.
+    OCCURRED/HANDLED/CANCELLED events must never be implicitly reopened. A
+    DISCOVERED or UNKNOWN event needs an explicit scheduling transition, while
+    DELAYED is represented as a historical schedule revision created by this
+    operation before the current event returns to SCHEDULED with the new date.
+    """
+
+    if event.status != "SCHEDULED":
+        raise CalendarValidationError(
+            f"cannot reschedule {event.status} event; only SCHEDULED events may be rescheduled"
+        )
 
     changed_at = _iso_datetime(changed_at, "changed_at")
     old = replace(event.current_schedule(), changed_at=changed_at, reason=reason, status="DELAYED")
