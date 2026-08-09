@@ -82,6 +82,17 @@ class RevisionLeadTimeTests(unittest.TestCase):
         self.assertIsNone(result["lead_time_hours"])
         self.assertGreater(result["consensus_lead_hours"], 0)
 
+    def test_only_latest_prior_consensus_direction_controls_already_moved_status(self):
+        history = [
+            consensus(as_of="2026-05-01", observed_at="2026-05-01T09:00:00+09:00", value=400),
+            consensus(as_of="2026-05-20", observed_at="2026-05-20T09:00:00+09:00", value=450),
+            consensus(as_of="2026-06-20", observed_at="2026-06-20T09:00:00+09:00", value=420),
+            consensus(as_of="2026-07-10", observed_at="2026-07-10T09:00:00+09:00", value=460),
+        ]
+        result = measure_revision_lead_time(sado_revision(), history, mapping=MAPPING)
+        self.assertEqual(result["status"], "SADO_REVISION_PRECEDED_MATCHING_CONSENSUS")
+        self.assertEqual(result["lead_time_hours"], 216.0)
+
     def test_opposite_direction_does_not_count_as_matching_revision(self):
         history = [
             consensus(as_of="2026-06-01", observed_at="2026-06-01T09:00:00+09:00", value=500),
@@ -116,6 +127,10 @@ class RevisionLeadTimeTests(unittest.TestCase):
         self.assertEqual(result["status"], "SADO_REVISION_PRECEDED_MATCHING_CONSENSUS")
         self.assertEqual(result["sado_direction"], "DOWN")
         self.assertEqual(result["lead_time_hours"], 96.0)
+
+    def test_flat_sado_value_is_not_a_revision_event(self):
+        with self.assertRaises(RevisionLeadTimeError):
+            measure_revision_lead_time(sado_revision(before=500, after=500), [], mapping=MAPPING)
 
     def test_mapping_requires_exact_changed_field(self):
         mapping = dict(MAPPING)
