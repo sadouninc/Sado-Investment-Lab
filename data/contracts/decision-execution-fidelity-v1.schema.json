@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Decision to Execution Fidelity v1",
+  "oneOf": [
+    {"$ref": "#/$defs/executionIntent"},
+    {"$ref": "#/$defs/actualExecution"},
+    {"$ref": "#/$defs/fidelityResult"}
+  ],
+  "$defs": {
+    "priceCondition": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {"enum": ["MARKET", "LIMIT", "RANGE", "NONE", "UNKNOWN"]},
+        "value": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "lower": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "upper": {"type": ["number", "null"], "exclusiveMinimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "timingCondition": {
+      "type": "object",
+      "required": ["session"],
+      "properties": {
+        "execute_by": {"type": ["string", "null"], "format": "date-time"},
+        "session": {"enum": ["OPEN", "AM", "PM", "CLOSE", "NONE", "UNKNOWN"]}
+      },
+      "additionalProperties": true
+    },
+    "executionIntent": {
+      "type": "object",
+      "required": ["decision_ref", "security_code", "action", "captured_at", "price_condition", "timing_condition", "account_type", "source"],
+      "properties": {
+        "execution_intent_id": {"type": "string", "minLength": 1},
+        "decision_ref": {"type": "string", "minLength": 1},
+        "security_code": {"type": "string", "minLength": 1},
+        "action": {"enum": ["BUY", "ADD", "REDUCE", "SELL"]},
+        "intended_quantity": {"type": ["integer", "null"], "minimum": 1},
+        "intended_notional": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "price_condition": {"$ref": "#/$defs/priceCondition"},
+        "timing_condition": {"$ref": "#/$defs/timingCondition"},
+        "account_type": {"enum": ["CASH", "MARGIN", "UNKNOWN"]},
+        "captured_at": {"type": "string", "format": "date-time"},
+        "source": {"enum": ["OWNER_EXPLICIT", "DECISION_JOURNAL", "UNKNOWN"]}
+      },
+      "additionalProperties": true
+    },
+    "fill": {
+      "type": "object",
+      "required": ["executed_at", "side", "quantity", "price", "account_type", "source_ref"],
+      "properties": {
+        "executed_at": {"type": "string", "format": "date-time"},
+        "side": {"enum": ["BUY", "SELL"]},
+        "quantity": {"type": "integer", "minimum": 1},
+        "price": {"type": "number", "exclusiveMinimum": 0},
+        "account_type": {"enum": ["CASH", "MARGIN", "UNKNOWN"]},
+        "source_ref": {"type": "string", "minLength": 1},
+        "session": {"enum": ["OPEN", "AM", "PM", "CLOSE", "NONE", "UNKNOWN"]}
+      },
+      "additionalProperties": true
+    },
+    "actualExecution": {
+      "type": "object",
+      "required": ["decision_ref", "security_code", "captured_at", "execution_status", "source_status", "fills"],
+      "properties": {
+        "execution_snapshot_id": {"type": "string", "minLength": 1},
+        "decision_ref": {"type": "string", "minLength": 1},
+        "security_code": {"type": "string", "minLength": 1},
+        "captured_at": {"type": "string", "format": "date-time"},
+        "actual_action": {"enum": ["BUY", "ADD", "REDUCE", "SELL", "SHORT_OPEN", "SHORT_ADD", "COVER", "UNKNOWN"]},
+        "execution_status": {"enum": ["NOT_EXECUTED", "PARTIAL", "EXECUTED", "UNKNOWN"]},
+        "source_status": {"enum": ["CURRENT", "STALE", "UNAVAILABLE", "UNKNOWN"]},
+        "fills": {"type": "array", "items": {"$ref": "#/$defs/fill"}},
+        "position_before_ref": {"type": ["string", "null"]},
+        "position_after_ref": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "fidelityResult": {
+      "type": "object",
+      "required": ["decision_ref", "execution_intent_id", "execution_snapshot_id", "overall", "dimensions", "deviations"],
+      "properties": {
+        "decision_ref": {"type": "string", "minLength": 1},
+        "execution_intent_id": {"type": "string", "minLength": 1},
+        "execution_snapshot_id": {"type": "string", "minLength": 1},
+        "overall": {"enum": ["MATCH", "PARTIAL_MATCH", "MISMATCH", "NOT_EXECUTED", "NOT_JUDGABLE", "UNKNOWN"]},
+        "dimensions": {"type": "object"},
+        "deviations": {
+          "type": "array",
+          "items": {"enum": ["ACTION_MISMATCH", "QUANTITY_MISMATCH", "PRICE_CONDITION_MISMATCH", "TIMING_CONDITION_MISMATCH", "ACCOUNT_TYPE_MISMATCH", "PARTIAL_FILL", "NOT_EXECUTED", "UNJOURNALED_EXECUTION", "UNKNOWN"]}
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
