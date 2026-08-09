@@ -102,6 +102,7 @@ class MoneyFlowHistoryTests(unittest.TestCase):
         self.assertEqual(metrics["selection_turnover_average"], 1.0)
 
     def test_turnover_zero_to_zero_is_zero_change(self):
+        # Two explicit snapshot days with empty selected sets mean no composition change.
         history = [
             snapshot("2026-08-03", "COLD", signal=False),
             snapshot("2026-08-04", "COLD", signal=False),
