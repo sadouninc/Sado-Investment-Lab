@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0",
+  "stages": [
+    {
+      "id": "stage_0",
+      "name": "Foundation",
+      "purpose": "Authority, team rules, shared contracts and operational safety.",
+      "knowledge_areas": ["00_Framework"],
+      "machine_areas": ["data/contracts", "data/config"],
+      "presentation_areas": [],
+      "related_issues": [148, 150],
+      "entry_conditions": [],
+      "done_conditions": [
+        {"id": "team_rules_authoritative", "description": "TEAM_RULES.md is the team authority."},
+        {"id": "broadcast_fail_closed", "description": "Broadcast reads are verified through the latest comment."}
+      ]
+    },
+    {
+      "id": "stage_1",
+      "name": "Portfolio / Data",
+      "purpose": "Maintain a reliable canonical portfolio and verified input data.",
+      "knowledge_areas": ["01_Portfolio"],
+      "machine_areas": ["data/portfolio", "data/generated"],
+      "presentation_areas": ["research/morning-dataset"],
+      "related_issues": [69, 97, 102, 103],
+      "entry_conditions": ["stage_0"],
+      "done_conditions": [
+        {"id": "portfolio_canonical", "description": "Canonical portfolio state exists."},
+        {"id": "weekly_sbi_verification", "description": "Weekly SBI verification is operational."},
+        {"id": "dataset_completeness", "description": "Morning dataset completeness is fail-closed."}
+      ]
+    },
+    {
+      "id": "stage_2",
+      "name": "Discovery",
+      "purpose": "Continuously identify what should be researched next.",
+      "knowledge_areas": ["02_Themes", "04_Market", "06_Research"],
+      "machine_areas": ["data/candidates", "data/config", "data/generated/public"],
+      "presentation_areas": ["market-analysis"],
+      "related_issues": [108, 112],
+      "entry_conditions": ["stage_1"],
+      "done_conditions": [
+        {"id": "candidate_selector_operational", "description": "Candidate Selector can generate research candidates."},
+        {"id": "owner_pick_supported", "description": "Owner Picks remain explicit and protected."},
+        {"id": "sector_flow_operational", "description": "Sector flow can be evaluated from market data."},
+        {"id": "theme_flow_operational", "description": "Theme flow can be evaluated from explicit membership."},
+        {"id": "research_handoff_e2e", "description": "Candidates can be handed to Company Research without identity guessing."}
+      ]
+    },
+    {
+      "id": "stage_3",
+      "name": "Research / Valuation",
+      "purpose": "Turn candidates into comparable company research and forward valuation scenarios.",
+      "knowledge_areas": ["03_Companies"],
+      "machine_areas": ["data/contracts", "data/generated"],
+      "presentation_areas": ["companies"],
+      "related_issues": [113, 117, 144, 151],
+      "entry_conditions": ["stage_2"],
+      "done_conditions": [
+        {"id": "company_research_pipeline", "description": "Comparable canonical Company Research is operational."},
+        {"id": "forward_valuation", "description": "Forward earnings and PER scenarios are operational."},
+        {"id": "evidence_provenance", "description": "Important facts can be traced to source evidence."}
+      ]
+    },
+    {
+      "id": "stage_4",
+      "name": "Hypothesis",
+      "purpose": "Track whether investment hypotheses remain intact, strengthen or break.",
+      "knowledge_areas": ["09_Hypothesis"],
+      "machine_areas": ["data/generated"],
+      "presentation_areas": [],
+      "related_issues": [130, 151],
+      "entry_conditions": ["stage_3"],
+      "done_conditions": [
+        {"id": "hypothesis_monitor", "description": "Hypothesis lifecycle and evidence review are operational."},
+        {"id": "checkpoint_calendar", "description": "Material hypothesis checkpoints are represented as shared events."}
+      ]
+    },
+    {
+      "id": "stage_5",
+      "name": "Investment Cockpit",
+      "purpose": "Show what needs attention now and what can safely be ignored.",
+      "knowledge_areas": [],
+      "machine_areas": ["data/generated/public"],
+      "presentation_areas": ["research", "architecture"],
+      "related_issues": [131, 141, 151, 152],
+      "entry_conditions": ["stage_3", "stage_4"],
+      "done_conditions": [
+        {"id": "coverage_map", "description": "Coverage state is projected without creating a new truth store."},
+        {"id": "review_engine", "description": "Daily review items are prioritized and deduplicated."},
+        {"id": "timeline", "description": "Today / next 7d / next 30d material events are visible."}
+      ]
+    },
+    {
+      "id": "stage_6",
+      "name": "Decision Memory",
+      "purpose": "Preserve decision-time reasoning without hindsight rewriting.",
+      "knowledge_areas": ["05_Decision_Log"],
+      "machine_areas": ["data/generated"],
+      "presentation_areas": ["companies"],
+      "related_issues": [133, 144, 151],
+      "entry_conditions": ["stage_3", "stage_4"],
+      "done_conditions": [
+        {"id": "decision_journal", "description": "Decision snapshots and later reviews are operational."},
+        {"id": "unjournaled_detection", "description": "Actual trades without journals can be detected."}
+      ]
+    },
+    {
+      "id": "stage_7",
+      "name": "Learning Loop",
+      "purpose": "Learn from repeated decision-process patterns and counterexamples.",
+      "knowledge_areas": ["08_Trade_Analysis"],
+      "machine_areas": ["data/generated"],
+      "presentation_areas": ["trade-analysis"],
+      "related_issues": [135],
+      "entry_conditions": ["stage_6"],
+      "done_conditions": [
+        {"id": "pattern_lab", "description": "Decision patterns are evaluated with small-sample safeguards and counterexamples."},
+        {"id": "contextual_guardrails", "description": "Actionable insights can return limited contextual questions to future decisions."}
+      ]
+    }
+  ]
+}
