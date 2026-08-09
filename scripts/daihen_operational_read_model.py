@@ -91,9 +91,17 @@ def _section(name: str, raw: Any) -> dict[str, Any]:
     if freshness not in FRESHNESS_STATUSES:
         raise DaihenOperationalReadModelError(f"unsupported {name}.freshness: {freshness}")
 
+    refs = _source_refs(out.get("source_refs"), f"{name}.source_refs")
+    if out.get("basis_conflict") is True:
+        status = "NEEDS_REVIEW"
+    elif freshness == "STALE" and status == "OK":
+        status = "PARTIAL"
+    elif status == "OK" and not refs:
+        status = "PARTIAL"
+
     out["status"] = status
     out["freshness"] = freshness
-    out["source_refs"] = _source_refs(out.get("source_refs"), f"{name}.source_refs")
+    out["source_refs"] = refs
     return out
 
 
