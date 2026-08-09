@@ -3,8 +3,9 @@ from __future__ import annotations
 import copy
 from typing import Any, Mapping
 
-from scripts.company_research import CompanyResearchRecord, build_forward_valuation_handoff, quality_gate_failures
+from scripts.company_research import CompanyResearchRecord, quality_gate_failures
 from scripts.company_research_queue import ResearchQueueRecord, ResearchQueueRegistry, complete_research, start_research
+from scripts.forward_per_research_adapter import ForwardPerAdapterError, research_to_simulator_input
 from scripts.forward_per_simulator import simulate
 
 
@@ -12,106 +13,39 @@ class InvestmentE2EError(ValueError):
     """Raised when the production-shaped E2E handoff cannot be proven safely."""
 
 
-_UNIT_MULTIPLIERS = {
-    "jpy": 1.0,
-    "million_jpy": 1_000_000.0,
-}
-
-
-def _single_target_fiscal_year(scenarios: Mapping[str, Any]) -> str:
-    years = {
-        str(item.get("target_fiscal_year"))
-        for item in scenarios.values()
-        if isinstance(item, Mapping) and item.get("target_fiscal_year")
-    }
-    if len(years) != 1:
-        raise InvestmentE2EError("Bear/Base/Bull target_fiscal_year must resolve to one explicit value")
-    return next(iter(years))
-
-
-def _single_share_basis(scenarios: Mapping[str, Any]) -> tuple[float, str | None, str | None]:
-    values: set[float] = set()
-    as_of_values: set[str] = set()
-    basis_values: set[str] = set()
-    for item in scenarios.values():
-        if not isinstance(item, Mapping) or item.get("unavailable_reason"):
-            continue
-        basis = item.get("share_basis")
-        if not isinstance(basis, Mapping) or basis.get("shares") is None:
-            raise InvestmentE2EError("explicit scenario share_basis.shares is required")
-        values.add(float(basis["shares"]))
-        if basis.get("as_of"):
-            as_of_values.add(str(basis["as_of"]))
-        if basis.get("basis"):
-            basis_values.add(str(basis["basis"]))
-    if len(values) != 1:
-        raise InvestmentE2EError("Bear/Base/Bull share basis mismatch")
-    return (
-        next(iter(values)),
-        next(iter(as_of_values)) if len(as_of_values) == 1 else None,
-        next(iter(basis_values)) if len(basis_values) == 1 else None,
-    )
-
-
 def build_simulator_input(
     research_raw: Mapping[str, Any],
     valuation_input: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Adapt Company Research to #117 without implicit unit or share-basis conversion."""
-    handoff = build_forward_valuation_handoff(research_raw)
-    unit = str(valuation_input.get("scenario_net_income_unit") or "")
-    multiplier = _UNIT_MULTIPLIERS.get(unit)
-    if multiplier is None:
-        raise InvestmentE2EError("explicit supported scenario_net_income_unit is required")
-    if not valuation_input.get("scenario_net_income_unit_source"):
-        raise InvestmentE2EError("scenario net-income unit provenance is required")
+    """Adapt Company Research to #117 through the canonical generic adapter.
 
+    Unit and share-basis normalization must be declared explicitly by the valuation
+    handoff metadata. The E2E path does not maintain a second conversion implementation.
+    """
     price = valuation_input.get("reference_price")
     if not isinstance(price, Mapping) or price.get("value_jpy") is None or not price.get("as_of") or not price.get("source"):
         raise InvestmentE2EError("reference price value/as_of/source are required")
+    if valuation_input.get("security_code") and valuation_input.get("security_code") != research_raw.get("security_code"):
+        raise InvestmentE2EError("research/valuation security_code mismatch")
 
-    shares, share_as_of, share_basis = _single_share_basis(handoff["scenarios"])
-    target_year = _single_target_fiscal_year(handoff["scenarios"])
-
-    scenarios: dict[str, Any] = {}
-    for name in ("bear", "base", "bull"):
-        source = handoff["scenarios"][name]
-        if source.get("unavailable_reason"):
-            scenarios[name] = copy.deepcopy(source)
-            continue
-        net_income = source.get("net_income")
-        scenarios[name] = {
-            "eps": source.get("eps"),
-            "net_income": None if net_income is None else float(net_income) * multiplier,
-            "assumptions": copy.deepcopy(source.get("assumptions") or []),
-            "confidence": research_raw["scenarios"][name].get("confidence"),
-            "provenance": {
-                "source_type": source.get("source_type"),
-                "source_refs": copy.deepcopy(source.get("source_refs") or []),
-                "scenario_as_of": source.get("as_of"),
-                "net_income_unit_input": unit,
-                "net_income_unit_output": "jpy",
-                "unit_source": valuation_input["scenario_net_income_unit_source"],
-            },
-        }
-
-    return {
-        "security_code": handoff["security_code"],
-        "company_name": handoff["company_name"],
-        "research_as_of": handoff["as_of"],
-        "target_fiscal_year": target_year,
-        "price": {
-            "value": float(price["value_jpy"]),
-            "as_of": str(price["as_of"]),
-            "source": str(price["source"]),
-        },
-        "share_basis": {
-            "diluted_shares": shares,
-            "as_of": share_as_of,
-            "assumption": share_basis,
-        },
-        "scenarios": scenarios,
+    normalization = {
+        "scenario_net_income_unit": valuation_input.get("scenario_net_income_unit"),
+        "scenario_net_income_unit_source": valuation_input.get("scenario_net_income_unit_source"),
+        "share_basis_field": valuation_input.get("share_basis_field"),
+        "share_basis_role": valuation_input.get("share_basis_role"),
     }
+    try:
+        return research_to_simulator_input(
+            research_raw,
+            price={
+                "value": float(price["value_jpy"]),
+                "as_of": str(price["as_of"]),
+                "source": str(price["source"]),
+            },
+            normalization=normalization,
+        )
+    except ForwardPerAdapterError as exc:
+        raise InvestmentE2EError(str(exc)) from exc
 
 
 def build_monitor_ready_hypothesis(
