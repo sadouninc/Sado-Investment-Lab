@@ -177,6 +177,9 @@ def compute_stability_metrics(history: Iterable[dict[str, Any]]) -> dict[str, An
     by_day: dict[str, set[str]] = defaultdict(set)
     for record in records:
         by_entity[(record["kind"], record["id"])].append(record)
+        # Every snapshot day participates in turnover, even when selection count is zero.
+        # This makes 1→0 and 0→1 explicit instead of silently dropping the zero day.
+        by_day[record["as_of"]]
         if record["selection_signal"]:
             by_day[record["as_of"]].add(f'{record["kind"]}:{record["id"]}')
 
@@ -203,8 +206,8 @@ def compute_stability_metrics(history: Iterable[dict[str, Any]]) -> dict[str, An
         previous = by_day[previous_day]
         current = by_day[current_day]
         union = previous | current
-        if union:
-            turnovers.append(1.0 - len(previous & current) / len(union))
+        # Jaccard turnover: if both days have zero selections there is no membership change.
+        turnovers.append(0.0 if not union else 1.0 - len(previous & current) / len(union))
 
     return {
         "snapshot_count": len(records),
