@@ -14,7 +14,7 @@ from scripts.expectation_revision import (
 )
 
 
-def snapshot(*, as_of: str = "2026-08-01", value=300.0, expectation_type: str = "CONSENSUS", metric: str = "EPS", unit: str = "JPY", status: str = "OK"):
+def snapshot(*, as_of: str = "2026-08-01", value=300.0, expectation_type: str = "CONSENSUS", metric: str = "EPS", unit: str = "JPY", status: str = "OK", observed_at: str | None = None):
     return {
         "security_code": "7974",
         "target_fiscal_period": "FY2027",
@@ -25,7 +25,7 @@ def snapshot(*, as_of: str = "2026-08-01", value=300.0, expectation_type: str = 
         "unit": unit,
         "source_ref": "fixture://consensus",
         "source_authority": "SECONDARY" if expectation_type == "CONSENSUS" else "INTERNAL",
-        "observed_at": f"{as_of}T09:00:00+09:00",
+        "observed_at": observed_at or f"{as_of}T09:00:00+09:00",
         "coverage": {"analyst_count": 10, "dispersion": None, "status": status},
         "provenance": {"fixture": True},
     }
@@ -87,6 +87,36 @@ class ExpectationRevisionTests(unittest.TestCase):
         guidance = validate_snapshot(snapshot(value=330, expectation_type="COMPANY_GUIDANCE"))
         sado = validate_snapshot(snapshot(value=500, expectation_type="SADO_SCENARIO"))
         self.assertEqual(len({consensus["expectation_id"], guidance["expectation_id"], sado["expectation_id"]}), 3)
+
+    def test_value_rejects_bool_numeric_string_nan_and_infinity(self):
+        invalid_values = [True, False, "300", float("nan"), float("inf"), float("-inf")]
+        for value in invalid_values:
+            with self.subTest(value=value):
+                with self.assertRaises(ExpectationContractError):
+                    validate_snapshot(snapshot(value=value))
+
+    def test_observed_at_requires_timezone_aware_iso8601(self):
+        with self.assertRaises(ExpectationContractError):
+            validate_snapshot(snapshot(observed_at="2026-08-01T09:00:00"))
+        with self.assertRaises(ExpectationContractError):
+            validate_snapshot(snapshot(observed_at="not-a-datetime"))
+        self.assertEqual(
+            validate_snapshot(snapshot(observed_at="2026-08-01T00:00:00Z"))["observed_at"],
+            "2026-08-01T00:00:00Z",
+        )
+        self.assertEqual(
+            validate_snapshot(snapshot(observed_at="2026-08-01T09:00:00+09:00"))["observed_at"],
+            "2026-08-01T09:00:00+09:00",
+        )
+
+    def test_unit_is_limited_to_canonical_enum(self):
+        for unit in ("JPY", "JPY_MN", "%", "COUNT", "OTHER"):
+            with self.subTest(unit=unit):
+                self.assertEqual(validate_snapshot(snapshot(unit=unit))["unit"], unit)
+        for unit in ("USD", "jpy", "", "UNKNOWN"):
+            with self.subTest(unit=unit):
+                with self.assertRaises(ExpectationContractError):
+                    validate_snapshot(snapshot(unit=unit))
 
 
 if __name__ == "__main__":
