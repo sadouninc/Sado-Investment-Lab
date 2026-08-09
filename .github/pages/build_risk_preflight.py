@@ -100,3 +100,9 @@ def build() -> None:
 
 if __name__ == "__main__":
     build()
+
+    # #257 PR-B is another presentation-only page. Keep the workflow entry point
+    # stable while generating both post-build Pages artifacts.
+    from build_daihen_cockpit import build as build_daihen_cockpit
+
+    build_daihen_cockpit()
