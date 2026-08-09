@@ -69,12 +69,6 @@ def build_driver_revision_context(
     reasoning: str,
     trigger_type: str = "KPI",
 ) -> dict[str, Any]:
-    """Build #183-compatible context from explicit driver-model changes.
-
-    This adapter does not write the Revision Ledger and does not change scenario values.
-    It only explains which driver nodes changed and how scenario outputs may be affected.
-    """
-
     security_code, fiscal_year = _validate_same_model(before, after)
     before_nodes = _node_map(before)
     after_nodes = _node_map(after)
@@ -144,7 +138,7 @@ def build_driver_revision_context(
         "evidence_refs": copy.deepcopy(evidence_refs),
         "materiality": "MATERIAL",
         "author_type": "ANALYST",
-        "as_of": revised_at_text,
+        "as_of": revised_at_text.split("T", 1)[0],
         "driver_revision_context_id": f"driver-revision:{security_code}:{digest}",
     }
     return {
@@ -166,13 +160,6 @@ def build_scenario_review_signal(
     observed_at: str,
     note: str,
 ) -> dict[str, Any]:
-    """Map explicit KPI evidence to affected driver nodes without changing earnings.
-
-    WEAKENS/INVALIDATES and material SUPPORTS observations require a scenario review;
-    NEUTRAL remains recorded but does not trigger one. The caller must explicitly name
-    affected nodes; this adapter never infers a KPI→earnings relationship.
-    """
-
     security_code = _required_text(model.get("security_code"), "model.security_code")
     fiscal_year = _required_text(model.get("target_fiscal_year"), "model.target_fiscal_year")
     nodes = _node_map(model)
