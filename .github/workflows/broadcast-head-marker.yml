@@ -1,0 +1,69 @@
+name: Broadcast Head Marker
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: broadcast-head-marker
+  cancel-in-progress: true
+
+jobs:
+  update-broadcast-head:
+    if: github.event.issue.number == 99
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+
+      - name: Fetch authoritative Issue #99 state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/issues/99" --jq '.body' > /tmp/broadcast-body.md
+          gh api "repos/${GITHUB_REPOSITORY}/issues/99" --jq '.comments' > /tmp/broadcast-comments.txt
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/99/comments?per_page=100" --jq '.[].id' > /tmp/broadcast-comment-ids.txt
+
+          comments="$(cat /tmp/broadcast-comments.txt)"
+          latest_id="$(tail -n 1 /tmp/broadcast-comment-ids.txt)"
+          actual_count="$(wc -l < /tmp/broadcast-comment-ids.txt | tr -d ' ')"
+
+          test -n "$latest_id"
+          test "$comments" -eq "$actual_count"
+
+          echo "BROADCAST_COMMENTS=$comments" >> "$GITHUB_ENV"
+          echo "BROADCAST_LATEST_ID=$latest_id" >> "$GITHUB_ENV"
+
+      - name: Replace marker fail-closed
+        run: |
+          set -euo pipefail
+          python scripts/update_broadcast_head.py \
+            --body-file /tmp/broadcast-body.md \
+            --output-file /tmp/broadcast-body.updated.md \
+            --comment-id "$BROADCAST_LATEST_ID" \
+            --comments "$BROADCAST_COMMENTS"
+
+      - name: Persist marker only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api \
+            --method PATCH \
+            "repos/${GITHUB_REPOSITORY}/issues/99" \
+            -f body="$(cat /tmp/broadcast-body.updated.md)" \
+            >/dev/null
+
+      - name: Verify persisted marker
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          body="$(gh api "repos/${GITHUB_REPOSITORY}/issues/99" --jq '.body')"
+          marker="<!-- broadcast-head: comment_id=${BROADCAST_LATEST_ID} comments=${BROADCAST_COMMENTS} -->"
+          printf '%s' "$body" | grep -F -- "$marker" >/dev/null
