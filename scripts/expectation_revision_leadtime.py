@@ -11,9 +11,6 @@ class RevisionLeadTimeError(ValueError):
     """Raised when Sado-vs-consensus revision timing cannot be compared safely."""
 
 
-SUPPORTED_DIRECTIONS = {"UP", "DOWN", "FLAT"}
-
-
 def _dt(value: Any, field: str) -> datetime:
     text = str(value or "").strip()
     if not text:
@@ -111,16 +108,19 @@ def measure_revision_lead_time(
 
     change = _mapped_change(revision, mapping)
     sado_direction = _direction(change.get("before"), change.get("after"))
+    if sado_direction == "FLAT":
+        raise RevisionLeadTimeError("unchanged Sado value is not a revision lead-time event")
+
     revised_at = _dt(revision.get("revised_at"), "revised_at")
     consensus = _consensus_revisions(expectation_history, mapping=mapping, entity_id=entity_id)
 
-    prior_same_direction = [
+    prior_revisions = [
         row for row in consensus
-        if _dt(row["observed_at"], "observed_at") <= revised_at and row["direction"] == sado_direction
+        if _dt(row["observed_at"], "observed_at") <= revised_at
     ]
-    if prior_same_direction:
-        latest = prior_same_direction[-1]
-        lag_hours = (revised_at - _dt(latest["observed_at"], "observed_at")).total_seconds() / 3600.0
+    latest_prior = prior_revisions[-1] if prior_revisions else None
+    if latest_prior is not None and latest_prior["direction"] == sado_direction:
+        lag_hours = (revised_at - _dt(latest_prior["observed_at"], "observed_at")).total_seconds() / 3600.0
         return {
             "security_code": entity_id,
             "revision_id": revision["revision_id"],
@@ -131,11 +131,11 @@ def measure_revision_lead_time(
             "sado_direction": sado_direction,
             "sado_revised_at": revision["revised_at"],
             "status": "CONSENSUS_ALREADY_MOVED",
-            "matching_consensus_revision_ref": latest["to_ref"],
-            "matching_consensus_observed_at": latest["observed_at"],
+            "matching_consensus_revision_ref": latest_prior["to_ref"],
+            "matching_consensus_observed_at": latest_prior["observed_at"],
             "lead_time_hours": None,
             "consensus_lead_hours": round(lag_hours, 6),
-            "interpretation": "Consensus had already revised in the same direction before or at the Sado revision; do not classify as Sado-led.",
+            "interpretation": "The latest consensus revision before or at the Sado revision was already in the same direction; do not classify as Sado-led.",
         }
 
     later_same_direction = [
