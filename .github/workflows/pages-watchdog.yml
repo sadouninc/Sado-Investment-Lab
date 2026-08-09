@@ -64,25 +64,23 @@ jobs:
             fi
 
             run_url="https://github.com/${repo}/actions/runs/${run_id}"
-            body="$(cat <<EOF
-${marker}
-担当: 🌊ナギ
-種別: Pages Watchdog / Reliability Alert
-
-⚠️ \`Publish Sado Investment Lab\` のrunが想定時間を超えて継続しています。
-
-- run: #${run_number} (${run_id})
-- started_at: ${started_at}
-- age_minutes: ${age_minutes}
-- threshold_minutes: ${threshold}
-- head_sha: ${head_sha}
-- run_url: ${run_url}
-
-最新runを長時間塞ぐ可能性があるため、Actions上のjob状態・cancel/timeout動作を確認してください。
-
-Issue #79には触れていません。
-EOF
-)"
+            body="$(printf '%s\n' \
+              "$marker" \
+              '担当: 🌊ナギ' \
+              '種別: Pages Watchdog / Reliability Alert' \
+              '' \
+              '⚠️ `Publish Sado Investment Lab` のrunが想定時間を超えて継続しています。' \
+              '' \
+              "- run: #${run_number} (${run_id})" \
+              "- started_at: ${started_at}" \
+              "- age_minutes: ${age_minutes}" \
+              "- threshold_minutes: ${threshold}" \
+              "- head_sha: ${head_sha}" \
+              "- run_url: ${run_url}" \
+              '' \
+              '最新runを長時間塞ぐ可能性があるため、Actions上のjob状態・cancel/timeout動作を確認してください。' \
+              '' \
+              'Issue #79には触れていません。')"
             gh issue comment "$issue" --repo "$repo" --body "$body"
           done < <(
             jq -r '.workflow_runs[] | [.id, .run_number, (.run_started_at // .created_at), .head_sha] | @tsv' <<<"$runs_json"
