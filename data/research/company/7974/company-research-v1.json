@@ -1,0 +1,216 @@
+{
+  "security_code": "7974",
+  "company_name": "任天堂株式会社",
+  "as_of": "2026-08-09",
+  "status": "CURRENT",
+  "selection_context": {
+    "candidate_sources": [
+      "MONEY_FLOW_THEME_MEMBERSHIP",
+      "E2E_VALIDATION_GATE"
+    ],
+    "selection_reason": "#172 First E2Eのprovisional validation company。Gaming themeの明示memberでsecurity_codeが確定し、2027年3月期1Qの一次IRで最新業績・通期会社予想・株式数を検証可能なため。",
+    "owner_pick": false,
+    "candidate_as_of": "2026-08-09",
+    "research_status_before": "NOT_STARTED",
+    "research_gap": "HIGH",
+    "money_flow_context": {
+      "theme_id": "gaming",
+      "membership_source": "#112 Theme Membership",
+      "state": "UNKNOWN",
+      "note": "Theme membershipのみをprovenanceとして保持。WARMING/INFLOWを推測しない。"
+    },
+    "research_gate": {
+      "command": "START_RESEARCH",
+      "approved": true,
+      "approved_at": "2026-08-09",
+      "authority_ref": "issue:175"
+    },
+    "provenance_refs": [
+      "issue:172#issuecomment-5229456371",
+      "issue:175#issuecomment-5229733989",
+      "issue:112"
+    ]
+  },
+  "facts": {
+    "business_summary": {
+      "statement": "ゲーム専用機を中核に、ハードウェア、ソフトウェア、デジタル販売、IP関連収入を展開するエンターテインメント事業。",
+      "source_ref": "https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf",
+      "as_of": "2026-08-06"
+    },
+    "latest_financials": {
+      "period": "FY2027_Q1",
+      "period_end": "2026-06-30",
+      "revenue_million_jpy": 517813,
+      "operating_profit_million_jpy": 142596,
+      "ordinary_profit_million_jpy": 206150,
+      "net_income_attributable_million_jpy": 147423,
+      "eps_jpy": 127.88,
+      "source_ref": "https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf",
+      "as_of": "2026-08-06"
+    },
+    "earnings_engine": {
+      "observed_drivers": [
+        "Nintendo Switch 2 hardware unit sales",
+        "Nintendo Switch 2 / Nintendo Switch software unit sales and software mix",
+        "digital sales",
+        "IP-related revenue"
+      ],
+      "q1_observations": {
+        "switch2_hardware_million_units": 3.82,
+        "switch2_software_million_units": 9.46,
+        "switch_hardware_million_units": 0.66,
+        "switch_software_million_units": 33.81,
+        "digital_sales_million_jpy": 132700,
+        "ip_related_sales_million_jpy": 34800
+      },
+      "company_guidance_fy2027": {
+        "revenue_million_jpy": 2050000,
+        "operating_profit_million_jpy": 370000,
+        "ordinary_profit_million_jpy": 430000,
+        "net_income_million_jpy": 310000,
+        "eps_jpy": 268.90,
+        "guidance_revised_at_q1": false
+      },
+      "source_ref": "https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf",
+      "as_of": "2026-08-06"
+    },
+    "share_basis": {
+      "issued_shares_including_treasury": 1287260000,
+      "treasury_shares": 134431384,
+      "shares_ex_treasury": 1152828616,
+      "q1_weighted_average_shares": 1152828655,
+      "source_ref": "https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf",
+      "as_of": "2026-06-30"
+    }
+  },
+  "interpretation": {
+    "growth_drivers": [
+      {
+        "statement": "Switch 2の普及継続とソフト販売・デジタル比率の組み合わせが、ハード単体より利益率を左右する主要driverになりうる。",
+        "evidence_refs": ["https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf"],
+        "type": "INTERPRETATION"
+      },
+      {
+        "statement": "旧Switchの大きな普及基盤とSwitch 2の後方互換が、旧世代ソフトの継続販売を支える可能性がある。",
+        "evidence_refs": ["https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf"],
+        "type": "INTERPRETATION"
+      }
+    ],
+    "risks": [
+      {
+        "statement": "Switch 2 hardware momentumや新作software sell-throughが会社想定を下回る場合、platform cycleの利益成長仮説が弱まる。",
+        "evidence_refs": ["https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf"],
+        "type": "INTERPRETATION"
+      },
+      {
+        "statement": "Q1営業利益には米国IEEPA関税還付の寄与が含まれるため、その一時要因を通期run-rateへ単純外挿しない。",
+        "evidence_refs": ["https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf"],
+        "type": "INTERPRETATION"
+      }
+    ],
+    "valuation_context": {
+      "price": null,
+      "price_as_of": null,
+      "note": "Market priceはResearch Factと別authority。#117側で最新priceを取得して評価する。"
+    }
+  },
+  "scenarios": {
+    "bear": {
+      "target_fiscal_year": "FY2027",
+      "revenue": 1900000,
+      "operating_profit": 300000,
+      "net_income": 260000,
+      "eps": null,
+      "share_basis": {
+        "shares": 1152828616,
+        "basis": "Q1 period-end issued less treasury",
+        "as_of": "2026-06-30"
+      },
+      "assumptions": [
+        "Switch 2 hardware/software sell-through slows versus company plan",
+        "software mix benefit is weaker than Q1",
+        "Q1 tariff refund benefit is not repeated"
+      ],
+      "confidence": "LOW",
+      "source_type": "SADO_BEAR",
+      "source_refs": ["https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf"],
+      "as_of": "2026-08-09"
+    },
+    "base": {
+      "target_fiscal_year": "FY2027",
+      "revenue": 2070000,
+      "operating_profit": 390000,
+      "net_income": 330000,
+      "eps": null,
+      "share_basis": {
+        "shares": 1152828616,
+        "basis": "Q1 period-end issued less treasury",
+        "as_of": "2026-06-30"
+      },
+      "assumptions": [
+        "Company guidance is the factual anchor, not the Sado Base itself",
+        "Switch 2 adoption and software mix remain broadly on plan",
+        "software/digital mix offsets part of hardware margin pressure",
+        "Q1 tariff refund benefit is not extrapolated as recurring"
+      ],
+      "confidence": "MEDIUM",
+      "source_type": "SADO_BASE",
+      "source_refs": ["https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf"],
+      "as_of": "2026-08-09"
+    },
+    "bull": {
+      "target_fiscal_year": "FY2027",
+      "revenue": 2250000,
+      "operating_profit": 470000,
+      "net_income": 390000,
+      "eps": null,
+      "share_basis": {
+        "shares": 1152828616,
+        "basis": "Q1 period-end issued less treasury",
+        "as_of": "2026-06-30"
+      },
+      "assumptions": [
+        "Switch 2 installed base expands faster than company planning assumptions",
+        "first-party software attach and digital mix remain strong",
+        "IP-related revenue contributes above the company guidance anchor",
+        "Q1 tariff refund is treated as non-recurring"
+      ],
+      "confidence": "LOW",
+      "source_type": "SADO_BULL",
+      "source_refs": ["https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf"],
+      "as_of": "2026-08-09"
+    }
+  },
+  "hypothesis": {
+    "what_market_may_be_underestimating": "Switch 2のハード販売台数そのものより、普及後のsoftware attach・digital mix・旧Switch資産の継続収益化が利益の持続性を高める可能性。",
+    "must_happen": [
+      "Switch 2 installed baseが継続拡大する",
+      "first-party / third-party software sell-throughがplatform拡大に追随する",
+      "software/digital mixが利益率を支える"
+    ],
+    "key_kpis": [
+      "Switch 2 hardware unit sales",
+      "Switch 2 software unit sales",
+      "Nintendo Switch software unit sales",
+      "digital sales",
+      "operating margin"
+    ],
+    "invalidation_conditions": [
+      "Switch 2 hardware sell-throughが会社計画を継続的に下回る",
+      "software attachが弱くhardware普及が利益成長へつながらない",
+      "利益率改善の大半が一時要因で、software mixによる持続性を確認できない"
+    ],
+    "expected_time_horizon": "FY2027-FY2028",
+    "current_confidence": "MEDIUM",
+    "checkpoint": [
+      "FY2027 Q2 earnings",
+      "FY2027 full-year earnings"
+    ],
+    "source_refs": ["https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf"]
+  },
+  "source_refs": [
+    "https://www.nintendo.co.jp/ir/pdf/2026/260806.pdf",
+    "https://www.nintendo.co.jp/ir/pdf/2026/260806_2.pdf"
+  ],
+  "data_completeness": "COMPLETE"
+}
