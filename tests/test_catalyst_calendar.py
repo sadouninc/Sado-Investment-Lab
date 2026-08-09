@@ -91,6 +91,34 @@ class CatalystCalendarTests(unittest.TestCase):
         self.assertEqual(len(moved.schedule_history), 1)
         self.assertEqual(moved.schedule_history[0].scheduled_at, "2026-11-05T15:00:00+09:00")
         self.assertEqual(moved.schedule_history[0].status, "DELAYED")
+        self.assertEqual(moved.schedule_history[0].reason, "company postponed announcement")
+
+    def test_reschedule_fails_closed_outside_scheduled_state(self):
+        schedule = {"date_precision": "DATETIME", "scheduled_at": "2026-11-07T15:00:00+09:00"}
+        changed_at = "2026-10-20T09:00:00+09:00"
+        for status in (
+            "DISCOVERED",
+            "UNKNOWN",
+            "DELAYED",
+            "OCCURRED",
+            "HANDLED",
+            "CANCELLED",
+        ):
+            with self.subTest(status=status):
+                event = self._event(status=status)
+                with self.assertRaises(CalendarValidationError):
+                    reschedule_event(event, schedule, changed_at=changed_at)
+
+    def test_handled_event_cannot_be_rescheduled_or_reopened(self):
+        handled = mark_handled(mark_occurred(self._event()))
+        with self.assertRaises(CalendarValidationError):
+            reschedule_event(
+                handled,
+                {"date_precision": "DATETIME", "scheduled_at": "2026-11-07T15:00:00+09:00"},
+                changed_at="2026-11-06T09:00:00+09:00",
+            )
+        self.assertEqual(handled.status, "HANDLED")
+        self.assertEqual(handled.schedule_history, ())
 
     def test_occurred_does_not_equal_handled(self):
         event = mark_occurred(self._event())
