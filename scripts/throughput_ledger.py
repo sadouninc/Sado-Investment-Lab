@@ -37,11 +37,14 @@ def validate_record(record: dict[str, Any]) -> dict[str, Any]:
             raise ValueError(f"{name} must be a list of non-empty strings")
     if not isinstance(record["wait_reused"], bool):
         raise ValueError("wait_reused must be boolean")
-    reason = record.get("wait_not_reused_reason", "NOT_APPLICABLE")
-    if not record["wait_reused"] and reason not in WAIT_REASONS - {"NOT_APPLICABLE"}:
+    reason = record.get("wait_not_reused_reason")
+    if record["wait_reused"]:
+        if not record["wait_reuse_work"]:
+            raise ValueError("wait_reuse_work required when wait_reused=true")
+        if reason is not None:
+            raise ValueError("wait_not_reused_reason must be omitted when wait_reused=true")
+    elif reason not in WAIT_REASONS:
         raise ValueError("wait_not_reused_reason required when wait_reused=false")
-    if record["wait_reused"] and not record["wait_reuse_work"]:
-        raise ValueError("wait_reuse_work required when wait_reused=true")
     if not isinstance(record["run_at"], str) or not record["run_at"]:
         raise ValueError("run_at required")
     return record
@@ -80,6 +83,7 @@ def summarize(path: Path) -> dict[str, Any]:
         "reviews_completed": sum(row.get("reviews_completed", 0) for row in rows),
         "blocked_items": sum(row.get("blocked_items", 0) for row in rows),
         "wait_reused_runs": sum(1 for row in rows if row.get("wait_reused")),
+        "wait_eligible_runs": sum(1 for row in rows if row.get("wait_reused") or row.get("wait_not_reused_reason") != "NOT_APPLICABLE"),
         "quality_gate_counts": {gate: sum(1 for row in rows if row.get("quality_gate") == gate) for gate in sorted(QUALITY_GATES)},
     }
 
