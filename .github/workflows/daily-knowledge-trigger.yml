@@ -116,19 +116,23 @@ jobs:
           set -euo pipefail
           target="$(python3 -c "import json; print(json.load(open('data/generated/diagnostics/daily-knowledge/trade-journal-result.json'))['target_file'])")"
           unresolved="$(python3 -c "import json; print(len(json.load(open('data/generated/diagnostics/daily-knowledge/trade-journal-result.json'))['unresolved']))")"
-          url="$(gh pr create --base main --head "$BRANCH" --title "Integrate Daily Knowledge from issue #${ISSUE}" --body "## Daily Knowledge Integration
+          body="$RUNNER_TEMP/daily-knowledge-pr-body.md"
+          cat > "$body" <<EOF
+          ## Daily Knowledge Integration
 
-Source: #${ISSUE}
+          Source: #${ISSUE}
 
-- Trade Journal target: \`${target}\`
-- Unresolved items kept non-canonical: ${unresolved}
-- Investor DNA / Framework / Companies remain proposal-only in this MVP.
-- Exact SBI CSV-derived trade facts remain authoritative.
-- Unit tests ran before branch creation.
+          - Trade Journal target: \`${target}\`
+          - Unresolved items kept non-canonical: ${unresolved}
+          - Investor DNA / Framework / Companies remain proposal-only in this MVP.
+          - Exact SBI CSV-derived trade facts remain authoritative.
+          - Unit tests ran before branch creation.
 
-Human review is required before merge.
+          Human review is required before merge.
 
-Refs #75")"
+          Refs #75
+          EOF
+          url="$(gh pr create --base main --head "$BRANCH" --title "Integrate Daily Knowledge from issue #${ISSUE}" --body-file "$body")"
           gh issue comment "$ISSUE" --body "Daily Knowledge Integrator created a review PR: ${url}"
 
       - name: Report no repository change
