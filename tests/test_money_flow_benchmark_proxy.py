@@ -5,10 +5,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from scripts.money_flow_canonical_run import latest_market_date
+from scripts.money_flow_sector_adapter import load_sector_config
 from scripts.money_flow_theme_adapter import load_theme_config
 
 
-CONFIG_PATH = Path("data/config/money-flow-themes-v1.json")
+THEME_CONFIG_PATH = Path("data/config/money-flow-themes-v1.json")
+SECTOR_CONFIG_PATH = Path("data/config/money-flow-sector-v1.json")
 
 
 def chart() -> dict:
@@ -29,18 +31,19 @@ def chart() -> dict:
 
 
 class MoneyFlowBenchmarkProxyTests(unittest.TestCase):
-    def test_production_config_uses_explicit_topix_etf_proxy(self):
-        config = load_theme_config(CONFIG_PATH)
-        benchmark = config["benchmark"]
+    def test_production_configs_use_same_explicit_topix_etf_proxy(self):
+        theme = load_theme_config(THEME_CONFIG_PATH)["benchmark"]
+        sector = load_sector_config(SECTOR_CONFIG_PATH)["benchmark"]
 
-        self.assertEqual(benchmark["symbol"], "1306.T")
-        self.assertTrue(benchmark["proxy"])
-        self.assertIn("TOPIX", benchmark["tracks"])
-        self.assertTrue(benchmark["authority"])
-        self.assertTrue(benchmark["limitation"])
+        self.assertEqual(theme, sector)
+        self.assertEqual(theme["symbol"], "1306.T")
+        self.assertTrue(theme["proxy"])
+        self.assertIn("TOPIX", theme["tracks"])
+        self.assertTrue(theme["authority"])
+        self.assertTrue(theme["limitation"])
 
     def test_latest_market_date_uses_configured_proxy_without_hidden_fallback(self):
-        config = load_theme_config(CONFIG_PATH)
+        config = load_theme_config(THEME_CONFIG_PATH)
         requested_symbols: list[str] = []
 
         def fetcher(symbol: str, range_: str, interval: str) -> dict:
@@ -55,7 +58,7 @@ class MoneyFlowBenchmarkProxyTests(unittest.TestCase):
         self.assertEqual(requested_symbols, ["1306.T"])
 
     def test_proxy_metadata_prevents_index_identity_ambiguity(self):
-        config = load_theme_config(CONFIG_PATH)
+        config = load_theme_config(THEME_CONFIG_PATH)
         benchmark = config["benchmark"]
 
         self.assertNotEqual(benchmark["name"], "TOPIX")
