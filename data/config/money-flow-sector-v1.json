@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "taxonomy": "TOPIX-17 ETF proxy",
+  "benchmark": {"name": "TOPIX", "symbol": "^TOPX"},
+  "history_range": "6mo",
+  "interval": "1d",
+  "windows": {"short": 5, "medium": 20, "long": 60, "activity_short": 5, "activity_baseline": 20},
+  "scoring": {
+    "relative_strength_points_per_pct": 4.0,
+    "acceleration_points_per_pct": 4.0,
+    "activity_points_per_ratio": 40.0,
+    "heat_points_per_pct": 3.0
+  },
+  "sectors": [
+    {"id": "sector:foods", "name": "Foods", "symbol": "1617.T"},
+    {"id": "sector:energy-resources", "name": "Energy Resources", "symbol": "1618.T"},
+    {"id": "sector:construction-materials", "name": "Construction & Materials", "symbol": "1619.T"},
+    {"id": "sector:raw-materials-chemicals", "name": "Raw Materials & Chemicals", "symbol": "1620.T"},
+    {"id": "sector:pharmaceutical", "name": "Pharmaceutical", "symbol": "1621.T"},
+    {"id": "sector:automobiles-transportation-equipment", "name": "Automobiles & Transportation Equipment", "symbol": "1622.T"},
+    {"id": "sector:steel-nonferrous", "name": "Steel & Nonferrous Metals", "symbol": "1623.T"},
+    {"id": "sector:machinery", "name": "Machinery", "symbol": "1624.T"},
+    {"id": "sector:electric-appliances-precision", "name": "Electric Appliances & Precision Instruments", "symbol": "1625.T"},
+    {"id": "sector:it-services", "name": "IT & Services", "symbol": "1626.T"},
+    {"id": "sector:electric-power-gas", "name": "Electric Power & Gas", "symbol": "1627.T"},
+    {"id": "sector:transportation-logistics", "name": "Transportation & Logistics", "symbol": "1628.T"},
+    {"id": "sector:commercial-wholesale", "name": "Commercial & Wholesale Trade", "symbol": "1629.T"},
+    {"id": "sector:retail", "name": "Retail Trade", "symbol": "1630.T"},
+    {"id": "sector:banks", "name": "Banks", "symbol": "1631.T"},
+    {"id": "sector:financial-ex-banks", "name": "Financials ex Banks", "symbol": "1632.T"},
+    {"id": "sector:real-estate", "name": "Real Estate", "symbol": "1633.T"}
+  ]
+}
