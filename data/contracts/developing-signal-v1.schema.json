@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sadouninc.github.io/Sado-Investment-Lab/contracts/developing-signal-v1.schema.json",
+  "title": "Sado Investment Lab Developing Signal v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "signal_key", "signal_id", "title", "signal_type", "status", "direction",
+    "first_observed_at", "last_observed_at", "created_by", "summary",
+    "why_it_may_matter", "source_refs", "related_entities", "observations"
+  ],
+  "properties": {
+    "signal_key": {"type": "string", "minLength": 1},
+    "signal_id": {"type": "string", "pattern": "^signal:"},
+    "title": {"type": "string", "minLength": 1},
+    "signal_type": {"enum": ["MARKET", "COMPANY", "THEME", "KEY_PERSON", "POLICY", "TECHNOLOGY", "SUPPLY_CHAIN", "MACRO", "OTHER"]},
+    "status": {"enum": ["WATCHING", "STRENGTHENING", "WEAKENING", "MIXED", "PROMOTED", "DISMISSED", "EXPIRED", "SUPERSEDED"]},
+    "direction": {"enum": ["STRENGTHENING", "WEAKENING", "MIXED", "UNKNOWN"]},
+    "first_observed_at": {"type": "string", "format": "date-time"},
+    "last_observed_at": {"type": "string", "format": "date-time"},
+    "created_by": {"type": "string", "minLength": 1},
+    "summary": {"type": "string", "minLength": 1},
+    "why_it_may_matter": {"type": "string", "minLength": 1},
+    "source_refs": {"type": "array", "items": {"type": ["string", "null"]}},
+    "related_entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id"],
+        "properties": {"type": {"type": "string", "minLength": 1}, "id": {"type": "string", "minLength": 1}}
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["observed_at", "observation", "effect", "actor"],
+        "properties": {
+          "observed_at": {"type": "string", "format": "date-time"},
+          "source_ref": {"type": ["string", "null"]},
+          "observation": {"type": "string", "minLength": 1},
+          "interpretation": {"type": ["string", "null"]},
+          "effect": {"enum": ["STRENGTHENS", "WEAKENS", "NEUTRAL", "CONFLICTS"]},
+          "actor": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "next_checkpoint": {"type": ["string", "null"], "format": "date-time"},
+    "expires_at": {"type": ["string", "null"], "format": "date-time"},
+    "checkpoint_reason": {"type": ["string", "null"]},
+    "promotion_ref": {"type": ["string", "null"]},
+    "promoted_at": {"type": ["string", "null"], "format": "date-time"},
+    "resolved_at": {"type": ["string", "null"], "format": "date-time"},
+    "resolution_reason": {"type": ["string", "null"]},
+    "superseded_by": {"type": ["string", "null"]},
+    "duplicate_state": {"enum": ["UNIQUE", "POSSIBLE_DUPLICATE"]},
+    "possible_duplicate_refs": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  }
+}
