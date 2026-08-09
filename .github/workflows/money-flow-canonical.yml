@@ -1,0 +1,90 @@
+name: Money Flow Canonical Run
+
+on:
+  schedule:
+    # 17:30 JST, Monday-Friday. Exchange holidays are rejected by the market-session guard.
+    - cron: '30 8 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      as_of:
+        description: 'YYYY-MM-DD (JST). Empty uses current JST date.'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: money-flow-canonical-run
+  cancel-in-progress: false
+
+jobs:
+  canonical-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Resolve JST date
+        id: date
+        env:
+          INPUT_AS_OF: ${{ inputs.as_of }}
+        run: |
+          if [ -n "$INPUT_AS_OF" ]; then
+            AS_OF="$INPUT_AS_OF"
+          else
+            AS_OF="$(TZ=Asia/Tokyo date +%F)"
+          fi
+          python - <<'PY' "$AS_OF"
+          import datetime, sys
+          datetime.date.fromisoformat(sys.argv[1])
+          PY
+          echo "as_of=$AS_OF" >> "$GITHUB_OUTPUT"
+
+      - name: Run guarded canonical snapshot
+        id: run
+        run: |
+          set -o pipefail
+          python -m scripts.money_flow_scheduled_run --as-of '${{ steps.date.outputs.as_of }}' | tee /tmp/money-flow-run.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path('/tmp/money-flow-run.json').read_text())
+          with open(Path(__import__('os').environ['GITHUB_OUTPUT']), 'a', encoding='utf-8') as fh:
+              fh.write(f"status={payload['status']}\n")
+              fh.write(f"reason={payload['guard']['reason']}\n")
+          PY
+
+      - name: Persist canonical history
+        if: steps.run.outputs.status == 'COMPLETED'
+        run: |
+          git add data/generated/public/money-flow/history.jsonl
+          if git diff --cached --quiet; then
+            echo 'No canonical history change (idempotent rerun).'
+            exit 0
+          fi
+          git config user.name 'sado-investment-lab-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git commit -m 'data: update canonical Money Flow history (${{ steps.date.outputs.as_of }})'
+          git push origin HEAD:main
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo '## Money Flow Canonical Run'
+            echo '- as_of: `${{ steps.date.outputs.as_of }}`'
+            echo '- status: `${{ steps.run.outputs.status }}`'
+            echo '- guard: `${{ steps.run.outputs.reason }}`'
+            echo '- theme: `theme:ai-data-center-power-infrastructure`'
+            echo ''
+            echo 'Exchange holidays and stale market sessions are skipped rather than persisted as a new day.'
+          } >> "$GITHUB_STEP_SUMMARY"
