@@ -36,7 +36,15 @@ def row(
     }
 
 
-def portfolio(snapshot_id, positions, status="VERIFIED", as_of="2026-08-09"):
+def portfolio(snapshot_id, positions, status="VERIFIED", as_of=None):
+    if as_of is None:
+        lowered = snapshot_id.lower()
+        if lowered.startswith(("before", "b")):
+            as_of = "2026-08-08"
+        elif lowered.startswith(("after", "a")):
+            as_of = "2026-08-10"
+        else:
+            as_of = "2026-08-09"
     return {
         "as_of": as_of,
         "verification_status": status,
@@ -171,6 +179,67 @@ def test_position_mismatch_is_diagnostic_not_rewritten_execution():
     assert actual["fills"][0]["side"] == "BUY"
     assert actual["actual_action"] == "UNKNOWN"
     assert actual["portfolio_verification"]["status"] == "MISMATCH"
+
+
+def test_buy_100_delta_plus_1_is_not_consistent():
+    actual = build_with(
+        row("qty-buy", quantity=100),
+        portfolio("before", []),
+        portfolio("after", [pos(quantity=1)]),
+    )
+    assert actual["portfolio_verification"]["status"] == "MISMATCH"
+    assert actual["portfolio_verification"]["execution_quantity"] == 100
+    assert actual["portfolio_verification"]["position_delta"] == 1
+    assert actual["actual_action"] == "UNKNOWN"
+
+
+def test_sell_100_delta_minus_1_is_not_consistent():
+    actual = build_with(
+        row("qty-sell", side="SELL", transaction="信用返済売", quantity=100),
+        portfolio("before", [pos(quantity=100)]),
+        portfolio("after", [pos(quantity=99)]),
+    )
+    assert actual["portfolio_verification"]["status"] == "MISMATCH"
+    assert actual["actual_action"] == "UNKNOWN"
+
+
+def test_multiple_fills_use_total_execution_quantity():
+    first = row("multi-1", quantity=40, time_value="10:00:00")
+    second = row("multi-2", quantity=60, time_value="10:05:00")
+    actual = build_actual_execution_from_sbi_rows(
+        decision_ref="decision:multi",
+        security_code="6622",
+        captured_at="2026-08-09T16:00:00+09:00",
+        rows=[first, second],
+        execution_refs=[sbi_execution_ref(first), sbi_execution_ref(second)],
+        execution_status="EXECUTED",
+        source_timezone="+09:00",
+        portfolio_before=portfolio("before-multi", []),
+        portfolio_after=portfolio("after-multi", [pos(quantity=100)]),
+    )
+    assert actual["portfolio_verification"]["status"] == "CONSISTENT"
+    assert actual["portfolio_verification"]["execution_quantity"] == 100
+    assert actual["portfolio_verification"]["position_delta"] == 100
+
+
+def test_execution_outside_snapshot_interval_is_not_judgable():
+    actual = build_with(
+        row("future-snap"),
+        portfolio("before", [], as_of="2030-01-01"),
+        portfolio("after", [pos(quantity=100)], as_of="2030-01-02"),
+    )
+    assert actual["portfolio_verification"]["status"] == "NOT_JUDGABLE"
+    assert actual["actual_action"] == "UNKNOWN"
+
+
+def test_same_day_date_only_snapshots_are_not_judgable():
+    actual = build_with(
+        row("same-day"),
+        portfolio("before", [], as_of="2026-08-09"),
+        portfolio("after", [pos(quantity=100)], as_of="2026-08-09"),
+    )
+    assert actual["portfolio_verification"]["status"] == "NOT_JUDGABLE"
+    assert actual["actual_action"] == "UNKNOWN"
 
 
 def test_not_executed_requires_explicit_empty_authoritative_scope():
