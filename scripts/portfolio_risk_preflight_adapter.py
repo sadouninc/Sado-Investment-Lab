@@ -5,7 +5,7 @@ from datetime import date, datetime
 import math
 from typing import Any, Mapping
 
-from portfolio_risk_preflight import RiskPreflightError, calculate_trade_impact
+from scripts.portfolio_risk_preflight import RiskPreflightError, calculate_trade_impact
 
 
 VERIFICATION_STATUSES = {"VERIFIED", "PROVISIONAL", "MISMATCH"}
