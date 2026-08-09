@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -9,6 +10,7 @@ from typing import Any
 
 EXPECTATION_TYPES = {"CONSENSUS", "COMPANY_GUIDANCE", "MARKET_IMPLIED_PROXY", "SADO_SCENARIO"}
 METRICS = {"REVENUE", "OPERATING_PROFIT", "NET_INCOME", "EPS", "MARGIN", "KPI"}
+UNITS = {"JPY", "JPY_MN", "%", "COUNT", "OTHER"}
 AUTHORITIES = {"PRIMARY", "SECONDARY", "INTERNAL"}
 COVERAGE_STATES = {"OK", "PARTIAL", "STALE", "UNAVAILABLE"}
 DIRECTIONS = {"UP", "DOWN", "FLAT", "MIXED", "UNKNOWN"}
@@ -29,6 +31,22 @@ def deterministic_expectation_id(record: dict[str, Any]) -> str:
     return f"expectation:{record['security_code']}:{record['target_fiscal_period']}:{digest}"
 
 
+def _validate_finite_number(value: Any) -> None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ExpectationContractError("value must be a finite int/float")
+    if not math.isfinite(value):
+        raise ExpectationContractError("value must be finite")
+
+
+def _validate_observed_at(value: Any) -> None:
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError) as exc:
+        raise ExpectationContractError("observed_at must be ISO-8601 datetime") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ExpectationContractError("observed_at must be timezone-aware")
+
+
 def validate_snapshot(record: dict[str, Any], *, today: date | None = None) -> dict[str, Any]:
     result = dict(record)
     required = [
@@ -42,18 +60,27 @@ def validate_snapshot(record: dict[str, Any], *, today: date | None = None) -> d
         raise ExpectationContractError("invalid expectation_type")
     if result["metric"] not in METRICS:
         raise ExpectationContractError("invalid metric")
+    if result["unit"] not in UNITS:
+        raise ExpectationContractError("invalid unit")
     if result["source_authority"] not in AUTHORITIES:
         raise ExpectationContractError("invalid source_authority")
     coverage = dict(result.get("coverage") or {})
     status = str(coverage.get("status") or "")
     if status not in COVERAGE_STATES:
         raise ExpectationContractError("invalid coverage.status")
-    if status == "UNAVAILABLE" and result.get("value") is not None:
-        raise ExpectationContractError("UNAVAILABLE expectation must not carry a value")
-    if status != "UNAVAILABLE" and result.get("value") is None:
-        raise ExpectationContractError("available expectation requires value")
-    date.fromisoformat(str(result["as_of"]))
-    datetime.fromisoformat(str(result["observed_at"]).replace("Z", "+00:00"))
+    value = result.get("value")
+    if status == "UNAVAILABLE":
+        if value is not None:
+            raise ExpectationContractError("UNAVAILABLE expectation must not carry a value")
+    else:
+        if value is None:
+            raise ExpectationContractError("available expectation requires value")
+        _validate_finite_number(value)
+    try:
+        date.fromisoformat(str(result["as_of"]))
+    except (TypeError, ValueError) as exc:
+        raise ExpectationContractError("as_of must be ISO-8601 date") from exc
+    _validate_observed_at(result["observed_at"])
     result["expectation_id"] = deterministic_expectation_id(result)
     result["coverage"] = coverage
     result.setdefault("provenance", {})
