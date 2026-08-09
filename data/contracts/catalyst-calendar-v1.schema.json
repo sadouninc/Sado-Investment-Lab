@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sadouninc.github.io/Sado-Investment-Lab/contracts/catalyst-calendar-v1.schema.json",
+  "title": "Sado Investment Lab Catalyst & Checkpoint Calendar v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_key",
+    "event_type",
+    "entity_type",
+    "entity_id",
+    "title",
+    "date_precision",
+    "authority",
+    "status"
+  ],
+  "properties": {
+    "event_id": {"type": "string", "pattern": "^event:[0-9a-f]{24}$"},
+    "event_key": {"type": "string", "minLength": 1},
+    "event_type": {
+      "enum": ["EARNINGS", "IR", "POLICY", "TENDER", "PRODUCT", "KPI", "HYPOTHESIS_CHECKPOINT", "VALUATION_REVIEW", "DECISION_REVIEW", "OTHER"]
+    },
+    "entity_type": {"enum": ["COMPANY", "THEME", "HYPOTHESIS", "DECISION", "POLICY"]},
+    "entity_id": {"type": "string", "minLength": 1},
+    "title": {"type": "string", "minLength": 1},
+    "date_precision": {"enum": ["DATETIME", "DATE", "MONTH", "WINDOW", "UNKNOWN"]},
+    "scheduled_at": {"type": ["string", "null"], "format": "date-time"},
+    "scheduled_date": {"type": ["string", "null"], "format": "date"},
+    "scheduled_month": {"type": ["string", "null"], "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"},
+    "window_start": {"type": ["string", "null"], "format": "date"},
+    "window_end": {"type": ["string", "null"], "format": "date"},
+    "source_ref": {"type": ["string", "null"]},
+    "authority": {"enum": ["PRIMARY", "SECONDARY", "INTERNAL"]},
+    "status": {"enum": ["DISCOVERED", "SCHEDULED", "OCCURRED", "HANDLED", "DELAYED", "CANCELLED", "UNKNOWN"]},
+    "expected_review": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["REFRESH_RESEARCH", "REVIEW_THESIS", "UPDATE_VALUATION", "REVIEW_DECISION", "REVIEW_POLICY_TRANSMISSION"]}
+    },
+    "related_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "schedule_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["date_precision", "status"],
+        "properties": {
+          "date_precision": {"enum": ["DATETIME", "DATE", "MONTH", "WINDOW", "UNKNOWN"]},
+          "scheduled_at": {"type": ["string", "null"], "format": "date-time"},
+          "scheduled_date": {"type": ["string", "null"], "format": "date"},
+          "scheduled_month": {"type": ["string", "null"]},
+          "window_start": {"type": ["string", "null"], "format": "date"},
+          "window_end": {"type": ["string", "null"], "format": "date"},
+          "status": {"enum": ["DISCOVERED", "SCHEDULED", "OCCURRED", "HANDLED", "DELAYED", "CANCELLED", "UNKNOWN"]},
+          "changed_at": {"type": ["string", "null"], "format": "date-time"},
+          "reason": {"type": ["string", "null"]}
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"date_precision": {"const": "DATETIME"}}},
+      "then": {"required": ["scheduled_at"]}
+    },
+    {
+      "if": {"properties": {"date_precision": {"const": "DATE"}}},
+      "then": {"required": ["scheduled_date"]}
+    },
+    {
+      "if": {"properties": {"date_precision": {"const": "MONTH"}}},
+      "then": {"required": ["scheduled_month"]}
+    },
+    {
+      "if": {"properties": {"date_precision": {"const": "WINDOW"}}},
+      "then": {"required": ["window_start", "window_end"]}
+    }
+  ]
+}
