@@ -78,7 +78,9 @@ def _normalize_net_income(
     config = dict(normalization or {})
     unit = config.get("scenario_net_income_unit")
     if not unit:
-        return value, {}
+        raise ForwardPerAdapterError(
+            "explicit scenario_net_income_unit is required when scenario net_income is used"
+        )
     multiplier = _UNIT_MULTIPLIERS.get(str(unit))
     if multiplier is None:
         raise ForwardPerAdapterError(f"unsupported scenario_net_income_unit: {unit}")
@@ -102,8 +104,9 @@ def research_to_simulator_input(
     """Convert CURRENT Company Research into #117 simulator input without inventing data.
 
     Cross-contract unit/share conversions are performed only when explicit normalization
-    metadata is supplied. Without it the previous behavior is preserved and missing
-    simulator denominator data remains unavailable rather than guessed.
+    metadata is supplied. Scenario net income without an explicit unit is rejected rather
+    than silently assuming JPY. Missing denominator metadata remains unavailable rather
+    than guessed.
     """
     handoff = build_forward_valuation_handoff(research)
     if price.get("value") is None:
