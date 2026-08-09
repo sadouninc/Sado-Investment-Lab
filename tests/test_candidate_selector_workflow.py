@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+from datetime import date
 import unittest
 
 from scripts.candidate_selector import build_selector
-from scripts.candidate_selector_workflow import build_research_handoff, derive_research_gap
+from scripts.candidate_selector_workflow import (
+    build_research_handoff,
+    build_selector_with_research_gap,
+    derive_research_gap,
+)
 
 
 CONFIG = {
@@ -76,9 +81,59 @@ class CandidateSelectorWorkflowTests(unittest.TestCase):
     def test_gap_changes_ranking_explainably(self) -> None:
         fresh = row(code="1111", source="RESEARCH_INDEX", status="CURRENT")
         stale = row(code="2222", source="RESEARCH_INDEX", status="STALE")
-        result = build_selector(derive_research_gap([fresh, stale]), config=CONFIG, as_of=__import__("datetime").date(2026, 8, 9))
+        result = build_selector(derive_research_gap([fresh, stale]), config=CONFIG, as_of=date(2026, 8, 9))
         self.assertEqual(result["ranked_candidates"][0]["security_code"], "2222")
         self.assertIn("research_gap", result["ranked_candidates"][0]["selection_reason"])
+
+    def test_expired_current_research_is_stale_with_high_gap_and_matching_reason(self) -> None:
+        research = row(code="1111", source="RESEARCH_INDEX", status="CURRENT")
+        research["last_researched_at"] = "2025-01-01"
+
+        result = build_selector_with_research_gap([research], config=CONFIG, as_of=date(2026, 8, 9))
+        candidate = result["candidates"][0]
+
+        self.assertEqual(candidate["research_status"], "STALE")
+        self.assertEqual(candidate["signals"]["research_gap"], 90.0)
+        self.assertEqual(
+            candidate["signal_reasons"]["research_gap"],
+            ["Company Research exists but is stale and should be refreshed"],
+        )
+
+    def test_major_change_stales_fresh_research_before_gap_derivation(self) -> None:
+        research = row(code="1111", source="RESEARCH_INDEX", status="CURRENT")
+        research["last_researched_at"] = "2026-08-08"
+        research["signals"]["change_signal"] = 85.0
+        research["signal_reasons"]["change_signal"] = ["major earnings revision"]
+
+        result = build_selector_with_research_gap([research], config=CONFIG, as_of=date(2026, 8, 9))
+        candidate = result["candidates"][0]
+
+        self.assertEqual(candidate["research_status"], "STALE")
+        self.assertEqual(candidate["signals"]["research_gap"], 90.0)
+        self.assertIn("stale", candidate["signal_reasons"]["research_gap"][0])
+
+    def test_current_research_remains_low_gap_after_finalization(self) -> None:
+        research = row(code="1111", source="RESEARCH_INDEX", status="CURRENT")
+        research["last_researched_at"] = "2026-08-08"
+
+        result = build_selector_with_research_gap([research], config=CONFIG, as_of=date(2026, 8, 9))
+        candidate = result["candidates"][0]
+
+        self.assertEqual(candidate["research_status"], "CURRENT")
+        self.assertEqual(candidate["signals"]["research_gap"], 10.0)
+        self.assertIn("fresh Company Research", candidate["signal_reasons"]["research_gap"][0])
+
+    def test_no_research_and_unresolved_identity_boundaries_are_preserved(self) -> None:
+        covered_identity = row(code="2222", source="WATCHLIST")
+        unresolved = row(code=None, source="WATCHLIST")
+
+        result = build_selector_with_research_gap(
+            [covered_identity, unresolved], config=CONFIG, as_of=date(2026, 8, 9)
+        )
+        by_code = {item["security_code"]: item for item in result["candidates"]}
+
+        self.assertEqual(by_code["2222"]["signals"]["research_gap"], 100.0)
+        self.assertIsNone(by_code[None]["signals"]["research_gap"])
 
     def test_research_handoff_has_required_fields_and_approval_gate(self) -> None:
         candidate = {
