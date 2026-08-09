@@ -92,6 +92,9 @@ jobs:
       - name: Prepare site
         run: python3 .github/pages/build_site.py
 
+      - name: Publish risk preflight confirmation
+        run: python3 .github/pages/build_risk_preflight.py
+
       - name: Publish architecture docs
         run: python3 .github/pages/build_architecture.py
 
@@ -124,6 +127,7 @@ jobs:
           test -f data/generated/public/morning-dataset.json
           test -f site-src/architecture/index.md
           test -f site-src/architecture/investment-decision-os-data-model/index.md
+          test -f site-src/risk-preflight/index.md
           test -f site-src/trade-journal/index.md
           test -f site-src/trade-analysis/index.md
           test -f site-src/trade-journal/2026/08/2026-08-03/index.md
@@ -147,6 +151,10 @@ jobs:
           grep -q "Investor DNA" site-src/index.md
           grep -q "Morning Dataset" site-src/index.md
           grep -q "AI Key Person Watch" site-src/index.md
+          grep -q "売買前のポートフォリオ確認" site-src/index.md
+          grep -q "BLOCK_REVIEW" site-src/risk-preflight/index.md
+          grep -q "Decision Journal" site-src/risk-preflight/index.md
+          grep -q "これは売買指示ではありません" site-src/risk-preflight/index.md
           grep -q "孫正義" site-src/research/ai-key-person-watch/index.md
           grep -q "何が変わったか" site-src/research/ai-key-person-watch/index.md
           grep -q "2026-08" site-src/research/ai-key-person-watch/index.md
@@ -185,6 +193,8 @@ jobs:
             _site/market-analysis/2026/2026-08-05/index.html
           test -f _site/architecture/index.html
           test -f _site/architecture/investment-decision-os-data-model/index.html
+          test -f _site/risk-preflight/index.html
+          grep -q "売買前のポートフォリオ確認" _site/risk-preflight/index.html
           test -f _site/research/investor-dna/index.html
           grep -q "Investor DNA Engine" _site/research/investor-dna/index.html
           grep -q "Current Environment Fit" _site/research/investor-dna/index.html
