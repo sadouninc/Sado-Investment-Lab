@@ -98,6 +98,32 @@ def build() -> None:
             home.write_text(text, encoding="utf-8")
 
 
+def verify_daihen_publish_contract() -> None:
+    """Fail closed when the generated Pages artifact cannot expose #257."""
+    home = SITE / "index.md"
+    cockpit = SITE / "decision-cockpit" / "daihen" / "index.md"
+
+    if not home.is_file():
+        raise RuntimeError("#257 publish contract: site-src/index.md is missing")
+    if not cockpit.is_file():
+        raise RuntimeError("#257 publish contract: Daihen cockpit page is missing")
+
+    home_text = home.read_text(encoding="utf-8")
+    cockpit_text = cockpit.read_text(encoding="utf-8")
+    required_home = (
+        "ダイヘン 投資判断コックピット",
+        "/decision-cockpit/daihen/",
+    )
+    for value in required_home:
+        if value not in home_text:
+            raise RuntimeError(f"#257 publish contract: Home entry missing: {value}")
+
+    if "permalink: /decision-cockpit/daihen/" not in cockpit_text:
+        raise RuntimeError("#257 publish contract: cockpit permalink is missing")
+    if "この画面は売買指示を生成しません" not in cockpit_text:
+        raise RuntimeError("#257 publish contract: cockpit safety notice is missing")
+
+
 if __name__ == "__main__":
     build()
 
@@ -109,3 +135,4 @@ if __name__ == "__main__":
 
     build_daihen_cockpit()
     enhance_daihen_cockpit_links(load_daihen_model())
+    verify_daihen_publish_contract()
