@@ -49,7 +49,7 @@ class PolicyLeadTimeAIDCTests(unittest.TestCase):
         result = build_ai_dc_policy_lead_time_v2(history=self.history, v1_lead_time=self.v1)
         summary = result["sequence_summary"]
         self.assertEqual(summary["strongest_pre_policy_state"], "INFLOW")
-        self.assertEqual(summary["reliable_strongest_pre_policy_state"], "COLD")
+        self.assertIsNone(summary["reliable_strongest_pre_policy_state"])
         self.assertFalse(result["evaluation"]["post_policy_persistence"])
         self.assertFalse(result["evaluation"]["post_policy_reacceleration"])
 
