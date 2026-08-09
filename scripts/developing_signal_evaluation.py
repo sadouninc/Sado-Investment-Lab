@@ -5,9 +5,7 @@ from datetime import datetime, timezone
 from statistics import median
 from typing import Any, Iterable, Mapping
 
-from developing_signal_registry import validate_signal
-
-RESOLVED_STATUSES = {"PROMOTED", "DISMISSED", "EXPIRED", "SUPERSEDED"}
+from scripts.developing_signal_registry import validate_signal
 
 
 def _parse_dt(value: str) -> datetime:
@@ -34,12 +32,7 @@ def _lead_days(signal: Mapping[str, Any]) -> float | None:
 
 
 def evaluate_signals(signals: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
-    """Build deterministic learning metrics without grading sparse samples as success/failure.
-
-    Rates use all validated signals as the denominator. Lead-time statistics use only
-    PROMOTED records with explicit promoted_at. Missing/active records are never
-    coerced to zero-day lead time or treated as failed promotions.
-    """
+    """Return descriptive Registry metrics without overclaiming sparse samples."""
     validated = [validate_signal(dict(item)) for item in signals]
     ordered = sorted(validated, key=lambda item: (item["first_observed_at"], item["signal_id"]))
 
