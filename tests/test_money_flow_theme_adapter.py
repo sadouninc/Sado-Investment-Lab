@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import unittest
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 
 from scripts.candidate_selector import build_selector
 from scripts.money_flow_theme_adapter import build_theme_snapshots, theme_snapshots_to_candidate_rows
@@ -70,11 +70,16 @@ SELECTOR_CONFIG = {
 
 
 def chart(closes: list[float], volumes: list[float]) -> dict:
+    if len(closes) != len(volumes):
+        raise ValueError("closes and volumes must have the same length")
+    start = datetime(2026, 5, 22, tzinfo=timezone.utc)
+    timestamps = [int((start + timedelta(days=i)).timestamp()) for i in range(len(closes))]
     return {
         "chart": {
             "result": [
                 {
-                    "indicators": {"quote": [{"close": closes, "volume": volumes}]}
+                    "timestamp": timestamps,
+                    "indicators": {"quote": [{"close": closes, "volume": volumes}]},
                 }
             ],
             "error": None,
