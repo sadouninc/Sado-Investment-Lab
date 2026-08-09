@@ -114,6 +114,23 @@ GitHub Issue #99 `📣 Team Broadcast（チーム共通連絡チャネル）` �
 
 新しい方針・指示があれば、その回以降の作業へ反映する。
 
+### Broadcast Read Verification Rule
+
+Issue #99のコメント取得は、レスポンスのtruncate、pagination、continuation等により最新コメントまで含まれない可能性があることを前提にする。
+
+- **Issue #99を取得できたことだけではBroadcast確認完了としない。** 最新コメントまで到達したことを確認して初めて確認完了とする。
+- 取得結果がtruncateされている、continuationが示されている、コメント件数と取得内容が一致しない、または末尾到達を確認できない場合は、続きの取得・追加読込みを行う。
+- 最新コメントまで到達したことを確認できない状態で、`新しいBroadcastなし`、`新しい指示なし` と判断してはならない。
+- 可能な場合、各担当は前回確認済みの `last_seen_comment_id` または同等のcursorを基準に差分確認し、`To: ALL` と自分宛の新規Broadcastを処理する。cursorは最新コメント到達を確認した後にのみ更新する。
+- 定期runや重要作業では、可能な限り次の形式で確認証跡を残す。
+
+```text
+Broadcast checked through: comment_id=<最新確認済みcomment ID>
+```
+
+- 最新到達を検証できない場合は `BROADCAST_SYNC_UNVERIFIED` と扱う。その状態で「最新指示が存在しない」ことを前提とした新規の高リスク作業を開始せず、安全に継続可能な既存作業に限定する。必要に応じて🌊ナギまたは👑サドへ同期不全を報告する。
+- このルールはIssue #99を参照する全担当、および今後追加される担当へ適用する。
+
 恒久的な運用変更はBroadcastで通知した後、本TEAM_RULES.mdへ反映する。
 
 ## 6. 🌙ルナと🤖カイの役割境界・受け渡し
@@ -187,7 +204,7 @@ Branch: <branch名>
 ---
 
 初版制定: 2026-08-08  
-更新: 2026-08-08（⭐️ミナをDesign / UX Ownerとして明確化）  
+更新: 2026-08-09（Broadcast Read Verification Rule追加提案 / Issue #148）  
 担当: 🌊ナギ  
-関連Issue: #101  
+関連Issue: #101, #148  
 Broadcast: #99
