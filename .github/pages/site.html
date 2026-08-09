@@ -78,7 +78,8 @@
       panel.innerHTML = '<strong>Monitoring status</strong><p>Heartbeatを確認中...</p>';
       title.insertAdjacentElement('afterend', panel);
 
-      const issueCommentsUrl = 'https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/124/comments?per_page=100';
+      const issueCommentsBaseUrl = 'https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/124/comments?per_page=100';
+      const trustedAuditAuthors = new Set(['sadouninc']);
       const statusUrl = 'https://raw.githubusercontent.com/sadouninc/Sado-Investment-Lab/main/Ops/Monitoring/AI_Key_Person_Watch/status.json';
       const staleAfterMinutes = 150;
       const maxFutureSkewMinutes = 5;
@@ -96,7 +97,10 @@
         return Number.isNaN(parsed.getTime()) ? null : parsed;
       };
       const isTooFarFuture = (date) => date && date.getTime() > Date.now() + maxFutureSkewMinutes * 60000;
-      const parseAuditComment = (body) => {
+      const parseAuditComment = (comment) => {
+        const author = String(comment?.user?.login || '').toLowerCase();
+        if (!trustedAuditAuthors.has(author)) return null;
+        const body = comment?.body;
         if (!body || !body.includes('Operational Heartbeat / Run Audit')) return null;
         const field = (name) => {
           const match = body.match(new RegExp(`^${name}:\\s*(.+)$`, 'mi'));
@@ -176,18 +180,48 @@
           panel.innerHTML = `<strong>Monitoring status: UNKNOWN</strong><p>Heartbeat取得に失敗しました: ${escapeHtml(issueError.message)} / ${escapeHtml(statusError.message)}</p>`;
         });
 
-      fetch(issueCommentsUrl, { cache: 'no-store', headers: { Accept: 'application/vnd.github+json' } })
-        .then((response) => {
-          if (!response.ok) throw new Error(`Issue #124 API HTTP ${response.status}`);
-          return response.json();
+      const linkedPage = (header, rel) => {
+        for (const part of String(header || '').split(',')) {
+          if (!part.includes(`rel="${rel}"`)) continue;
+          const url = part.match(/<([^>]+)>/)?.[1];
+          if (!url) continue;
+          const page = new URL(url).searchParams.get('page');
+          if (page && /^\d+$/.test(page)) return Number(page);
+        }
+        return null;
+      };
+      const fetchIssuePage = (page) => fetch(`${issueCommentsBaseUrl}&page=${page}`, {
+        cache: 'no-store',
+        headers: { Accept: 'application/vnd.github+json' }
+      }).then((response) => {
+        if (!response.ok) throw new Error(`Issue #124 API HTTP ${response.status}`);
+        const link = response.headers.get('Link');
+        return response.json().then((comments) => ({ comments, link }));
+      });
+      const latestTrustedAudit = (comments) => {
+        const audits = comments.map(parseAuditComment).filter(Boolean);
+        audits.sort((a, b) => b.runAt.getTime() - a.runAt.getTime());
+        return audits[0] || null;
+      };
+      const findLatestTrustedAudit = (page) => fetchIssuePage(page).then(({ comments }) => {
+        const audit = latestTrustedAudit(comments);
+        if (audit) return audit;
+        if (page <= 1) throw new Error('Issue #124に信頼済みRun Auditがありません');
+        return findLatestTrustedAudit(page - 1);
+      });
+      const loadLatestIssueAudit = () => fetchIssuePage(1)
+        .then(({ comments, link }) => {
+          const lastPage = linkedPage(link, 'last') || linkedPage(link, 'next') || 1;
+          if (lastPage === 1) {
+            const audit = latestTrustedAudit(comments);
+            if (!audit) throw new Error('Issue #124に信頼済みRun Auditがありません');
+            return audit;
+          }
+          return findLatestTrustedAudit(lastPage);
         })
-        .then((comments) => {
-          const audits = comments.map((comment) => parseAuditComment(comment.body)).filter(Boolean);
-          if (!audits.length) throw new Error('Issue #124に有効なRun Auditがありません');
-          audits.sort((a, b) => b.runAt.getTime() - a.runAt.getTime());
-          renderAudit(audits[0], 'Issue #124 Run Audit');
-        })
-        .catch(loadStatusFallback);
+        .then((audit) => renderAudit(audit, 'Issue #124 Run Audit (trusted/latest page)'));
+
+      loadLatestIssueAudit().catch(loadStatusFallback);
     })();
   </script>
 </body>
