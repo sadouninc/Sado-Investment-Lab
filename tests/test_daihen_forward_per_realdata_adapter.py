@@ -9,6 +9,7 @@ from scripts.forward_per_research_adapter import (
     research_to_simulator_input,
     simulate_research,
 )
+from scripts.investment_e2e import run_first_e2e
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,6 +68,20 @@ class DaihenForwardPerRealDataAdapterTests(unittest.TestCase):
         self.assertEqual(scenarios["bull"]["forward_per"], 14.05)
         self.assertEqual(scenarios["base"]["implied_prices"]["per_20"], 14401.91)
         self.assertTrue(result["provenance"]["selection_context"]["owner_pick"])
+
+    def test_canonical_adapter_matches_full_first_e2e_valuation(self):
+        canonical = simulate_research(
+            self.research,
+            price=self.price,
+            target_pers=[15, 20, 25],
+            normalization=self.normalization,
+        )
+        full = run_first_e2e(self.research, self.valuation_input)
+        self.assertEqual(canonical["scenario_results"], full["valuation"]["scenario_results"])
+        self.assertEqual(full["hypothesis"]["monitor_status"], "MONITOR_READY")
+        self.assertEqual(full["hypothesis"]["system_status"], "INTACT")
+        self.assertEqual(full["provenance_chain"][0], "OWNER_DECISION")
+        self.assertEqual(full["provenance_chain"][-1], "MONITOR_READY")
 
     def test_reference_price_is_preserved_not_promoted_to_current(self):
         result = simulate_research(
