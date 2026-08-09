@@ -19,6 +19,10 @@ def _cta(label: str, refs: object, *, unavailable_text: str) -> str:
     return f'<span class="muted">{unavailable_text}</span>'
 
 
+def _refs_with_prefix(refs: object, prefix: str) -> list[str]:
+    return [str(ref) for ref in list(refs or []) if str(ref).startswith(prefix)]
+
+
 def _block(model: Mapping[str, Any]) -> str:
     earnings = model["earnings_driver"]
     valuation = model["valuation"]
@@ -26,7 +30,9 @@ def _block(model: Mapping[str, Any]) -> str:
     history = model["decision_history"]
 
     earnings_refs = list(earnings.get("driver_refs") or []) + list(earnings.get("source_refs") or [])
-    valuation_refs = list(valuation.get("source_refs") or [])
+    # Do not silently fall back from a dedicated Forward PER ref to generic
+    # Company Research. If the dedicated route does not exist, show that fact.
+    valuation_refs = _refs_with_prefix(valuation.get("source_refs"), "forward-per:6622:")
     hypothesis_refs = list(hypothesis.get("source_refs") or [])
     history_refs = list(history.get("source_refs") or [])
 
@@ -38,7 +44,7 @@ def _block(model: Mapping[str, Any]) -> str:
             "疑問が生じた箇所から、存在が確認できるCanonical詳細だけへ移動します。未生成routeは推測しません。",
             "",
             "- 利益予想の根拠: " + _cta("ダイヘン企業研究を開く", earnings_refs, unavailable_text="詳細ページ未生成"),
-            "- Valuationの根拠: " + _cta("関連Researchを開く", valuation_refs, unavailable_text="Forward PER専用ページはまだありません"),
+            "- Valuationの根拠: " + _cta("Forward PER詳細を開く", valuation_refs, unavailable_text="Forward PER専用ページはまだありません。Canonical refは画面内に保持しています"),
             "- 投資仮説: " + _cta("仮説詳細を開く", hypothesis_refs, unavailable_text="仮説専用ページはまだありません。Canonical refは画面内に保持しています"),
             "- 過去判断: " + _cta("Decision Historyを開く", history_refs, unavailable_text="Decision History専用ページはまだありません。historical snapshot refは画面内に保持しています"),
             "",
