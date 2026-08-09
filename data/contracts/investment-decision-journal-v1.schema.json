@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Investment Decision Journal v1",
+  "type": "object",
+  "required": ["decision_id", "decided_at", "security_code", "decision", "actor", "confidence", "owner_judgment", "system_snapshot", "evidence_refs", "retrospective_note"],
+  "properties": {
+    "decision_id": {"type": "string", "minLength": 1},
+    "decided_at": {"type": "string", "format": "date-time"},
+    "security_code": {"type": "string", "minLength": 1},
+    "decision": {"enum": ["START_WATCH", "START_RESEARCH", "BUY", "ADD", "HOLD", "REDUCE", "SELL", "PASS", "REENTER_WATCH"]},
+    "actor": {"type": "string", "minLength": 1},
+    "confidence": {"enum": ["LOW", "MEDIUM", "HIGH"]},
+    "owner_judgment": {
+      "type": "object",
+      "required": ["why_now", "biggest_risk", "what_changes_my_mind"],
+      "properties": {
+        "why_now": {"type": "string", "minLength": 1},
+        "biggest_risk": {"type": "string", "minLength": 1},
+        "what_changes_my_mind": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "system_snapshot": {"type": "object"},
+    "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "retrospective_note": {"type": "boolean"}
+  },
+  "additionalProperties": true
+}
