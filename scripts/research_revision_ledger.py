@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -21,22 +23,57 @@ def _canonical_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def _parse_revised_at(value: Any) -> datetime:
+    if not isinstance(value, str) or not value.strip():
+        raise ResearchRevisionError("revised_at must be timezone-aware ISO-8601")
+    text = value.strip()
+    normalized = text[:-1] + "+00:00" if text.endswith("Z") else text
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError as exc:
+        raise ResearchRevisionError("revised_at must be timezone-aware ISO-8601") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ResearchRevisionError("revised_at must be timezone-aware ISO-8601")
+    return parsed
+
+
+def _parse_as_of(value: Any) -> date:
+    if not isinstance(value, str) or len(value) != 10:
+        raise ResearchRevisionError("as_of must be ISO date YYYY-MM-DD")
+    try:
+        parsed = date.fromisoformat(value)
+    except ValueError as exc:
+        raise ResearchRevisionError("as_of must be ISO date YYYY-MM-DD") from exc
+    if parsed.isoformat() != value:
+        raise ResearchRevisionError("as_of must be ISO date YYYY-MM-DD")
+    return parsed
+
+
+def _finite_number(value: Any) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    number = float(value)
+    if not math.isfinite(number):
+        return None
+    return number
+
+
 def deterministic_revision_id(record: Mapping[str, Any]) -> str:
     required = ("entity_type", "entity_id", "artifact_type", "artifact_ref", "revised_at")
     values = [str(record.get(key) or "").strip() for key in required]
     if any(not value for value in values):
         raise ResearchRevisionError("revision identity fields are required")
+    _parse_revised_at(values[-1])
     digest = hashlib.sha256("|".join(values).encode("utf-8")).hexdigest()[:16]
     return f"revision:{values[1]}:{digest}"
 
 
 def numeric_delta(before: Any, after: Any) -> dict[str, float | None]:
-    if before is None or after is None or isinstance(before, bool) or isinstance(after, bool):
+    if before is None or after is None:
         return {"absolute": None, "pct": None}
-    try:
-        old = float(before)
-        new = float(after)
-    except (TypeError, ValueError):
+    old = _finite_number(before)
+    new = _finite_number(after)
+    if old is None or new is None:
         return {"absolute": None, "pct": None}
     absolute = new - old
     pct = None if old == 0 else absolute / abs(old) * 100.0
@@ -65,6 +102,27 @@ def changed_fields(before: Mapping[str, Any], after: Mapping[str, Any]) -> list[
     return changes
 
 
+def _validate_change(change: Mapping[str, Any]) -> None:
+    if change.get("change_type") not in CHANGE_TYPES:
+        raise ResearchRevisionError("invalid changed_fields entry")
+    if not change.get("path"):
+        raise ResearchRevisionError("changed field path is required")
+    if _canonical_json(change.get("before")) == _canonical_json(change.get("after")):
+        raise ResearchRevisionError("changed_fields entry must contain an actual value change")
+
+    supplied_delta = change.get("numeric_delta")
+    if supplied_delta is None:
+        return
+    if not isinstance(supplied_delta, Mapping):
+        raise ResearchRevisionError("numeric_delta must be an object")
+    expected = numeric_delta(change.get("before"), change.get("after"))
+    if expected["absolute"] is None:
+        raise ResearchRevisionError("numeric_delta requires finite int/float before and after values")
+    supplied = {"absolute": supplied_delta.get("absolute"), "pct": supplied_delta.get("pct")}
+    if _canonical_json(supplied) != _canonical_json(expected):
+        raise ResearchRevisionError("numeric_delta does not match before/after values")
+
+
 def validate_revision(record: Mapping[str, Any]) -> dict[str, Any]:
     result = dict(record)
     required = (
@@ -83,13 +141,18 @@ def validate_revision(record: Mapping[str, Any]) -> dict[str, Any]:
         raise ResearchRevisionError("invalid materiality")
     if result["author_type"] not in AUTHOR_TYPES:
         raise ResearchRevisionError("invalid author_type")
+
+    revised_at = _parse_revised_at(result["revised_at"])
+    as_of = _parse_as_of(result["as_of"])
+    if as_of > revised_at.date():
+        raise ResearchRevisionError("as_of must not be later than revised_at local date")
+
     if not isinstance(result["changed_fields"], list) or not result["changed_fields"]:
         raise ResearchRevisionError("changed_fields must contain an actual artifact change")
     for change in result["changed_fields"]:
-        if not isinstance(change, Mapping) or change.get("change_type") not in CHANGE_TYPES:
+        if not isinstance(change, Mapping):
             raise ResearchRevisionError("invalid changed_fields entry")
-        if not change.get("path"):
-            raise ResearchRevisionError("changed field path is required")
+        _validate_change(change)
     if not isinstance(result["evidence_refs"], list):
         raise ResearchRevisionError("evidence_refs must be an array")
     result["revision_id"] = deterministic_revision_id(result)
@@ -109,6 +172,10 @@ def scenario_numeric_change(
         raise ResearchRevisionError("FY mismatch: do not calculate a scenario revision delta across fiscal years")
     if before is None or after is None:
         raise ResearchRevisionError("missing previous/current value must not be treated as zero")
+    if _finite_number(before) is None or _finite_number(after) is None:
+        raise ResearchRevisionError("scenario numeric values must be finite int/float values")
+    if _canonical_json(before) == _canonical_json(after):
+        raise ResearchRevisionError("scenario revision requires an actual value change")
     delta = numeric_delta(before, after)
     return {
         "path": field_path,
