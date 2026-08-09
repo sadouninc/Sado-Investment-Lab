@@ -7,7 +7,7 @@ on:
     inputs:
       event_fixture:
         description: "Repository-relative JSON event fixture for manual validation"
-        required: false
+        required: true
         type: string
 
 permissions:
