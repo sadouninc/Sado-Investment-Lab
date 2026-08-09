@@ -119,6 +119,30 @@ class PortfolioRiskMembershipExposureTest(unittest.TestCase):
                 membership_catalog=catalog,
             )
 
+    def test_reduce_beyond_current_target_position_rejected(self) -> None:
+        action = dict(self.action)
+        action.update({"action": "REDUCE", "quantity": 200})
+        with self.assertRaises(MembershipExposureError):
+            calculate_membership_exposure(
+                self.portfolio,
+                proposed_action=action,
+                market_prices=self.prices,
+                membership_catalog=self.catalog,
+            )
+
+    def test_margin_short_target_rejected(self) -> None:
+        portfolio = copy.deepcopy(self.portfolio)
+        portfolio["positions"][0]["position_type"] = "margin_short"
+        action = dict(self.action)
+        action.update({"action": "SELL", "quantity": 50})
+        with self.assertRaises(MembershipExposureError):
+            calculate_membership_exposure(
+                portfolio,
+                proposed_action=action,
+                market_prices=self.prices,
+                membership_catalog=self.catalog,
+            )
+
     def test_invalid_numeric_rejected(self) -> None:
         action = dict(self.action)
         action["quantity"] = True
