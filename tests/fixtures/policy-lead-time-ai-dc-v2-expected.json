@@ -1,0 +1,14 @@
+{
+  "theme_id": "theme:ai-data-center-power-infrastructure",
+  "policy_t0": "2024-10-04",
+  "raw_first_inflow_date": "2024-09-26",
+  "raw_first_warming_date": "2024-11-05",
+  "reliable_first_warming_date": "2024-11-06",
+  "reliable_first_inflow_date": "2024-11-08",
+  "raw_policy_to_inflow_days": -8,
+  "raw_policy_to_warming_days": 32,
+  "reliable_policy_to_warming_days": 33,
+  "reliable_policy_to_inflow_days": 35,
+  "classification": "DATA_LIMITED",
+  "limitations": ["RETROSPECTIVE_MEMBERSHIP"]
+}
