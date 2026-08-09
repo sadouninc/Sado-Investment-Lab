@@ -89,6 +89,7 @@ def _normalize_net_income(
         "net_income_unit_input": str(unit),
         "net_income_unit_output": "jpy",
         "net_income_unit_source": str(source),
+        "unit_source": str(source),
     }
 
 
