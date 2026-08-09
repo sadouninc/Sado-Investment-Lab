@@ -28,9 +28,13 @@ def _market_quote(quote: Mapping[str, Any] | None) -> dict[str, Any] | None:
     }
 
 
-def _scenario_for_simulator(raw: Mapping[str, Any], name: str) -> dict[str, Any]:
+def _scenario_for_simulator(
+    raw: Mapping[str, Any],
+    name: str,
+    *,
+    net_income_unit: str,
+) -> dict[str, Any]:
     scenario = raw.get("scenarios", {}).get(name) or {}
-    unit = scenario.get("net_income_unit")
     net_income = scenario.get("net_income")
     if net_income is None:
         return {
@@ -40,8 +44,8 @@ def _scenario_for_simulator(raw: Mapping[str, Any], name: str) -> dict[str, Any]
             "confidence": scenario.get("confidence"),
             "provenance": {"source_refs": list(scenario.get("source_refs") or [])},
         }
-    if unit != "JPY_MN":
-        raise DaihenE2EError(f"{name} scenario net_income_unit must be JPY_MN")
+    if net_income_unit != "JPY_MN":
+        raise DaihenE2EError("explicit scenario_net_income_unit=JPY_MN is required")
     return {
         "eps": scenario.get("eps"),
         "net_income": float(net_income) * 1_000_000.0,
@@ -51,7 +55,7 @@ def _scenario_for_simulator(raw: Mapping[str, Any], name: str) -> dict[str, Any]
             "source_type": scenario.get("source_type"),
             "source_refs": list(scenario.get("source_refs") or []),
             "net_income_input": net_income,
-            "net_income_unit": unit,
+            "net_income_unit": net_income_unit,
         },
     }
 
@@ -60,6 +64,7 @@ def run_daihen_first_e2e(
     raw: Mapping[str, Any],
     *,
     market_quote: Mapping[str, Any] | None,
+    scenario_net_income_unit: str,
     target_pers: list[float] | None = None,
 ) -> dict[str, Any]:
     """Run the #172 Daihen vertical slice without fabricating market data or units."""
@@ -68,6 +73,8 @@ def run_daihen_first_e2e(
         raise DaihenE2EError("First E2E canonical identity must be security_code=6622")
     if record.status != "CURRENT":
         raise DaihenE2EError("First E2E requires CURRENT Company Research")
+    if scenario_net_income_unit != "JPY_MN":
+        raise DaihenE2EError("explicit scenario_net_income_unit=JPY_MN is required")
 
     gate = record.selection_context.get("research_gate") or {}
     if gate.get("command") != "START_RESEARCH" or gate.get("approved") is not True:
@@ -78,6 +85,7 @@ def run_daihen_first_e2e(
         "candidate": list(record.selection_context.get("provenance_refs") or []),
         "research_sources": list(record.source_refs),
         "hypothesis_sources": list(record.hypothesis.get("source_refs") or []),
+        "scenario_net_income_unit": scenario_net_income_unit,
     }
     if not provenance["candidate"] or not provenance["research_sources"] or not provenance["hypothesis_sources"]:
         raise DaihenE2EError("candidate → research → hypothesis provenance must be complete")
@@ -117,7 +125,7 @@ def run_daihen_first_e2e(
             "as_of": share_basis.get("as_of"),
         },
         "scenarios": {
-            name: _scenario_for_simulator(raw, name)
+            name: _scenario_for_simulator(raw, name, net_income_unit=scenario_net_income_unit)
             for name in ("bear", "base", "bull")
         },
     }
