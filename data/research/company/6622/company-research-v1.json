@@ -1,0 +1,93 @@
+{
+  "security_code": "6622",
+  "company_name": "株式会社ダイヘン",
+  "as_of": "2026-08-09",
+  "status": "CURRENT",
+  "selection_context": {
+    "candidate_sources": ["OWNER_DECISION", "MONEY_FLOW_THEME_MEMBERSHIP", "E2E_VALIDATION_GATE"],
+    "selection_reason": "#172 Owner DecisionによりFirst E2E validation companyをダイヘン（6622）へ固定。AI/DCだけに単純化せず、Energy Management / Factory Automation / Material Processingの利益driverを分解して検証する。",
+    "owner_pick": true,
+    "candidate_as_of": "2026-08-09",
+    "research_status_before": "NOT_STARTED",
+    "research_gap": "HIGH",
+    "money_flow_context": {
+      "theme_id": "theme:ai-data-center-power-infrastructure",
+      "membership_source": "#178 explicit membership",
+      "state": "UNKNOWN",
+      "note": "Theme membershipはprovenanceのみ。WARMING/INFLOWはここで推測しない。"
+    },
+    "research_gate": {"command": "START_RESEARCH", "approved": true, "approved_at": "2026-08-09", "authority_ref": "issue:172#issuecomment-5229957439"},
+    "provenance_refs": ["issue:172#issuecomment-5229957439", "issue:175", "issue:178"]
+  },
+  "facts": {
+    "business_summary": {
+      "statement": "エネルギーマネジメント、ファクトリーオートメーション、マテリアルプロセシングを主要事業とする電力機器・産業機器メーカー。",
+      "source_ref": "https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf",
+      "as_of": "2026-08-04"
+    },
+    "latest_financials": {
+      "period": "FY2027_Q1",
+      "period_end": "2026-06-30",
+      "orders_million_jpy": 86096,
+      "revenue_million_jpy": 55507,
+      "operating_profit_million_jpy": 4079,
+      "ordinary_profit_million_jpy": 4733,
+      "net_income_attributable_million_jpy": 2779,
+      "eps_jpy_pre_split": 117.75,
+      "source_ref": "https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf",
+      "as_of": "2026-08-04"
+    },
+    "earnings_engine": {
+      "observed_drivers": [
+        "Energy Management: storage-system demand and grid/infrastructure projects",
+        "Factory Automation: automation recovery and advanced-package transfer robots",
+        "Material Processing: AI/data-center semiconductor capex and related equipment demand"
+      ],
+      "segment_q1": {
+        "energy_management": {"orders_million_jpy": 44104, "revenue_million_jpy": 24500, "operating_profit_million_jpy": 2200},
+        "factory_automation": {"orders_million_jpy": 11757, "revenue_million_jpy": 8231, "operating_profit_million_jpy": 402},
+        "material_processing": {"orders_million_jpy": 30180, "revenue_million_jpy": 22734, "operating_profit_million_jpy": 2676}
+      },
+      "company_guidance_fy2027": {"revenue_million_jpy": 280000, "operating_profit_million_jpy": 25000, "ordinary_profit_million_jpy": 25500, "net_income_million_jpy": 16500, "guidance_revised_at_q1": false},
+      "source_ref": "https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf",
+      "as_of": "2026-08-04"
+    },
+    "share_basis": {
+      "issued_shares_including_treasury": 24903291,
+      "treasury_shares": 1295315,
+      "shares_ex_treasury_pre_split": 23607976,
+      "q1_weighted_average_shares_pre_split": 23608067,
+      "planned_split": "2026-10-01 1:5",
+      "source_ref": "https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf",
+      "as_of": "2026-06-30"
+    }
+  },
+  "interpretation": {
+    "growth_drivers": [
+      {"statement": "Material Processingは生成AI/DCを背景とした半導体投資の恩恵が最も直接的で、Q1受注・売上・営業利益が揃って強い。", "evidence_refs": ["https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf"], "type": "INTERPRETATION"},
+      {"statement": "Energy Managementは蓄電池・電力インフラ受注が強い一方、売上・利益の計上タイミングは大型案件で振れうる。", "evidence_refs": ["https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf"], "type": "INTERPRETATION"}
+    ],
+    "risks": [
+      {"statement": "AI/DC需要だけで全社を説明するとEnergy ManagementやFAの異なるサイクルを見落とす。", "evidence_refs": ["https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf"], "type": "INTERPRETATION"},
+      {"statement": "Energy ManagementはQ1受注増でも前年の大口案件反動で売上・利益が減少しており、受注から利益への変換時期を別途追う必要がある。", "evidence_refs": ["https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf"], "type": "INTERPRETATION"}
+    ],
+    "valuation_context": {"price": null, "price_as_of": null, "note": "Market priceは#117 authorityで取得し、Research内では捏造しない。"}
+  },
+  "scenarios": {
+    "bear": {"target_fiscal_year": "FY2027", "net_income": 13500, "eps": null, "share_basis": {"shares": 23607976, "basis": "Q1 period-end pre-split shares ex treasury", "as_of": "2026-06-30"}, "assumptions": ["Material Processing growth moderates", "Energy Management order conversion is delayed", "Company guidance is missed"], "confidence": "LOW", "source_type": "SADO_BEAR", "source_refs": ["https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf"], "as_of": "2026-08-09"},
+    "base": {"target_fiscal_year": "FY2027", "net_income": 17000, "eps": null, "share_basis": {"shares": 23607976, "basis": "Q1 period-end pre-split shares ex treasury", "as_of": "2026-06-30"}, "assumptions": ["Company guidance is factual anchor, not Sado Base identity", "Material Processing stays strong", "Energy Management backlog converts progressively"], "confidence": "MEDIUM", "source_type": "SADO_BASE", "source_refs": ["https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf"], "as_of": "2026-08-09"},
+    "bull": {"target_fiscal_year": "FY2027", "net_income": 20000, "eps": null, "share_basis": {"shares": 23607976, "basis": "Q1 period-end pre-split shares ex treasury", "as_of": "2026-06-30"}, "assumptions": ["AI/DC semiconductor investment remains elevated", "Energy Management order growth converts to revenue", "FA recovery broadens"], "confidence": "LOW", "source_type": "SADO_BULL", "source_refs": ["https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf"], "as_of": "2026-08-09"}
+  },
+  "hypothesis": {
+    "what_market_may_be_underestimating": "AI/DC向けMaterial Processingの成長に加え、Energy Managementの蓄電池・電力インフラ受注とFA回復が異なる時間軸で利益成長を重ねる可能性。",
+    "must_happen": ["Material Processingの高水準受注が売上・利益へ継続転換する", "Energy Managementの受注増が後続四半期の売上・利益へ転換する"],
+    "key_kpis": ["segment orders", "Material Processing operating profit", "Energy Management order-to-revenue conversion", "company operating profit guidance"],
+    "invalidation_conditions": ["Material Processing受注が急減しAI/DC投資の失速が確認される", "Energy Management受注が長期間売上・利益へ転換しない", "全社営業利益が会社計画を継続的に下回る"],
+    "expected_time_horizon": "FY2027-FY2028",
+    "current_confidence": "MEDIUM",
+    "checkpoint": ["FY2027 Q2 earnings", "Energy Management backlog conversion"],
+    "source_refs": ["https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf"]
+  },
+  "source_refs": ["https://www.daihen.co.jp/ir/summary_pdf/2026_0804_kessan.pdf"],
+  "data_completeness": "COMPLETE"
+}
