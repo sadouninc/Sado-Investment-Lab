@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "benchmark": {"name": "TOPIX", "symbol": "^TOPX"},
+  "history_range": "6mo",
+  "interval": "1d",
+  "themes": [
+    {
+      "id": "theme:gaming",
+      "name": "Gaming",
+      "membership_as_of": "2026-08-09",
+      "authority": "Issue #112 example membership",
+      "members": [
+        {"security_code": "7974", "company_name": "任天堂", "symbol": "7974.T"},
+        {"security_code": "9697", "company_name": "カプコン", "symbol": "9697.T"}
+      ]
+    }
+  ]
+}
