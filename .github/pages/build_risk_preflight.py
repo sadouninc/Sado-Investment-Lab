@@ -101,8 +101,11 @@ def build() -> None:
 if __name__ == "__main__":
     build()
 
-    # #257 PR-B is another presentation-only page. Keep the workflow entry point
-    # stable while generating both post-build Pages artifacts.
+    # #257 PR-B/PR-C are presentation-only layers. Keep one stable workflow
+    # entry point while generating and then safely enhancing the Cockpit.
     from build_daihen_cockpit import build as build_daihen_cockpit
+    from build_daihen_cockpit import load_model as load_daihen_model
+    from enhance_daihen_cockpit_links import enhance_file as enhance_daihen_cockpit_links
 
     build_daihen_cockpit()
+    enhance_daihen_cockpit_links(load_daihen_model())
