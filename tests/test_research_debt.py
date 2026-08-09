@@ -1,8 +1,11 @@
 from copy import deepcopy
+from pathlib import Path
+import sys
 
 import pytest
 
-from scripts.research_debt import ResearchDebtError, project_debt_candidates, validate_debt
+sys.path.insert(0, str(Path(__file__).parents[1] / "scripts"))
+from research_debt import ResearchDebtError, project_debt_candidates, validate_debt
 
 
 def coverage_fixture():
@@ -64,7 +67,8 @@ def test_supported_and_defined_sections_do_not_create_debt():
         elif name == "valuation":
             section["status"] = "SUPPORTED"
         elif name == "base_scenario":
-            section.clear(); section.update({"status": "SUPPORTED"})
+            section.clear()
+            section.update({"status": "SUPPORTED"})
         else:
             section["status"] = "SUPPORTED"
     assert project_debt_candidates(source) == []
