@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -9,6 +10,7 @@ from scripts.research_revision_ledger import (
     append_revision,
     changed_fields,
     deterministic_revision_id,
+    numeric_delta,
     scenario_numeric_change,
     validate_revision,
 )
@@ -106,6 +108,57 @@ class ResearchRevisionLedgerTests(unittest.TestCase):
         self.assertEqual(validated["evidence_refs"], ["fact:6622:fy2027q2:operating-profit"])
         self.assertIn("Margin conversion", validated["reasoning"])
         self.assertNotEqual(validated["evidence_refs"], validated["reasoning"])
+
+    def test_revised_at_requires_timezone_aware_iso8601(self):
+        for value in ("2026-11-05T16:10:00", "not-a-time"):
+            row = revision_fixture()
+            row["revised_at"] = value
+            with self.subTest(value=value), self.assertRaises(ResearchRevisionError):
+                validate_revision(row)
+
+    def test_as_of_requires_iso_date_and_cannot_be_after_revision(self):
+        for value in ("20261105", "2026-11-32", "2026-11-06"):
+            row = revision_fixture()
+            row["as_of"] = value
+            with self.subTest(value=value), self.assertRaises(ResearchRevisionError):
+                validate_revision(row)
+
+    def test_manual_before_equals_after_is_rejected(self):
+        row = revision_fixture()
+        row["changed_fields"] = [
+            {"path": "scenarios.base.eps", "before": 720, "after": 720, "change_type": "UPDATED"}
+        ]
+        with self.assertRaises(ResearchRevisionError):
+            validate_revision(row)
+
+    def test_numeric_delta_rejects_string_bool_and_non_finite_values(self):
+        invalid_values = ("10", True, math.nan, math.inf, -math.inf)
+        for value in invalid_values:
+            with self.subTest(value=value):
+                self.assertEqual(numeric_delta(value, 20), {"absolute": None, "pct": None})
+                with self.assertRaises(ResearchRevisionError):
+                    scenario_numeric_change(
+                        field_path="scenarios.base.eps",
+                        before=value,
+                        after=20,
+                        before_target_fiscal_year="FY2027",
+                        after_target_fiscal_year="FY2027",
+                    )
+
+    def test_supplied_numeric_delta_must_match_before_after(self):
+        row = revision_fixture()
+        row["changed_fields"][0]["numeric_delta"] = {"absolute": 999, "pct": 999}
+        with self.assertRaises(ResearchRevisionError):
+            validate_revision(row)
+
+    def test_invalid_revision_is_not_persisted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "revisions.jsonl"
+            row = revision_fixture()
+            row["revised_at"] = "2026-11-05T16:10:00"
+            with self.assertRaises(ResearchRevisionError):
+                append_revision(path, row)
+            self.assertFalse(path.exists())
 
 
 if __name__ == "__main__":
