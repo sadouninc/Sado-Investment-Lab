@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -65,11 +66,18 @@ class MorningReportCardTests(unittest.TestCase):
             report_dir.mkdir()
             diag_dir.mkdir()
             (report_dir / "2026-08-09.md").write_text(REPORT, encoding="utf-8")
+            diagnostics = {
+                "model": "gpt-5",
+                "total_tokens": 1234,
+                "dataset_status": "PARTIAL",
+                "input_tokens": 1000,
+                "output_tokens": 234,
+                "execution_seconds": 2.5,
+                "estimated_cost_usd": 0.1,
+                "cost_basis": "test",
+            }
             (diag_dir / "2026-08-09.json").write_text(
-                '{"model":"gpt-5","total_tokens":1234,"dataset_status":"PARTIAL",'
-                '"input_tokens":1000,"output_tokens":234,"execution_seconds":2.5,"
-                'estimated_cost_usd":0.1,"cost_basis":"test"}',
-                encoding="utf-8",
+                json.dumps(diagnostics), encoding="utf-8"
             )
 
             old_report_dir, old_diag_dir, old_site = MODULE.REPORT_DIR, MODULE.DIAG_DIR, MODULE.SITE
