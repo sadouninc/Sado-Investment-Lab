@@ -1,0 +1,140 @@
+{
+  "security_code": "6622",
+  "company_name": "ダイヘン",
+  "review_context": {
+    "status": "PARTIAL",
+    "freshness": "CURRENT",
+    "why_now": [
+      "FY2027 Q1決算後の利益ドライバーとForward PERを再確認する"
+    ],
+    "last_material_change_at": "2026-08-04T15:00:00+09:00",
+    "next_checkpoint_refs": [
+      "company-research:6622:FY2027-Q2"
+    ],
+    "source_refs": [
+      "company-research:6622:2026-08-09"
+    ]
+  },
+  "earnings_driver": {
+    "status": "PARTIAL",
+    "freshness": "CURRENT",
+    "base_profit": {
+      "value": 17000,
+      "unit": "million_jpy",
+      "target_fiscal_year": "FY2027"
+    },
+    "base_eps": {
+      "value": 720.1,
+      "unit": "jpy",
+      "target_fiscal_year": "FY2027"
+    },
+    "company_guidance": {
+      "net_income_million_jpy": 16500,
+      "target_fiscal_year": "FY2027"
+    },
+    "explanation_coverage": "PARTIAL",
+    "driver_refs": [
+      "company-research:6622:earnings-engine"
+    ],
+    "warnings": [
+      "DRIVER_COVERAGE_PARTIAL"
+    ],
+    "source_refs": [
+      "company-research:6622:2026-08-09",
+      "issue:214"
+    ]
+  },
+  "valuation": {
+    "status": "PARTIAL",
+    "freshness": "STALE",
+    "price_as_of": "2026-07-29",
+    "target_fiscal_year": "FY2027",
+    "share_basis": {
+      "diluted_shares": 23607976,
+      "as_of": "2026-06-30"
+    },
+    "bear": {
+      "eps": 571.84,
+      "forward_per": 20.81
+    },
+    "base": {
+      "eps": 720.1,
+      "forward_per": 16.53,
+      "implied_price_per20": 14401.91
+    },
+    "bull": {
+      "eps": 847.17,
+      "forward_per": 14.05
+    },
+    "warnings": [
+      "PRICE_STALE_FOR_E2E"
+    ],
+    "reason_codes": [
+      "PRICE_STALE"
+    ],
+    "source_refs": [
+      "forward-per:6622:FY2027:2026-07-29",
+      "company-research:6622:2026-08-09"
+    ]
+  },
+  "expectations": {
+    "status": "UNAVAILABLE",
+    "freshness": "UNKNOWN",
+    "company_guidance_ref": "company-research:6622:guidance:FY2027",
+    "external_consensus_ref": null,
+    "sado_base_ref": "company-research:6622:scenario:base:FY2027",
+    "latest_actual_ref": "company-research:6622:FY2027-Q1",
+    "direction": null,
+    "warnings": [
+      "CONSENSUS_UNAVAILABLE"
+    ],
+    "source_refs": [
+      "company-research:6622:2026-08-09"
+    ]
+  },
+  "hypothesis": {
+    "status": "PARTIAL",
+    "freshness": "CURRENT",
+    "health": "INTACT",
+    "supporting_evidence_refs": [
+      "company-research:6622:FY2027-Q1"
+    ],
+    "challenging_evidence_refs": [],
+    "must_happen": [
+      "Material Processingの高水準受注が売上・利益へ継続転換する",
+      "Energy Managementの受注増が後続四半期の売上・利益へ転換する"
+    ],
+    "invalidation_conditions": [
+      "Material Processing受注が急減しAI/DC投資の失速が確認される",
+      "Energy Management受注が長期間売上・利益へ転換しない"
+    ],
+    "next_checkpoint_refs": [
+      "company-research:6622:FY2027-Q2"
+    ],
+    "source_refs": [
+      "hypothesis:6622:FY2027"
+    ]
+  },
+  "portfolio_preflight": {
+    "status": "NOT_RUN",
+    "freshness": "UNKNOWN",
+    "latest_snapshot_ref": null,
+    "unknown_dimensions": [
+      "trade_intent_not_supplied"
+    ],
+    "unset_limits": [],
+    "source_refs": []
+  },
+  "decision_history": {
+    "status": "PARTIAL",
+    "freshness": "CURRENT",
+    "latest_decision_ref": "decision:6622:latest",
+    "latest_episode_ref": "episode:6622:current",
+    "comparison_ref": "decision-comparison:6622:current-vs-latest",
+    "historical_snapshot_ref": "decision-snapshot:6622:latest:immutable",
+    "source_refs": [
+      "decision:6622:latest",
+      "decision-snapshot:6622:latest:immutable"
+    ]
+  }
+}
