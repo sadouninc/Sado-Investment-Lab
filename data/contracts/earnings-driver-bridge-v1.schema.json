@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "earnings-driver-bridge-v1.schema.json",
+  "title": "Sado Investment Lab Earnings Driver Bridge v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "security_code",
+    "target_fiscal_year",
+    "version",
+    "as_of",
+    "status",
+    "nodes",
+    "outputs"
+  ],
+  "properties": {
+    "driver_model_id": {"type": "string"},
+    "security_code": {"type": "string", "minLength": 1},
+    "target_fiscal_year": {"type": "string", "minLength": 1},
+    "version": {"type": "string", "minLength": 1},
+    "as_of": {"type": "string", "minLength": 1},
+    "status": {"enum": ["COMPLETE", "PARTIAL", "NEEDS_REVIEW", "UNAVAILABLE"]},
+    "nodes": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/node"}
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bear": {"$ref": "#/$defs/output"},
+        "base": {"$ref": "#/$defs/output"},
+        "bull": {"$ref": "#/$defs/output"}
+      }
+    }
+  },
+  "$defs": {
+    "formula": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "input_refs"],
+      "properties": {
+        "operation": {
+          "enum": ["ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "SUM", "PCT_CHANGE", "APPLY_MARGIN", "PER_SHARE"]
+        },
+        "input_refs": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "node_type",
+        "metric",
+        "scope",
+        "scenario",
+        "value",
+        "unit",
+        "target_fiscal_year",
+        "formula",
+        "source_refs",
+        "assumption_text",
+        "as_of",
+        "confidence"
+      ],
+      "properties": {
+        "node_id": {"type": "string", "minLength": 1},
+        "node_type": {"enum": ["OBSERVED", "ASSUMPTION", "DERIVED", "EXTERNAL"]},
+        "metric": {"type": "string", "minLength": 1},
+        "scope": {"type": "string", "minLength": 1},
+        "scope_id": {"type": ["string", "null"]},
+        "scenario": {"enum": ["COMMON", "BEAR", "BASE", "BULL"]},
+        "value": {"type": ["number", "null"]},
+        "unit": {"enum": ["JPY", "JPY_MN", "%", "COUNT", "INDEX", "OTHER"]},
+        "target_fiscal_year": {"type": "string", "minLength": 1},
+        "formula": {"anyOf": [{"$ref": "#/$defs/formula"}, {"type": "null"}]},
+        "source_refs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "assumption_text": {"type": ["string", "null"]},
+        "as_of": {"type": "string", "minLength": 1},
+        "confidence": {"enum": ["LOW", "MEDIUM", "HIGH"]}
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["net_income_ref", "eps_ref"],
+      "properties": {
+        "net_income_ref": {"type": ["string", "null"]},
+        "eps_ref": {"type": ["string", "null"]}
+      }
+    }
+  }
+}
