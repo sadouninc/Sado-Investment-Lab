@@ -7,8 +7,10 @@ from pathlib import Path
 
 from scripts.money_flow_canonical_run import (
     DEFAULT_THEME_ID,
+    bounded_fetcher,
     canonical_snapshot,
     evaluate_policy_lead_time,
+    latest_market_date,
     persist_canonical_snapshot,
 )
 from scripts.money_flow_history import load_history
@@ -61,8 +63,8 @@ THEME_CONFIG = {
 }
 
 
-def chart(closes: list[float], volumes: list[float]) -> dict:
-    start = datetime(2026, 5, 1, tzinfo=timezone.utc)
+def chart(closes: list[float], volumes: list[float], *, start: datetime | None = None) -> dict:
+    start = start or datetime(2026, 5, 1, tzinfo=timezone.utc)
     timestamps = [int((start + timedelta(days=i)).timestamp()) for i in range(len(closes))]
     return {
         "chart": {
@@ -166,6 +168,50 @@ class MoneyFlowCanonicalRunTests(unittest.TestCase):
         self.assertIsNone(result["first_inflow_date"])
         self.assertIsNone(result["policy_to_inflow_days"])
         self.assertIn("FIRST_INFLOW_NOT_OBSERVED", result["limitations"])
+
+    def test_bounded_fetcher_removes_future_observations_for_backfill(self):
+        payload = chart([100, 101, 102, 999], [10, 11, 12, 999], start=datetime(2024, 10, 1, tzinfo=timezone.utc))
+
+        def fetcher(symbol: str, range_: str, interval: str) -> dict:
+            return payload
+
+        bounded = bounded_fetcher(fetcher, as_of=date(2024, 10, 3))("^TOPX", "2y", "1d")
+        result = bounded["chart"]["result"][0]
+        self.assertEqual(len(result["timestamp"]), 3)
+        self.assertEqual(result["indicators"]["quote"][0]["close"], [100, 101, 102])
+        self.assertEqual(result["indicators"]["quote"][0]["volume"], [10, 11, 12])
+
+    def test_latest_market_date_comes_from_benchmark_series_not_wall_clock(self):
+        payload = chart([100, 101, 102], [10, 11, 12], start=datetime(2026, 8, 5, tzinfo=timezone.utc))
+
+        def fetcher(symbol: str, range_: str, interval: str) -> dict:
+            self.assertEqual(symbol, "^TOPX")
+            return payload
+
+        self.assertEqual(latest_market_date(theme_config=THEME_CONFIG, fetcher=fetcher), date(2026, 8, 7))
+
+    def test_historical_snapshot_does_not_use_future_spike(self):
+        start = datetime(2026, 5, 1, tzinfo=timezone.utc)
+        normal = rising(100, 0.1, 100)
+        future_spike = normal[:-1] + [10000]
+
+        def fetcher(symbol: str, range_: str, interval: str) -> dict:
+            values = normal if symbol == "^TOPX" else future_spike
+            return chart(values, [100] * 100, start=start)
+
+        as_of = (start + timedelta(days=98)).date()
+        snapshot = canonical_snapshot(
+            theme_id=DEFAULT_THEME_ID,
+            as_of=as_of,
+            theme_config=THEME_CONFIG,
+            sector_config=SECTOR_CONFIG,
+            detector_config=DETECTOR_CONFIG,
+            history=[],
+            fetcher=fetcher,
+        )
+        self.assertEqual(snapshot["as_of"], as_of.isoformat())
+        self.assertTrue(snapshot["persistable"])
+        self.assertLess(float(snapshot["scores"]["heat"]), 85.0)
 
 
 if __name__ == "__main__":
