@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "expectation-snapshot-v1.schema.json",
+  "title": "Expectation Snapshot v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "expectation_id",
+    "security_code",
+    "target_fiscal_period",
+    "as_of",
+    "expectation_type",
+    "metric",
+    "value",
+    "unit",
+    "source_ref",
+    "source_authority",
+    "observed_at",
+    "coverage"
+  ],
+  "properties": {
+    "expectation_id": {"type": "string", "pattern": "^expectation:"},
+    "security_code": {"type": "string", "minLength": 1},
+    "target_fiscal_period": {"type": "string", "minLength": 1},
+    "as_of": {"type": "string", "format": "date"},
+    "expectation_type": {"enum": ["CONSENSUS", "COMPANY_GUIDANCE", "MARKET_IMPLIED_PROXY", "SADO_SCENARIO"]},
+    "metric": {"enum": ["REVENUE", "OPERATING_PROFIT", "NET_INCOME", "EPS", "MARGIN", "KPI"]},
+    "value": {"type": ["number", "integer", "null"]},
+    "unit": {"type": "string", "minLength": 1},
+    "source_ref": {"type": "string", "minLength": 1},
+    "source_authority": {"enum": ["PRIMARY", "SECONDARY", "INTERNAL"]},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "coverage": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "analyst_count": {"type": ["integer", "null"], "minimum": 0},
+        "dispersion": {"type": ["number", "null"]},
+        "status": {"enum": ["OK", "PARTIAL", "STALE", "UNAVAILABLE"]}
+      }
+    },
+    "provenance": {"type": "object"}
+  }
+}
