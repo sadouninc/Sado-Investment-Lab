@@ -1,0 +1,89 @@
+name: PR Preflight
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-preflight-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    name: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate GitHub Actions workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=1.7.12
+          archive="actionlint_${version}_linux_amd64.tar.gz"
+          curl -fsSLO "https://github.com/rhysd/actionlint/releases/download/v${version}/${archive}"
+          tar -xzf "$archive" actionlint
+          find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -print0 | xargs -0 ./actionlint
+
+      - name: Install test dependencies
+        run: python3 -m pip install --disable-pip-version-check pytest==8.4.1
+
+      - name: Generate market phase report
+        run: python3 -m scripts.market_phase.pipeline
+
+      - name: Generate Investor DNA v2 report
+        run: python3 scripts/investor_dna_v2.py
+
+      - name: Generate Morning Dataset
+        run: |
+          python3 scripts/generate_morning_dataset.py \
+            --investor-dna data/generated/public/investor-dna.json
+
+      - name: Test Trade Journal mapping
+        run: python3 -m unittest discover -s .github/pages -p "test_*.py"
+
+      - name: Test analysis pipelines
+        run: python3 -m pytest tests -q
+
+      - name: Prepare site
+        run: python3 .github/pages/build_site.py
+
+      - name: Publish risk preflight confirmation
+        run: python3 .github/pages/build_risk_preflight.py
+
+      - name: Publish architecture docs
+        run: python3 .github/pages/build_architecture.py
+
+      - name: Publish Investor DNA
+        run: python3 .github/pages/build_investor_dna.py
+
+      - name: Publish Morning Dataset diagnostics
+        run: python3 .github/pages/build_morning_dataset.py
+
+      - name: Publish AI Morning Reports
+        run: python3 .github/pages/build_ai_morning_reports.py
+
+      - name: Configure Pages for smoke build
+        uses: actions/configure-pages@v5
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./site-src
+          destination: ./_site
+
+      - name: Verify smoke-build routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f _site/index.html
+          test -f _site/trade-journal/index.html
+          test -f _site/trade-analysis/index.html
+          test -f _site/risk-preflight/index.html
+          test -f _site/research/investor-dna/index.html
+          test -f _site/research/morning-dataset/index.html
+          test -f _site/reports/morning/index.html
