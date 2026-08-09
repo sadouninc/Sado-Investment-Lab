@@ -13,12 +13,12 @@ from scripts.money_flow_history import (
 )
 
 
-def snapshot(day: str, state: str, *, signal: bool, entity_id: str = "theme:gaming"):
+def snapshot(day: str, state: str, *, signal: bool, entity_id: str = "theme:gaming", kind: str = "THEME"):
     return {
         "schema_version": 1,
         "id": entity_id,
         "name": "Gaming",
-        "kind": "THEME",
+        "kind": kind,
         "as_of": day,
         "state": state,
         "selection_signal": signal,
@@ -91,6 +91,36 @@ class MoneyFlowHistoryTests(unittest.TestCase):
         self.assertEqual(metrics["warming_average_duration_sessions"], 1.5)
         self.assertEqual(metrics["warming_short_reversal_rate"], 0.5)
         self.assertGreater(metrics["state_change_rate"], 0)
+
+    def test_turnover_includes_selected_to_zero_and_zero_to_selected_days(self):
+        history = [
+            snapshot("2026-08-03", "WARMING", signal=True),
+            snapshot("2026-08-04", "COLD", signal=False),
+            snapshot("2026-08-05", "WARMING", signal=True),
+        ]
+        metrics = compute_stability_metrics(history)
+        self.assertEqual(metrics["selection_turnover_average"], 1.0)
+
+    def test_turnover_zero_to_zero_is_zero_change(self):
+        # Two explicit snapshot days with empty selected sets mean no composition change.
+        history = [
+            snapshot("2026-08-03", "COLD", signal=False),
+            snapshot("2026-08-04", "COLD", signal=False),
+        ]
+        metrics = compute_stability_metrics(history)
+        self.assertEqual(metrics["selection_turnover_average"], 0.0)
+
+    def test_turnover_compares_full_daily_sets_across_kind_and_entity(self):
+        history = [
+            snapshot("2026-08-03", "WARMING", signal=True, entity_id="theme:gaming"),
+            snapshot("2026-08-03", "INFLOW", signal=True, entity_id="17:energy", kind="SECTOR"),
+            snapshot("2026-08-04", "COLD", signal=False, entity_id="theme:gaming"),
+            snapshot("2026-08-04", "INFLOW", signal=True, entity_id="17:energy", kind="SECTOR"),
+            snapshot("2026-08-04", "WARMING", signal=True, entity_id="theme:defense"),
+        ]
+        metrics = compute_stability_metrics(history)
+        # Day1={gaming, energy}; Day2={energy, defense}; Jaccard turnover=1-1/3=2/3.
+        self.assertEqual(metrics["selection_turnover_average"], 0.6667)
 
     def test_invalid_snapshot_and_duplicate_price_dates_fail_closed(self):
         invalid = snapshot("2026-08-03", "UNKNOWN", signal=False)
