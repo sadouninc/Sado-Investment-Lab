@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sadouninc.github.io/Sado-Investment-Lab/contracts/company-research-v1.schema.json",
+  "title": "Sado Investment Lab Company Research v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "security_code",
+    "company_name",
+    "as_of",
+    "status",
+    "selection_context",
+    "facts",
+    "interpretation",
+    "scenarios",
+    "hypothesis",
+    "source_refs",
+    "data_completeness"
+  ],
+  "properties": {
+    "security_code": {"type": "string", "minLength": 1},
+    "company_name": {"type": "string", "minLength": 1},
+    "as_of": {"type": "string", "format": "date"},
+    "status": {"enum": ["IN_PROGRESS", "CURRENT", "NEEDS_REVIEW"]},
+    "selection_context": {
+      "type": "object",
+      "required": ["candidate_sources", "selection_reason", "owner_pick", "candidate_as_of"],
+      "properties": {
+        "candidate_sources": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "selection_reason": {"type": "string", "minLength": 1},
+        "owner_pick": {"type": "boolean"},
+        "candidate_as_of": {"type": "string", "format": "date"},
+        "money_flow_context": {}
+      },
+      "additionalProperties": true
+    },
+    "facts": {
+      "type": "object",
+      "required": ["business_summary", "latest_financials", "earnings_engine"],
+      "properties": {
+        "business_summary": {"type": "object"},
+        "latest_financials": {"type": "object"},
+        "earnings_engine": {"type": "object"}
+      },
+      "additionalProperties": true
+    },
+    "interpretation": {
+      "type": "object",
+      "required": ["growth_drivers", "risks", "valuation_context"],
+      "properties": {
+        "growth_drivers": {"type": "array"},
+        "risks": {"type": "array"},
+        "valuation_context": {"type": "object"}
+      },
+      "additionalProperties": true
+    },
+    "scenarios": {
+      "type": "object",
+      "required": ["bear", "base", "bull"],
+      "properties": {
+        "bear": {"$ref": "#/$defs/scenario"},
+        "base": {"$ref": "#/$defs/scenario"},
+        "bull": {"$ref": "#/$defs/scenario"}
+      },
+      "additionalProperties": false
+    },
+    "hypothesis": {
+      "type": "object",
+      "required": [
+        "what_market_may_be_underestimating",
+        "must_happen",
+        "key_kpis",
+        "invalidation_conditions",
+        "expected_time_horizon",
+        "current_confidence"
+      ],
+      "properties": {
+        "what_market_may_be_underestimating": {"type": "string"},
+        "must_happen": {"type": "array"},
+        "key_kpis": {"type": "array"},
+        "invalidation_conditions": {"type": "array"},
+        "expected_time_horizon": {"type": "string"},
+        "current_confidence": {"enum": ["LOW", "MEDIUM", "HIGH"]}
+      },
+      "additionalProperties": true
+    },
+    "source_refs": {"type": "array", "items": {"type": "string"}},
+    "data_completeness": {"enum": ["COMPLETE", "PARTIAL", "UNKNOWN"]}
+  },
+  "$defs": {
+    "scenario": {
+      "type": "object",
+      "properties": {
+        "target_fiscal_year": {"type": "string"},
+        "revenue": {"type": ["number", "null"]},
+        "operating_profit": {"type": ["number", "null"]},
+        "net_income": {"type": ["number", "null"]},
+        "eps": {"type": ["number", "null"]},
+        "share_basis": {},
+        "assumptions": {"type": "array"},
+        "source_type": {"type": "string"},
+        "source_refs": {"type": "array", "items": {"type": "string"}},
+        "as_of": {"type": "string", "format": "date"},
+        "unavailable_reason": {"type": "string"}
+      },
+      "additionalProperties": true
+    }
+  }
+}
