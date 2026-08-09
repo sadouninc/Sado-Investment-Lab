@@ -1,0 +1,71 @@
+name: Money Flow Canonical Run
+
+on:
+  schedule:
+    # 07:15 UTC Monday-Friday = 16:15 JST, after Tokyo cash-market close.
+    - cron: "15 7 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      backfill_start:
+        description: "Optional YYYY-MM-DD start date for historical backfill"
+        required: false
+        type: string
+      backfill_end:
+        description: "Optional YYYY-MM-DD end date for historical backfill"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: money-flow-canonical
+  cancel-in-progress: false
+
+jobs:
+  canonical-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify Money Flow tests
+        run: python3 -m unittest tests.test_money_flow_canonical_run
+
+      - name: Run latest market session or requested backfill
+        shell: bash
+        env:
+          BACKFILL_START: ${{ inputs.backfill_start }}
+          BACKFILL_END: ${{ inputs.backfill_end }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${BACKFILL_START:-}" ]]; then
+            if [[ -z "${BACKFILL_END:-}" ]]; then
+              echo "backfill_end is required when backfill_start is supplied" >&2
+              exit 2
+            fi
+            python3 scripts/money_flow_canonical_run.py \
+              --backfill-start "$BACKFILL_START" \
+              --backfill-end "$BACKFILL_END" \
+              --backfill-range 2y
+          else
+            python3 scripts/money_flow_canonical_run.py --latest-market-date
+          fi
+
+      - name: Persist canonical Market Evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            data/generated/public/money-flow/history.jsonl \
+            data/generated/public/money-flow/policy-lead-time-ai-dc.json
+          if git diff --cached --quiet; then
+            echo "No canonical Money Flow changes to persist."
+            exit 0
+          fi
+          git commit -m "data: persist Money Flow canonical run [担当: ♦️ソラ automation]"
+          git push origin HEAD:main
