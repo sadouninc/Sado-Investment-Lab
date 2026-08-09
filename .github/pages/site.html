@@ -81,6 +81,7 @@
       const issueCommentsUrl = 'https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/124/comments?per_page=100';
       const statusUrl = 'https://raw.githubusercontent.com/sadouninc/Sado-Investment-Lab/main/Ops/Monitoring/AI_Key_Person_Watch/status.json';
       const staleAfterMinutes = 150;
+      const maxFutureSkewMinutes = 5;
       const escapeHtml = (value) => String(value ?? '')
         .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
@@ -94,6 +95,7 @@
         const parsed = new Date(withOffset);
         return Number.isNaN(parsed.getTime()) ? null : parsed;
       };
+      const isTooFarFuture = (date) => date && date.getTime() > Date.now() + maxFutureSkewMinutes * 60000;
       const parseAuditComment = (body) => {
         if (!body || !body.includes('Operational Heartbeat / Run Audit')) return null;
         const field = (name) => {
@@ -112,6 +114,9 @@
         };
       };
       const classifyAudit = (audit) => {
+        if (isTooFarFuture(audit.runAt)) {
+          return { state: 'DEGRADED', reason: `直近run時刻が現在より${maxFutureSkewMinutes}分超先です。時計・timezone・入力を確認してください。` };
+        }
         const ageMinutes = (Date.now() - audit.runAt.getTime()) / 60000;
         if (ageMinutes > staleAfterMinutes) {
           return { state: 'STALE', reason: `最終runから約${Math.floor(ageMinutes)}分経過しています。` };
@@ -130,9 +135,20 @@
           + `<dt>状態理由</dt><dd>${escapeHtml(health.reason)}</dd></dl>`;
       };
       const classifyStatusFile = (payload) => {
+        const lastRun = payload.last_run_at ? new Date(payload.last_run_at) : null;
         const lastSuccess = payload.last_success_at ? new Date(payload.last_success_at) : null;
+        const lastNewsDelta = payload.last_news_delta_at ? new Date(payload.last_news_delta_at) : null;
         if (!lastSuccess || Number.isNaN(lastSuccess.getTime())) {
           return { state: 'UNKNOWN', reason: 'Run Audit APIとstatus.jsonのどちらからも成功runを確認できません。' };
+        }
+        if (isTooFarFuture(lastRun) || isTooFarFuture(lastSuccess) || isTooFarFuture(lastNewsDelta)) {
+          return { state: 'DEGRADED', reason: `Heartbeat timestampが現在より${maxFutureSkewMinutes}分超先です。` };
+        }
+        if (lastRun && !Number.isNaN(lastRun.getTime()) && lastSuccess.getTime() > lastRun.getTime()) {
+          return { state: 'DEGRADED', reason: 'last_success_atがlast_run_atより後です。' };
+        }
+        if (lastRun && lastNewsDelta && !Number.isNaN(lastNewsDelta.getTime()) && lastNewsDelta.getTime() > lastRun.getTime()) {
+          return { state: 'DEGRADED', reason: 'last_news_delta_atがlast_run_atより後です。' };
         }
         const ageMinutes = (Date.now() - lastSuccess.getTime()) / 60000;
         const staleAfter = Number(payload.stale_after_minutes || staleAfterMinutes);
