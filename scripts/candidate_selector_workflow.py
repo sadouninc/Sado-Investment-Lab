@@ -10,11 +10,14 @@ from scripts.candidate_selector_signal_sources import build_all_candidate_source
 
 
 def derive_research_gap(candidates: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Derive research_gap from repository research freshness without guessing identities.
+    """Derive research_gap from the already-resolved research status.
 
     CURRENT research lowers the gap, STALE research raises it, and a resolved
     security_code with no research record is treated as an uncovered research gap.
     Unresolved candidates remain null rather than being guessed by name.
+
+    Callers are responsible for resolving freshness / major-change transitions
+    before invoking this function when final ranking consistency matters.
     """
     rows = [deepcopy(row) for row in candidates]
     research_status_by_code: dict[str, str] = {}
@@ -60,6 +63,22 @@ def derive_research_gap(candidates: Iterable[dict[str, Any]]) -> list[dict[str, 
     return rows
 
 
+def build_selector_with_research_gap(
+    candidates: Iterable[dict[str, Any]], *, config: dict[str, Any], as_of: date
+) -> dict[str, Any]:
+    """Resolve research freshness first, then derive research_gap and final ranking.
+
+    The first selector pass canonicalizes / merges candidates and applies CURRENT→STALE
+    transitions from both freshness age and major change signals. research_gap is then
+    derived from that resolved state, and a second deterministic selector pass computes
+    the final priority and selection reason. This prevents stale research from retaining
+    the low gap/reason that was valid only before freshness resolution.
+    """
+    resolved = build_selector(candidates, config=config, as_of=as_of)
+    enriched = derive_research_gap(resolved["candidates"])
+    return build_selector(enriched, config=config, as_of=as_of)
+
+
 def build_candidate_workflow(
     *,
     current_status: Path,
@@ -80,8 +99,7 @@ def build_candidate_workflow(
         quant_valuation=quant_valuation,
         as_of=as_of,
     )
-    enriched = derive_research_gap(rows)
-    result = build_selector(enriched, config=load_config(config), as_of=as_of)
+    result = build_selector_with_research_gap(rows, config=load_config(config), as_of=as_of)
     result["source_status"] = source_status
     return result
 
