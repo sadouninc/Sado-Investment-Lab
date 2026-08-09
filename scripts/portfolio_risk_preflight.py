@@ -39,7 +39,12 @@ def deterministic_snapshot_id(captured_at: str, security_code: str, action: str,
     return f"risk-preflight:{security_code}:{digest}"
 
 
-def _rule_result(*, value: float | None, rule: Mapping[str, Any] | None) -> dict[str, Any]:
+def _rule_result(
+    *,
+    value: float | None,
+    rule: Mapping[str, Any] | None,
+    lower_is_worse: bool = False,
+) -> dict[str, Any]:
     if value is None:
         return {"result": "UNKNOWN", "rule_source": "UNSET", "reason": "必要データが不足"}
     if not rule or rule.get("source", "UNSET") == "UNSET":
@@ -53,14 +58,25 @@ def _rule_result(*, value: float | None, rule: Mapping[str, Any] | None) -> dict
         return {"result": "UNKNOWN", "rule_source": source, "reason": "hard_limit未設定"}
     hard_n = _finite_number(hard, field="hard_limit")
     warn_n = None if warn is None else _finite_number(warn, field="warn_limit")
-    if warn_n is not None and warn_n > hard_n:
-        raise RiskPreflightError("warn_limit must not exceed hard_limit")
-    if value > hard_n:
-        result = "BLOCK_REVIEW"
-    elif warn_n is not None and value >= warn_n:
-        result = "WARN"
+
+    if lower_is_worse:
+        if warn_n is not None and warn_n < hard_n:
+            raise RiskPreflightError("minimum-rule warn_limit must not be below hard_limit")
+        if value < hard_n:
+            result = "BLOCK_REVIEW"
+        elif warn_n is not None and value <= warn_n:
+            result = "WARN"
+        else:
+            result = "PASS"
     else:
-        result = "PASS"
+        if warn_n is not None and warn_n > hard_n:
+            raise RiskPreflightError("warn_limit must not exceed hard_limit")
+        if value > hard_n:
+            result = "BLOCK_REVIEW"
+        elif warn_n is not None and value >= warn_n:
+            result = "WARN"
+        else:
+            result = "PASS"
     return {"result": result, "rule_source": source, "hard_limit": hard_n, "warn_limit": warn_n}
 
 
@@ -146,17 +162,11 @@ def calculate_trade_impact(payload: Mapping[str, Any]) -> dict[str, Any]:
 
     concentration = _rule_result(value=position_weight, rule=rules.get("single_name"))
     cash_rule_value = None if after_cash is None else after_cash
-    cash_rule = _rule_result(value=cash_rule_value, rule=rules.get("minimum_cash"))
-    if cash_rule.get("result") in {"PASS", "WARN", "BLOCK_REVIEW"}:
-        hard = cash_rule.get("hard_limit")
-        warn = cash_rule.get("warn_limit")
-        if hard is not None:
-            if cash_rule_value < hard:
-                cash_rule["result"] = "BLOCK_REVIEW"
-            elif warn is not None and cash_rule_value <= warn:
-                cash_rule["result"] = "WARN"
-            else:
-                cash_rule["result"] = "PASS"
+    cash_rule = _rule_result(
+        value=cash_rule_value,
+        rule=rules.get("minimum_cash"),
+        lower_is_worse=True,
+    )
 
     if data_status != "CURRENT":
         concentration = {"result": "UNKNOWN", "rule_source": concentration.get("rule_source", "UNSET"), "reason": f"portfolio data_status={data_status}"}

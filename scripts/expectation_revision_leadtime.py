@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any, Iterable, Mapping
 
 from scripts.expectation_revision import validate_snapshot
-from scripts.research_revision_ledger import validate_revision
+from scripts.research_revision_ledger import ResearchRevisionError, validate_revision
 
 
 class RevisionLeadTimeError(ValueError):
@@ -95,7 +95,10 @@ def measure_revision_lead_time(
     This function measures observation timing only. A later consensus revision in the same
     direction is not interpreted as proof that the Sado forecast was correct or causal.
     """
-    revision = validate_revision(sado_revision_raw)
+    try:
+        revision = validate_revision(sado_revision_raw)
+    except ResearchRevisionError as exc:
+        raise RevisionLeadTimeError(f"invalid Sado revision: {exc}") from exc
     if revision.get("artifact_type") != "SCENARIO":
         raise RevisionLeadTimeError("artifact_type=SCENARIO is required")
 
