@@ -1,7 +1,14 @@
 {
   "schema_version": 1,
   "taxonomy": "TOPIX-17 ETF proxy",
-  "benchmark": {"name": "TOPIX", "symbol": "^TOPX"},
+  "benchmark": {
+    "name": "TOPIX ETF proxy",
+    "symbol": "1306.T",
+    "tracks": "TOPIX Total Return Index",
+    "proxy": true,
+    "authority": "JPX listed ETF code 1306 / NEXT FUNDS TOPIX ETF",
+    "limitation": "Uses exchange-traded ETF prices as a market benchmark proxy; this is not the TOPIX index level itself."
+  },
   "history_range": "6mo",
   "interval": "1d",
   "windows": {"short": 5, "medium": 20, "long": 60, "activity_short": 5, "activity_baseline": 20},
