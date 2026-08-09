@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import json
 from pathlib import Path
 import re
@@ -40,6 +41,66 @@ def report_date(path: Path) -> str:
     return path.stem
 
 
+def section_content(text: str, *headings: str) -> str:
+    """Return a level-2 report section without performing AI re-summarization."""
+    body = strip_source_front_matter(text)
+    sections = list(re.finditer(r"^##\s+(.+?)\s*$", body, re.MULTILINE))
+    for index, match in enumerate(sections):
+        if match.group(1).strip() not in headings:
+            continue
+        end = sections[index + 1].start() if index + 1 < len(sections) else len(body)
+        return body[match.end() : end].strip()
+    return ""
+
+
+def compact_summary(text: str, *, limit: int = 110) -> str:
+    """Extract the first meaningful human-readable statement deterministically."""
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("###"):
+            continue
+        line = re.sub(r"^[-*+]\s+", "", line)
+        line = re.sub(r"^\d+[.)]\s+", "", line)
+        line = re.sub(r"^>\s*", "", line)
+        line = re.sub(r"\*\*([^*]+)\*\*", r"\1", line)
+        line = re.sub(r"`([^`]+)`", r"\1", line)
+        line = re.sub(r"\[([^]]+)\]\([^)]+\)", r"\1", line)
+        line = re.sub(r"\s+", " ", line).strip()
+        if not line:
+            continue
+        return line if len(line) <= limit else line[: limit - 1].rstrip() + "…"
+    return ""
+
+
+def report_card_summary(text: str) -> dict[str, str]:
+    """Build navigation metadata only from stable report sections."""
+    market = compact_summary(section_content(text, "市場概況", "Market"))
+    strategy = compact_summary(section_content(text, "今日の戦略", "Today Strategy"))
+    watch = compact_summary(section_content(text, "注目銘柄", "Key Watch", "Watchlist"))
+    risk = compact_summary(section_content(text, "リスク要因", "Risk Factors"))
+    return {
+        "market": market,
+        "strategy": strategy,
+        "watch": watch,
+        "risk": risk,
+    }
+
+
+def card_detail(summary: dict[str, str], status: object) -> str:
+    rows: list[str] = []
+    if summary.get("market"):
+        rows.append(f"市場: {summary['market']}")
+    if summary.get("strategy"):
+        rows.append(f"戦略: {summary['strategy']}")
+    if summary.get("watch"):
+        rows.append(f"注目: {summary['watch']}")
+    elif summary.get("risk"):
+        rows.append(f"リスク: {summary['risk']}")
+    rows = rows[:3]
+    rows.append(f"Data quality: {status or 'unknown'}")
+    return "<br>".join(html.escape(row) for row in rows)
+
+
 def build() -> None:
     sources = sorted(REPORT_DIR.glob("*.md"), reverse=True) if REPORT_DIR.exists() else []
     cards: list[str] = []
@@ -53,9 +114,11 @@ def build() -> None:
         model = diagnostics.get("model", "unknown")
         tokens = diagnostics.get("total_tokens")
         status = diagnostics.get("dataset_status", "unknown")
+        report_text = source.read_text(encoding="utf-8")
+        summary = report_card_summary(report_text)
         cards.append(
             f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
-            f"<strong>{day}</strong><span>Dataset {status} / {model} / tokens {tokens}</span></a>"
+            f"<strong>{day}</strong><span>{card_detail(summary, status)}</span></a>"
         )
         page = front_matter(
             f"AI Morning Report {day}",
@@ -66,7 +129,7 @@ def build() -> None:
             '<p class="breadcrumb"><a href="{{ \'/reports/morning/\' | relative_url }}">'
             f"AI Morning Reports</a> / {day}</p>\n\n"
         )
-        page += strip_source_front_matter(source.read_text(encoding="utf-8"))
+        page += strip_source_front_matter(report_text)
         if diagnostics:
             page += (
                 "\n\n## API Diagnostics\n\n"
@@ -89,6 +152,7 @@ def build() -> None:
     index += (
         "# AI Morning Reports\n\n"
         "GitHub Actions が Morning Dataset を生成し、OpenAI API が分析した朝レポートの履歴です。"
+        "一覧では投資判断の内容を優先し、model / token / execution / cost は個別レポートの API Diagnostics に分離します。"
         "AIの出力は判断材料であり、事実データと推論を分離して扱います。\n\n"
     )
     if cards:
