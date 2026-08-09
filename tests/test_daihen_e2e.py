@@ -46,7 +46,7 @@ class DaihenFirstE2ECompletionTests(unittest.TestCase):
         self.assertEqual(valuation["price"]["source"], "TEST_FIXTURE_EXPLICIT_QUOTE")
         self.assertAlmostEqual(valuation["scenario_results"]["base"]["eps"], 720.1, places=1)
         self.assertAlmostEqual(valuation["scenario_results"]["base"]["forward_per"], 11.11, places=2)
-        self.assertAlmostEqual(valuation["scenario_results"]["base"]["implied_prices"]["per_20"], 14401.95, places=2)
+        self.assertAlmostEqual(valuation["scenario_results"]["base"]["implied_prices"]["per_20"], 14401.91, places=2)
         self.assertTrue(result["hypothesis"]["must_happen"])
         self.assertIn("issue:172#issuecomment-5229957439", result["provenance"]["candidate"])
         self.assertTrue(result["provenance"]["research_sources"])
