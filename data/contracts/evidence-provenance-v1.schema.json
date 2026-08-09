@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evidence-provenance-v1.schema.json",
+  "title": "Sado Investment Lab Evidence Provenance v1",
+  "type": "object",
+  "required": ["schema_version", "sources", "facts", "edges"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "sources": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/source"}
+    },
+    "facts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/fact"}
+    },
+    "edges": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/edge"}
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "source_type", "publisher", "published_at", "observed_at", "canonical_ref", "content_hash", "authority", "status"],
+      "properties": {
+        "source_id": {"type": "string", "pattern": "^source:[0-9a-f]{24}$"},
+        "source_type": {"enum": ["IR", "FILING", "GOVERNMENT", "MARKET_DATA", "NEWS", "POLICY", "INTERNAL_RESEARCH"]},
+        "publisher": {"type": "string", "minLength": 1},
+        "published_at": {"type": "string", "format": "date-time"},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "canonical_ref": {"type": "string", "minLength": 1},
+        "content_hash": {"type": ["string", "null"]},
+        "authority": {"enum": ["PRIMARY", "SECONDARY", "INTERNAL"]},
+        "status": {"enum": ["CURRENT", "SUPERSEDED", "CORRECTED", "UNAVAILABLE"]}
+      }
+    },
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact_id", "source_id", "entity_type", "entity_id", "field", "value", "unit", "period", "as_of", "locator", "confidence"],
+      "properties": {
+        "fact_id": {"type": "string", "pattern": "^fact:[0-9a-f]{24}$"},
+        "source_id": {"type": "string", "pattern": "^source:[0-9a-f]{24}$"},
+        "entity_type": {"type": "string", "minLength": 1},
+        "entity_id": {"type": "string", "minLength": 1},
+        "field": {"type": "string", "minLength": 1},
+        "value": {},
+        "unit": {"type": ["string", "null"]},
+        "period": {"type": "string", "minLength": 1},
+        "as_of": {"type": "string", "format": "date"},
+        "locator": {"type": ["string", "null"]},
+        "confidence": {"enum": ["HIGH", "MEDIUM", "LOW", "UNKNOWN"]}
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["edge_id", "from", "to", "relation", "created_at", "actor", "note"],
+      "properties": {
+        "edge_id": {"type": "string", "pattern": "^edge:[0-9a-f]{24}$"},
+        "from": {"type": "string", "minLength": 1},
+        "to": {"type": "string", "minLength": 1},
+        "relation": {"enum": ["SUPPORTS", "CHALLENGES", "INVALIDATES", "DERIVED_FROM", "REFERENCES", "SUPERSEDES"]},
+        "created_at": {"type": "string", "format": "date-time"},
+        "actor": {"type": "string", "minLength": 1},
+        "note": {"type": ["string", "null"]}
+      }
+    }
+  }
+}
