@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 
 VALID_RUN_STATUS = {"OK", "ERROR", "UNKNOWN"}
 VALID_PERSISTENCE_STATUS = {"COMPLETED", "PENDING_PERSIST", "NOT_REQUIRED"}
+MAX_FUTURE_SKEW_MINUTES = 5
 
 
 @dataclass(frozen=True)
@@ -42,11 +43,42 @@ def validate_status(payload: dict[str, Any]) -> None:
         parse_timestamp(payload.get(key))
 
 
+def validate_timestamp_order(
+    payload: dict[str, Any],
+    now: datetime,
+    max_future_skew_minutes: int = MAX_FUTURE_SKEW_MINUTES,
+) -> str | None:
+    if now.tzinfo is None:
+        raise ValueError("now must include timezone")
+    current = now.astimezone(timezone.utc)
+    future_limit = current + timedelta(minutes=max_future_skew_minutes)
+    timestamps = {
+        key: parse_timestamp(payload.get(key))
+        for key in ("last_run_at", "last_success_at", "last_news_delta_at")
+    }
+    for key, value in timestamps.items():
+        if value is not None and value.astimezone(timezone.utc) > future_limit:
+            return f"{key} is more than {max_future_skew_minutes} minutes in the future"
+
+    last_run = timestamps["last_run_at"]
+    last_success = timestamps["last_success_at"]
+    last_news_delta = timestamps["last_news_delta_at"]
+    if last_run is not None and last_success is not None and last_success > last_run:
+        return "last_success_at is later than last_run_at"
+    if last_run is not None and last_news_delta is not None and last_news_delta > last_run:
+        return "last_news_delta_at is later than last_run_at"
+    return None
+
+
 def classify_health(payload: dict[str, Any], now: datetime | None = None) -> WatchHealth:
     validate_status(payload)
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         raise ValueError("now must include timezone")
+
+    timestamp_error = validate_timestamp_order(payload, current)
+    if timestamp_error:
+        return WatchHealth("DEGRADED", None, f"invalid heartbeat timestamp: {timestamp_error}")
 
     last_success = parse_timestamp(payload.get("last_success_at"))
     if last_success is None:
