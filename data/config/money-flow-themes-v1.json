@@ -13,6 +13,19 @@
         {"security_code": "7974", "company_name": "任天堂", "symbol": "7974.T"},
         {"security_code": "9697", "company_name": "カプコン", "symbol": "9697.T"}
       ]
+    },
+    {
+      "id": "theme:ai-data-center-power-infrastructure",
+      "name": "AI Data Center / Power Infrastructure",
+      "membership_as_of": "2026-08-09",
+      "membership_version": "2026-08-09-v1",
+      "authority": "Issue #178 explicit initial membership",
+      "backfill_policy": "RETROSPECTIVE_MEMBERSHIP_IF_HISTORICAL_MEMBERSHIP_UNAVAILABLE",
+      "members": [
+        {"security_code": "6622", "company_name": "ダイヘン", "symbol": "6622.T"},
+        {"security_code": "6504", "company_name": "富士電機", "symbol": "6504.T"},
+        {"security_code": "6508", "company_name": "明電舎", "symbol": "6508.T"}
+      ]
     }
   ]
 }
