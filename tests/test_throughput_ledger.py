@@ -41,7 +41,17 @@ class ThroughputLedgerTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 append_record(path, record(prs_opened=2))
 
-    def test_false_wait_reuse_requires_reason(self):
+    def test_no_wait_accepts_not_applicable(self):
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ledger.jsonl"
+            self.assertEqual(
+                "APPENDED",
+                append_record(path, record(wait_reused=False, wait_reuse_work=[], wait_not_reused_reason="NOT_APPLICABLE")),
+            )
+            summary = summarize(path)
+            self.assertEqual(0, summary["wait_eligible_runs"])
+
+    def test_wait_not_reused_requires_operational_reason(self):
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "ledger.jsonl"
             with self.assertRaises(ValueError):
@@ -50,6 +60,16 @@ class ThroughputLedgerTest(unittest.TestCase):
                 "APPENDED",
                 append_record(path, record(wait_reused=False, wait_reuse_work=[], wait_not_reused_reason="OWNER_WAIT")),
             )
+            summary = summarize(path)
+            self.assertEqual(1, summary["wait_eligible_runs"])
+
+    def test_wait_reused_requires_work_and_no_nonreuse_reason(self):
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ledger.jsonl"
+            with self.assertRaises(ValueError):
+                append_record(path, record(wait_reused=True, wait_reuse_work=[]))
+            with self.assertRaises(ValueError):
+                append_record(path, record(wait_reused=True, wait_not_reused_reason="BLOCKED"))
 
     def test_summary_counts_non_pr_progress(self):
         with TemporaryDirectory() as tmp:
@@ -61,6 +81,7 @@ class ThroughputLedgerTest(unittest.TestCase):
             self.assertEqual(0, summary["prs_opened"])
             self.assertEqual(1, summary["issues_refined"])
             self.assertEqual(1, summary["wait_reused_runs"])
+            self.assertEqual(1, summary["wait_eligible_runs"])
             self.assertEqual(1, summary["quality_gate_counts"]["PENDING"])
 
 
