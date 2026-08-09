@@ -1,0 +1,91 @@
+name: Pages Watchdog
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      threshold_minutes:
+        description: "Alert when a Publish Sado Investment Lab run exceeds this duration"
+        required: false
+        default: "25"
+        type: string
+
+permissions:
+  actions: read
+  issues: write
+
+concurrency:
+  group: pages-watchdog
+  cancel-in-progress: true
+
+jobs:
+  monitor:
+    name: monitor
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Detect long-running Pages publication
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          threshold="${{ github.event.inputs.threshold_minutes }}"
+          if [[ -z "$threshold" ]]; then
+            threshold=25
+          fi
+          if ! [[ "$threshold" =~ ^[0-9]+$ ]] || (( threshold < 1 )); then
+            echo "Invalid threshold_minutes: $threshold" >&2
+            exit 2
+          fi
+
+          repo="$GITHUB_REPOSITORY"
+          issue=286
+          now_epoch="$(date -u +%s)"
+          runs_json="$(gh api "/repos/${repo}/actions/workflows/publish-site.yml/runs?status=in_progress&per_page=100")"
+
+          stale_count=0
+          while IFS=$'\t' read -r run_id run_number started_at head_sha; do
+            [[ -n "$run_id" ]] || continue
+            started_epoch="$(date -u -d "$started_at" +%s)"
+            age_minutes="$(( (now_epoch - started_epoch) / 60 ))"
+            if (( age_minutes < threshold )); then
+              continue
+            fi
+
+            stale_count="$((stale_count + 1))"
+            marker="<!-- pages-watchdog-run:${run_id} -->"
+            if gh api --paginate "/repos/${repo}/issues/${issue}/comments?per_page=100" \
+              --jq '.[].body' | grep -Fq "$marker"; then
+              echo "Run ${run_id} already reported; skipping duplicate alert."
+              continue
+            fi
+
+            run_url="https://github.com/${repo}/actions/runs/${run_id}"
+            body="$(cat <<EOF
+${marker}
+担当: 🌊ナギ
+種別: Pages Watchdog / Reliability Alert
+
+⚠️ \`Publish Sado Investment Lab\` のrunが想定時間を超えて継続しています。
+
+- run: #${run_number} (${run_id})
+- started_at: ${started_at}
+- age_minutes: ${age_minutes}
+- threshold_minutes: ${threshold}
+- head_sha: ${head_sha}
+- run_url: ${run_url}
+
+最新runを長時間塞ぐ可能性があるため、Actions上のjob状態・cancel/timeout動作を確認してください。
+
+Issue #79には触れていません。
+EOF
+)"
+            gh issue comment "$issue" --repo "$repo" --body "$body"
+          done < <(
+            jq -r '.workflow_runs[] | [.id, .run_number, (.run_started_at // .created_at), .head_sha] | @tsv' <<<"$runs_json"
+          )
+
+          echo "Pages watchdog completed: threshold=${threshold}m, over-threshold in-progress runs=${stale_count}."
