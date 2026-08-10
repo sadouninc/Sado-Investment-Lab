@@ -6,6 +6,7 @@ permalink: /
 ---
 
 <link rel="stylesheet" href="{{ '/assets/images/design-system-v1.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/images/home-os-map.css' | relative_url }}">
 
 <div class="sil-page-shell home-os-shell">
   <header class="sil-page-header home-os-header">
