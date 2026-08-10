@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0",
+  "loop_label_ja": "観測 → 発見 → 理解 → 仮説 → 判断 → 売買前確認 → 執行/記録 → 検証/学習 → 次の観測",
+  "today_entries": [
+    {
+      "label_ja": "朝の市場状況を見る",
+      "description_ja": "Morning Reportで市場環境を確認し、気になる変化から必要な画面へ進みます。",
+      "route": "/reports/morning/",
+      "availability": "AVAILABLE"
+    },
+    {
+      "label_ja": "ダイヘン 投資判断コックピット",
+      "description_ja": "前回からの変化と投資仮説をDecision Cockpitで確認します。",
+      "route": "/decision-cockpit/daihen/",
+      "availability": "AVAILABLE"
+    },
+    {
+      "label_ja": "売買前の影響を確認する",
+      "description_ja": "ポートフォリオへの影響を売買前確認で点検します。",
+      "route": "/risk-preflight/",
+      "availability": "AVAILABLE"
+    }
+  ],
+  "stages": [
+    {
+      "stage_id": "observe",
+      "purpose_ja": "観測する",
+      "description_ja": "市場・ニュース・イベントの変化を捉える。",
+      "representative_ja": "AI Morning Reports",
+      "primary_destination": "/reports/morning/",
+      "availability": "AVAILABLE"
+    },
+    {
+      "stage_id": "discover",
+      "purpose_ja": "銘柄を探す",
+      "description_ja": "資金の流れや市場フェーズから候補を見つける。",
+      "representative_ja": "Market Phase",
+      "primary_destination": "/research/market-phase/ai-semiconductor/",
+      "availability": "AVAILABLE"
+    },
+    {
+      "stage_id": "understand",
+      "purpose_ja": "企業を理解する",
+      "description_ja": "事業・利益の仕組みと見立てが変わる条件を確認する。",
+      "representative_ja": "Company Research",
+      "primary_destination": "/companies/",
+      "availability": "AVAILABLE"
+    },
+    {
+      "stage_id": "hypothesize",
+      "purpose_ja": "仮説を組み立てる",
+      "description_ja": "投資仮説と評価軸を整理し、反証条件を明確にする。",
+      "representative_ja": "Framework",
+      "primary_destination": "/framework/",
+      "availability": "AVAILABLE"
+    },
+    {
+      "stage_id": "decide",
+      "purpose_ja": "判断する",
+      "description_ja": "前回との差・市場期待との差・仮説の状態をまとめて確認する。",
+      "representative_ja": "Decision Cockpit",
+      "primary_destination": "/decision-cockpit/daihen/",
+      "availability": "AVAILABLE"
+    },
+    {
+      "stage_id": "pretrade",
+      "purpose_ja": "売買前確認",
+      "description_ja": "実行前にポートフォリオへの影響とリスクを確認する。",
+      "representative_ja": "Risk Preflight",
+      "primary_destination": "/risk-preflight/",
+      "availability": "AVAILABLE"
+    },
+    {
+      "stage_id": "record",
+      "purpose_ja": "執行・記録",
+      "description_ja": "実際の売買と、その時点の判断を履歴として残す。",
+      "representative_ja": "Trade Journal",
+      "primary_destination": "/trade-journal/",
+      "availability": "AVAILABLE"
+    },
+    {
+      "stage_id": "learn",
+      "purpose_ja": "検証・学習",
+      "description_ja": "過去の実取引を検証し、勝ち方・負け方を次の判断へ戻す。",
+      "representative_ja": "Trade Analysis",
+      "primary_destination": "/trade-analysis/",
+      "availability": "AVAILABLE"
+    },
+    {
+      "stage_id": "observe_next",
+      "purpose_ja": "次の観測へ",
+      "description_ja": "学びを持って再び市場を観測し、次の変化を捉える。",
+      "representative_ja": "Market Analysis",
+      "primary_destination": "/market-analysis/",
+      "availability": "AVAILABLE"
+    }
+  ]
+}
