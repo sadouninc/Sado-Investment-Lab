@@ -1,4 +1,21 @@
 {
   "schema_version": 1,
-  "candidates": []
+  "candidates": [
+    {
+      "security_code": "6232",
+      "company_name": "ACSL",
+      "reason": "防衛ドローン政策の直接受益候補。防衛省の小型空撮UAV継続受注に加え、SBIR/K Programの政府R&D支援が確認され、Defense Drone Theme #259のINCLUDE銘柄として監視する。",
+      "signals": {
+        "investment_relevance": 90,
+        "change_signal": 90,
+        "theme_relevance": 100
+      },
+      "signal_reasons": {
+        "investment_relevance": "政府R&D支援と防衛省直接調達が同一企業で接続し、企業収益・資金繰りへの転換点を検証する価値が高い。",
+        "change_signal": "2026年に防衛省受注約14.2億円、K Program最大29億円、SBIR最大約25.99億円の政府支援経路が確認された。",
+        "theme_relevance": "#259 Small / Mass / Counter-UAS / Domestic Procurement Themeのcanonical INCLUDE銘柄。"
+      },
+      "updated_at": "2026-08-11"
+    }
+  ]
 }
