@@ -45,6 +45,7 @@ jobs:
         run: |
           python -m unittest tests.test_money_flow_canonical_run
           python -m unittest tests.test_money_flow_scheduled_run
+          python -m unittest tests.test_money_flow_policy_limitations
 
       - name: Resolve run mode
         id: mode
@@ -116,11 +117,16 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          from scripts.money_flow_canonical_run import evaluate_policy_lead_time
+          from scripts.money_flow_canonical_run import DEFAULT_THEME_ID, evaluate_policy_lead_time
           from scripts.money_flow_history import load_history
+          from scripts.money_flow_policy_limitations import has_retrospective_membership_history
 
           history = load_history(Path('data/generated/public/money-flow/history.jsonl'))
-          payload = evaluate_policy_lead_time(history, retrospective_membership=False)
+          theme_config = json.loads(Path('data/config/money-flow-themes-v1.json').read_text(encoding='utf-8'))
+          retrospective = has_retrospective_membership_history(
+              history, theme_config=theme_config, theme_id=DEFAULT_THEME_ID
+          )
+          payload = evaluate_policy_lead_time(history, retrospective_membership=retrospective)
           path = Path('data/generated/public/money-flow/policy-lead-time-ai-dc.json')
           path.parent.mkdir(parents=True, exist_ok=True)
           path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + '\n', encoding='utf-8')
