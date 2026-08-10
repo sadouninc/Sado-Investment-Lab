@@ -15,6 +15,7 @@ TEMPLATE_PATH = ROOT / ".github" / "pages" / "home-os-map-template.md"
 HOME_PATH = ROOT / ".github" / "pages" / "home.md"
 DESIGN_SYSTEM_SOURCE = ROOT / ".github" / "pages" / "design-system-v1.css"
 DESIGN_SYSTEM_PUBLISHED = ROOT / "assets" / "images" / "design-system-v1.css"
+HOME_LAYOUT_CSS = ROOT / "assets" / "images" / "home-os-map.css"
 
 SPEC = importlib.util.spec_from_file_location("home_os_map", MODULE_PATH)
 assert SPEC and SPEC.loader
@@ -93,15 +94,16 @@ def test_unavailable_destination_cannot_keep_a_guessed_route() -> None:
         home_os_map.validate_os_map(broken)
 
 
-def test_home_uses_visual_design_system_v1_semantics() -> None:
+def test_home_publishes_canonical_visual_design_system_v1() -> None:
     home = HOME_PATH.read_text(encoding="utf-8")
     source_css = DESIGN_SYSTEM_SOURCE.read_text(encoding="utf-8")
     published_css = DESIGN_SYSTEM_PUBLISHED.read_text(encoding="utf-8")
+    layout_css = HOME_LAYOUT_CSS.read_text(encoding="utf-8")
 
+    assert source_css == published_css
     assert "/assets/images/design-system-v1.css" in home
+    assert "/assets/images/home-os-map.css" in home
     for semantic in (
-        "--sil-accent-primary",
-        "--sil-state-unavailable",
         ".sil-summary-card",
         ".sil-status-chip",
         ".sil-action",
@@ -109,7 +111,10 @@ def test_home_uses_visual_design_system_v1_semantics() -> None:
         ".sil-disclosure",
     ):
         assert semantic in source_css
-        assert semantic in published_css
+        assert semantic in home
+    assert "--sil-accent-primary:" not in layout_css
+    assert "--sil-state-unavailable:" not in layout_css
+    assert "var(--sil-" in layout_css
 
 
 def test_home_remains_read_only_and_does_not_claim_priority_scoring() -> None:
