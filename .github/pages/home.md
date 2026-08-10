@@ -1,48 +1,81 @@
 ---
 layout: site
 title: Home
-description: 企業の本質的な価値と市場評価のギャップを投資利益につなげるための研究所
+description: 投資判断の流れと今日見る入口を30秒で把握するSado Investment OS
 permalink: /
 ---
 
-<header class="book-hero home-hero">
-  <p class="eyebrow">SADO INVESTMENT LAB</p>
-  <h1>投資という、終わりのない研究。</h1>
-  <p class="lead">市場を理解し、企業を理解し、自分自身の投資理論を磨き続けるための研究所。</p>
-  <p class="edition">Research Platform</p>
-</header>
+<link rel="stylesheet" href="{{ '/assets/images/design-system-v1.css' | relative_url }}">
 
-<section class="section-index" aria-labelledby="decision-title">
-  <p class="eyebrow">TODAY'S DECISION</p>
-  <h2 id="decision-title">今日の投資判断</h2>
-  <div class="card-grid">
-    <a class="nav-card" href="{{ '/decision-cockpit/daihen/' | relative_url }}"><strong>🎯 ダイヘン 投資判断コックピット</strong><span>なぜ今日見る？・前回から何が変わった？・投資仮説は生きている？を1画面で確認する</span></a>
-  </div>
-</section>
+<div class="sil-page-shell home-os-shell">
+  <header class="sil-page-header home-os-header">
+    <p class="eyebrow">SADO INVESTMENT OS</p>
+    <h1>今日の投資判断を、ここから始める。</h1>
+    <p class="lead">市場を観測し、企業を理解し、仮説を立て、判断し、売買前確認と振り返りまでを一つの循環として辿る入口です。</p>
+  </header>
 
-<section class="book-overview" aria-labelledby="mission-title">
-  <h2 id="mission-title">Mission</h2>
-  <p>Sado Investment Lab は、企業の本質的な価値と市場評価のギャップを見つけ、そのギャップが解消される過程を投資利益につなげることを目指します。</p>
-  <figure>
-    <img src="{{ '/assets/images/overview.png' | relative_url }}" alt="Sado Investment Lab Overview">
-  </figure>
-</section>
+  <section class="home-os-section home-today" aria-labelledby="today-title">
+    <p class="eyebrow">TODAY</p>
+    <h2 class="sil-section-header" id="today-title">今日見る</h2>
+    <p>Home独自のBUY/SELL判定や優先順位スコアは作りません。既存のread-only画面へ直接進みます。</p>
+    <div class="sil-summary-grid home-today-grid">
+<article class="sil-summary-card sil-priority-first" data-availability="available"><span class="sil-status-chip" data-state="normal">利用可能</span><h3>朝の市場状況を見る</h3><p>Morning Reportで市場環境を確認し、気になる変化から必要な画面へ進みます。</p><a class="sil-action" href="{{ '/reports/morning/' | relative_url }}">開く</a></article>
+<article class="sil-summary-card sil-priority-first" data-availability="available"><span class="sil-status-chip" data-state="normal">利用可能</span><h3>投資判断を確認する</h3><p>Decision Cockpitで前回からの変化と投資仮説を確認します。</p><a class="sil-action" href="{{ '/decision-cockpit/daihen/' | relative_url }}">開く</a></article>
+<article class="sil-summary-card sil-priority-first" data-availability="available"><span class="sil-status-chip" data-state="normal">利用可能</span><h3>売買前の影響を確認する</h3><p>ポートフォリオへの影響を売買前確認で点検します。</p><a class="sil-action" href="{{ '/risk-preflight/' | relative_url }}">開く</a></article>
+</div>
+  </section>
 
-<section class="section-index" aria-labelledby="research-title">
-  <p class="eyebrow">EXPLORE</p>
-  <h2 id="research-title">Research Library</h2>
-  <div class="card-grid">
-    <a class="nav-card" href="{{ '/framework/' | relative_url }}"><strong>Framework</strong><span>投資哲学・市場心理・評価基準を一つのWeb書籍で読む</span></a>
-    <a class="nav-card" href="{{ '/themes/' | relative_url }}"><strong>Themes</strong><span>社会変化から需要の波及と投資テーマを考える</span></a>
-    <a class="nav-card" href="{{ '/companies/' | relative_url }}"><strong>Companies</strong><span>企業品質と現在の投資機会を分けて分析する</span></a>
-    <a class="nav-card" href="{{ '/market-analysis/' | relative_url }}"><strong>Market Analysis</strong><span>チャートと公開情報から市場変動の背景を整理する</span></a>
-    <a class="nav-card" href="{{ '/research/market-phase/ai-semiconductor/' | relative_url }}"><strong>Market Phase</strong><span>AI半導体40銘柄の相関・自動クラスタ・先行遅行候補を調べる</span></a>
-    <a class="nav-card" href="{{ '/research/investor-dna/' | relative_url }}"><strong>Investor DNA</strong><span>実取引から「なぜこの銘柄で勝てる／勝てないか」を原因分解する</span></a>
-    <a class="nav-card" href="{{ '/research/morning-dataset/' | relative_url }}"><strong>Morning Dataset</strong><span>AI判断前にGitHub Actions / Pythonが準備したFact・Featureとデータ鮮度を確認する</span></a>
-    <a class="nav-card" href="{{ '/research/ai-key-person-watch/' | relative_url }}"><strong>AI Key Person Watch</strong><span>AI主要人物の重要ニュース差分と日本企業への波及を追う</span></a>
-    <a class="nav-card" href="{{ '/reports/morning/' | relative_url }}"><strong>AI Morning Reports</strong><span>Morning DatasetをOpenAI APIが分析した毎朝の自動市場レポートを読む</span></a>
-    <a class="nav-card" href="{{ '/architecture/' | relative_url }}"><strong>Architecture</strong><span>Investment Decision OS と分析基盤の設計ドキュメントを読む</span></a>
-    <a class="nav-card" href="{{ '/trade-journal/' | relative_url }}"><strong>Trade Journal</strong><span>市場認識・投資判断・売買・反省・改善を時系列で読む</span></a>
-    <a class="nav-card" href="{{ '/trade-analysis/' | relative_url }}"><strong>Trade Analysis</strong><span>実取引の成績・行動パターンを分析し、次の投資判断改善につなげる</span></a>
-  </div>
-</section>
+  <section class="home-os-section" aria-labelledby="status-title">
+    <p class="eyebrow">STATUS</p>
+    <h2 class="sil-section-header" id="status-title">重要な変化・状態</h2>
+    <div class="sil-alert" data-level="unavailable">
+      <div class="sil-alert__icon" aria-hidden="true">—</div>
+      <div>
+        <strong>Homeでの鮮度・重要変化の自動集約は未接続です</strong>
+        <p>取得できていない状態を「問題なし」「最新」とは扱いません。PR2で既存Morning / Review等のread modelへ接続します。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-os-section" aria-labelledby="map-title">
+    <p class="eyebrow">INVESTMENT LOOP</p>
+    <h2 class="sil-section-header" id="map-title">Investment OS 全体像</h2>
+    <p class="home-os-loop">観測 → 発見 → 理解 → 仮説 → 判断 → 売買前確認 → 執行/記録 → 検証/学習 → 次の観測</p>
+    <p>9段階を一度に暗記する必要はありません。いまの目的に近い入口から入り、必要な情報だけ確認して次へ進みます。</p>
+    <div class="home-os-map" aria-label="Investment OS 9段階">
+<article class="sil-card home-os-stage" data-stage-id="observe"><div class="home-os-stage__number" aria-hidden="true">01</div><div><div class="home-os-stage__header"><h3>観測する</h3><span class="sil-status-chip" data-state="normal">利用可能</span></div><p>市場・ニュース・イベントの変化を捉える。</p><a class="sil-evidence-link" href="{{ '/reports/morning/' | relative_url }}">AI Morning Reports</a></div></article>
+<article class="sil-card home-os-stage" data-stage-id="discover"><div class="home-os-stage__number" aria-hidden="true">02</div><div><div class="home-os-stage__header"><h3>銘柄を探す</h3><span class="sil-status-chip" data-state="normal">利用可能</span></div><p>資金の流れや市場フェーズから候補を見つける。</p><a class="sil-evidence-link" href="{{ '/research/market-phase/ai-semiconductor/' | relative_url }}">Market Phase</a></div></article>
+<article class="sil-card home-os-stage" data-stage-id="understand"><div class="home-os-stage__number" aria-hidden="true">03</div><div><div class="home-os-stage__header"><h3>企業を理解する</h3><span class="sil-status-chip" data-state="normal">利用可能</span></div><p>事業・利益の仕組みと見立てが変わる条件を確認する。</p><a class="sil-evidence-link" href="{{ '/companies/' | relative_url }}">Company Research</a></div></article>
+<article class="sil-card home-os-stage" data-stage-id="hypothesize"><div class="home-os-stage__number" aria-hidden="true">04</div><div><div class="home-os-stage__header"><h3>仮説を組み立てる</h3><span class="sil-status-chip" data-state="normal">利用可能</span></div><p>投資仮説と評価軸を整理し、反証条件を明確にする。</p><a class="sil-evidence-link" href="{{ '/framework/' | relative_url }}">Framework</a></div></article>
+<article class="sil-card home-os-stage" data-stage-id="decide"><div class="home-os-stage__number" aria-hidden="true">05</div><div><div class="home-os-stage__header"><h3>判断する</h3><span class="sil-status-chip" data-state="normal">利用可能</span></div><p>前回との差・市場期待との差・仮説の状態をまとめて確認する。</p><a class="sil-evidence-link" href="{{ '/decision-cockpit/daihen/' | relative_url }}">Decision Cockpit</a></div></article>
+<article class="sil-card home-os-stage" data-stage-id="pretrade"><div class="home-os-stage__number" aria-hidden="true">06</div><div><div class="home-os-stage__header"><h3>売買前確認</h3><span class="sil-status-chip" data-state="normal">利用可能</span></div><p>実行前にポートフォリオへの影響とリスクを確認する。</p><a class="sil-evidence-link" href="{{ '/risk-preflight/' | relative_url }}">Risk Preflight</a></div></article>
+<article class="sil-card home-os-stage" data-stage-id="record"><div class="home-os-stage__number" aria-hidden="true">07</div><div><div class="home-os-stage__header"><h3>執行・記録</h3><span class="sil-status-chip" data-state="normal">利用可能</span></div><p>実際の売買と、その時点の判断を履歴として残す。</p><a class="sil-evidence-link" href="{{ '/trade-journal/' | relative_url }}">Trade Journal</a></div></article>
+<article class="sil-card home-os-stage" data-stage-id="learn"><div class="home-os-stage__number" aria-hidden="true">08</div><div><div class="home-os-stage__header"><h3>検証・学習</h3><span class="sil-status-chip" data-state="normal">利用可能</span></div><p>過去の実取引を検証し、勝ち方・負け方を次の判断へ戻す。</p><a class="sil-evidence-link" href="{{ '/trade-analysis/' | relative_url }}">Trade Analysis</a></div></article>
+<article class="sil-card home-os-stage" data-stage-id="observe_next"><div class="home-os-stage__number" aria-hidden="true">09</div><div><div class="home-os-stage__header"><h3>次の観測へ</h3><span class="sil-status-chip" data-state="normal">利用可能</span></div><p>学びを持って再び市場を観測し、次の変化を捉える。</p><a class="sil-evidence-link" href="{{ '/market-analysis/' | relative_url }}">Market Analysis</a></div></article>
+</div>
+  </section>
+
+  <section class="home-os-section" aria-labelledby="entry-title">
+    <p class="eyebrow">PRIMARY ENTRIES</p>
+    <h2 class="sil-section-header" id="entry-title">主要入口</h2>
+    <div class="sil-summary-grid home-primary-grid">
+      <article class="sil-summary-card"><h3>銘柄を探す</h3><p>市場フェーズや資金の流れから候補を見る。</p><a class="sil-evidence-link" href="{{ '/research/market-phase/ai-semiconductor/' | relative_url }}">Market Phase</a></article>
+      <article class="sil-summary-card"><h3>企業を理解する</h3><p>事業・利益構造と投資仮説の材料を確認する。</p><a class="sil-evidence-link" href="{{ '/companies/' | relative_url }}">Company Research</a></article>
+      <article class="sil-summary-card"><h3>判断する</h3><p>前回との差と仮説の状態をDecision Cockpitで確認する。</p><a class="sil-evidence-link" href="{{ '/decision-cockpit/daihen/' | relative_url }}">Decision Cockpit</a></article>
+      <article class="sil-summary-card"><h3>売買前確認</h3><p>実行前にポートフォリオへの影響を確認する。</p><a class="sil-evidence-link" href="{{ '/risk-preflight/' | relative_url }}">Risk Preflight</a></article>
+      <article class="sil-summary-card"><h3>振り返る</h3><p>売買記録と実取引分析から次の判断を改善する。</p><a class="sil-evidence-link" href="{{ '/trade-journal/' | relative_url }}">Trade Journal</a></article>
+    </div>
+  </section>
+
+  <details class="sil-disclosure home-os-notes">
+    <summary>このHomeがしないこと</summary>
+    <div class="sil-disclosure__body">
+      <ul>
+        <li>Home専用のCanonical truthを作らない</li>
+        <li>BUY / SELLや独自priority scoreを生成しない</li>
+        <li>missing / stale / unavailableを正常値へ丸めない</li>
+        <li>既存URLやdeep-linkを置き換えない</li>
+      </ul>
+    </div>
+  </details>
+</div>
