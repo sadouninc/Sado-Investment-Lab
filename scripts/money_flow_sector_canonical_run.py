@@ -1,3 +1,4 @@
+"""Run and persist the canonical TOPIX-17 sector snapshot set."""
 from __future__ import annotations
 
 import argparse
