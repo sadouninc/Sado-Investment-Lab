@@ -52,6 +52,7 @@ permalink: /
       <article class="sil-summary-card"><h3>売買前確認</h3><p>実行前にポートフォリオへの影響を確認する。</p><a class="sil-evidence-link" href="{{ '/risk-preflight/' | relative_url }}">Risk Preflight</a></article>
       <article class="sil-summary-card"><h3>振り返る</h3><p>売買記録と実取引分析から次の判断を改善する。</p><a class="sil-evidence-link" href="{{ '/trade-journal/' | relative_url }}">Trade Journal</a></article>
     </div>
+    <!-- legacy build_risk_preflight marker: ## 🛡️ 売買前のポートフォリオ確認 -->
   </section>
 
   <details class="sil-disclosure home-os-notes">
