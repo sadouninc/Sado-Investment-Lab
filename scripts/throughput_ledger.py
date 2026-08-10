@@ -29,12 +29,15 @@ def validate_record(record: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("invalid actor")
     if record["quality_gate"] not in QUALITY_GATES:
         raise ValueError("invalid quality_gate")
-    for name in ("prs_opened", "issues_created", "issues_refined", "reviews_completed", "blocked_items"):
+    for name in ("advanced_items", "prs_opened", "issues_created", "issues_refined", "reviews_completed", "blocked_items"):
         if not isinstance(record[name], int) or isinstance(record[name], bool) or record[name] < 0:
             raise ValueError(f"{name} must be a non-negative integer")
-    for name in ("advanced_items", "wait_reuse_work", "handoff_ready", "next_queue"):
-        if not isinstance(record[name], list) or not all(isinstance(item, str) and item for item in record[name]):
+    for name in ("advanced_item_refs", "wait_reuse_work", "handoff_ready", "next_queue"):
+        value = record.get(name, [])
+        if not isinstance(value, list) or not all(isinstance(item, str) and item for item in value):
             raise ValueError(f"{name} must be a list of non-empty strings")
+    if "advanced_item_refs" in record and len(record["advanced_item_refs"]) > record["advanced_items"]:
+        raise ValueError("advanced_item_refs cannot exceed advanced_items count")
     if not isinstance(record["wait_reused"], bool):
         raise ValueError("wait_reused must be boolean")
     reason = record.get("wait_not_reused_reason")
@@ -76,7 +79,7 @@ def summarize(path: Path) -> dict[str, Any]:
     rows = [] if not path.exists() else [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
     return {
         "runs": len(rows),
-        "advanced_items": sum(len(row.get("advanced_items", [])) for row in rows),
+        "advanced_items": sum(row.get("advanced_items", 0) for row in rows),
         "prs_opened": sum(row.get("prs_opened", 0) for row in rows),
         "issues_created": sum(row.get("issues_created", 0) for row in rows),
         "issues_refined": sum(row.get("issues_refined", 0) for row in rows),
