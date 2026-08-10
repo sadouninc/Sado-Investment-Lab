@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "concepts": [
+    {
+      "feature_id": "investment-decision-cockpit",
+      "route_ref": "/decision-cockpit/daihen/",
+      "os_stage_ref": "decide",
+      "purpose_ja": "前回の判断から何が変わったかを確認し、現在の投資仮説と評価を一つの流れで点検するための画面です。",
+      "first_checks": [
+        "前回判断からの変化",
+        "市場期待との差",
+        "仮説・Valuation・売買前ポートフォリオ影響の状態"
+      ],
+      "why_it_matters": "変化、期待差、仮説と評価を分断せずに見ることで、判断の前提がどこで変わったかを追跡できます。",
+      "common_states": [
+        {"status": "UNKNOWN", "meaning_ja": "必要な情報を確認できず、状態を確定できません。正常や中立とは扱いません。"},
+        {"status": "UNAVAILABLE", "meaning_ja": "参照先または必要な情報を現在利用できません。推測値で補完しません。"},
+        {"status": "STALE", "meaning_ja": "情報の鮮度が基準を満たしていません。最新情報として扱わず、更新元を確認します。"}
+      ],
+      "decision_flow_ja": ["前回判断", "現在との差", "市場期待との差", "仮説確認", "Valuation", "売買前PF影響", "判断Snapshot", "次checkpoint"],
+      "next_destination_refs": ["/risk-preflight/", "/trade-journal/"],
+      "evidence_refs": ["/companies/", "/framework/"],
+      "non_goals": [
+        "BUY / SELL / ADD / REDUCEを自動決定しない",
+        "Ownerのconfidence・threshold・投資思想を推測補完しない",
+        "Canonical Research / Scenario / Hypothesis / Decisionを変更しない"
+      ],
+      "contract_refs": ["#313", "#317", "#312", "#320"],
+      "last_reviewed_at": "2026-08-11"
+    }
+  ]
+}
