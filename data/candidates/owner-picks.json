@@ -1,4 +1,11 @@
 {
   "schema_version": 1,
-  "owner_picks": []
+  "owner_picks": [
+    {
+      "security_code": "6232",
+      "company_name": "ACSL",
+      "reason": "防衛省の継続受注、SBIR/K Program政府資金、黒字化・資金繰り改善への転換点を重点監視",
+      "note": "👑サド Owner Pick。防衛ドローン政策が政府R&D支援→直接調達→売上・粗利・キャッシュフロー改善へ変換されるかを継続検証する。"
+    }
+  ]
 }
