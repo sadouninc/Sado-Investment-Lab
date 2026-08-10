@@ -46,6 +46,7 @@ jobs:
           python -m unittest tests.test_money_flow_canonical_run
           python -m unittest tests.test_money_flow_scheduled_run
           python -m unittest tests.test_money_flow_policy_limitations
+          python -m unittest tests.test_money_flow_sector_canonical_run
 
       - name: Resolve run mode
         id: mode
@@ -99,6 +100,34 @@ jobs:
               fh.write(f"reason={payload['guard']['reason']}\n")
           PY
 
+      - name: Run Sector canonical snapshot
+        if: steps.mode.outputs.mode == 'SCHEDULED' && steps.scheduled.outputs.status == 'COMPLETED'
+        id: sector
+        run: |
+          set +e
+          python -m scripts.money_flow_sector_canonical_run --as-of '${{ steps.mode.outputs.as_of }}' > /tmp/money-flow-sector-run.json
+          rc=$?
+          set -e
+
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 3 ]; then
+            cat /tmp/money-flow-sector-run.json || true
+            exit "$rc"
+          fi
+
+          python - <<'PY' "$rc"
+          import json, os, sys
+          from pathlib import Path
+
+          rc = int(sys.argv[1])
+          payload = json.loads(Path('/tmp/money-flow-sector-run.json').read_text())
+          snapshot_set = payload.get('snapshot_set') or {}
+          status = 'COMPLETED' if rc == 0 else 'SKIPPED_UNAVAILABLE'
+          reason = snapshot_set.get('missing_reason') or ''
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as fh:
+              fh.write(f"status={status}\n")
+              fh.write(f"reason={reason}\n")
+          PY
+
       - name: Run bounded historical backfill
         if: steps.mode.outputs.mode == 'BACKFILL'
         env:
@@ -137,6 +166,9 @@ jobs:
         run: |
           set -euo pipefail
           git add data/generated/public/money-flow/history.jsonl
+          if [ -f data/generated/public/money-flow/sector-history.jsonl ]; then
+            git add data/generated/public/money-flow/sector-history.jsonl
+          fi
           if [ -f data/generated/public/money-flow/policy-lead-time-ai-dc.json ]; then
             git add data/generated/public/money-flow/policy-lead-time-ai-dc.json
           fi
@@ -158,7 +190,10 @@ jobs:
             echo '- as_of: `${{ steps.mode.outputs.as_of }}`'
             echo '- scheduled status: `${{ steps.scheduled.outputs.status }}`'
             echo '- scheduled guard: `${{ steps.scheduled.outputs.reason }}`'
+            echo '- sector status: `${{ steps.sector.outputs.status }}`'
+            echo '- sector guard: `${{ steps.sector.outputs.reason }}`'
             echo '- theme: `theme:ai-data-center-power-infrastructure`'
+            echo '- sector set: `TOPIX-17 proxy canonical snapshots`'
             echo ''
-            echo 'Scheduled runs keep the PR #198 market-session guard. Historical backfills are bounded to each as_of so future observations cannot leak into past detector states.'
+            echo 'Scheduled runs keep the PR #198 market-session guard. Sector persistence reuses the same 17:30 JST workflow and commit lane; stale/unavailable Sector data is not converted to COLD and does not erase a valid Theme run. Historical backfills remain bounded to each as_of so future observations cannot leak into past detector states.'
           } >> "$GITHUB_STEP_SUMMARY"
