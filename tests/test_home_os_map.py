@@ -59,6 +59,7 @@ def test_home_is_deterministic_render_of_template_and_config() -> None:
     assert 'data-stage-id="decide"' in rendered
     assert "/risk-preflight/" in rendered
     assert "/trade-journal/" in rendered
+    assert "## 🛡️ 売買前のポートフォリオ確認" in rendered
 
 
 def test_available_destination_must_be_in_shared_route_inventory() -> None:
@@ -103,15 +104,15 @@ def test_home_publishes_canonical_visual_design_system_v1() -> None:
     assert source_css == published_css
     assert "/assets/images/design-system-v1.css" in home
     assert "/assets/images/home-os-map.css" in home
-    for semantic in (
-        ".sil-summary-card",
-        ".sil-status-chip",
-        ".sil-action",
-        ".sil-evidence-link",
-        ".sil-disclosure",
+    for class_name in (
+        "sil-summary-card",
+        "sil-status-chip",
+        "sil-action",
+        "sil-evidence-link",
+        "sil-disclosure",
     ):
-        assert semantic in source_css
-        assert semantic in home
+        assert f".{class_name}" in source_css
+        assert class_name in home
     assert "--sil-accent-primary:" not in layout_css
     assert "--sil-state-unavailable:" not in layout_css
     assert "var(--sil-" in layout_css
