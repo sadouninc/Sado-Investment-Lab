@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sado Investment Lab — Visual Design System v1 Fixture</title>
+  <link rel="stylesheet" href="../design-system-v1.css">
+</head>
+<body style="margin:0;background:var(--sil-surface-canvas);color:var(--sil-text-primary);">
+  <main class="sil-page-shell">
+    <header class="sil-page-header">
+      <span class="sil-context">Design System / deterministic fixture</span>
+      <h1>投資判断サマリー</h1>
+      <p class="sil-meta">対象: サンプル企業 / as_of: 2026-08-11 / freshness: fixture固定値</p>
+      <a class="sil-action" href="#evidence">主要な根拠を見る</a>
+    </header>
+
+    <section aria-labelledby="summary-title">
+      <h2 id="summary-title" class="sil-section-header">最初に見る3点</h2>
+      <div class="sil-summary-grid">
+        <article class="sil-summary-card sil-priority-first">
+          <h3>前回から何が変わった？</h3>
+          <div class="sil-delta"><span aria-hidden="true">▲</span><span class="sil-delta__label">営業利益予想</span><span>120 → 138</span></div>
+          <span class="sil-status-chip" data-state="normal">最新</span>
+        </article>
+        <article class="sil-summary-card">
+          <h3>市場期待との差は？</h3>
+          <div class="sil-kpi"><strong class="sil-kpi__value">+8.4</strong><span class="sil-kpi__unit">%</span><span class="sil-kpi__basis">会社計画比</span></div>
+          <span class="sil-status-chip" data-state="stale">STALE / 更新確認が必要</span>
+        </article>
+        <article class="sil-summary-card">
+          <h3>Warning / Thesis Health</h3>
+          <span class="sil-status-chip" data-state="unavailable">UNAVAILABLE / データ未取得</span>
+          <span class="sil-status-chip" data-state="unknown">UNKNOWN / 未設定</span>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="scenario-title">
+      <h2 id="scenario-title" class="sil-section-header">Bear / Base / Bull</h2>
+      <div class="sil-scenario-grid">
+        <article class="sil-scenario-card" data-scenario="bear">
+          <span class="sil-scenario-label" data-scenario="bear">Bear</span>
+          <h3>需要回復が遅れる</h3>
+          <p>投資シナリオの悲観ケース。system errorとは別の意味です。</p>
+        </article>
+        <article class="sil-scenario-card" data-scenario="base">
+          <span class="sil-scenario-label" data-scenario="base">Base</span>
+          <h3>会社計画に沿って進む</h3>
+          <p>基準ケース。色だけでなくlabelとshapeで識別します。</p>
+        </article>
+        <article class="sil-scenario-card" data-scenario="bull">
+          <span class="sil-scenario-label" data-scenario="bull">Bull</span>
+          <h3>高付加価値品が上振れる</h3>
+          <p>投資シナリオの強気ケース。success stateとは独立しています。</p>
+        </article>
+      </div>
+    </section>
+
+    <aside class="sil-alert" data-level="critical" role="alert">
+      <span class="sil-alert__icon" aria-hidden="true">!</span>
+      <p><strong>反証条件を確認</strong><br>重要な前提が崩れた場合は判断を更新します。</p>
+    </aside>
+
+    <section id="evidence" class="sil-chart-container" aria-labelledby="evidence-title">
+      <h2 id="evidence-title" class="sil-section-header">根拠を詳しく見る</h2>
+      <p>気になった判断の背景や元データを確認できます。</p>
+      <div class="sil-chart-meta">
+        <span>単位: 億円</span><span>as_of: 2026-08-11</span><span>source: deterministic fixture</span>
+      </div>
+      <p><a class="sil-evidence-link" href="#source">予想の根拠を見る</a></p>
+    </section>
+
+    <details class="sil-disclosure" id="source">
+      <summary>理由とsourceを表示</summary>
+      <div class="sil-disclosure__body">
+        <p>Summary → reason → source のprogressive disclosureを確認するfixtureです。</p>
+      </div>
+    </details>
+
+    <section class="sil-table-shell sil-table-shell--dense" aria-labelledby="table-title">
+      <h2 id="table-title" class="sil-section-header">比較表</h2>
+      <div class="sil-table-scroll">
+        <table>
+          <thead><tr><th>項目</th><th>前回</th><th>現在</th><th>状態</th></tr></thead>
+          <tbody>
+            <tr><td>営業利益予想</td><td>120</td><td>138</td><td>最新</td></tr>
+            <tr><td>需給データ</td><td>—</td><td>—</td><td>UNAVAILABLE / データ未取得</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
