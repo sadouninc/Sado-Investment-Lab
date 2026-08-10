@@ -7,11 +7,13 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from scripts.money_flow_history import load_history
+from scripts.money_flow_policy_limitations import has_retrospective_membership_history
 from scripts.policy_lead_time_v2 import evaluate_policy_lead_time_v2
 from scripts.policy_state_sequence import summarize_policy_state_sequence
 
 DEFAULT_THEME_ID = "theme:ai-data-center-power-infrastructure"
 DEFAULT_POLICY_T0 = "2024-10-04"
+DEFAULT_THEME_CONFIG = "data/config/money-flow-themes-v1.json"
 
 
 class PolicyLeadTimeAIDCError(ValueError):
@@ -36,10 +38,17 @@ def build_ai_dc_policy_lead_time_v2(
     *,
     history: list[dict[str, Any]],
     v1_lead_time: Mapping[str, Any],
+    theme_config: Mapping[str, Any] | None = None,
     theme_id: str = DEFAULT_THEME_ID,
     policy_t0: str = DEFAULT_POLICY_T0,
 ) -> dict[str, Any]:
-    """Build the persisted AI/DC v2 evaluation without rewriting v1 or history."""
+    """Build the persisted AI/DC v2 evaluation without rewriting v1 or history.
+
+    The persisted v1 artifact may have been refreshed after historical backfill and therefore
+    no longer carry the original retrospective-membership limitation. When explicit Theme
+    configuration is supplied, recover that limitation deterministically from canonical history
+    plus the declared backfill policy instead of inferring it from wall-clock/current state.
+    """
     v1 = deepcopy(dict(v1_lead_time))
     if str(v1.get("theme_id") or "") != theme_id:
         raise PolicyLeadTimeAIDCError("v1 theme_id does not match requested theme")
@@ -47,7 +56,14 @@ def build_ai_dc_policy_lead_time_v2(
         raise PolicyLeadTimeAIDCError("v1 policy_t0 does not match requested checkpoint")
 
     sequence = summarize_policy_state_sequence(history, policy_t0=policy_t0, theme_id=theme_id)
-    limitations = sorted({str(value).upper() for value in (v1.get("limitations") or [])})
+    limitation_set = {str(value).upper() for value in (v1.get("limitations") or [])}
+    if theme_config is not None and has_retrospective_membership_history(
+        history,
+        theme_config=dict(theme_config),
+        theme_id=theme_id,
+    ):
+        limitation_set.add("RETROSPECTIVE_MEMBERSHIP")
+    limitations = sorted(limitation_set)
     data_quality = "LIMITED" if limitations else "OK"
 
     evaluation = evaluate_policy_lead_time_v2(
@@ -91,12 +107,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Build AI/DC Policy Lead-Time v2 artifact")
     parser.add_argument("--history", default="data/generated/public/money-flow/history.jsonl")
     parser.add_argument("--v1", default="data/generated/public/money-flow/policy-lead-time-ai-dc.json")
+    parser.add_argument("--theme-config", default=DEFAULT_THEME_CONFIG)
     parser.add_argument("--output", default="data/generated/public/money-flow/policy-lead-time-ai-dc-v2.json")
     args = parser.parse_args()
 
     payload = build_ai_dc_policy_lead_time_v2(
         history=load_history(Path(args.history)),
         v1_lead_time=_load_json(Path(args.v1)),
+        theme_config=_load_json(Path(args.theme_config)),
     )
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
