@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
@@ -10,7 +9,8 @@ def record(**overrides):
     value = {
         "actor": "SORA",
         "run_at": "2026-08-10T03:41:15+09:00",
-        "advanced_items": ["issue:69", "issue:298"],
+        "advanced_items": 2,
+        "advanced_item_refs": ["issue:69", "issue:298"],
         "prs_opened": 1,
         "issues_created": 0,
         "issues_refined": 0,
@@ -41,27 +41,32 @@ class ThroughputLedgerTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 append_record(path, record(prs_opened=2))
 
+    def test_advanced_items_count_matches_contract(self):
+        with TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ledger.jsonl"
+            self.assertEqual("APPENDED", append_record(path, record(advanced_items=2, advanced_item_refs=[])))
+            self.assertEqual(2, summarize(path)["advanced_items"])
+            with self.assertRaises(ValueError):
+                append_record(Path(tmp) / "bad.jsonl", record(run_at="other", advanced_items=["issue:298"]))
+
+    def test_advanced_item_refs_cannot_exceed_count(self):
+        with TemporaryDirectory() as tmp:
+            with self.assertRaises(ValueError):
+                append_record(Path(tmp) / "ledger.jsonl", record(advanced_items=1, advanced_item_refs=["issue:69", "issue:298"]))
+
     def test_no_wait_accepts_not_applicable(self):
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "ledger.jsonl"
-            self.assertEqual(
-                "APPENDED",
-                append_record(path, record(wait_reused=False, wait_reuse_work=[], wait_not_reused_reason="NOT_APPLICABLE")),
-            )
-            summary = summarize(path)
-            self.assertEqual(0, summary["wait_eligible_runs"])
+            self.assertEqual("APPENDED", append_record(path, record(wait_reused=False, wait_reuse_work=[], wait_not_reused_reason="NOT_APPLICABLE")))
+            self.assertEqual(0, summarize(path)["wait_eligible_runs"])
 
     def test_wait_not_reused_requires_operational_reason(self):
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "ledger.jsonl"
             with self.assertRaises(ValueError):
                 append_record(path, record(wait_reused=False, wait_reuse_work=[]))
-            self.assertEqual(
-                "APPENDED",
-                append_record(path, record(wait_reused=False, wait_reuse_work=[], wait_not_reused_reason="OWNER_WAIT")),
-            )
-            summary = summarize(path)
-            self.assertEqual(1, summary["wait_eligible_runs"])
+            self.assertEqual("APPENDED", append_record(path, record(wait_reused=False, wait_reuse_work=[], wait_not_reused_reason="OWNER_WAIT")))
+            self.assertEqual(1, summarize(path)["wait_eligible_runs"])
 
     def test_wait_reused_requires_work_and_no_nonreuse_reason(self):
         with TemporaryDirectory() as tmp:
@@ -74,7 +79,7 @@ class ThroughputLedgerTest(unittest.TestCase):
     def test_summary_counts_non_pr_progress(self):
         with TemporaryDirectory() as tmp:
             path = Path(tmp) / "ledger.jsonl"
-            append_record(path, record(prs_opened=0, issues_refined=1, advanced_items=["issue:298"]))
+            append_record(path, record(prs_opened=0, issues_refined=1, advanced_items=1, advanced_item_refs=["issue:298"]))
             summary = summarize(path)
             self.assertEqual(1, summary["runs"])
             self.assertEqual(1, summary["advanced_items"])
