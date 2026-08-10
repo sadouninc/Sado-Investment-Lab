@@ -1,8 +1,0 @@
-{
-  "stage_id": "example-unavailable",
-  "purpose_ja": "未接続の例",
-  "description_ja": "routeが未確認の場合はリンクを生成しません。",
-  "representative_ja": "未接続",
-  "primary_destination": null,
-  "availability": "UNAVAILABLE"
-}
