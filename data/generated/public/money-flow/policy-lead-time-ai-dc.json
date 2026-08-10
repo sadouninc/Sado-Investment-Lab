@@ -1,9 +1,7 @@
 {
   "first_inflow_date": "2024-09-26",
   "first_warming_date": "2024-11-05",
-  "limitations": [
-    "RETROSPECTIVE_MEMBERSHIP"
-  ],
+  "limitations": [],
   "policy_t0": "2024-10-04",
   "policy_to_inflow_days": -8,
   "policy_to_warming_days": 32,
