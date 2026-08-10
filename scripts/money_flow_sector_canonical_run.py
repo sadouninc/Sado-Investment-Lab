@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import argparse
+import json
 from datetime import date
 from pathlib import Path
 from typing import Any, Callable
@@ -110,3 +112,24 @@ def run_once(
         fetcher=fetcher,
     )
     return {"snapshot_set": payload, "persistence": persist_sector_set(history_path, payload)}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Run #305 TOPIX-17 sector canonical persistence")
+    parser.add_argument("--as-of", required=True, help="Confirmed trading date (YYYY-MM-DD)")
+    parser.add_argument("--history", type=Path, default=Path("data/generated/public/money-flow/sector-history.jsonl"))
+    parser.add_argument("--sector-config", type=Path, default=Path("data/config/money-flow-sector-v1.json"))
+    parser.add_argument("--detector-config", type=Path, default=Path("data/config/money-flow-detector-v1.json"))
+    args = parser.parse_args()
+    result = run_once(
+        as_of=date.fromisoformat(args.as_of),
+        history_path=args.history,
+        sector_config_path=args.sector_config,
+        detector_config_path=args.detector_config,
+    )
+    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+    return 0 if result["snapshot_set"].get("persistable") else 3
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
