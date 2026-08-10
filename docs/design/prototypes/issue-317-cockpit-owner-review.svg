@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1024" viewBox="0 0 1440 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Sado Investment Codex — Investment Decision Cockpit Owner Review Prototype</title>
+  <desc id="desc">Issue 317 visual prototype showing cockpit information hierarchy, decision loop, scenario cards, warning, evidence drill-down, preflight and flight recorder.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f2eee5}.panel{fill:#faf8f2;stroke:#d6d0c3;stroke-width:1.5}.nav{fill:#173f35}.brass{fill:#9a7b42}.ink{fill:#1b201d}.muted{fill:#626860}.green{fill:#173f35}.warn{fill:#8d3e3b}.stale{fill:#7c6540}.bear{fill:#775354}.base{fill:#596a61}.bull{fill:#49675b}.serif{font-family:'Noto Serif JP','Yu Mincho',serif}.sans{font-family:'Noto Sans JP',system-ui,sans-serif}.mono{font-family:ui-monospace,monospace}.small{font-size:15px}.body{font-size:18px}.label{font-size:16px;font-weight:700}.h2{font-size:25px;font-weight:700}.h1{font-size:40px;font-weight:700}.kpi{font-size:30px;font-weight:700}.line{stroke:#d6d0c3;stroke-width:1.5}.arrow{stroke:#9a7b42;stroke-width:2.5;fill:none;marker-end:url(#a)}
+    </style>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#9a7b42"/></marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1440" height="1024"/>
+  <rect class="nav" x="0" y="0" width="1440" height="74"/>
+  <text x="54" y="46" class="serif" fill="#f7f4eb" font-size="26" font-weight="700">Sado Investment Codex</text>
+  <text x="1050" y="45" class="sans" fill="#d9d2c4" font-size="15">HOME  /  RESEARCH  /  COCKPIT  /  RECORD</text>
+
+  <text x="60" y="128" class="sans muted small">OWNER REVIEW PROTOTYPE · Issue #317 · v0.1</text>
+  <text x="60" y="178" class="serif ink h1">Investment Decision Cockpit</text>
+  <text x="60" y="210" class="sans muted body">投資判断の操縦席 — すべてを読むのではなく、判断を変え得る計器だけを集約する。</text>
+
+  <!-- top context -->
+  <rect class="panel" x="60" y="242" rx="14" ry="14" width="1320" height="92"/>
+  <text x="88" y="272" class="sans muted small">対象</text><text x="88" y="302" class="serif ink h2">ダイヘン（6622）</text>
+  <text x="410" y="272" class="sans muted small">as_of / freshness</text><text x="410" y="302" class="mono ink body">2026-08-11 · 最新</text>
+  <text x="770" y="272" class="sans muted small">前回判断</text><text x="770" y="302" class="sans ink body">HOLD / 次Checkpoint: 決算</text>
+  <rect x="1160" y="267" width="166" height="42" rx="10" fill="#173f35"/><text x="1243" y="294" text-anchor="middle" class="sans" fill="#f7f4eb" font-size="16" font-weight="700">判断を更新する</text>
+
+  <!-- first 3 -->
+  <text x="60" y="382" class="serif ink h2">最初の30秒 — まず見る3点</text>
+  <rect class="panel" x="60" y="402" rx="14" width="410" height="166"/>
+  <text x="86" y="434" class="sans muted small">01 · 前回との差</text>
+  <text x="86" y="472" class="serif ink h2">営業利益予想が上方修正</text>
+  <text x="86" y="514" class="mono green kpi">120 → 138</text><text x="282" y="513" class="sans muted small">億円</text>
+  <text x="86" y="546" class="sans green label">▲ 判断材料として前進</text>
+
+  <rect class="panel" x="495" y="402" rx="14" width="410" height="166"/>
+  <text x="521" y="434" class="sans muted small">02 · 市場期待との差</text>
+  <text x="521" y="472" class="serif ink h2">Consensusより +8.4%</text>
+  <text x="521" y="514" class="mono stale kpi">+8.4%</text>
+  <text x="521" y="546" class="sans stale label">◷ STALE · 更新確認が必要</text>
+
+  <rect class="panel" x="930" y="402" rx="14" width="450" height="166"/>
+  <text x="956" y="434" class="sans muted small">03 · Warning / Thesis Health</text>
+  <text x="956" y="472" class="serif ink h2">設備投資の遅延兆候</text>
+  <text x="956" y="514" class="sans warn label">! 反証条件に接近</text>
+  <text x="956" y="546" class="sans muted small">重要な変化だけが鋭く光る。Research全文は置かない。</text>
+
+  <!-- scenarios -->
+  <text x="60" y="622" class="serif ink h2">Scenario Instruments</text>
+  <rect class="panel" x="60" y="644" rx="14" width="410" height="142"/>
+  <rect x="60" y="644" width="410" height="5" rx="3" class="bear"/>
+  <text x="86" y="680" class="sans bear label">▼ BEAR</text><text x="86" y="716" class="serif ink body">需要回復が遅れ、利益率改善が後ずれ</text><text x="86" y="752" class="mono muted small">Forward PER 18.6x</text>
+
+  <rect class="panel" x="495" y="644" rx="14" width="410" height="142"/>
+  <rect x="495" y="644" width="410" height="5" rx="3" class="base"/>
+  <text x="521" y="680" class="sans base label">◆ BASE</text><text x="521" y="716" class="serif ink body">会社計画に沿って設備投資需要が継続</text><text x="521" y="752" class="mono muted small">Forward PER 15.2x</text>
+
+  <rect class="panel" x="930" y="644" rx="14" width="450" height="142"/>
+  <rect x="930" y="644" width="450" height="5" rx="3" class="bull"/>
+  <text x="956" y="680" class="sans bull label">▲ BULL</text><text x="956" y="716" class="serif ink body">データセンター・電力投資が想定超で伸長</text><text x="956" y="752" class="mono muted small">Forward PER 12.8x</text>
+
+  <!-- loop -->
+  <text x="60" y="842" class="serif ink h2">Decision Loop</text>
+  <rect class="panel" x="60" y="866" rx="14" width="1320" height="112"/>
+  <g class="sans label">
+    <text x="110" y="922" class="green">Flight Plan</text><text x="325" y="922" class="green">Instruments</text><text x="545" y="922" class="green">Cockpit</text><text x="720" y="922" class="green">Pre-flight</text><text x="910" y="922" class="green">Flight Recorder</text><text x="1180" y="922" class="green">Checkpoint</text>
+  </g>
+  <path class="arrow" d="M195 916 H295"/><path class="arrow" d="M412 916 H515"/><path class="arrow" d="M620 916 H688"/><path class="arrow" d="M800 916 H875"/><path class="arrow" d="M1030 916 H1142"/>
+  <path class="arrow" d="M1260 938 C1260 968 150 968 150 938"/>
+  <text x="720" y="958" text-anchor="middle" class="sans muted small">Decide → Act → Record。疑問のある計器だけEvidenceへ1 tapで降り、必ずCockpitへ戻れる。</text>
+
+  <text x="1378" y="1002" text-anchor="end" class="sans muted small">Visual Contract: quiet intelligence · sepia / deep green / muted brass · classical world, modern UX</text>
+</svg>
