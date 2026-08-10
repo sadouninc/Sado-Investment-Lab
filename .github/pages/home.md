@@ -69,6 +69,18 @@ permalink: /
     <!-- legacy build_risk_preflight marker: ## 🛡️ 売買前のポートフォリオ確認 -->
   </section>
 
+  <details class="sil-disclosure home-research-tools">
+    <summary>その他の研究・診断ツール</summary>
+    <div class="sil-disclosure__body">
+      <ul>
+        <li><a href="{{ '/research/investor-dna/' | relative_url }}">Investor DNA</a> — 実取引から得意・不得意の原因を確認</li>
+        <li><a href="{{ '/research/morning-dataset/' | relative_url }}">Morning Dataset</a> — 朝の分析に使うFact・Featureと鮮度を確認</li>
+        <li><a href="{{ '/research/ai-key-person-watch/' | relative_url }}">AI Key Person Watch</a> — AI主要人物の重要差分を確認</li>
+        <li><a href="{{ '/architecture/' | relative_url }}">Architecture</a> — Investment Decision OSと分析基盤の設計を確認</li>
+      </ul>
+    </div>
+  </details>
+
   <details class="sil-disclosure home-os-notes">
     <summary>このHomeがしないこと</summary>
     <div class="sil-disclosure__body">
