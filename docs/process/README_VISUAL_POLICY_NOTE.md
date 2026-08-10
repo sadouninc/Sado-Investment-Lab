@@ -1,0 +1,1 @@
+The proposed visual prototype persistence policy is currently documented at `docs/process/visual-prototype-persistence-policy.md` on main. This branch is reserved for the formal TEAM_RULES update after coordination review.
