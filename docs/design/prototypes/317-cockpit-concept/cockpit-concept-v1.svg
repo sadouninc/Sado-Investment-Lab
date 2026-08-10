@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Sado Investment Codex — Investment Decision Cockpit Concept v1</title>
+  <desc id="desc">Sado Investment Codexの投資判断コックピットを、古い航海・航空計器の温度感と現代的な情報階層で表現したOwner Review用Visual Prototype。</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#efe4c9"/>
+      <stop offset="1" stop-color="#dccaa5"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" x2="1">
+      <stop offset="0" stop-color="#20372f"/>
+      <stop offset="1" stop-color="#2e4b3e"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#3f3326" flood-opacity="0.18"/>
+    </filter>
+    <style>
+      .serif { font-family: Georgia, 'Times New Roman', serif; fill:#2f2a21; }
+      .sans { font-family: Arial, 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif; fill:#312d27; }
+      .mono { font-family: 'Courier New', monospace; fill:#2d332f; }
+      .small { font-size:18px; }
+      .body { font-size:22px; }
+      .h2 { font-size:30px; font-weight:700; }
+      .h1 { font-size:52px; font-weight:700; letter-spacing:2px; }
+      .label { font-size:16px; font-weight:700; letter-spacing:1.5px; }
+      .muted { fill:#6f6657; }
+      .greenText { fill:#234338; }
+      .brassText { fill:#8a6b2a; }
+      .danger { fill:#8c3f34; }
+      .good { fill:#355f4c; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1000" fill="url(#paper)"/>
+  <rect x="32" y="28" width="1536" height="944" rx="28" fill="none" stroke="#8d7447" stroke-width="3"/>
+
+  <g transform="translate(70 62)">
+    <circle cx="35" cy="35" r="31" fill="none" stroke="#8d7447" stroke-width="3"/>
+    <path d="M35 7 L45 35 L35 63 L25 35 Z" fill="#8d7447"/>
+    <circle cx="35" cy="35" r="8" fill="#20372f"/>
+    <text x="85" y="30" class="serif h2">SADO INVESTMENT CODEX</text>
+    <text x="85" y="58" class="sans small muted">Investment Decision Cockpit — Owner Review Prototype v1</text>
+  </g>
+
+  <line x1="70" y1="145" x2="1530" y2="145" stroke="#9b855e" stroke-width="2"/>
+
+  <text x="80" y="210" class="serif h1">投資判断の操縦席</text>
+  <text x="82" y="247" class="sans body">すべてのResearchを読む場所ではなく、判断を変え得る計器だけを集める。</text>
+  <text x="82" y="280" class="sans body">前回との差・市場期待との差・仮説の健康状態を30秒で確認し、必要な根拠だけへ降りる。</text>
+
+  <!-- top status rail -->
+  <g filter="url(#shadow)">
+    <rect x="80" y="320" width="1440" height="98" rx="18" fill="#f5ecd6" stroke="#9c8150" stroke-width="2"/>
+    <text x="110" y="352" class="sans label greenText">CURRENT CONTEXT</text>
+    <text x="110" y="389" class="serif h2">ダイヘン / 6622</text>
+    <rect x="455" y="342" width="170" height="44" rx="22" fill="#d7c28c" stroke="#9b7d3d"/>
+    <text x="485" y="371" class="sans small">更新: 今日 07:30</text>
+    <rect x="650" y="342" width="160" height="44" rx="22" fill="#d9e2da" stroke="#5c7b68"/>
+    <text x="686" y="371" class="sans small good">Thesis: 健全</text>
+    <rect x="835" y="342" width="178" height="44" rx="22" fill="#ead8bd" stroke="#9d7549"/>
+    <text x="865" y="371" class="sans small">Status: 一部更新</text>
+    <text x="1090" y="356" class="mono small muted">DECIDE → ACT → RECORD</text>
+    <text x="1090" y="387" class="sans small">見解と行動を分離し、結果を次回へ残す</text>
+  </g>
+
+  <!-- three primary instruments -->
+  <g filter="url(#shadow)">
+    <rect x="80" y="450" width="450" height="260" rx="24" fill="#f6edd9" stroke="#826a3e" stroke-width="2"/>
+    <text x="110" y="490" class="sans label brassText">01 / PREVIOUS → CURRENT</text>
+    <text x="110" y="530" class="serif h2">前回との差</text>
+    <text x="110" y="570" class="sans body">前回の判断から、何が変わった？</text>
+    <line x1="115" y1="615" x2="470" y2="615" stroke="#b39a6d" stroke-width="2"/>
+    <text x="115" y="650" class="mono body">利益予想</text>
+    <text x="380" y="650" class="mono body good">+4.8%</text>
+    <text x="115" y="686" class="mono body">Forward PER</text>
+    <text x="374" y="686" class="mono body danger">19.8→21.2x</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="575" y="450" width="450" height="260" rx="24" fill="#f6edd9" stroke="#826a3e" stroke-width="2"/>
+    <text x="605" y="490" class="sans label brassText">02 / EXPECTATION GAP</text>
+    <text x="605" y="530" class="serif h2">市場期待との差</text>
+    <text x="605" y="570" class="sans body">良い会社かではなく、期待を上回れるか。</text>
+    <rect x="615" y="610" width="360" height="22" rx="11" fill="#d8c8a7"/>
+    <rect x="615" y="610" width="246" height="22" rx="11" fill="#667f6c"/>
+    <circle cx="860" cy="621" r="13" fill="#8c6d2f"/>
+    <text x="615" y="670" class="mono body">Base EPS vs Market</text>
+    <text x="874" y="670" class="mono body good">+6.1%</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1070" y="450" width="450" height="260" rx="24" fill="#f6edd9" stroke="#826a3e" stroke-width="2"/>
+    <text x="1100" y="490" class="sans label brassText">03 / WARNING &amp; THESIS</text>
+    <text x="1100" y="530" class="serif h2">仮説の健康状態</text>
+    <text x="1100" y="570" class="sans body">反証条件に触れていないかを先に見る。</text>
+    <circle cx="1160" cy="642" r="42" fill="none" stroke="#355f4c" stroke-width="10"/>
+    <path d="M1138 643 l14 15 l31 -38" fill="none" stroke="#355f4c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="1225" y="635" class="sans body good">Must happen: 3/3</text>
+    <text x="1225" y="670" class="sans body">Warning: なし</text>
+  </g>
+
+  <!-- scenario / action / record -->
+  <g filter="url(#shadow)">
+    <rect x="80" y="748" width="710" height="174" rx="24" fill="url(#green)" stroke="#8d7447" stroke-width="2"/>
+    <text x="110" y="785" class="sans label" fill="#d8c49a">SCENARIO INSTRUMENTS</text>
+    <text x="110" y="823" class="serif h2" fill="#f2e6c8">Bear / Base / Bull</text>
+    <text x="110" y="860" class="sans body" fill="#f2e6c8">シナリオ・利益予想・Forward PERを横並びで比較する。</text>
+    <text x="110" y="896" class="sans small" fill="#d8c49a">詳細は必要な時だけ開く。Research全文はここに持ち込まない。</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="830" y="748" width="330" height="174" rx="24" fill="#f6edd9" stroke="#826a3e" stroke-width="2"/>
+    <text x="860" y="785" class="sans label brassText">DECIDE</text>
+    <text x="860" y="825" class="serif h2">What do I think?</text>
+    <text x="860" y="860" class="sans body">スタンスを判断</text>
+    <text x="860" y="895" class="sans small muted">Bullish / Neutral / Bearish</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1190" y="748" width="330" height="174" rx="24" fill="#f6edd9" stroke="#826a3e" stroke-width="2"/>
+    <text x="1220" y="785" class="sans label brassText">ACT &amp; RECORD</text>
+    <text x="1220" y="825" class="serif h2">What will I do?</text>
+    <text x="1220" y="860" class="sans body">PF影響 → 実行 / 見送り</text>
+    <text x="1220" y="895" class="sans small muted">Decision Snapshotへ記録</text>
+  </g>
+
+  <!-- footer philosophy -->
+  <text x="80" y="962" class="serif body brassText">Worldview: Classical. UX: Modern. — 知的で静か。重要な変化だけが鋭く光る。</text>
+  <text x="1300" y="962" class="mono small muted">#317 / v1</text>
+</svg>
