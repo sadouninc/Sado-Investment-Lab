@@ -9,8 +9,8 @@
       "availability": "AVAILABLE"
     },
     {
-      "label_ja": "投資判断を確認する",
-      "description_ja": "Decision Cockpitで前回からの変化と投資仮説を確認します。",
+      "label_ja": "ダイヘン 投資判断コックピット",
+      "description_ja": "前回からの変化と投資仮説をDecision Cockpitで確認します。",
       "route": "/decision-cockpit/daihen/",
       "availability": "AVAILABLE"
     },
