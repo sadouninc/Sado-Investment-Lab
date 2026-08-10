@@ -1,320 +1,239 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-08-07T09:12:06+00:00",
-  "as_of": "2026-08-07",
+  "generated_at": "2026-08-10T00:04:11+00:00",
+  "as_of": "2026-08-10",
   "data_quality": {
     "status": "PARTIAL",
     "completeness": 0.2857,
     "available_sources": 2,
-    "total_sources": 7
+    "ok_sources": 2,
+    "usable_sources": 4,
+    "total_sources": 7,
+    "completeness_label": "2 / 7",
+    "source_counts": {
+      "OK": 2,
+      "PARTIAL": 1,
+      "STALE": 1,
+      "MISSING": 3
+    }
   },
   "warnings": [
-    "portfolio source is missing",
-    "capital source is missing",
-    "candidates source is missing",
-    "events source is missing",
-    "watchlist source is missing"
+    "market source is partial: 1 of 11 market series unavailable",
+    "capital source is missing: capital_snapshots table not found in canonical history database",
+    "candidates source is missing: candidates table not found in canonical history database",
+    "events source is missing: event calendar contains no events and does not explicitly confirm complete empty coverage",
+    "watchlist source is stale: watchlist snapshot is 6 days old (freshness limit 3)"
   ],
   "source_status": [
     {
       "name": "market",
-      "source": null,
-      "as_of": null,
-      "status": "OK"
+      "source": "https://query1.finance.yahoo.com/v8/finance/chart/",
+      "source_reference": "https://query1.finance.yahoo.com/v8/finance/chart/",
+      "as_of": "2026-08-10T00:04:09+00:00",
+      "status": "PARTIAL",
+      "reason": "1 of 11 market series unavailable"
     },
     {
       "name": "portfolio",
-      "source": null,
-      "as_of": null,
-      "status": "MISSING"
+      "source": "data/portfolio/current.json",
+      "source_reference": "data/portfolio/current.json",
+      "as_of": "2026-08-08",
+      "status": "OK",
+      "reason": null
     },
     {
       "name": "capital",
-      "source": null,
+      "source": "data/database/history.db",
+      "source_reference": "data/database/history.db",
       "as_of": null,
-      "status": "MISSING"
+      "status": "MISSING",
+      "reason": "capital_snapshots table not found in canonical history database"
     },
     {
       "name": "candidates",
-      "source": null,
+      "source": "data/database/history.db",
+      "source_reference": "data/database/history.db",
       "as_of": null,
-      "status": "MISSING"
+      "status": "MISSING",
+      "reason": "candidates table not found in canonical history database"
     },
     {
       "name": "investor_dna",
-      "source": null,
-      "as_of": null,
-      "status": "OK"
+      "source": "data/generated/public/investor-dna.json",
+      "source_reference": "data/generated/public/investor-dna.json",
+      "as_of": "2026-08-10T00:04:10+00:00",
+      "status": "OK",
+      "reason": null
     },
     {
       "name": "events",
-      "source": null,
-      "as_of": null,
-      "status": "MISSING"
+      "source": "data/events/calendar.json",
+      "source_reference": "data/events/calendar.json",
+      "as_of": "2026-08-10",
+      "status": "MISSING",
+      "reason": "event calendar contains no events and does not explicitly confirm complete empty coverage"
     },
     {
       "name": "watchlist",
-      "source": null,
-      "as_of": null,
-      "status": "MISSING"
+      "source": "Current_Status.md",
+      "source_reference": "Current_Status.md",
+      "as_of": "2026-08-04",
+      "status": "STALE",
+      "reason": "watchlist snapshot is 6 days old (freshness limit 3)"
     }
   ],
   "market": {
-    "generated_at": "2026-08-07T09:12:02+00:00",
-    "data_quality": {
-      "included": 40,
-      "excluded": [],
-      "symbols": {
-        "3110": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "4063": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "3436": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "4004": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "5016": {
-          "rows": 339,
-          "start": "2025-03-19",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "5706": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "5384": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "4186": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "4369": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "4626": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "4062": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6315": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "7911": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "7912": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6871": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6855": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "8035": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "7735": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6146": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6525": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6590": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6368": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6361": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "7731": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "7729": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6254": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6857": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6920": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6965": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6951": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "7717": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "285A": {
-          "rows": 397,
-          "start": "2024-12-18",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6723": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6526": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6963": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6875": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6981": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6976": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "6762": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        },
-        "5801": {
-          "rows": 494,
-          "start": "2024-07-29",
-          "end": "2026-08-06",
-          "missing_values": 0
-        }
+    "phase": null,
+    "indices": {
+      "nikkei_225": {
+        "value": 65606.7109375,
+        "previous_close": 65683.2578125,
+        "change": -76.546875,
+        "change_pct": -0.1165394006772797,
+        "as_of": "2026-08-07T00:00:00+00:00",
+        "symbol": "^N225",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "growth_250_proxy": {
+        "value": 574.4000244140625,
+        "previous_close": 571.7000122070312,
+        "change": 2.70001220703125,
+        "change_pct": 0.47227779418928667,
+        "as_of": "2026-08-07T00:00:00+00:00",
+        "symbol": "2516.T",
+        "kind": "etf_proxy",
+        "proxy_for": "TSE Growth Market 250",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "sp500": {
+        "value": 7757.64013671875,
+        "previous_close": 7709.9599609375,
+        "change": 47.68017578125,
+        "change_pct": 0.6184231308959001,
+        "as_of": "2026-08-07T13:30:00+00:00",
+        "symbol": "^GSPC",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "nasdaq": {
+        "value": 26690.619140625,
+        "previous_close": 26348.349609375,
+        "change": 342.26953125,
+        "change_pct": 1.2990169643423022,
+        "as_of": "2026-08-07T13:30:00+00:00",
+        "symbol": "^IXIC",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "dow": {
+        "value": 54036.9296875,
+        "previous_close": 53885.1015625,
+        "change": 151.828125,
+        "change_pct": 0.2817627147346068,
+        "as_of": "2026-08-07T13:30:00+00:00",
+        "symbol": "^DJI",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "sox": {
+        "value": 12356.7900390625,
+        "previous_close": 12048.6904296875,
+        "change": 308.099609375,
+        "change_pct": 2.5571211342259628,
+        "as_of": "2026-08-07T13:30:00+00:00",
+        "symbol": "^SOX",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "vix": {
+        "value": 14.899999618530273,
+        "previous_close": 15.149999618530273,
+        "change": -0.25,
+        "change_pct": -1.6501650580520142,
+        "as_of": "2026-08-07T07:00:00+00:00",
+        "symbol": "^VIX",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
       }
     },
-    "universe": {
-      "id": "ai-semiconductor-40",
-      "name": "AI半導体エコシステム40",
-      "requested": 40
-    }
+    "breadth": null,
+    "sentiment": null,
+    "risk_state": null
   },
   "portfolio": {
-    "positions": null,
+    "positions": [
+      {
+        "security_code": "1321",
+        "security_name": "ＮＥＸＴ ＦＵＮＤＳ 日経２２５連動型上場投信",
+        "position_type": "cash",
+        "account_type": "特定",
+        "quantity": 5
+      },
+      {
+        "security_code": "247A",
+        "security_name": "Ａｉロボティクス",
+        "position_type": "cash",
+        "account_type": "特定",
+        "quantity": 300
+      },
+      {
+        "security_code": "3110",
+        "security_name": "日東紡績",
+        "position_type": "margin_long",
+        "account_type": "特定",
+        "quantity": 900
+      },
+      {
+        "security_code": "3291",
+        "security_name": "飯田グループホールディングス",
+        "position_type": "margin_short",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "3687",
+        "security_name": "フィックスターズ",
+        "position_type": "margin_long",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "3778",
+        "security_name": "さくらインターネット",
+        "position_type": "margin_long",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "4063",
+        "security_name": "信越化学工業",
+        "position_type": "margin_long",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "4204",
+        "security_name": "積水化学工業",
+        "position_type": "margin_long",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "4588",
+        "security_name": "オンコリスバイオファーマ",
+        "position_type": "cash",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "4592",
+        "security_name": "サンバイオ",
+        "position_type": "cash",
+        "account_type": "特定",
+        "quantity": 100
+      }
+    ],
     "exposure": null,
     "pnl": null
   },
@@ -531,5 +450,72 @@
     "economic": null,
     "company": null
   },
-  "watchlist": null
+  "watchlist": {
+    "items": [
+      {
+        "text": "信越化学の決算",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "信越化学の決算",
+        "priority": null
+      },
+      {
+        "text": "原子力",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "原子力",
+        "priority": null
+      },
+      {
+        "text": "送電網",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "送電網",
+        "priority": null
+      },
+      {
+        "text": "レアアース",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "レアアース",
+        "priority": null
+      },
+      {
+        "text": "トヨタ",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "トヨタ",
+        "priority": null
+      },
+      {
+        "text": "日東紡の誤発注による信用売り100株への対応",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "日東紡の誤発注による信用売り100株への対応",
+        "priority": null
+      },
+      {
+        "text": "富士通のAI関連受注、利益率、ガイダンス",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "富士通のAI関連受注、利益率、ガイダンス",
+        "priority": null
+      },
+      {
+        "text": "テラドローンの需給と事前エントリー条件",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "テラドローンの需給と事前エントリー条件",
+        "priority": null
+      }
+    ]
+  }
 }
