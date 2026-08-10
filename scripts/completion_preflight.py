@@ -15,7 +15,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from owner_acceptance_gate import evaluate_close_preflight
+from scripts.owner_acceptance_gate import evaluate_close_preflight
 
 
 def evaluate_payload(payload: dict[str, Any]) -> dict[str, Any]:
