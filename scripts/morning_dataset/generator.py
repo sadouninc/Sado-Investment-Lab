@@ -76,6 +76,7 @@ def build_dataset(
     investor_dna: dict[str, Any] | None = None,
     events: dict[str, Any] | None = None,
     watchlist: list[Any] | None = None,
+    sector_rotation: dict[str, Any] | None = None,
     source_metadata: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Build the deterministic AI-input contract.
@@ -105,6 +106,7 @@ def build_dataset(
         "investor_dna": investor_dna,
         "events": events,
         "watchlist": watchlist,
+        "sector_rotation": sector_rotation,
     }
     for key, value in supplied.items():
         if value is not None:
