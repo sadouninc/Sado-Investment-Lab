@@ -4,13 +4,14 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import tempfile
 from datetime import date
 from pathlib import Path
 from typing import Any, Callable
 
 from scripts.money_flow_canonical_run import CachedFetcher, bounded_fetcher
 from scripts.money_flow_detector import load_config as load_detector_config
-from scripts.money_flow_history import load_history, upsert_snapshot
+from scripts.money_flow_history import load_history, snapshot_key, upsert_snapshot
 from scripts.money_flow_sector_adapter import (
     _series,
     build_sector_snapshots,
@@ -126,6 +127,16 @@ def run_once(
     return {"snapshot_set": payload, "persistence": persist_sector_set(history_path, payload)}
 
 
+def _write_history(path: Path, records: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    ordered = sorted(records, key=snapshot_key)
+    content = "\n".join(json.dumps(record, ensure_ascii=False, sort_keys=True) for record in ordered)
+    if content:
+        path.write_text(content + "\n", encoding="utf-8")
+    elif path.exists():
+        path.unlink()
+
+
 def run_backfill(
     *,
     start: date,
@@ -136,9 +147,27 @@ def run_backfill(
     fetcher: Fetcher = fetch_yahoo_history,
     history_range: str = "2y",
 ) -> dict[str, Any]:
-    """Backfill confirmed benchmark trading dates oldest-first without future leakage."""
+    """Atomically rebuild a bounded Sector history window oldest-first.
+
+    Existing Sector rows inside the requested window are intentionally rebuilt because
+    their hysteresis may have been computed before older history existed. Rows outside
+    the window are preserved. To avoid leaving downstream detector states inconsistent,
+    the requested end must include the latest existing Sector snapshot date.
+    """
     if end < start:
         raise SectorCanonicalRunError("backfill end must be on or after start")
+
+    original_history = load_history(history_path)
+    existing_sector_dates = sorted(
+        date.fromisoformat(str(row["as_of"]))
+        for row in original_history
+        if row.get("kind") == "SECTOR"
+    )
+    if existing_sector_dates and end < existing_sector_dates[-1]:
+        raise SectorCanonicalRunError(
+            "backfill end must include latest existing Sector snapshot date "
+            f"{existing_sector_dates[-1].isoformat()}"
+        )
 
     cached = CachedFetcher(fetcher)
     sector_config = _with_history_range(load_sector_config(sector_config_path), history_range)
@@ -157,22 +186,38 @@ def run_backfill(
     if not trading_dates:
         raise SectorCanonicalRunError("no benchmark trading dates in requested backfill window")
 
+    preserved_history = [
+        row
+        for row in original_history
+        if not (
+            row.get("kind") == "SECTOR"
+            and start <= date.fromisoformat(str(row["as_of"])) <= end
+        )
+    ]
+
     persistence_counts: dict[str, int] = {}
     unavailable_dates: list[str] = []
-    for as_of in trading_dates:
-        result = run_once(
-            as_of=as_of,
-            history_path=history_path,
-            sector_config_path=sector_config_path,
-            detector_config_path=detector_config_path,
-            fetcher=cached,
-            history_range_override=history_range,
-        )
-        snapshot_set = result["snapshot_set"]
-        if not snapshot_set.get("persistable"):
-            unavailable_dates.append(as_of.isoformat())
-        for status, count in result["persistence"].items():
-            persistence_counts[status] = persistence_counts.get(status, 0) + int(count)
+    with tempfile.TemporaryDirectory() as tmp:
+        working_history = Path(tmp) / "sector-history.jsonl"
+        _write_history(working_history, preserved_history)
+
+        for as_of in trading_dates:
+            result = run_once(
+                as_of=as_of,
+                history_path=working_history,
+                sector_config_path=sector_config_path,
+                detector_config_path=detector_config_path,
+                fetcher=cached,
+                history_range_override=history_range,
+            )
+            snapshot_set = result["snapshot_set"]
+            if not snapshot_set.get("persistable"):
+                unavailable_dates.append(as_of.isoformat())
+            for status, count in result["persistence"].items():
+                persistence_counts[status] = persistence_counts.get(status, 0) + int(count)
+
+        rebuilt_history = load_history(working_history)
+        _write_history(history_path, rebuilt_history)
 
     return {
         "start": start.isoformat(),
@@ -182,6 +227,7 @@ def run_backfill(
         "trading_dates": [value.isoformat() for value in trading_dates],
         "unavailable_dates": unavailable_dates,
         "persistence_counts": persistence_counts,
+        "replaced_existing_sector_rows": len(original_history) - len(preserved_history),
     }
 
 
