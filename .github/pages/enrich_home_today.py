@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import html
 import json
 from pathlib import Path
 from typing import Any, Mapping
+
+from scripts.morning_dataset.providers import SectorRotationProvider
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE_HOME = ROOT / "site-src" / "index.md"
@@ -49,6 +52,28 @@ def _status_card(title: str, source: Mapping[str, Any], detail: str) -> str:
         f'<p class="codex-evidence__meta">as of: {_e(as_of)}</p>{reason_html}'
         '</article>'
     )
+
+
+def with_sector_rotation(dataset: Mapping[str, Any]) -> dict[str, Any]:
+    """Attach the existing #359 read provider for Home only, without mutating Morning."""
+    merged = deepcopy(dict(dataset))
+    existing = _source_status(merged, "sector_rotation")
+    if existing.get("status") in {"OK", "PARTIAL", "STALE"} and isinstance(
+        merged.get("sector_rotation"), Mapping
+    ):
+        return merged
+
+    result = SectorRotationProvider().collect()
+    rows = [
+        deepcopy(dict(row))
+        for row in merged.get("source_status") or []
+        if isinstance(row, Mapping) and row.get("name") != "sector_rotation"
+    ]
+    rows.append(result.metadata() | {"name": result.name})
+    merged["source_status"] = rows
+    if result.data is not None:
+        merged["sector_rotation"] = deepcopy(result.data)
+    return merged
 
 
 def render_status_section(dataset: Mapping[str, Any] | None) -> str:
@@ -112,7 +137,9 @@ def load_dataset(path: Path = MORNING_DATASET) -> Mapping[str, Any] | None:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return None
-    return payload if isinstance(payload, Mapping) else None
+    if not isinstance(payload, Mapping):
+        return None
+    return with_sector_rotation(payload)
 
 
 def enrich_text(text: str, dataset: Mapping[str, Any] | None) -> str:
