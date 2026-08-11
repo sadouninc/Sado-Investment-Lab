@@ -28,6 +28,20 @@ STATUS_TOKENS = {
     "UNAVAILABLE": "unavailable",
     "STALE": "stale",
 }
+# #317 Product/IA contract: Cockpit first view completes Decide. Act/Record are handoffs.
+FIRST_VIEW_CHECKS = (
+    "前回判断からの変化",
+    "市場期待との差",
+    "Warning・Thesis Health（仮説の健全性）",
+)
+DECIDE_FLOW = (
+    "対象・鮮度を確認",
+    "前回との差",
+    "市場期待との差",
+    "Warning・Thesis Health",
+    "Evidenceを確認",
+    "現在の判断を整理",
+)
 
 
 def load_json(path: Path) -> dict:
@@ -75,7 +89,7 @@ def render(record: dict, os_map: dict) -> str:
         f'<p class="codex-card-question">最初に見る {index}</p>'
         f'<h3>{html.escape(text)}</h3>'
         '</article>'
-        for index, text in enumerate(record["first_checks"], 1)
+        for index, text in enumerate(FIRST_VIEW_CHECKS, 1)
     )
     states = "\n".join(
         '<article class="codex-alert" '
@@ -95,7 +109,7 @@ def render(record: dict, os_map: dict) -> str:
         for ref in record["evidence_refs"]
     )
     non_goals = "\n".join(f"<li>{html.escape(text)}</li>" for text in record["non_goals"])
-    flow = " → ".join(html.escape(item) for item in record["decision_flow_ja"])
+    flow = " → ".join(html.escape(item) for item in DECIDE_FLOW)
     contracts = " / ".join(html.escape(item) for item in record["contract_refs"])
 
     output = f'''---
@@ -109,7 +123,7 @@ permalink: /concepts/investment-decision-cockpit/
 <div class="codex-page-shell">
   <header class="codex-page-header">
     <span class="codex-instrument-icon" aria-hidden="true">◇</span>
-    <p class="codex-card-question">Investment OS / 5 判断する</p>
+    <p class="codex-card-question">Sado Investment Codex / 5 判断</p>
     <h1>Investment Decision Cockpit — 見方ガイド</h1>
     <p>{html.escape(record['purpose_ja'])}</p>
     <div class="codex-page-header__meta">
@@ -120,17 +134,17 @@ permalink: /concepts/investment-decision-cockpit/
 
   <section aria-labelledby="first-checks">
     <h2 id="first-checks">最初の30秒で見る3点</h2>
-    <p>{html.escape(record['why_it_matters'])}</p>
+    <p>まず対象と鮮度を確認し、変化・期待差・仮説の健全性を見ます。売買前のポートフォリオ影響は、判断を整理した後のRisk Preflightで確認します。</p>
     <div class="codex-summary-grid">
 {checks}
     </div>
   </section>
 
   <section aria-labelledby="decision-flow">
-    <h2 id="decision-flow">判断の流れ</h2>
+    <h2 id="decision-flow">判断の流れ — What do I think?</h2>
     <div class="codex-evidence">
       <strong>{flow}</strong>
-      <div class="codex-evidence__meta">CockpitはDecideの画面です。売買前確認・記録の詳細は次の既存画面へ進みます。</div>
+      <div class="codex-evidence__meta">Cockpitは「自分は今どう考えるか」を整理するDecideの画面です。「何をするか」はRisk Preflightへ、実行後の記録はTrade Journalへhandoffします。</div>
     </div>
   </section>
 
@@ -141,7 +155,8 @@ permalink: /concepts/investment-decision-cockpit/
   </section>
 
   <section aria-labelledby="next-actions">
-    <h2 id="next-actions">次に進む</h2>
+    <h2 id="next-actions">判断の次に進む</h2>
+    <p>ここから先はAct / Recordです。Cockpitの判断材料と混ぜず、目的ごとの既存画面へ進みます。</p>
     <div class="codex-action-row">
       {_link(record['route_ref'], 'codex-action codex-action--primary')}
 {next_links}
