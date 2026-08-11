@@ -164,7 +164,7 @@ def publish_navigation_shell() -> None:
         layout = layout.replace(book_link, book_link + design_link, 1)
 
     if "codex-global-header" not in layout:
-        layout, replacements = SITE_HEADER_RE.subn(GLOBAL_NAVIGATION_SHELL, layout, count=1)
+        layout, replacements = SITE_HEADER_RE.subn(lambda _match: GLOBAL_NAVIGATION_SHELL, layout, count=1)
         if replacements != 1:
             raise ValueError("site layout no longer contains exactly one legacy site-header")
 
