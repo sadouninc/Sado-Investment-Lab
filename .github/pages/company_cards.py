@@ -8,6 +8,7 @@ from pathlib import Path
 
 UPDATED = re.compile(r"^Updated:\s*(.+?)\s*$", re.MULTILINE)
 HEADING = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
+TITLE = re.compile(r"^#\s+.+?\s*$", re.MULTILINE)
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,7 @@ def summarize_company(title: str, category: str, source: Path, content: str) -> 
 
 def render_company_page_summary(summary: CompanyCardSummary) -> str:
     freshness = html.escape(summary.freshness) if summary.freshness else "更新日未記録"
+    freshness_state = "normal" if summary.freshness else "unavailable"
     section_count = len(summary.sections)
     section_preview = " / ".join(html.escape(item) for item in summary.sections[:4])
     if not section_preview:
@@ -44,7 +46,7 @@ def render_company_page_summary(summary: CompanyCardSummary) -> str:
         f'<span class="codex-status-chip" data-state="normal">{html.escape(summary.category)}</span>\n'
         f'<h1>{html.escape(summary.title)}</h1>\n'
         '<div class="codex-page-header__meta">'
-        f'<span>Freshness: {freshness}</span>'
+        f'<span class="codex-status-chip" data-state="{freshness_state}">Freshness: {freshness}</span>'
         f'<span>Source: {html.escape(summary.source_name)}</span>'
         '</div>\n'
         '</header>\n'
@@ -56,6 +58,7 @@ def render_company_page_summary(summary: CompanyCardSummary) -> str:
         '</article>\n'
         '<article class="codex-summary-card">'
         '<span class="codex-card-question">Canonical metrics</span>'
+        '<span class="codex-status-chip" data-state="unavailable">未接続値はUNAVAILABLE</span>'
         '<h2>推測しない</h2>'
         '<p>AI Score / KPI / PER / 需給はCanonical sourceに存在する値だけを利用します。</p>'
         '</article>\n'
@@ -68,13 +71,19 @@ def render_company_page_summary(summary: CompanyCardSummary) -> str:
     )
 
 
+def canonical_detail_body(content: str) -> str:
+    """Keep canonical research intact except for the duplicate document H1 in the disclosure."""
+    return TITLE.sub("", content, count=1).lstrip()
+
+
 def render_company_detail(content: str) -> str:
     return (
+        '<section class="codex-page-shell">\n'
         '<details class="codex-disclosure" id="company-detail">\n'
         '<summary>Company Research 詳細</summary>\n'
         '<div class="codex-disclosure__body" markdown="1">\n\n'
-        + content.strip()
-        + '\n\n</div>\n</details>\n'
+        + canonical_detail_body(content).strip()
+        + '\n\n</div>\n</details>\n</section>\n'
     )
 
 
