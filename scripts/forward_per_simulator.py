@@ -1,18 +1,21 @@
 from __future__ import annotations
 
 import copy
+import math
 from typing import Any
 
 SCENARIOS = ("bear", "base", "bull")
 
 
-def _number(value: Any) -> float | None:
-    if value is None or isinstance(value, bool):
+def _number(value: Any, field: str) -> float | None:
+    if value is None:
         return None
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{field} must be a finite int or float")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError(f"{field} must be a finite int or float")
+    return result
 
 
 def _round(value: float | None, digits: int = 2) -> float | None:
@@ -22,13 +25,14 @@ def _round(value: float | None, digits: int = 2) -> float | None:
 def calculate_scenario(
     scenario: dict[str, Any],
     *,
+    scenario_name: str,
     price: float,
     diluted_shares: float | None,
     target_pers: list[float],
 ) -> dict[str, Any]:
     warnings: list[str] = []
-    explicit_eps = _number(scenario.get("eps"))
-    net_income = _number(scenario.get("net_income"))
+    explicit_eps = _number(scenario.get("eps"), f"{scenario_name}.eps")
+    net_income = _number(scenario.get("net_income"), f"{scenario_name}.net_income")
     derived_eps = None
     if net_income is not None and diluted_shares is not None and diluted_shares > 0:
         derived_eps = net_income / diluted_shares
@@ -74,12 +78,16 @@ def simulate(
     """Calculate Bear/Base/Bull Forward PER without mutating canonical Research input."""
     source = copy.deepcopy(research_input)
     market = source.get("price") or {}
-    selected_price = _number(price if price is not None else market.get("value"))
+    selected_price = _number(
+        price if price is not None else market.get("value"), "price"
+    )
     if selected_price is None or selected_price <= 0:
         raise ValueError("positive price is required")
 
     share_basis = source.get("share_basis") or {}
-    diluted_shares = _number(share_basis.get("diluted_shares"))
+    diluted_shares = _number(
+        share_basis.get("diluted_shares"), "share_basis.diluted_shares"
+    )
     warnings: list[str] = []
     if diluted_shares is None or diluted_shares <= 0:
         diluted_shares = None
@@ -92,6 +100,7 @@ def simulate(
         warnings.append("TARGET_FISCAL_YEAR_MISSING")
 
     targets = target_pers or [15.0, 20.0, 25.0, 30.0]
+    targets = [_number(value, "target PER") for value in targets]
     if any(value <= 0 for value in targets):
         raise ValueError("target PER must be positive")
 
@@ -99,6 +108,7 @@ def simulate(
     results = {
         name: calculate_scenario(
             scenarios.get(name) or {},
+            scenario_name=name,
             price=selected_price,
             diluted_shares=diluted_shares,
             target_pers=targets,
@@ -126,6 +136,8 @@ def simulate(
 
 
 def sensitivity_matrix(eps_values: list[float], per_values: list[float]) -> list[dict[str, Any]]:
+    eps_values = [_number(value, "sensitivity EPS") for value in eps_values]
+    per_values = [_number(value, "sensitivity PER") for value in per_values]
     if any(eps <= 0 for eps in eps_values) or any(per <= 0 for per in per_values):
         raise ValueError("EPS and PER sensitivity values must be positive")
     return [

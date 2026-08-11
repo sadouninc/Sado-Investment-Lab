@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import math
 import unittest
 
 from scripts.forward_per_simulator import sensitivity_matrix, simulate
@@ -74,6 +75,46 @@ class ForwardPerSimulatorTests(unittest.TestCase):
     def test_sensitivity_matrix(self):
         rows = sensitivity_matrix([300, 400], [15, 20])
         self.assertEqual(rows[1]["implied_prices"]["per_20"], 8000)
+
+    def test_non_numeric_and_non_finite_inputs_fail_closed(self):
+        fields = (
+            (("price", "value"), "10000"),
+            (("share_basis", "diluted_shares"), float("nan")),
+            (("scenarios", "bear", "eps"), True),
+            (("scenarios", "base", "net_income"), float("inf")),
+        )
+        for path, invalid in fields:
+            payload = copy.deepcopy(INPUT)
+            target = payload
+            for key in path[:-1]:
+                target = target[key]
+            target[path[-1]] = invalid
+            with self.subTest(path=path), self.assertRaisesRegex(
+                ValueError, "must be a finite int or float"
+            ):
+                simulate(payload)
+
+    def test_target_per_and_sensitivity_inputs_fail_closed(self):
+        for invalid in ("20", True, float("nan"), float("inf"), -float("inf")):
+            with self.subTest(target_per=invalid), self.assertRaisesRegex(
+                ValueError, "target PER must be a finite int or float"
+            ):
+                simulate(INPUT, target_pers=[invalid])
+            with self.subTest(sensitivity_eps=invalid), self.assertRaisesRegex(
+                ValueError, "sensitivity EPS must be a finite int or float"
+            ):
+                sensitivity_matrix([invalid], [20])
+
+    def test_missing_null_remains_distinct_from_invalid_numeric_value(self):
+        payload = copy.deepcopy(INPUT)
+        payload["scenarios"]["bear"] = {"eps": None, "net_income": None}
+        result = simulate(payload)
+        self.assertIsNone(result["scenario_results"]["bear"]["forward_per"])
+        self.assertIn("BEAR:EPS_UNAVAILABLE", result["warnings"])
+
+        payload["scenarios"]["bear"]["eps"] = math.nan
+        with self.assertRaisesRegex(ValueError, "bear.eps must be a finite int or float"):
+            simulate(payload)
 
 
 if __name__ == "__main__":
