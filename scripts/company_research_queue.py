@@ -25,6 +25,12 @@ def _normalize_sources(value: Any) -> tuple[str, ...]:
     return result
 
 
+def _required_bool(value: Any, field: str) -> bool:
+    if not isinstance(value, bool):
+        raise ResearchQueueError(f"{field} must be a JSON boolean")
+    return value
+
+
 @dataclass(frozen=True)
 class ResearchQueueRecord:
     security_code: str
@@ -48,7 +54,7 @@ class ResearchQueueRecord:
             company_name=_required_text(raw.get("company_name"), "company_name"),
             candidate_sources=_normalize_sources(raw.get("candidate_sources")),
             selection_reason=_required_text(raw.get("selection_reason"), "selection_reason"),
-            owner_pick=bool(raw.get("owner_pick", False)),
+            owner_pick=_required_bool(raw.get("owner_pick"), "owner_pick"),
             candidate_as_of=_required_text(raw.get("candidate_as_of"), "candidate_as_of"),
             research_status=(str(raw["research_status"]) if raw.get("research_status") is not None else None),
             research_gap=(str(raw["research_gap"]) if raw.get("research_gap") is not None else None),
