@@ -17,6 +17,7 @@ on:
       - "data/masters/**"
       - "data/config/**"
       - "data/generated/public/trade-analysis-summary.json"
+      - "data/generated/public/money-flow/**"
       - "data/generated/diagnostics/openai/**"
       - "08_Trade_Analysis/**"
       - "scripts/**"
