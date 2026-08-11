@@ -32,6 +32,25 @@ class CompanyResearchQueueTests(unittest.TestCase):
         self.assertEqual(record.candidate_sources, ("MONEY_FLOW", "OWNER_PICK"))
         self.assertEqual(record.money_flow_context["state"], "WARMING")
 
+    def test_owner_pick_requires_json_boolean_and_preserves_value(self):
+        self.assertTrue(
+            ResearchQueueRecord.from_candidate_handoff(
+                self._candidate(owner_pick=True)
+            ).owner_pick
+        )
+        self.assertFalse(
+            ResearchQueueRecord.from_candidate_handoff(
+                self._candidate(owner_pick=False)
+            ).owner_pick
+        )
+        for invalid in ("true", "false", 0, 1, None, [], {}):
+            with self.subTest(owner_pick=invalid), self.assertRaisesRegex(
+                ResearchQueueError, "owner_pick must be a JSON boolean"
+            ):
+                ResearchQueueRecord.from_candidate_handoff(
+                    self._candidate(owner_pick=invalid)
+                )
+
     def test_start_research_requires_explicit_command(self):
         record = ResearchQueueRecord.from_candidate_handoff(self._candidate())
         with self.assertRaises(ResearchQueueError):
