@@ -11,6 +11,7 @@ SOURCE = ROOT / "06_Research" / "Architecture"
 SITE_ROOT = ROOT / "site-src"
 SITE = SITE_ROOT / "architecture"
 DESIGN_SYSTEM_CSS = PAGES / "design-system.css"
+INSTRUMENT_SPRITE = PAGES / "instruments.svg"
 NAVIGATION_SOURCE = PAGES / "navigation-v1.json"
 SITE_LAYOUT = SITE_ROOT / "_layouts" / "site.html"
 
@@ -23,7 +24,7 @@ GLOBAL_NAVIGATION_SHELL = r'''  <header class="codex-global-header">
     <nav class="codex-global-nav" aria-label="投資目的ナビゲーション">
       {% for item in site.data.navigation.navigation_groups %}
       <a class="codex-nav-item" data-nav-group="{{ item.id }}" href="{{ item.primary_destination | relative_url }}">
-        <span class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true">{{ item.icon_ja }}</span>
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="{{ '/assets/instruments.svg' | relative_url }}#{{ item.id }}"></use></svg>
         <span class="codex-nav-item__label">{{ item.label_ja }}</span>
       </a>
       {% endfor %}
@@ -50,7 +51,7 @@ GLOBAL_NAVIGATION_SHELL = r'''  <header class="codex-global-header">
       document.querySelectorAll('.codex-nav-item').forEach((item) => {
         const active = currentGroup && item.dataset.navGroup === currentGroup;
         item.toggleAttribute('data-current', Boolean(active));
-        if (active) item.setAttribute('aria-current', 'page');
+        if (active) item.setAttribute('aria-current', 'location');
         else item.removeAttribute('aria-current');
       });
     })();
@@ -88,9 +89,12 @@ def write(path: Path, content: str) -> None:
 def publish_shared_assets() -> None:
     if not DESIGN_SYSTEM_CSS.is_file():
         raise FileNotFoundError(f"missing shared design system asset: {DESIGN_SYSTEM_CSS}")
-    destination = SITE_ROOT / "assets" / "design-system.css"
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(DESIGN_SYSTEM_CSS, destination)
+    if not INSTRUMENT_SPRITE.is_file():
+        raise FileNotFoundError(f"missing Codex instrument sprite: {INSTRUMENT_SPRITE}")
+    assets = SITE_ROOT / "assets"
+    assets.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(DESIGN_SYSTEM_CSS, assets / "design-system.css")
+    shutil.copy2(INSTRUMENT_SPRITE, assets / "instruments.svg")
 
 
 def publish_navigation_shell() -> None:
@@ -122,43 +126,20 @@ def publish_navigation_shell() -> None:
 def main() -> None:
     publish_shared_assets()
     publish_navigation_shell()
-    sources = sorted(
-        path for path in SOURCE.glob("*.md")
-        if path.name.lower() != "readme.md"
-    )
+    sources = sorted(path for path in SOURCE.glob("*.md") if path.name.lower() != "readme.md")
     cards: list[str] = []
-
     for source in sources:
         page_slug = slug(source.stem)
         title = title_from_markdown(source)
         url = f"/architecture/{page_slug}/"
-        cards.append(
-            f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
-            f"<strong>{title}</strong><span>{source.name}</span></a>"
-        )
-
-        page = front_matter(
-            title,
-            f"{title} — Sado Investment Lab のシステム設計",
-            url,
-        )
-        page += (
-            '<p class="breadcrumb"><a href="{{ \'/architecture/\' | relative_url }}">'
-            f"Architecture</a> / {title}</p>\n\n"
-        )
+        cards.append(f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}"><strong>{title}</strong><span>{source.name}</span></a>')
+        page = front_matter(title, f"{title} — Sado Investment Lab のシステム設計", url)
+        page += '<p class="breadcrumb"><a href="{{ \'/architecture/\' | relative_url }}">Architecture</a> / ' + title + '</p>\n\n'
         page += source.read_text(encoding="utf-8")
         write(SITE / page_slug / "index.md", page)
 
-    index = front_matter(
-        "Architecture",
-        "Investment Decision OS と分析基盤の設計ドキュメント",
-        "/architecture/",
-    )
-    index += (
-        "# Architecture\n\n"
-        "Sado Investment Lab を支える Investment Decision OS、データモデル、"
-        "分析エンジンの設計をまとめます。\n\n"
-    )
+    index = front_matter("Architecture", "Investment Decision OS と分析基盤の設計ドキュメント", "/architecture/")
+    index += "# Architecture\n\nSado Investment Lab を支える Investment Decision OS、データモデル、分析エンジンの設計をまとめます。\n\n"
     if cards:
         index += '<div class="content-grid">\n' + "\n".join(cards) + "\n</div>\n"
     else:
