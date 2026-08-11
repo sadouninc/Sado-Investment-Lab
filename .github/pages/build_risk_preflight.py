@@ -135,7 +135,9 @@ if __name__ == "__main__":
     from build_daihen_cockpit import build as build_daihen_cockpit
     from build_daihen_cockpit import load_model as load_daihen_model
     from enhance_daihen_cockpit_links import enhance_file as enhance_daihen_cockpit_links
+    from enrich_home_today import enrich_home_from_morning
 
     build_daihen_cockpit()
     enhance_daihen_cockpit_links(load_daihen_model())
+    enrich_home_from_morning()
     verify_daihen_publish_contract()
