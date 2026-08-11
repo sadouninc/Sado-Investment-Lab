@@ -19,6 +19,9 @@ data/generated/public/**
 !data/generated/public/money-flow/
 !data/generated/public/money-flow/history.jsonl
 !data/generated/public/money-flow/policy-lead-time-ai-dc.json
+!data/generated/public/money-flow/policy-lead-time-ai-dc-v2.json
+!data/generated/public/money-flow/policy-lead-time-defense-drone.json
+!data/generated/public/money-flow/policy-lead-time-defense-drone-v2.json
 
 *.sqlite
 *.sqlite3
