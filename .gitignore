@@ -18,6 +18,7 @@ data/generated/public/**
 !data/generated/public/trade-analysis-summary.json
 !data/generated/public/money-flow/
 !data/generated/public/money-flow/history.jsonl
+!data/generated/public/money-flow/sector-history.jsonl
 !data/generated/public/money-flow/policy-lead-time-ai-dc.json
 
 *.sqlite
