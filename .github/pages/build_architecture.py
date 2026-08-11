@@ -30,6 +30,7 @@ GLOBAL_NAVIGATION_SHELL = r'''  <header class="codex-global-header">
       {% endfor %}
     </nav>
   </header>
+  <nav class="breadcrumb codex-global-breadcrumb" id="codex-global-breadcrumb" aria-label="現在地" hidden></nav>
   <script>
     (() => {
       const navigation = {{ site.data.navigation | jsonify }};
@@ -43,7 +44,8 @@ GLOBAL_NAVIGATION_SHELL = r'''  <header class="codex-global-header">
         .filter((route) => route.availability === 'AVAILABLE' && route.route)
         .filter((route) => route.route === '/' ? currentPath === '/' : currentPath.startsWith(route.route))
         .sort((left, right) => right.route.length - left.route.length);
-      const currentGroup = candidates[0]?.primary_journey_stage || null;
+      const matchedRoute = candidates[0] || null;
+      const currentGroup = matchedRoute?.primary_journey_stage || null;
       const group = (navigation.navigation_groups || []).find((item) => item.id === currentGroup);
       const context = document.getElementById('codex-global-context');
       if (context) context.textContent = group ? `現在地: ${group.label_ja}` : '現在地: 未分類';
@@ -54,6 +56,51 @@ GLOBAL_NAVIGATION_SHELL = r'''  <header class="codex-global-header">
         if (active) item.setAttribute('aria-current', 'location');
         else item.removeAttribute('aria-current');
       });
+
+      const breadcrumb = document.getElementById('codex-global-breadcrumb');
+      if (!breadcrumb || currentPath === '/') return;
+      const pageTitle = document.querySelector('main.book-shell h1')?.textContent?.trim()
+        || document.title.replace(/\s+[—-]\s+Sado Investment Lab$/, '').trim();
+      const items = [{ label: 'Home', route: '/' }];
+      if (group && group.id !== 'home') {
+        items.push({ label: group.label_ja, route: group.primary_destination });
+      } else if (!group) {
+        items.push({ label: '未分類', route: null });
+      }
+
+      if (matchedRoute) {
+        const routeSegments = Array.isArray(matchedRoute.breadcrumb_segments_ja)
+          ? matchedRoute.breadcrumb_segments_ja
+          : [matchedRoute.user_facing_label_ja];
+        for (const label of routeSegments.filter(Boolean)) {
+          if (items.some((item) => item.label === label)) continue;
+          items.push({ label, route: matchedRoute.route });
+        }
+        if (currentPath !== matchedRoute.route && pageTitle && !items.some((item) => item.label === pageTitle)) {
+          items.push({ label: pageTitle, route: null });
+        }
+      } else if (pageTitle) {
+        items.push({ label: pageTitle, route: null });
+      }
+
+      const fragment = document.createDocumentFragment();
+      items.forEach((item, index) => {
+        if (index) fragment.append(' / ');
+        const isLast = index === items.length - 1;
+        if (item.route && !isLast) {
+          const link = document.createElement('a');
+          link.href = `${baseUrl}${item.route}`.replace(/\/+/g, '/');
+          link.textContent = item.label;
+          fragment.append(link);
+        } else {
+          const span = document.createElement('span');
+          span.textContent = item.label;
+          if (isLast) span.setAttribute('aria-current', 'page');
+          fragment.append(span);
+        }
+      });
+      breadcrumb.replaceChildren(fragment);
+      breadcrumb.hidden = false;
     })();
   </script>
 '''
