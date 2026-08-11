@@ -130,6 +130,14 @@ class DevelopingSignalPromotionTests(unittest.TestCase):
         self.assertFalse(result["handoff"]["auto_research_complete"])
         self.assertEqual(result["signal"]["status"], "PROMOTED")
 
+    def test_promotion_adapter_rejects_time_before_last_observation(self):
+        with self.assertRaisesRegex(ValueError, "cannot precede last_observed_at"):
+            promote_to_candidate(
+                self.signal(),
+                at="2026-08-09T11:59:59+09:00",
+                candidate_ref="candidate:6622:past",
+            )
+
     def test_terminal_signal_cannot_be_promoted_twice(self):
         first = promote_to_candidate(
             self.signal(), at="2026-08-09T13:00:00+09:00", candidate_ref="candidate:6622:2026-08-09"

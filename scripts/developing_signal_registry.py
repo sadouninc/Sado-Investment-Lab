@@ -168,7 +168,10 @@ def transition_signal(signal: dict[str, Any], new_status: str, *, at: str, reaso
         raise ValueError(f"unsupported status: {target}")
     if result["status"] in TERMINAL_STATUSES:
         raise ValueError("terminal signal cannot transition")
-    _parse_datetime(at, "at")
+    transition_at = _parse_datetime(at, "at")
+    last_observed_at = _parse_datetime(result["last_observed_at"], "last_observed_at")
+    if transition_at < last_observed_at:
+        raise ValueError("transition at cannot precede last_observed_at")
     result["status"] = target
     if target in {"STRENGTHENING", "WEAKENING", "MIXED"}:
         result["direction"] = target
