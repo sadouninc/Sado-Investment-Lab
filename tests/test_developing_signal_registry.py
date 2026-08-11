@@ -113,6 +113,30 @@ class DevelopingSignalRegistryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "superseded_by"):
             transition_signal(signal, "SUPERSEDED", at="2026-08-11T10:00:00+09:00", reason="統合")
 
+    def test_terminal_transitions_cannot_predate_last_observation(self):
+        signal = validate_signal(dict(BASE))
+        cases = (
+            ("PROMOTED", {"promotion_ref": "research:signal"}),
+            ("DISMISSED", {"reason": "dismissed"}),
+            ("EXPIRED", {"reason": "expired"}),
+            ("SUPERSEDED", {"reason": "superseded", "superseded_by": "signal:replacement"}),
+        )
+        for status, kwargs in cases:
+            with self.subTest(status=status), self.assertRaisesRegex(
+                ValueError, "cannot precede last_observed_at"
+            ):
+                transition_signal(signal, status, at="2025-01-01T00:00:00+09:00", **kwargs)
+
+    def test_transition_allows_same_instant_with_different_timezone_offset(self):
+        signal = validate_signal(dict(BASE))
+        promoted = transition_signal(
+            signal,
+            "PROMOTED",
+            at="2026-08-09T01:00:00+00:00",
+            promotion_ref="research:same-instant",
+        )
+        self.assertEqual(promoted["status"], "PROMOTED")
+
     def test_possible_duplicate_is_flagged_not_merged(self):
         signal = validate_signal(dict(BASE))
         flagged = mark_possible_duplicate(signal, ["signal:other:2026-08-09:abc"])
