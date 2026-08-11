@@ -33,6 +33,24 @@
         {"security_code": "6504", "company_name": "富士電機", "symbol": "6504.T"},
         {"security_code": "6508", "company_name": "明電舎", "symbol": "6508.T"}
       ]
+    },
+    {
+      "id": "theme:defense-drone-small-mass-domestic",
+      "name": "Defense Drone / Small Mass Domestic Procurement",
+      "membership_as_of": "2026-08-11",
+      "membership_version": "2026-08-11-v1",
+      "authority": "Issue #259 completed canonical membership",
+      "backfill_policy": "RETROSPECTIVE_MEMBERSHIP_IF_HISTORICAL_MEMBERSHIP_UNAVAILABLE",
+      "limitations": ["NARROW_MEMBERSHIP"],
+      "listing_boundary": {
+        "two_stock_theme_from": "2024-11-29",
+        "before_two_stock_theme": "COMPANY_PROXY_ACSL_ONLY",
+        "authority": "Issue #259 Terra Drone listing-window constraint"
+      },
+      "members": [
+        {"security_code": "278A", "company_name": "Terra Drone", "symbol": "278A.T"},
+        {"security_code": "6232", "company_name": "ACSL", "symbol": "6232.T"}
+      ]
     }
   ]
 }
