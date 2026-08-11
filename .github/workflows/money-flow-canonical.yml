@@ -1,6 +1,14 @@
 name: Money Flow Canonical Run
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/money-flow-canonical.yml'
+      - 'scripts/money_flow_*.py'
+      - 'data/config/money-flow-*.json'
+      - 'tests/test_money_flow*.py'
   schedule:
     # 17:30 JST, Monday-Friday. Exchange holidays are rejected by the market-session guard.
     - cron: '30 8 * * 1-5'
@@ -29,6 +37,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: money-flow-canonical-run
@@ -207,6 +216,12 @@ jobs:
           git config user.email 'actions@users.noreply.github.com'
           git commit -m 'data: persist canonical Money Flow evidence [担当: automation]'
           git push origin HEAD:main
+
+      - name: Refresh Pages after canonical scheduled run
+        if: steps.mode.outputs.mode == 'SCHEDULED' && steps.scheduled.outputs.status == 'COMPLETED'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run publish-site.yml --ref main
 
       - name: Job summary
         if: always()
