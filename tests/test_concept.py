@@ -55,12 +55,12 @@ def test_render_is_japanese_first_and_does_not_mutate_input() -> None:
     before = copy.deepcopy(record)
     rendered = concept.render(record, os_map)
     assert record == before
-    for heading in ["最初の30秒で見る3点", "判断の流れ", "状態の意味", "次に進む", "根拠を見る"]:
+    for heading in ["最初の30秒で見る3点", "判断の流れ — What do I think?", "状態の意味", "判断の次に進む", "根拠を見る"]:
         assert heading in rendered
     for status in ["UNKNOWN", "UNAVAILABLE", "STALE"]:
         assert status in rendered
     assert "BUY / SELL / ADD / REDUCEを自動決定しない" in rendered
-    assert "前回判断 → 現在との差 → 市場期待との差 → 仮説確認 → Valuation → 売買前PF影響 → 判断Snapshot → 次checkpoint" in rendered
+    assert "対象・鮮度を確認 → 前回との差 → 市場期待との差 → Warning・Thesis Health → Evidenceを確認 → 現在の判断を整理" in rendered
 
 
 def test_render_adopts_canonical_design_system_without_second_theme() -> None:
@@ -91,10 +91,25 @@ def test_rendered_fixture_matches_generator_and_preserves_visual_priority() -> N
     assert rendered == OUTPUT_PATH.read_text(encoding="utf-8")
     assert rendered.index("最初の30秒で見る3点") < rendered.index("判断の流れ")
     assert rendered.index("判断の流れ") < rendered.index("状態の意味")
-    assert rendered.index("状態の意味") < rendered.index("次に進む")
+    assert rendered.index("状態の意味") < rendered.index("判断の次に進む")
     assert "Live Cockpitを開く" in rendered
     assert "/risk-preflight/" in rendered
     assert "/trade-journal/" in rendered
+
+
+def test_cockpit_visual_contract_keeps_decide_separate_from_act_and_record() -> None:
+    record, os_map = fixture()
+    rendered = concept.render(record, os_map)
+    first_view = rendered[rendered.index("最初の30秒で見る3点"):rendered.index("判断の流れ")]
+    flow = rendered[rendered.index("判断の流れ"):rendered.index("状態の意味")]
+    assert "Sado Investment Codex / 5 判断" in rendered
+    assert "Warning・Thesis Health（仮説の健全性）" in first_view
+    assert "売買前ポートフォリオ影響の状態" not in first_view
+    assert "売買前PF影響" not in flow
+    assert "判断Snapshot" not in flow
+    assert "What do I think?" in flow
+    assert "何をするか" in flow and "Risk Preflight" in flow
+    assert "実行後の記録" in flow and "Trade Journal" in flow
 
 
 def test_required_fields_and_first_checks_are_validated() -> None:
