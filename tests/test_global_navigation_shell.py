@@ -3,12 +3,19 @@ from __future__ import annotations
 import importlib.util
 import json
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGES = ROOT / ".github" / "pages"
+
+# build_architecture.py is normally executed as a script, where its own directory is
+# automatically on sys.path. These tests load it via importlib instead, so mirror the
+# real execution environment to make sibling imports such as company_cards available.
+if str(PAGES) not in sys.path:
+    sys.path.insert(0, str(PAGES))
 
 
 def load_module(path: Path, name: str):
