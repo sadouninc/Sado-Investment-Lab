@@ -6,6 +6,14 @@ on:
     - cron: '30 8 * * 1-5'
   workflow_dispatch:
     inputs:
+      theme_id:
+        description: 'Theme to run. Scheduled runs keep AI/DC as the default.'
+        required: false
+        default: 'theme:ai-data-center-power-infrastructure'
+        type: choice
+        options:
+          - 'theme:ai-data-center-power-infrastructure'
+          - 'theme:defense-drone-small-mass-domestic'
       as_of:
         description: 'YYYY-MM-DD (JST). Empty uses current JST date.'
         required: false
@@ -47,15 +55,36 @@ jobs:
           python -m unittest tests.test_money_flow_scheduled_run
           python -m unittest tests.test_money_flow_policy_limitations
           python -m unittest tests.test_money_flow_sector_canonical_run
+          python -m unittest tests.test_policy_lead_time_defense_drone
 
       - name: Resolve run mode
         id: mode
         env:
+          INPUT_THEME_ID: ${{ inputs.theme_id }}
           INPUT_AS_OF: ${{ inputs.as_of }}
           BACKFILL_START: ${{ inputs.backfill_start }}
           BACKFILL_END: ${{ inputs.backfill_end }}
         run: |
           set -euo pipefail
+          THEME_ID="${INPUT_THEME_ID:-theme:ai-data-center-power-infrastructure}"
+          case "$THEME_ID" in
+            theme:ai-data-center-power-infrastructure)
+              LEAD_TIME_OUTPUT='data/generated/public/money-flow/policy-lead-time-ai-dc.json'
+              V2_OUTPUT='data/generated/public/money-flow/policy-lead-time-ai-dc-v2.json'
+              ;;
+            theme:defense-drone-small-mass-domestic)
+              LEAD_TIME_OUTPUT='data/generated/public/money-flow/policy-lead-time-defense-drone.json'
+              V2_OUTPUT='data/generated/public/money-flow/policy-lead-time-defense-drone-v2.json'
+              ;;
+            *)
+              echo "unsupported theme_id: $THEME_ID" >&2
+              exit 2
+              ;;
+          esac
+          echo "theme_id=$THEME_ID" >> "$GITHUB_OUTPUT"
+          echo "lead_time_output=$LEAD_TIME_OUTPUT" >> "$GITHUB_OUTPUT"
+          echo "v2_output=$V2_OUTPUT" >> "$GITHUB_OUTPUT"
+
           if [ -n "${BACKFILL_START:-}" ]; then
             if [ -z "${BACKFILL_END:-}" ]; then
               echo 'backfill_end is required when backfill_start is supplied' >&2
@@ -90,7 +119,9 @@ jobs:
         id: scheduled
         run: |
           set -o pipefail
-          python -m scripts.money_flow_scheduled_run --as-of '${{ steps.mode.outputs.as_of }}' | tee /tmp/money-flow-run.json
+          python -m scripts.money_flow_scheduled_run \
+            --as-of '${{ steps.mode.outputs.as_of }}' \
+            --theme-id '${{ steps.mode.outputs.theme_id }}' | tee /tmp/money-flow-run.json
           python - <<'PY'
           import json, os
           from pathlib import Path
@@ -101,7 +132,7 @@ jobs:
           PY
 
       - name: Run Sector canonical snapshot
-        if: steps.mode.outputs.mode == 'SCHEDULED' && steps.scheduled.outputs.status == 'COMPLETED'
+        if: steps.mode.outputs.mode == 'SCHEDULED' && steps.scheduled.outputs.status == 'COMPLETED' && steps.mode.outputs.theme_id == 'theme:ai-data-center-power-infrastructure'
         id: sector
         run: |
           set +e
@@ -138,28 +169,21 @@ jobs:
           python -m scripts.money_flow_canonical_run \
             --backfill-start "$BACKFILL_START" \
             --backfill-end "$BACKFILL_END" \
-            --backfill-range 2y
+            --backfill-range 2y \
+            --theme-id '${{ steps.mode.outputs.theme_id }}' \
+            --lead-time-output '${{ steps.mode.outputs.lead_time_output }}'
 
-      - name: Refresh Policy Lead-Time projection
-        if: steps.mode.outputs.mode == 'SCHEDULED' && steps.scheduled.outputs.status == 'COMPLETED'
+      - name: Refresh AI/DC Policy Lead-Time projection
+        if: steps.mode.outputs.theme_id == 'theme:ai-data-center-power-infrastructure' && (steps.mode.outputs.mode == 'BACKFILL' || steps.scheduled.outputs.status == 'COMPLETED')
         run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          from scripts.money_flow_canonical_run import DEFAULT_THEME_ID, evaluate_policy_lead_time
-          from scripts.money_flow_history import load_history
-          from scripts.money_flow_policy_limitations import has_retrospective_membership_history
+          python -m scripts.policy_lead_time_ai_dc \
+            --output '${{ steps.mode.outputs.v2_output }}'
 
-          history = load_history(Path('data/generated/public/money-flow/history.jsonl'))
-          theme_config = json.loads(Path('data/config/money-flow-themes-v1.json').read_text(encoding='utf-8'))
-          retrospective = has_retrospective_membership_history(
-              history, theme_config=theme_config, theme_id=DEFAULT_THEME_ID
-          )
-          payload = evaluate_policy_lead_time(history, retrospective_membership=retrospective)
-          path = Path('data/generated/public/money-flow/policy-lead-time-ai-dc.json')
-          path.parent.mkdir(parents=True, exist_ok=True)
-          path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + '\n', encoding='utf-8')
-          PY
+      - name: Refresh Defense Drone Policy Lead-Time projection
+        if: steps.mode.outputs.theme_id == 'theme:defense-drone-small-mass-domestic' && (steps.mode.outputs.mode == 'BACKFILL' || steps.scheduled.outputs.status == 'COMPLETED')
+        run: |
+          python -m scripts.policy_lead_time_defense_drone \
+            --output '${{ steps.mode.outputs.v2_output }}'
 
       - name: Persist canonical Market Evidence
         if: steps.mode.outputs.mode == 'BACKFILL' || steps.scheduled.outputs.status == 'COMPLETED'
@@ -169,8 +193,11 @@ jobs:
           if [ -f data/generated/public/money-flow/sector-history.jsonl ]; then
             git add data/generated/public/money-flow/sector-history.jsonl
           fi
-          if [ -f data/generated/public/money-flow/policy-lead-time-ai-dc.json ]; then
-            git add data/generated/public/money-flow/policy-lead-time-ai-dc.json
+          if [ -f '${{ steps.mode.outputs.lead_time_output }}' ]; then
+            git add '${{ steps.mode.outputs.lead_time_output }}'
+          fi
+          if [ -f '${{ steps.mode.outputs.v2_output }}' ]; then
+            git add '${{ steps.mode.outputs.v2_output }}'
           fi
           if git diff --cached --quiet; then
             echo 'No canonical Money Flow changes to persist (idempotent rerun).'
@@ -178,7 +205,7 @@ jobs:
           fi
           git config user.name 'sado-investment-lab-bot'
           git config user.email 'actions@users.noreply.github.com'
-          git commit -m 'data: persist canonical Money Flow evidence [担当: ♦️ソラ automation]'
+          git commit -m 'data: persist canonical Money Flow evidence [担当: automation]'
           git push origin HEAD:main
 
       - name: Job summary
@@ -188,12 +215,11 @@ jobs:
             echo '## Money Flow Canonical Run'
             echo '- mode: `${{ steps.mode.outputs.mode }}`'
             echo '- as_of: `${{ steps.mode.outputs.as_of }}`'
+            echo '- theme: `${{ steps.mode.outputs.theme_id }}`'
             echo '- scheduled status: `${{ steps.scheduled.outputs.status }}`'
             echo '- scheduled guard: `${{ steps.scheduled.outputs.reason }}`'
             echo '- sector status: `${{ steps.sector.outputs.status }}`'
             echo '- sector guard: `${{ steps.sector.outputs.reason }}`'
-            echo '- theme: `theme:ai-data-center-power-infrastructure`'
-            echo '- sector set: `TOPIX-17 proxy canonical snapshots`'
             echo ''
-            echo 'Scheduled runs keep the PR #198 market-session guard. Sector persistence reuses the same 17:30 JST workflow and commit lane; stale/unavailable Sector data is not converted to COLD and does not erase a valid Theme run. Historical backfills remain bounded to each as_of so future observations cannot leak into past detector states.'
+            echo 'Scheduled runs default to AI/DC. Manual workflow_dispatch can select Defense Drone. Historical backfills remain bounded to each as_of so future observations cannot leak into past detector states. Defense Drone outputs are kept separate from AI/DC outputs.'
           } >> "$GITHUB_STEP_SUMMARY"
