@@ -11,6 +11,51 @@ SOURCE = ROOT / "06_Research" / "Architecture"
 SITE_ROOT = ROOT / "site-src"
 SITE = SITE_ROOT / "architecture"
 DESIGN_SYSTEM_CSS = PAGES / "design-system.css"
+NAVIGATION_SOURCE = PAGES / "navigation-v1.json"
+SITE_LAYOUT = SITE_ROOT / "_layouts" / "site.html"
+
+SITE_HEADER_RE = re.compile(r'  <header class="site-header">.*?  </header>\n', re.DOTALL)
+GLOBAL_NAVIGATION_SHELL = r'''  <header class="codex-global-header">
+    <div class="codex-global-header__brand-row">
+      <a class="codex-global-brand" href="{{ '/' | relative_url }}">SADO INVESTMENT CODEX</a>
+      <span class="codex-global-context" id="codex-global-context" aria-live="polite">現在地を確認中</span>
+    </div>
+    <nav class="codex-global-nav" aria-label="投資目的ナビゲーション">
+      {% for item in site.data.navigation.navigation_groups %}
+      <a class="codex-nav-item" data-nav-group="{{ item.id }}" href="{{ item.primary_destination | relative_url }}">
+        <span class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true">{{ item.icon_ja }}</span>
+        <span class="codex-nav-item__label">{{ item.label_ja }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+  </header>
+  <script>
+    (() => {
+      const navigation = {{ site.data.navigation | jsonify }};
+      const baseUrl = {{ site.baseurl | jsonify }} || '';
+      let currentPath = window.location.pathname;
+      if (baseUrl && currentPath.startsWith(baseUrl)) currentPath = currentPath.slice(baseUrl.length) || '/';
+      if (!currentPath.startsWith('/')) currentPath = '/' + currentPath;
+      if (!currentPath.endsWith('/')) currentPath += '/';
+
+      const candidates = (navigation.routes || [])
+        .filter((route) => route.availability === 'AVAILABLE' && route.route)
+        .filter((route) => route.route === '/' ? currentPath === '/' : currentPath.startsWith(route.route))
+        .sort((left, right) => right.route.length - left.route.length);
+      const currentGroup = candidates[0]?.primary_journey_stage || null;
+      const group = (navigation.navigation_groups || []).find((item) => item.id === currentGroup);
+      const context = document.getElementById('codex-global-context');
+      if (context) context.textContent = group ? `現在地: ${group.label_ja}` : '現在地: 未分類';
+
+      document.querySelectorAll('.codex-nav-item').forEach((item) => {
+        const active = currentGroup && item.dataset.navGroup === currentGroup;
+        item.toggleAttribute('data-current', Boolean(active));
+        if (active) item.setAttribute('aria-current', 'page');
+        else item.removeAttribute('aria-current');
+      });
+    })();
+  </script>
+'''
 
 
 def slug(value: str) -> str:
@@ -48,8 +93,35 @@ def publish_shared_assets() -> None:
     shutil.copy2(DESIGN_SYSTEM_CSS, destination)
 
 
+def publish_navigation_shell() -> None:
+    if not NAVIGATION_SOURCE.is_file():
+        raise FileNotFoundError(f"missing navigation contract: {NAVIGATION_SOURCE}")
+    if not SITE_LAYOUT.is_file():
+        raise FileNotFoundError(f"missing generated site layout: {SITE_LAYOUT}")
+
+    data_dir = SITE_ROOT / "_data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(NAVIGATION_SOURCE, data_dir / "navigation.json")
+
+    layout = SITE_LAYOUT.read_text(encoding="utf-8")
+    design_link = "  <link rel=\"stylesheet\" href=\"{{ '/assets/design-system.css' | relative_url }}\">\n"
+    if design_link not in layout:
+        book_link = "  <link rel=\"stylesheet\" href=\"{{ '/assets/book.css' | relative_url }}\">\n"
+        if book_link not in layout:
+            raise ValueError("site layout no longer contains the canonical book.css link")
+        layout = layout.replace(book_link, book_link + design_link, 1)
+
+    if "codex-global-header" not in layout:
+        layout, replacements = SITE_HEADER_RE.subn(GLOBAL_NAVIGATION_SHELL, layout, count=1)
+        if replacements != 1:
+            raise ValueError("site layout no longer contains exactly one legacy site-header")
+
+    SITE_LAYOUT.write_text(layout, encoding="utf-8")
+
+
 def main() -> None:
     publish_shared_assets()
+    publish_navigation_shell()
     sources = sorted(
         path for path in SOURCE.glob("*.md")
         if path.name.lower() != "readme.md"
