@@ -4,7 +4,7 @@
 >
 > Purpose: show the target Codex structure, the current build state, the next build order, and planned evolution without treating Issue state itself as product completion state.
 
-- Architecture version: v1.2-runtime-sync
+- Architecture version: v1.3-runtime-sync-pr4-open
 - Last reviewed: 2026-08-11
 - Source authority: repository state + GitHub Issue/PR state + reviewed architecture decisions
 - Status rule: route/page existence must be verified independently; an open/closed Issue is never copied mechanically into page status.
@@ -17,6 +17,7 @@
 - Canonical Pages design-system foundation is in production use on Home.
 - Home / OS Map is user-reachable at `/` and already exposes verified entries into Company Research, Decision Cockpit, Risk Preflight, Trade Journal, and research tools.
 - Git-Native Agentic Runtime Architecture (#349) is now a completed canonical architecture deliverable: CURRENT runtime text, four reviewed diagrams, and a summary-first Pages/read-model source are merged.
+- #324 itself remains OPEN: **PR4 Codex Sitemap / Evolution Roadmap Pages visualization is a formal remaining slice** and is not satisfied by #349 Runtime Architecture visualization.
 - Existing Investment OS knowledge/data/runtime layers remain authoritative; this document is a roadmap/status view, not a new investment-data SSoT.
 
 ### IMPLEMENTATION BUILD ORDER
@@ -32,6 +33,36 @@ This is the team implementation dependency order. It is the answer to **“what 
 ### NODE-LOCAL NEXT
 
 `NEXT` inside the node/evolution registry means **the next meaningful change for that node**, not the globally next implementation assignment. This prevents Product evolution priority from competing with the team implementation queue.
+
+### #324 FORMAL REMAINING SLICE
+
+**PR4 — Codex Sitemap / Evolution Roadmap Pages visualization: `NEXT`**
+
+Design Authority: ⭐️ミナ. Product / IA Authority: 🌙ルナ.
+
+Design handoff authority: Issue #324 comment `5249241479`.
+
+Required boundary:
+- #312 Home / Codex Map = user-facing map for understanding the investment process.
+- #349 Runtime Architecture = architecture view of how the Git-native OS operates.
+- #324 PR4 = **Codexを育てる建築図**: current build status, build order, evolution roadmap, and node relationships.
+
+Reference visual:
+- ⭐️ミナ作成・合意済み **Sado Investment Codex概念図** をreference visualとして扱う。
+- 独自の別概念図 / 第二visual languageへ置換しない。
+- responsive adaptationは許容するが、reference visualの情報階層を維持する。
+- #320 shared Design System primitivesを再利用する。
+
+PR4 must make the following visible on Pages:
+- Codex concept map / node・branch structure
+- status legend
+- each node current status (`LIVE / NEXT / PLANNED` etc.)
+- current NEXT / build order visual emphasis
+- CTA to verified live Pages only
+- CTA to Concept pages only when the destination exists
+- mobile presentation without shrinking a giant horizontal diagram
+
+PR4 Design Gate: ⭐️ミナ review required. Owner review is required before treating #324 as complete.
 
 ### LATER
 
@@ -99,6 +130,7 @@ HOME
 ├─ INVESTMENT TIMELINE / CHECKPOINTS
 ├─ CONCEPT / HOW-TO
 └─ ARCHITECTURE
+    ├─ Codex Sitemap / Evolution Roadmap Pages visualization (#324 PR4) — NEXT
     ├─ Investment OS / Repository Architecture
     └─ Git-Native Agentic Runtime Architecture (#349) — DONE
 ```
@@ -115,6 +147,7 @@ Evidence basis for verified routes: merged Home adoption PR #343 and Company Car
 | `global.codex-map` | Codex Map / OS Overview | Global | `LIVE` | n/a | `/` | embedded in Home Investment OS map | #312, #309 | Keep status/context aligned with real user journey |
 | `global.navigation` | Global Navigation | Global | `DESIGNED` | n/a | null | route taxonomy not independently verified as complete | #314 | Stabilize after major concept links settle |
 | `global.concept` | Concept / How-to Architecture | Global | `DESIGNED` | `DESIGNED` | null | no standalone route verified in this slice | #313 | Add only high-value explanatory Concept nodes |
+| `global.codex-sitemap-visualization` | Codex Sitemap / Evolution Roadmap Pages | Architecture | `NEXT` | n/a | null | ⭐️ミナ Design handoff comment 5249241479; implementation not yet merged | #324 | PR4: implement Pages visualization using the approved Codex concept visual and #320 primitives |
 | `observe.money-flow` | Money Flow | 1 Observe | `PLANNED` | `DESIGNED` | null | detector capability != verified daily Pages surface | #305, #112 | Move to dependable daily operating surface |
 | `discover.candidates` | Candidate Selector | 2 Discover | `DESIGNED` | `DESIGNED` | null | artifact/route not independently verified in this slice | #108 | Verify presentation route before LIVE |
 | `understand.company-research` | Company Research | 3 Understand | `LIVE` | `DESIGNED` | `/companies/` | Home primary entry + #375 published Companies index | #113, #36 | Expand canonical research coverage using existing #320 primitives |
@@ -127,7 +160,7 @@ Evidence basis for verified routes: merged Home adoption PR #343 and Company Car
 | `learn.review` | Decision Review | 8 Learn | `DESIGNED` | `PLANNED` | null | no dedicated reachable surface verified | #141 | Clarify review priority and evidence-delta drill-down |
 | `learn.pattern-lab` | Decision Pattern Lab | 8 Learn | `DESIGNED` | `PLANNED` | null | no dedicated reachable surface verified | #135 | Broaden learning beyond trade-only analysis |
 | `reobserve.checkpoints` | Catalyst / Checkpoint Timeline | 9 Re-observe | `PLANNED` | `PLANNED` | null | no route verified | #130, #141 | Close loop back into observation/review |
-| `architecture.runtime` | Git-Native Agentic Runtime Architecture | Architecture | `DONE` | n/a | null | #349 PR1 canonical runtime doc + PR2 four diagrams + PR3 summary-first Pages/read-model source merged | #349 | Maintain as architecture changes; do not invent a standalone public route without #314/navigation review |
+| `architecture.runtime` | Git-Native Agentic Runtime Architecture | Architecture | `DONE` | n/a | null | #349 PR1 canonical runtime doc + PR2 four diagrams + PR3 summary-first Pages/read-model source merged | #349 | Maintain as architecture changes; do not conflate with #324 PR4 Pages visualization |
 
 ## 5. Build Order
 
@@ -150,11 +183,13 @@ Rules:
 3. Node-registry `NEXT` is node-local Product evolution, not assignment order.
 4. Dependency or Owner decisions may reorder the baseline.
 5. Any reorder should update this document rather than silently diverging.
+6. #324 PR4 is a formal remaining slice for this Issue, but it does not automatically pre-empt unrelated already-IMPLEMENTING lanes.
 
 ## 6. Evolution registry
 
 | Change ID | Node | Status | Summary | Issue | Priority |
 |---|---|---|---|---|---|
+| `codex.sitemap.pages-visualization` | `global.codex-sitemap-visualization` | `NEXT` | Implement the Codex architecture/build-status/evolution Pages visualization using ⭐️ミナ's approved concept visual as reference | #324 | High |
 | `decide.cockpit.concept` | `decide.cockpit` | `NEXT` | Node-local: explain the Cockpit purpose and use | #317 | High |
 | `decide.cockpit.delta` | `decide.cockpit` | `PLANNED` | Show previous → current → delta for important decision context | #308 | High |
 | `record.journal.zero-trade` | `record.decision-journal` | `NEXT` | Preserve zero-trade day, `NOT_EXECUTED`, and index/user reachability in the final journal slice | #316 | High |
@@ -162,7 +197,7 @@ Rules:
 | `observe.money-flow.daily` | `observe.money-flow` | `PLANNED` | Turn Money Flow into a dependable daily operational input | #305 | High |
 | `architecture.runtime.current` | `architecture.runtime` | `DONE` | CURRENT Git-native runtime contract is canonical and merged | #349 | High |
 | `architecture.runtime.diagrams` | `architecture.runtime` | `DONE` | System Overview, Runtime, Git State Machine, Versioned Input diagrams are merged | #349 | Medium |
-| `architecture.runtime.pages` | `architecture.runtime` | `DONE` | Summary-first architecture Pages/read-model source is merged | #349 | Medium |
+| `architecture.runtime.pages` | `architecture.runtime` | `DONE` | Summary-first runtime architecture Pages/read-model source is merged; this is distinct from #324 PR4 | #349 | Medium |
 
 ## 7. Authority and non-overlap
 
@@ -171,7 +206,8 @@ Rules:
 - #313: Concept / How-to architecture. This document tracks which concepts exist or are planned; it does not own their prose.
 - #314: navigation authority. This document does not invent route taxonomy.
 - #317: Cockpit-specific concept. This document places it under Decide and tracks its build state.
-- #349: runtime architecture is a completed separate architecture view; future runtime changes should update its canonical artifacts rather than reopen #324 merely for history.
+- #349: runtime architecture is a completed separate architecture view. Its completion does **not** satisfy #324 PR4.
+- #324 PR4: Codex architecture/build-status/evolution visualization; ⭐️ミナ owns Visual Design, 🌙ルナ owns Product/IA meaning, and the approved Codex concept visual remains the reference visual.
 
 ## 8. Maintenance contract
 
@@ -201,7 +237,7 @@ Drift checks remain candidates for future automation when they have enough value
 - multiple conflicting global implementation-next claims
 - multiple conflicting node-local `NEXT` changes without an explicit priority
 
-These are maintenance opportunities, not blockers to the #324 canonical baseline. They should be implemented only through a concrete non-duplicate Issue if/when drift cost justifies automation.
+These are maintenance opportunities and are separate from the **formal #324 PR4 Pages visualization remaining slice**.
 
 ## 9. Architecture plane context
 
@@ -227,4 +263,15 @@ A reader should be able to answer within roughly 30 seconds:
 4. Which Issue owns each meaningful evolution item?
 5. Which routes are verified and user-reachable versus merely planned?
 
-The canonical baseline now satisfies this role. Future product evolution should update this living document through the Issue that changes the relevant node; #324 itself does not need to remain open merely to represent ongoing maintenance.
+The Canonical Markdown baseline is established, but **#324 is not complete yet**.
+
+Remaining Done Gate:
+- [ ] PR4 Codex Sitemap / Evolution Roadmap Pages visualization implemented
+- [ ] ⭐️ミナ's approved Sado Investment Codex concept visual used as the reference visual
+- [ ] #320 shared primitives used; no second visual system
+- [ ] verified live routes only are rendered as live CTAs
+- [ ] mobile / progressive disclosure requirements satisfied
+- [ ] ⭐️ミナ Design Gate passed
+- [ ] 👑サド Owner Review completed
+
+Until those checks pass, #324 remains OPEN.
