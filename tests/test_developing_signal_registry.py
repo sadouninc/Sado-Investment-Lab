@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 
 from scripts.developing_signal_registry import (
+    SignalRegistry,
     append_observation,
     deterministic_signal_id,
     mark_possible_duplicate,
@@ -35,6 +36,50 @@ BASE = {
 
 
 class DevelopingSignalRegistryTests(unittest.TestCase):
+    def test_registry_ingestion_is_idempotent_and_fail_closed(self):
+        registry = SignalRegistry()
+        inserted = registry.ingest(dict(BASE))
+        unchanged = registry.ingest(dict(BASE))
+        self.assertEqual(inserted["outcome"], "INSERTED")
+        self.assertEqual(unchanged["outcome"], "UNCHANGED")
+        with self.assertRaisesRegex(ValueError, "signal identity conflict"):
+            registry.ingest(dict(BASE, summary="different payload"))
+
+    def test_observation_resend_is_idempotent_and_conflicts_fail_closed(self):
+        registry = SignalRegistry()
+        signal = registry.ingest(dict(BASE))["signal"]
+        observation = {
+            "observed_at": "2026-08-10T09:00:00+09:00",
+            "source_ref": "source:second",
+            "observation": "follow-up fact",
+            "interpretation": "follow-up interpretation",
+            "effect": "STRENGTHENS",
+            "actor": "REI",
+        }
+        inserted = registry.ingest_observation(signal["signal_id"], observation)
+        unchanged = registry.ingest_observation(signal["signal_id"], observation)
+        self.assertEqual(inserted["outcome"], "INSERTED")
+        self.assertEqual(unchanged["outcome"], "UNCHANGED")
+        self.assertEqual(len(unchanged["signal"]["observations"]), 1)
+        with self.assertRaisesRegex(ValueError, "observation identity conflict"):
+            registry.ingest_observation(
+                signal["signal_id"], dict(observation, observation="different fact")
+            )
+
+    def test_possible_duplicate_is_not_silently_merged_by_registry(self):
+        registry = SignalRegistry()
+        first = registry.ingest(dict(BASE))["signal"]
+        other = dict(
+            BASE,
+            signal_key="another-signal",
+            duplicate_state="POSSIBLE_DUPLICATE",
+            possible_duplicate_refs=[first["signal_id"]],
+        )
+        second = registry.ingest(other)
+        self.assertEqual(second["outcome"], "INSERTED")
+        self.assertNotEqual(second["signal"]["signal_id"], first["signal_id"])
+        self.assertEqual(second["signal"]["duplicate_state"], "POSSIBLE_DUPLICATE")
+
     def test_identity_is_deterministic_and_title_independent(self):
         first = deterministic_signal_id(BASE["signal_key"], BASE["first_observed_at"], BASE["related_entities"])
         second = deterministic_signal_id(BASE["signal_key"], BASE["first_observed_at"], BASE["related_entities"])

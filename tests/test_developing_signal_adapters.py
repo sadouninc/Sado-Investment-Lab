@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import unittest
 
+from scripts.developing_signal_registry import SignalRegistry
+
 from scripts.developing_signal_adapters import (
     DevelopingSignalAdapterError,
     adapt_asahi_watch,
@@ -26,6 +28,12 @@ BASE = {
 
 
 class DevelopingSignalAdapterTests(unittest.TestCase):
+    def test_adapter_output_uses_canonical_idempotent_ingestion_contract(self):
+        registry = SignalRegistry()
+        signal = adapt_asahi_watch(dict(BASE, follow_up_required=True))
+        self.assertEqual(registry.ingest(signal)["outcome"], "INSERTED")
+        self.assertEqual(registry.ingest(signal)["outcome"], "UNCHANGED")
+
     def test_asahi_requires_explicit_multi_day_follow_up(self):
         with self.assertRaisesRegex(DevelopingSignalAdapterError, "follow_up_required"):
             adapt_asahi_watch(dict(BASE))
