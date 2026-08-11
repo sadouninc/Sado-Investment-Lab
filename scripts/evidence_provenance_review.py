@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, dataclass
-from typing import Any, Iterable
+from typing import Any
 
 from scripts.evidence_provenance import ProvenanceLedger, ProvenanceValidationError
 
@@ -88,9 +88,20 @@ class ProvenanceReviewIndex:
         transitions = [
             item for item in self._source_transitions.values() if item.source_id == source_id
         ]
-        for item in sorted(transitions, key=lambda item: item.transition_id):
-            if item.from_status == current:
-                current = item.to_status
+        # Transition ids are deterministic. A source can only advance through the
+        # allowed one-way state graph, so replaying the stored transitions reaches
+        # the same terminal status without mutating the historical SourceRecord.
+        remaining = list(transitions)
+        while remaining:
+            advanced = False
+            for item in sorted(remaining, key=lambda item: item.transition_id):
+                if item.from_status == current:
+                    current = item.to_status
+                    remaining.remove(item)
+                    advanced = True
+                    break
+            if not advanced:
+                break
         return current
 
     def transition_source(
@@ -101,19 +112,32 @@ class ProvenanceReviewIndex:
         reason_code: str,
         replacement_source_id: str | None = None,
     ) -> SourceTransition:
-        current = self.source_status(source_id)
+        self._source(source_id)
         target = str(to_status).strip().upper()
         reason = str(reason_code).strip().upper()
-        if target not in _ALLOWED_TRANSITIONS.get(current, set()):
-            raise ProvenanceValidationError(
-                f"invalid source transition: {current} -> {target}"
-            )
         if not reason:
             raise ProvenanceValidationError("reason_code is required")
         if replacement_source_id is not None:
             self._source(replacement_source_id)
             if replacement_source_id == source_id:
                 raise ProvenanceValidationError("replacement source must differ")
+
+        # Exact logical retries are idempotent even after the source has already
+        # advanced to the target state.
+        for existing in self._source_transitions.values():
+            if (
+                existing.source_id == source_id
+                and existing.to_status == target
+                and existing.reason_code == reason
+                and existing.replacement_source_id == replacement_source_id
+            ):
+                return existing
+
+        current = self.source_status(source_id)
+        if target not in _ALLOWED_TRANSITIONS.get(current, set()):
+            raise ProvenanceValidationError(
+                f"invalid source transition: {current} -> {target}"
+            )
         identity_payload = {
             "source_id": source_id,
             "from_status": current,
@@ -129,9 +153,6 @@ class ProvenanceReviewIndex:
             reason_code=reason,
             replacement_source_id=replacement_source_id,
         )
-        existing = self._source_transitions.get(item.transition_id)
-        if existing is not None:
-            return existing
         self._source_transitions[item.transition_id] = item
         return item
 
