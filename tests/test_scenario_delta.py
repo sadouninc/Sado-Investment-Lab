@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import copy
 import importlib.util
+import sys
 from pathlib import Path
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / ".github" / "pages" / "scenario_delta.py"
 spec = importlib.util.spec_from_file_location("scenario_delta", MODULE_PATH)
-scenario_delta = importlib.util.module_from_spec(spec)
 assert spec and spec.loader
+scenario_delta = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = scenario_delta
 spec.loader.exec_module(scenario_delta)
 
 ScenarioSnapshot = scenario_delta.ScenarioSnapshot
