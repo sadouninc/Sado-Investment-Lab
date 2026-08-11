@@ -49,6 +49,18 @@ class InvestmentOSRoadmapConfigTest(unittest.TestCase):
         self.assertNotIn("current_stage", self.config)
         self.assertNotIn("primary_current_stage", self.config)
 
+    def test_manual_current_stage_is_rejected(self) -> None:
+        payload = copy.deepcopy(self.config)
+        payload["current_stage"] = "stage_7"
+        with self.assertRaisesRegex(ValueError, "unknown top-level keys.*current_stage"):
+            validate_roadmap_config(payload)
+
+    def test_unknown_top_level_key_is_rejected(self) -> None:
+        payload = copy.deepcopy(self.config)
+        payload["scheam_version"] = payload["schema_version"]
+        with self.assertRaisesRegex(ValueError, "unknown top-level keys.*scheam_version"):
+            validate_roadmap_config(payload)
+
 
 if __name__ == "__main__":
     unittest.main()

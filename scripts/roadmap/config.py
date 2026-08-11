@@ -17,6 +17,8 @@ REQUIRED_STAGE_KEYS = {
     "done_conditions",
 }
 
+ALLOWED_TOP_LEVEL_KEYS = {"schema_version", "stages"}
+
 
 def load_roadmap_config(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -25,6 +27,13 @@ def load_roadmap_config(path: Path) -> dict[str, Any]:
 
 
 def validate_roadmap_config(payload: dict[str, Any]) -> None:
+    if not isinstance(payload, dict):
+        raise ValueError("roadmap config must be an object")
+
+    unknown_top_level = set(payload) - ALLOWED_TOP_LEVEL_KEYS
+    if unknown_top_level:
+        raise ValueError(f"roadmap config has unknown top-level keys: {sorted(unknown_top_level)}")
+
     if payload.get("schema_version") != "1.0":
         raise ValueError("schema_version must be 1.0")
 
