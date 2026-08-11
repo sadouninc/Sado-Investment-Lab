@@ -24,6 +24,7 @@ from scripts.morning_dataset.providers import (
     JsonFileProvider,
     MarketProvider,
     PortfolioProvider,
+    SectorRotationProvider,
     WatchlistProvider,
 )
 
@@ -49,6 +50,11 @@ def main() -> None:
     parser.add_argument("--repo-events", action="store_true", help="collect events from repository data/events/calendar.json")
     parser.add_argument("--watchlist")
     parser.add_argument("--repo-watchlist", action="store_true", help="collect active watch items from repository Current_Status.md Current Focus")
+    parser.add_argument(
+        "--repo-sector-rotation",
+        action="store_true",
+        help="collect the latest canonical TOPIX-17 Sector rotation from sector-history.jsonl",
+    )
     parser.add_argument("--output", default="data/generated/public/morning-dataset.json")
     args = parser.parse_args()
 
@@ -88,6 +94,7 @@ def main() -> None:
         or args.selector_candidates
         or args.repo_events
         or args.repo_watchlist
+        or args.repo_sector_rotation
     ):
         providers = []
         if args.live_market:
@@ -109,6 +116,8 @@ def main() -> None:
             providers.append(EventsProvider(Path("data/events/calendar.json"), today=target_date))
         if args.repo_watchlist:
             providers.append(WatchlistProvider(Path("Current_Status.md"), today=target_date))
+        if args.repo_sector_rotation:
+            providers.append(SectorRotationProvider())
         providers.extend(
             JsonFileProvider(name, Path(path))
             for name, path in source_paths.items()
