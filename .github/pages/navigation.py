@@ -27,6 +27,10 @@ def validate_navigation(payload: dict[str, Any]) -> None:
     group_ids = tuple(group.get("id") for group in groups or [])
     if group_ids != NAV_GROUPS:
         raise ValueError("navigation groups must match the fixed 6-purpose contract")
+    for group in groups:
+        for field in ("label_ja", "primary_destination", "icon_ja"):
+            if not isinstance(group.get(field), str) or not group[field].strip():
+                raise ValueError(f"navigation group {group.get('id')} requires {field}")
 
     stage_map = payload.get("os_stage_to_navigation")
     if set(stage_map or {}) != set(OS_STAGE_IDS):
@@ -76,6 +80,21 @@ def validate_navigation(payload: dict[str, Any]) -> None:
         else:
             if route is not None or canonical is not None:
                 raise ValueError("UNMAPPED record must not invent route or canonical destination")
+
+    routes_by_path = {
+        record["route"]: record
+        for record in routes
+        if record["availability"] == "AVAILABLE" and record["route"]
+    }
+    for group in groups:
+        destination = group["primary_destination"]
+        record = routes_by_path.get(destination)
+        if record is None:
+            raise ValueError(f"navigation destination is not an AVAILABLE route: {destination}")
+        if record["primary_journey_stage"] != group["id"]:
+            raise ValueError(
+                f"navigation destination {destination} does not belong to {group['id']}"
+            )
 
 
 def resolve_route(payload: dict[str, Any], route: str) -> dict[str, Any]:

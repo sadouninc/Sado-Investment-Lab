@@ -11,6 +11,52 @@ SOURCE = ROOT / "06_Research" / "Architecture"
 SITE_ROOT = ROOT / "site-src"
 SITE = SITE_ROOT / "architecture"
 DESIGN_SYSTEM_CSS = PAGES / "design-system.css"
+INSTRUMENT_SPRITE = PAGES / "instruments.svg"
+NAVIGATION_SOURCE = PAGES / "navigation-v1.json"
+SITE_LAYOUT = SITE_ROOT / "_layouts" / "site.html"
+
+SITE_HEADER_RE = re.compile(r'  <header class="site-header">.*?  </header>\n', re.DOTALL)
+GLOBAL_NAVIGATION_SHELL = r'''  <header class="codex-global-header">
+    <div class="codex-global-header__brand-row">
+      <a class="codex-global-brand" href="{{ '/' | relative_url }}">SADO INVESTMENT CODEX</a>
+      <span class="codex-global-context" id="codex-global-context" aria-live="polite">現在地を確認中</span>
+    </div>
+    <nav class="codex-global-nav" aria-label="投資目的ナビゲーション">
+      {% for item in site.data.navigation.navigation_groups %}
+      <a class="codex-nav-item" data-nav-group="{{ item.id }}" href="{{ item.primary_destination | relative_url }}">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="{{ '/assets/instruments.svg' | relative_url }}#{{ item.id }}"></use></svg>
+        <span class="codex-nav-item__label">{{ item.label_ja }}</span>
+      </a>
+      {% endfor %}
+    </nav>
+  </header>
+  <script>
+    (() => {
+      const navigation = {{ site.data.navigation | jsonify }};
+      const baseUrl = {{ site.baseurl | jsonify }} || '';
+      let currentPath = window.location.pathname;
+      if (baseUrl && currentPath.startsWith(baseUrl)) currentPath = currentPath.slice(baseUrl.length) || '/';
+      if (!currentPath.startsWith('/')) currentPath = '/' + currentPath;
+      if (!currentPath.endsWith('/')) currentPath += '/';
+
+      const candidates = (navigation.routes || [])
+        .filter((route) => route.availability === 'AVAILABLE' && route.route)
+        .filter((route) => route.route === '/' ? currentPath === '/' : currentPath.startsWith(route.route))
+        .sort((left, right) => right.route.length - left.route.length);
+      const currentGroup = candidates[0]?.primary_journey_stage || null;
+      const group = (navigation.navigation_groups || []).find((item) => item.id === currentGroup);
+      const context = document.getElementById('codex-global-context');
+      if (context) context.textContent = group ? `現在地: ${group.label_ja}` : '現在地: 未分類';
+
+      document.querySelectorAll('.codex-nav-item').forEach((item) => {
+        const active = currentGroup && item.dataset.navGroup === currentGroup;
+        item.toggleAttribute('data-current', Boolean(active));
+        if (active) item.setAttribute('aria-current', 'location');
+        else item.removeAttribute('aria-current');
+      });
+    })();
+  </script>
+'''
 
 
 def slug(value: str) -> str:
@@ -43,50 +89,58 @@ def write(path: Path, content: str) -> None:
 def publish_shared_assets() -> None:
     if not DESIGN_SYSTEM_CSS.is_file():
         raise FileNotFoundError(f"missing shared design system asset: {DESIGN_SYSTEM_CSS}")
+    if not INSTRUMENT_SPRITE.is_file():
+        raise FileNotFoundError(f"missing Codex instrument sprite: {INSTRUMENT_SPRITE}")
     destination = SITE_ROOT / "assets" / "design-system.css"
+    instrument_destination = SITE_ROOT / "assets" / "instruments.svg"
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(DESIGN_SYSTEM_CSS, destination)
+    shutil.copy2(INSTRUMENT_SPRITE, instrument_destination)
+
+
+def publish_navigation_shell() -> None:
+    if not NAVIGATION_SOURCE.is_file():
+        raise FileNotFoundError(f"missing navigation contract: {NAVIGATION_SOURCE}")
+    if not SITE_LAYOUT.is_file():
+        raise FileNotFoundError(f"missing generated site layout: {SITE_LAYOUT}")
+
+    data_dir = SITE_ROOT / "_data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(NAVIGATION_SOURCE, data_dir / "navigation.json")
+
+    layout = SITE_LAYOUT.read_text(encoding="utf-8")
+    design_link = "  <link rel=\"stylesheet\" href=\"{{ '/assets/design-system.css' | relative_url }}\">\n"
+    if design_link not in layout:
+        book_link = "  <link rel=\"stylesheet\" href=\"{{ '/assets/book.css' | relative_url }}\">\n"
+        if book_link not in layout:
+            raise ValueError("site layout no longer contains the canonical book.css link")
+        layout = layout.replace(book_link, book_link + design_link, 1)
+
+    if "codex-global-header" not in layout:
+        layout, replacements = SITE_HEADER_RE.subn(GLOBAL_NAVIGATION_SHELL, layout, count=1)
+        if replacements != 1:
+            raise ValueError("site layout no longer contains exactly one legacy site-header")
+
+    SITE_LAYOUT.write_text(layout, encoding="utf-8")
 
 
 def main() -> None:
     publish_shared_assets()
-    sources = sorted(
-        path for path in SOURCE.glob("*.md")
-        if path.name.lower() != "readme.md"
-    )
+    publish_navigation_shell()
+    sources = sorted(path for path in SOURCE.glob("*.md") if path.name.lower() != "readme.md")
     cards: list[str] = []
-
     for source in sources:
         page_slug = slug(source.stem)
         title = title_from_markdown(source)
         url = f"/architecture/{page_slug}/"
-        cards.append(
-            f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
-            f"<strong>{title}</strong><span>{source.name}</span></a>"
-        )
-
-        page = front_matter(
-            title,
-            f"{title} — Sado Investment Lab のシステム設計",
-            url,
-        )
-        page += (
-            '<p class="breadcrumb"><a href="{{ \'/architecture/\' | relative_url }}">'
-            f"Architecture</a> / {title}</p>\n\n"
-        )
+        cards.append(f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}"><strong>{title}</strong><span>{source.name}</span></a>')
+        page = front_matter(title, f"{title} — Sado Investment Lab のシステム設計", url)
+        page += '<p class="breadcrumb"><a href="{{ \'/architecture/\' | relative_url }}">Architecture</a> / ' + title + '</p>\n\n'
         page += source.read_text(encoding="utf-8")
         write(SITE / page_slug / "index.md", page)
 
-    index = front_matter(
-        "Architecture",
-        "Investment Decision OS と分析基盤の設計ドキュメント",
-        "/architecture/",
-    )
-    index += (
-        "# Architecture\n\n"
-        "Sado Investment Lab を支える Investment Decision OS、データモデル、"
-        "分析エンジンの設計をまとめます。\n\n"
-    )
+    index = front_matter("Architecture", "Investment Decision OS と分析基盤の設計ドキュメント", "/architecture/")
+    index += "# Architecture\n\nSado Investment Lab を支える Investment Decision OS、データモデル、分析エンジンの設計をまとめます。\n\n"
     if cards:
         index += '<div class="content-grid">\n' + "\n".join(cards) + "\n</div>\n"
     else:

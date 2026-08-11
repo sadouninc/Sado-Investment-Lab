@@ -2,12 +2,12 @@
   "schema_version": "1.0",
   "model_note_ja": "9-stageは投資プロセスの意味モデル、6-purposeは日常移動のNavigation group。NavigationはOS Mapを置換しない。",
   "navigation_groups": [
-    {"id": "home", "label_ja": "Home"},
-    {"id": "discover", "label_ja": "銘柄を探す"},
-    {"id": "understand", "label_ja": "企業を理解する"},
-    {"id": "decide", "label_ja": "判断する"},
-    {"id": "record", "label_ja": "記録する"},
-    {"id": "review", "label_ja": "振り返る"}
+    {"id": "home", "label_ja": "Home", "primary_destination": "/", "icon_ja": "羅"},
+    {"id": "discover", "label_ja": "銘柄を探す", "primary_destination": "/research/market-phase/ai-semiconductor/", "icon_ja": "望"},
+    {"id": "understand", "label_ja": "企業を理解する", "primary_destination": "/companies/", "icon_ja": "顕"},
+    {"id": "decide", "label_ja": "判断する", "primary_destination": "/decision-cockpit/daihen/", "icon_ja": "衡"},
+    {"id": "record", "label_ja": "記録する", "primary_destination": "/trade-journal/", "icon_ja": "帳"},
+    {"id": "review", "label_ja": "振り返る", "primary_destination": "/trade-analysis/", "icon_ja": "筆"}
   ],
   "os_stage_to_navigation": {
     "observe": {"primary": "home", "secondary": []},

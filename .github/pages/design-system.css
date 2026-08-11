@@ -220,6 +220,95 @@
   margin-inline: auto;
 }
 
+.codex-global-header {
+  position: sticky;
+  z-index: 15;
+  top: 0;
+  width: min(100% - 2rem, var(--codex-content-width));
+  margin-inline: auto;
+  background: color-mix(in srgb, var(--codex-surface-canvas) 94%, transparent);
+  border-bottom: 1px solid var(--codex-border-subtle);
+  backdrop-filter: blur(14px);
+}
+.codex-global-header__brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--codex-space-3);
+  min-height: 2.8rem;
+  padding-right: 3.25rem;
+}
+.codex-global-brand {
+  color: var(--codex-text-primary);
+  font-family: "Noto Serif JP", serif;
+  font-size: .9rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.codex-global-context {
+  color: var(--codex-text-muted);
+  font-size: .72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.codex-global-nav {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--codex-space-1);
+  padding: var(--codex-space-1) 0 var(--codex-space-2);
+}
+.codex-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 2.65rem;
+  padding: .35rem .45rem;
+  color: var(--codex-text-muted);
+  border: 1px solid transparent;
+  border-radius: var(--codex-radius-sm);
+  font-size: .76rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.codex-nav-item:hover { color: var(--codex-accent-primary); border-color: var(--codex-border-subtle); }
+.codex-nav-item[data-current] {
+  color: var(--codex-accent-primary);
+  background: var(--codex-surface-panel);
+  border-color: var(--codex-accent-primary);
+  box-shadow: inset 0 -.18rem 0 var(--codex-accent-brass);
+}
+.codex-nav-item[data-current] .codex-nav-item__label::after {
+  content: "・現在地";
+  font-size: .65em;
+  font-weight: 600;
+}
+.codex-nav-item:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--codex-accent-brass) 55%, transparent);
+  outline-offset: 2px;
+}
+.codex-nav-item__icon { width: 1.55rem; font-size: .72rem; flex: 0 0 auto; }
+
+@media (max-width: 760px) {
+  .codex-global-header { width: 100%; padding-inline: .5rem; }
+  .codex-global-header__brand-row { min-height: 2.25rem; gap: .5rem; }
+  .codex-global-brand { font-size: .74rem; letter-spacing: .04em; }
+  .codex-global-context { max-width: 42vw; overflow: hidden; text-overflow: ellipsis; }
+  .codex-global-nav {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    padding-bottom: .35rem;
+  }
+  .codex-nav-item { min-height: 2.4rem; flex: 0 0 auto; padding-inline: .55rem; }
+  .codex-nav-item__icon { width: 1.35rem; }
+}
+
 @media (max-width: 640px) {
   .codex-page-shell { width: min(100% - 1rem, var(--codex-content-width)); }
   .codex-page-header { margin-top: var(--codex-space-3); }
