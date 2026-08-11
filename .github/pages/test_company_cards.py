@@ -18,7 +18,8 @@ class CompanyCardContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.content = (
             "# ダイヘン（6622）\n\n"
-            "Updated: 2026-08-08\n\n"
+            "> **Sado投資レポート**\n>\n"
+            "> Updated: 2026-08-08\n\n"
             "## AIサマリー\n\n既存研究。\n\n"
             "## 1. Research Provenance\n\nSource。\n\n"
             "## 5. Research Status / Missing Data\n\n未補完。\n"
@@ -34,6 +35,15 @@ class CompanyCardContractTests(unittest.TestCase):
         self.assertEqual(self.summary.freshness, "2026-08-08")
         self.assertEqual(len(self.summary.sections), 3)
         self.assertIn("Research Status / Missing Data", self.summary.sections[-1])
+
+    def test_plain_updated_metadata_remains_supported(self) -> None:
+        summary = company_cards.summarize_company(
+            "Example",
+            "Test",
+            Path("example.md"),
+            "# Example\n\nUpdated: 2026-08-09\n\n## Thesis\n\nText\n",
+        )
+        self.assertEqual(summary.freshness, "2026-08-09")
 
     def test_summary_surface_uses_canonical_design_system_primitives(self) -> None:
         rendered = company_cards.render_company_page_summary(self.summary)
