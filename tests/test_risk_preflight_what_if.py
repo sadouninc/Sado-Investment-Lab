@@ -31,11 +31,11 @@ PORTFOLIO = {
 
 
 class RiskPreflightWhatIfTest(unittest.TestCase):
-    def preview(self, intent, **kwargs):
+    def preview(self, intent, *, portfolio=None, **kwargs):
         prices = {"6622": 10000, "4063": 5000}
         prices.update(kwargs.pop("market_prices", {}))
         return preview_what_if(
-            PORTFOLIO,
+            portfolio or PORTFOLIO,
             intent,
             captured_at="2026-08-11T10:00:00+09:00",
             market_prices=prices,
@@ -91,6 +91,55 @@ class RiskPreflightWhatIfTest(unittest.TestCase):
         with self.assertRaises(WhatIfIntentError) as caught:
             self.preview({"security_code": "6622", "action": "SELL", "quantity": 200, "price": 10000, "account_type": "MARGIN"})
         self.assertEqual("NOT_JUDGABLE", caught.exception.state)
+
+    def test_sell_uses_holding_only_from_verified_current_portfolio(self):
+        result = self.preview(
+            {"security_code": "6622", "action": "SELL", "quantity": 100, "price": 10000, "account_type": "MARGIN"}
+        )
+        self.assertEqual("CALCULATED", result["state"])
+        self.assertEqual(0, result["risk_preflight"]["after_if_executed"]["position_notional"])
+
+    def test_sell_rejects_unverified_portfolio_statuses(self):
+        for status in ("PROVISIONAL", "MISMATCH", "UNKNOWN"):
+            portfolio = deepcopy(PORTFOLIO)
+            portfolio["verification_status"] = status
+            with self.subTest(status=status), self.assertRaises(WhatIfIntentError) as caught:
+                self.preview(
+                    {"security_code": "6622", "action": "SELL", "quantity": 100, "price": 10000, "account_type": "MARGIN"},
+                    portfolio=portfolio,
+                )
+            self.assertEqual("NOT_JUDGABLE", caught.exception.state)
+
+    def test_sell_rejects_missing_verification_authority_or_snapshot_ref(self):
+        for field in ("verification_status", "authority", "base_snapshot"):
+            portfolio = deepcopy(PORTFOLIO)
+            portfolio.pop(field)
+            with self.subTest(field=field), self.assertRaises(WhatIfIntentError) as caught:
+                self.preview(
+                    {"security_code": "6622", "action": "SELL", "quantity": 100, "price": 10000, "account_type": "MARGIN"},
+                    portfolio=portfolio,
+                )
+            self.assertEqual("SOURCE_UNAVAILABLE", caught.exception.state)
+
+    def test_sell_rejects_stale_verified_portfolio(self):
+        portfolio = deepcopy(PORTFOLIO)
+        portfolio["as_of"] = "2026-08-07"
+        with self.assertRaises(WhatIfIntentError) as caught:
+            self.preview(
+                {"security_code": "6622", "action": "SELL", "quantity": 100, "price": 10000, "account_type": "MARGIN"},
+                portfolio=portfolio,
+            )
+        self.assertEqual("SOURCE_STALE", caught.exception.state)
+
+    def test_buy_preserves_partial_portfolio_contract(self):
+        portfolio = deepcopy(PORTFOLIO)
+        portfolio["verification_status"] = "PROVISIONAL"
+        result = self.preview(
+            {"security_code": "6622", "action": "BUY", "quantity": 100, "price": 10000, "account_type": "MARGIN"},
+            portfolio=portfolio,
+        )
+        self.assertEqual("CALCULATED", result["state"])
+        self.assertEqual("PARTIAL", result["risk_preflight"]["data_status"])
 
     def test_sell_unknown_account_does_not_infer_cash_or_margin(self):
         with self.assertRaises(WhatIfIntentError) as caught:
