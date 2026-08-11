@@ -51,6 +51,68 @@
         {"security_code": "278A", "company_name": "Terra Drone", "symbol": "278A.T"},
         {"security_code": "6232", "company_name": "ACSL", "symbol": "6232.T"}
       ]
+    },
+    {
+      "id": "theme:physical-ai-robotics-core",
+      "name": "Physical AI / Robotics Core",
+      "membership_as_of": "2026-08-12",
+      "membership_version": "2026-08-12-v1",
+      "authority": "Issue #394 PR1 canonical membership; company primary-source exposure verification",
+      "backfill_policy": "RETROSPECTIVE_MEMBERSHIP_IF_HISTORICAL_MEMBERSHIP_UNAVAILABLE",
+      "limitations": [
+        "RETROSPECTIVE_MEMBERSHIP",
+        "THEME_SCOPE_PROXY",
+        "BENCHMARK_PROXY"
+      ],
+      "membership_policy": {
+        "include_if": [
+          "robot_body_or_industrial_robot_is_explicit_core_business",
+          "direct_robotics_core_component_exposure_reducer_actuator_motion_control",
+          "direct_company_or_public_program_physical_ai_participation"
+        ],
+        "exclude_if": [
+          "ai_keyword_only",
+          "conglomerate_without_direct_robotics_exposure",
+          "unlisted_security"
+        ]
+      },
+      "members": [
+        {
+          "security_code": "6954",
+          "company_name": "FANUC",
+          "symbol": "6954.T",
+          "inclusion_rationale": "Industrial robots are an explicit business; company also publishes direct Physical AI robotics initiatives.",
+          "evidence_ref": "https://www.fanuc.co.jp/ja/product/robot/"
+        },
+        {
+          "security_code": "6506",
+          "company_name": "安川電機",
+          "symbol": "6506.T",
+          "inclusion_rationale": "Motion control and industrial robots are explicit core businesses, directly exposing the company to robotics actuation and control.",
+          "evidence_ref": "https://www.yaskawa.co.jp/company/profile/business"
+        },
+        {
+          "security_code": "6324",
+          "company_name": "ハーモニック・ドライブ・システムズ",
+          "symbol": "6324.T",
+          "inclusion_rationale": "Precision reducers are direct robot motion components; company product materials explicitly cite robot lightweighting and high-speed applications.",
+          "evidence_ref": "https://www.hds.co.jp/products/list/reducer/"
+        },
+        {
+          "security_code": "6268",
+          "company_name": "ナブテスコ",
+          "symbol": "6268.T",
+          "inclusion_rationale": "Precision reducers are used in industrial robot joints and are a direct mechanical core component exposure.",
+          "evidence_ref": "https://www.nabtesco.com/products/robot/"
+        },
+        {
+          "security_code": "6481",
+          "company_name": "THK",
+          "symbol": "6481.T",
+          "inclusion_rationale": "LM guides, electric actuators, and other mechanical elements are explicitly supplied for industrial robot joints, drives, and support mechanisms.",
+          "evidence_ref": "https://www.thk.com/opm/industrial-robot/"
+        }
+      ]
     }
   ]
 }
