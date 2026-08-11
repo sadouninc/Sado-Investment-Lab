@@ -199,5 +199,61 @@ def mark_possible_duplicate(signal: dict[str, Any], candidate_refs: list[str]) -
     return validate_signal(result)
 
 
+class SignalRegistry:
+    """In-memory canonical ingestion boundary for Developing Signals.
+
+    Signal identity is ``signal_id``. Observation identity is the tuple of
+    ``observed_at``, ``actor``, and ``source_ref``. Re-sending an identical
+    payload is idempotent; reusing either identity with a different payload
+    fails closed instead of overwriting history.
+    """
+
+    def __init__(self) -> None:
+        self._signals: dict[str, dict[str, Any]] = {}
+
+    def ingest(self, signal: dict[str, Any]) -> dict[str, Any]:
+        candidate = validate_signal(signal)
+        signal_id = candidate["signal_id"]
+        existing = self._signals.get(signal_id)
+        if existing is None:
+            self._signals[signal_id] = deepcopy(candidate)
+            return {"outcome": "INSERTED", "signal": deepcopy(candidate)}
+        if existing == candidate:
+            return {"outcome": "UNCHANGED", "signal": deepcopy(existing)}
+        raise ValueError(f"signal identity conflict: {signal_id}")
+
+    def ingest_observation(
+        self, signal_id: str, observation: dict[str, Any]
+    ) -> dict[str, Any]:
+        identity = _require_text(signal_id, "signal_id")
+        existing_signal = self._signals.get(identity)
+        if existing_signal is None:
+            raise ValueError(f"unknown signal_id: {identity}")
+        item = validate_observation(observation)
+        observation_identity = (
+            item["observed_at"],
+            item["actor"],
+            item.get("source_ref"),
+        )
+        for existing in existing_signal.get("observations", []):
+            existing_identity = (
+                existing["observed_at"],
+                existing["actor"],
+                existing.get("source_ref"),
+            )
+            if existing_identity != observation_identity:
+                continue
+            if existing == item:
+                return {"outcome": "UNCHANGED", "signal": deepcopy(existing_signal)}
+            raise ValueError(f"observation identity conflict: {observation_identity!r}")
+        updated = append_observation(existing_signal, item)
+        self._signals[identity] = deepcopy(updated)
+        return {"outcome": "INSERTED", "signal": deepcopy(updated)}
+
+    def get(self, signal_id: str) -> dict[str, Any] | None:
+        signal = self._signals.get(_require_text(signal_id, "signal_id"))
+        return deepcopy(signal) if signal is not None else None
+
+
 def dumps(signal: dict[str, Any]) -> str:
     return json.dumps(validate_signal(signal), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
