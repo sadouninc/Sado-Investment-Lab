@@ -91,7 +91,7 @@ class GlobalNavigationShellTest(unittest.TestCase):
                 build_architecture.NAVIGATION_SOURCE = old_nav
 
             self.assertEqual(first, second)
-            self.assertEqual(1, first.count("codex-global-header"))
+            self.assertEqual(1, first.count('class="codex-global-header"'))
             self.assertEqual(1, first.count("/assets/design-system.css"))
             self.assertTrue((site_root / "_data" / "navigation.json").is_file())
 
