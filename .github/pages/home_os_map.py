@@ -91,20 +91,22 @@ def render_today(entries: list[dict[str, Any]]) -> str:
         label = html.escape(entry["label_ja"])
         description = html.escape(entry["description_ja"])
         if entry["availability"] == "AVAILABLE":
-            action = _relative_link(entry["route"], "開く", "sil-action")
+            action = _relative_link(
+                entry["route"], "開く", "codex-action codex-action--primary"
+            )
             state_label = "利用可能"
             state_token = "normal"
         else:
-            action = '<span class="sil-caption">この入口では現在取得できません</span>'
+            action = '<span class="home-os-caption">この入口では現在取得できません</span>'
             state_label = "利用不可"
             state_token = "unavailable"
         cards.append(
-            '<article class="sil-summary-card sil-priority-first" '
+            '<article class="codex-summary-card home-priority-first" '
             f'data-availability="{state}">'
-            f'<span class="sil-status-chip" data-state="{state_token}">{state_label}</span>'
+            f'<span class="codex-status-chip" data-state="{state_token}">{state_label}</span>'
             f'<h3>{label}</h3><p>{description}</p>{action}</article>'
         )
-    return '<div class="sil-summary-grid home-today-grid">\n' + "\n".join(cards) + "\n</div>"
+    return '<div class="codex-summary-grid home-today-grid">\n' + "\n".join(cards) + "\n</div>"
 
 
 def render_stages(stages: list[dict[str, Any]]) -> str:
@@ -115,13 +117,17 @@ def render_stages(stages: list[dict[str, Any]]) -> str:
         description = html.escape(stage["description_ja"])
         representative = html.escape(stage["representative_ja"])
         if availability == "AVAILABLE":
-            action = _relative_link(stage["primary_destination"], representative, "sil-evidence-link")
-            status = '<span class="sil-status-chip" data-state="normal">利用可能</span>'
+            action = _relative_link(
+                stage["primary_destination"],
+                representative,
+                "codex-action codex-action--secondary",
+            )
+            status = '<span class="codex-status-chip" data-state="normal">利用可能</span>'
         else:
-            action = '<span class="sil-caption">接続先は未設定です</span>'
-            status = '<span class="sil-status-chip" data-state="unavailable">利用不可</span>'
+            action = '<span class="home-os-caption">接続先は未設定です</span>'
+            status = '<span class="codex-status-chip" data-state="unavailable">利用不可</span>'
         cards.append(
-            '<article class="sil-card home-os-stage" '
+            '<article class="codex-summary-card home-os-stage" '
             f'data-stage-id="{html.escape(stage["stage_id"], quote=True)}">'
             f'<div class="home-os-stage__number" aria-hidden="true">{index:02d}</div>'
             f'<div><div class="home-os-stage__header"><h3>{purpose}</h3>{status}</div>'
