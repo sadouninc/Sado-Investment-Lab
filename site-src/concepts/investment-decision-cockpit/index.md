@@ -9,7 +9,7 @@ permalink: /concepts/investment-decision-cockpit/
 <div class="codex-page-shell">
   <header class="codex-page-header">
     <span class="codex-instrument-icon" aria-hidden="true">◇</span>
-    <p class="codex-card-question">Investment OS / 5 判断する</p>
+    <p class="codex-card-question">Sado Investment Codex / 5 判断</p>
     <h1>Investment Decision Cockpit — 見方ガイド</h1>
     <p>前回の判断から何が変わったかを確認し、現在の投資仮説と評価を一つの流れで点検するための画面です。</p>
     <div class="codex-page-header__meta">
@@ -20,19 +20,19 @@ permalink: /concepts/investment-decision-cockpit/
 
   <section aria-labelledby="first-checks">
     <h2 id="first-checks">最初の30秒で見る3点</h2>
-    <p>変化、期待差、仮説と評価を分断せずに見ることで、判断の前提がどこで変わったかを追跡できます。</p>
+    <p>まず対象と鮮度を確認し、変化・期待差・仮説の健全性を見ます。売買前のポートフォリオ影響は、判断を整理した後のRisk Preflightで確認します。</p>
     <div class="codex-summary-grid">
 <article class="codex-summary-card"><p class="codex-card-question">最初に見る 1</p><h3>前回判断からの変化</h3></article>
 <article class="codex-summary-card"><p class="codex-card-question">最初に見る 2</p><h3>市場期待との差</h3></article>
-<article class="codex-summary-card"><p class="codex-card-question">最初に見る 3</p><h3>仮説・Valuation・売買前ポートフォリオ影響の状態</h3></article>
+<article class="codex-summary-card"><p class="codex-card-question">最初に見る 3</p><h3>Warning・Thesis Health（仮説の健全性）</h3></article>
     </div>
   </section>
 
   <section aria-labelledby="decision-flow">
-    <h2 id="decision-flow">判断の流れ</h2>
+    <h2 id="decision-flow">判断の流れ — What do I think?</h2>
     <div class="codex-evidence">
-      <strong>前回判断 → 現在との差 → 市場期待との差 → 仮説確認 → Valuation → 売買前PF影響 → 判断Snapshot → 次checkpoint</strong>
-      <div class="codex-evidence__meta">CockpitはDecideの画面です。売買前確認・記録の詳細は次の既存画面へ進みます。</div>
+      <strong>対象・鮮度を確認 → 前回との差 → 市場期待との差 → Warning・Thesis Health → Evidenceを確認 → 現在の判断を整理</strong>
+      <div class="codex-evidence__meta">Cockpitは「自分は今どう考えるか」を整理するDecideの画面です。「何をするか」はRisk Preflightへ、実行後の記録はTrade Journalへhandoffします。</div>
     </div>
   </section>
 
@@ -45,7 +45,8 @@ permalink: /concepts/investment-decision-cockpit/
   </section>
 
   <section aria-labelledby="next-actions">
-    <h2 id="next-actions">次に進む</h2>
+    <h2 id="next-actions">判断の次に進む</h2>
+    <p>ここから先はAct / Recordです。Cockpitの判断材料と混ぜず、目的ごとの既存画面へ進みます。</p>
     <div class="codex-action-row">
       <a class="codex-action codex-action--primary" href="{{ '/decision-cockpit/daihen/' | relative_url }}">Live Cockpitを開く</a>
 <a class="codex-action codex-action--secondary" href="{{ '/risk-preflight/' | relative_url }}">売買前の影響を確認する</a>
