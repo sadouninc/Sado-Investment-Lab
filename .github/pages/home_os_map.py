@@ -75,11 +75,22 @@ def _validate_destination(route: str | None, availability: str) -> None:
         raise ValueError("UNAVAILABLE / UNMAPPED destination must not invent a route")
 
 
-def _relative_link(route: str, label: str, class_name: str) -> str:
+def _relative_link(
+    route: str,
+    label: str,
+    class_name: str,
+    *,
+    accessible_name: str | None = None,
+) -> str:
     escaped_label = html.escape(label)
     escaped_route = html.escape(route, quote=True)
+    aria = (
+        f' aria-label="{html.escape(accessible_name, quote=True)}"'
+        if accessible_name
+        else ""
+    )
     return (
-        f'<a class="{class_name}" '
+        f'<a class="{class_name}"{aria} '
         f'href="{{{{ \'{escaped_route}\' | relative_url }}}}">{escaped_label}</a>'
     )
 
@@ -88,11 +99,15 @@ def render_today(entries: list[dict[str, Any]]) -> str:
     cards: list[str] = []
     for entry in entries:
         state = entry["availability"].lower()
-        label = html.escape(entry["label_ja"])
+        raw_label = str(entry["label_ja"])
+        label = html.escape(raw_label)
         description = html.escape(entry["description_ja"])
         if entry["availability"] == "AVAILABLE":
             action = _relative_link(
-                entry["route"], "開く", "codex-action codex-action--primary"
+                entry["route"],
+                "開く",
+                "codex-action codex-action--primary",
+                accessible_name=f"{raw_label}を開く",
             )
             state_label = "利用可能"
             state_token = "normal"
