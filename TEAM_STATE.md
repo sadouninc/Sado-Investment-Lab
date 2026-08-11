@@ -4,14 +4,14 @@
 > Permanent rules remain in `TEAM_RULES.md`. Broadcast history remains in Issue #99.
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
-Last updated: 2026-08-11  
-Sources: Issue #99 Current Active Board; #338; #354  
-Broadcast head at snapshot: `comment_id=5249135907`
+Last updated: 2026-08-12  
+Sources: Issue #99 Current Active Board; #338; #354; AWAY transition comment 5255385557  
+Broadcast head at snapshot: `comment_id=5255385557`
 
 ## User Mode
 
-- Mode: **ACTIVE**
-- Meaning: 👑サド is currently available to drive decisions/requests. Prepare Authority questions compactly and surface them promptly; do not invent Authority decisions.
+- Mode: **AWAY**
+- Meaning: 👑サド is temporarily unavailable until morning. Continue delegated autonomous operations; never invent Owner Authority decisions.
 - Mode contract: #354. `ACTIVE` keeps normal roles. `AWAY` activates delegated autonomous operations below.
 
 ## Mode Transition Contract
@@ -82,7 +82,7 @@ Current priority order (compact reference; read each Issue before work):
 - `TECHNICAL_INVESTIGATION` is normally work, not a reason to wait for the user.
 - Real blockers should classify Authority / Dependency / CI / Missing Artifact / Technical Investigation / External and state next action.
 - CI/external wait should trigger safe work on another non-conflicting READY/review/investigation item when available.
-- Open implementation PR WIP is normally capped at 2; when at cap, reduce merge distance before creating another implementation PR.
+- Open implementation PR WIP is normally capped at 2 per implementation owner/lane; it is not a team-wide PR cap. When an owner/lane is at cap, reduce merge distance before creating another implementation PR.
 - Issue #79: do not modify/comment/close/implement unless a later explicit authoritative instruction supersedes this constraint.
 
 ## Startup Sync v2
