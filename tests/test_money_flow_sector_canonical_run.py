@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import copy
 import tempfile
 import unittest
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from scripts.money_flow_history import load_history
-from scripts.money_flow_sector_canonical_run import canonical_sector_set, persist_sector_set
+from scripts.money_flow_sector_canonical_run import canonical_sector_set, persist_sector_set, run_backfill
 
 DETECTOR = {
     "required_axes": ["relative_strength", "activity", "breadth", "heat", "acceleration"],
@@ -29,6 +30,18 @@ def chart(end: date, step: float = .1) -> dict:
     start = datetime.combine(end - timedelta(days=99), datetime.min.time(), tzinfo=timezone.utc)
     ts = [int((start + timedelta(days=i)).timestamp()) for i in range(100)]
     return {"chart": {"result": [{"timestamp": ts, "indicators": {"quote": [{"close": [100 + step*i for i in range(100)], "volume": [100]*100}]}}], "error": None}}
+
+
+def weekday_chart(end: date, step: float = .1) -> dict:
+    days = []
+    cursor = end - timedelta(days=180)
+    while cursor <= end:
+        if cursor.weekday() < 5:
+            days.append(cursor)
+        cursor += timedelta(days=1)
+    days = days[-100:]
+    ts = [int(datetime.combine(day, datetime.min.time(), tzinfo=timezone.utc).timestamp()) for day in days]
+    return {"chart": {"result": [{"timestamp": ts, "indicators": {"quote": [{"close": [100 + step*i for i in range(len(days))], "volume": [100]*len(days)}]}}], "error": None}}
 
 
 class SectorCanonicalRunTests(unittest.TestCase):
@@ -67,6 +80,46 @@ class SectorCanonicalRunTests(unittest.TestCase):
         payload = canonical_sector_set(as_of=as_of, sector_config=CONFIG, detector_config=DETECTOR, history=history, fetcher=fetch)
         row = next(r for r in payload["sectors"] if r["id"] == "sector:a")
         self.assertEqual(row["previous_state"], "WARMING")
+
+    def test_backfill_uses_benchmark_trading_dates_oldest_first_and_builds_hysteresis(self):
+        end = date(2026, 8, 10)
+        detector = copy.deepcopy(DETECTOR)
+        detector["thresholds"].update({
+            "warming_score": 0,
+            "inflow_score": 101,
+            "hot_score": 102,
+            "overheated_heat": 101,
+            "max_heat_for_warming": 100,
+            "max_heat_for_inflow": 100,
+        })
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            history = root / "sector-history.jsonl"
+            sector_config = root / "sector.json"
+            detector_config = root / "detector.json"
+            import json
+            sector_config.write_text(json.dumps(CONFIG), encoding="utf-8")
+            detector_config.write_text(json.dumps(detector), encoding="utf-8")
+
+            def fetch(symbol: str, range_: str, interval: str) -> dict:
+                return weekday_chart(end, .05 if symbol == "^TOPX" else .2)
+
+            result = run_backfill(
+                start=date(2026, 8, 5),
+                end=end,
+                history_path=history,
+                sector_config_path=sector_config,
+                detector_config_path=detector_config,
+                fetcher=fetch,
+            )
+
+            self.assertEqual(result["trading_dates"], ["2026-08-05", "2026-08-06", "2026-08-07", "2026-08-10"])
+            self.assertEqual(result["unavailable_dates"], [])
+            rows = load_history(history)
+            self.assertEqual(len(rows), 8)
+            latest = [row for row in rows if row["as_of"] == "2026-08-10"]
+            self.assertEqual({row["state"] for row in latest}, {"WARMING"})
+            self.assertEqual({row["previous_state"] for row in latest}, {"WARMING"})
 
 
 if __name__ == "__main__":

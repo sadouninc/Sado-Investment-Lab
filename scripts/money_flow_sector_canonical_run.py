@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 from datetime import date
 from pathlib import Path
 from typing import Any, Callable
 
-from scripts.money_flow_canonical_run import bounded_fetcher
+from scripts.money_flow_canonical_run import CachedFetcher, bounded_fetcher
 from scripts.money_flow_detector import load_config as load_detector_config
 from scripts.money_flow_history import load_history, upsert_snapshot
 from scripts.money_flow_sector_adapter import (
@@ -34,6 +35,14 @@ def _latest_previous(history: list[dict[str, Any]], *, as_of: date) -> dict[str,
         if current is None or str(current["as_of"]) < str(row["as_of"]):
             previous[entity_id] = row
     return previous
+
+
+def _with_history_range(sector_config: dict[str, Any], history_range_override: str | None) -> dict[str, Any]:
+    if not history_range_override:
+        return sector_config
+    updated = copy.deepcopy(sector_config)
+    updated["history_range"] = history_range_override
+    return updated
 
 
 def latest_market_date(*, sector_config: dict[str, Any], fetcher: Fetcher = fetch_yahoo_history) -> date:
@@ -103,11 +112,13 @@ def run_once(
     sector_config_path: Path,
     detector_config_path: Path,
     fetcher: Fetcher = fetch_yahoo_history,
+    history_range_override: str | None = None,
 ) -> dict[str, Any]:
     history = load_history(history_path)
+    sector_config = _with_history_range(load_sector_config(sector_config_path), history_range_override)
     payload = canonical_sector_set(
         as_of=as_of,
-        sector_config=load_sector_config(sector_config_path),
+        sector_config=sector_config,
         detector_config=load_detector_config(detector_config_path),
         history=history,
         fetcher=fetcher,
@@ -115,19 +126,95 @@ def run_once(
     return {"snapshot_set": payload, "persistence": persist_sector_set(history_path, payload)}
 
 
+def run_backfill(
+    *,
+    start: date,
+    end: date,
+    history_path: Path,
+    sector_config_path: Path,
+    detector_config_path: Path,
+    fetcher: Fetcher = fetch_yahoo_history,
+    history_range: str = "2y",
+) -> dict[str, Any]:
+    """Backfill confirmed benchmark trading dates oldest-first without future leakage."""
+    if end < start:
+        raise SectorCanonicalRunError("backfill end must be on or after start")
+
+    cached = CachedFetcher(fetcher)
+    sector_config = _with_history_range(load_sector_config(sector_config_path), history_range)
+    benchmark = sector_config.get("benchmark") or {}
+    benchmark_symbol = str(benchmark.get("symbol") or "")
+    if not benchmark_symbol:
+        raise SectorCanonicalRunError("benchmark.symbol is required")
+    interval = str(sector_config.get("interval") or "1d")
+    market_rows = _series(cached(benchmark_symbol, history_range, interval), benchmark_symbol)
+    trading_dates = [
+        row_date
+        for row in market_rows
+        for row_date in [date.fromisoformat(str(row["date"]))]
+        if start <= row_date <= end
+    ]
+    if not trading_dates:
+        raise SectorCanonicalRunError("no benchmark trading dates in requested backfill window")
+
+    persistence_counts: dict[str, int] = {}
+    unavailable_dates: list[str] = []
+    for as_of in trading_dates:
+        result = run_once(
+            as_of=as_of,
+            history_path=history_path,
+            sector_config_path=sector_config_path,
+            detector_config_path=detector_config_path,
+            fetcher=cached,
+            history_range_override=history_range,
+        )
+        snapshot_set = result["snapshot_set"]
+        if not snapshot_set.get("persistable"):
+            unavailable_dates.append(as_of.isoformat())
+        for status, count in result["persistence"].items():
+            persistence_counts[status] = persistence_counts.get(status, 0) + int(count)
+
+    return {
+        "start": start.isoformat(),
+        "end": end.isoformat(),
+        "history_range": history_range,
+        "trading_dates_processed": len(trading_dates),
+        "trading_dates": [value.isoformat() for value in trading_dates],
+        "unavailable_dates": unavailable_dates,
+        "persistence_counts": persistence_counts,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run #305 TOPIX-17 sector canonical persistence")
-    parser.add_argument("--as-of", required=True, help="Confirmed trading date (YYYY-MM-DD)")
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--as-of", help="Confirmed trading date (YYYY-MM-DD)")
+    mode.add_argument("--backfill-start", help="Historical backfill start date (YYYY-MM-DD)")
+    parser.add_argument("--backfill-end", help="Historical backfill end date (YYYY-MM-DD)")
+    parser.add_argument("--backfill-range", default="2y")
     parser.add_argument("--history", type=Path, default=Path("data/generated/public/money-flow/sector-history.jsonl"))
     parser.add_argument("--sector-config", type=Path, default=Path("data/config/money-flow-sector-v1.json"))
     parser.add_argument("--detector-config", type=Path, default=Path("data/config/money-flow-detector-v1.json"))
     args = parser.parse_args()
-    result = run_once(
-        as_of=date.fromisoformat(args.as_of),
-        history_path=args.history,
-        sector_config_path=args.sector_config,
-        detector_config_path=args.detector_config,
-    )
+
+    common = {
+        "history_path": args.history,
+        "sector_config_path": args.sector_config,
+        "detector_config_path": args.detector_config,
+    }
+    if args.backfill_start:
+        if not args.backfill_end:
+            raise SectorCanonicalRunError("--backfill-end is required with --backfill-start")
+        result = run_backfill(
+            start=date.fromisoformat(args.backfill_start),
+            end=date.fromisoformat(args.backfill_end),
+            history_range=args.backfill_range,
+            **common,
+        )
+        print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+        return 0 if not result["unavailable_dates"] else 3
+
+    result = run_once(as_of=date.fromisoformat(args.as_of), **common)
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0 if result["snapshot_set"].get("persistable") else 3
 

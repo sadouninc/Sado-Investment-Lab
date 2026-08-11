@@ -32,9 +32,13 @@ class MoneyFlowPushBootstrapContractTest(unittest.TestCase):
         self.assertIn("money_flow_sector_canonical_run", self.text)
         self.assertIn("git add data/generated/public/money-flow/sector-history.jsonl", self.text)
 
-    def test_scheduled_refresh_explicitly_dispatches_pages(self):
+    def test_canonical_refresh_explicitly_dispatches_pages_for_scheduled_and_backfill(self):
         self.assertIn("  actions: write\n", self.text)
-        self.assertIn("Refresh Pages after canonical scheduled run", self.text)
+        self.assertIn("Refresh Pages after canonical run", self.text)
+        self.assertIn(
+            "if: steps.mode.outputs.mode == 'BACKFILL' || steps.scheduled.outputs.status == 'COMPLETED'",
+            self.text,
+        )
         self.assertIn("GH_TOKEN: ${{ github.token }}", self.text)
         self.assertIn("gh workflow run publish-site.yml --ref main", self.text)
 

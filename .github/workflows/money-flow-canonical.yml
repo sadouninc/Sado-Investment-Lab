@@ -182,6 +182,40 @@ jobs:
             --theme-id '${{ steps.mode.outputs.theme_id }}' \
             --lead-time-output '${{ steps.mode.outputs.lead_time_output }}'
 
+      - name: Run bounded Sector historical backfill
+        if: steps.mode.outputs.mode == 'BACKFILL' && steps.mode.outputs.theme_id == 'theme:ai-data-center-power-infrastructure'
+        id: sector_backfill
+        env:
+          BACKFILL_START: ${{ inputs.backfill_start }}
+          BACKFILL_END: ${{ inputs.backfill_end }}
+        run: |
+          set +e
+          python -m scripts.money_flow_sector_canonical_run \
+            --backfill-start "$BACKFILL_START" \
+            --backfill-end "$BACKFILL_END" \
+            --backfill-range 2y > /tmp/money-flow-sector-backfill.json
+          rc=$?
+          set -e
+
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 3 ]; then
+            cat /tmp/money-flow-sector-backfill.json || true
+            exit "$rc"
+          fi
+
+          python - <<'PY' "$rc"
+          import json, os, sys
+          from pathlib import Path
+
+          rc = int(sys.argv[1])
+          payload = json.loads(Path('/tmp/money-flow-sector-backfill.json').read_text())
+          status = 'COMPLETED' if rc == 0 else 'PARTIAL_UNAVAILABLE'
+          reason = ','.join(payload.get('unavailable_dates') or [])
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as fh:
+              fh.write(f"status={status}\n")
+              fh.write(f"reason={reason}\n")
+              fh.write(f"processed={payload.get('trading_dates_processed', 0)}\n")
+          PY
+
       - name: Refresh AI/DC Policy Lead-Time projection
         if: steps.mode.outputs.theme_id == 'theme:ai-data-center-power-infrastructure' && (steps.mode.outputs.mode == 'BACKFILL' || steps.scheduled.outputs.status == 'COMPLETED')
         run: |
@@ -217,8 +251,8 @@ jobs:
           git commit -m 'data: persist canonical Money Flow evidence [担当: automation]'
           git push origin HEAD:main
 
-      - name: Refresh Pages after canonical scheduled run
-        if: steps.mode.outputs.mode == 'SCHEDULED' && steps.scheduled.outputs.status == 'COMPLETED'
+      - name: Refresh Pages after canonical run
+        if: steps.mode.outputs.mode == 'BACKFILL' || steps.scheduled.outputs.status == 'COMPLETED'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run publish-site.yml --ref main
@@ -235,6 +269,9 @@ jobs:
             echo '- scheduled guard: `${{ steps.scheduled.outputs.reason }}`'
             echo '- sector status: `${{ steps.sector.outputs.status }}`'
             echo '- sector guard: `${{ steps.sector.outputs.reason }}`'
+            echo '- sector backfill status: `${{ steps.sector_backfill.outputs.status }}`'
+            echo '- sector backfill processed: `${{ steps.sector_backfill.outputs.processed }}`'
+            echo '- sector backfill unavailable: `${{ steps.sector_backfill.outputs.reason }}`'
             echo ''
             echo 'Scheduled runs default to AI/DC. Manual workflow_dispatch can select Defense Drone. Historical backfills remain bounded to each as_of so future observations cannot leak into past detector states. Defense Drone outputs are kept separate from AI/DC outputs.'
           } >> "$GITHUB_STEP_SUMMARY"
