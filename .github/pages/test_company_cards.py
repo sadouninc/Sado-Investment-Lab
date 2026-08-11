@@ -48,15 +48,17 @@ class CompanyCardContractTests(unittest.TestCase):
             self.assertIn(primitive, rendered)
         self.assertIn("Freshness: 2026-08-08", rendered)
         self.assertIn("推測しない", rendered)
+        self.assertIn("未接続値はUNAVAILABLE", rendered)
         self.assertNotIn("96 / 100", rendered)
 
-    def test_long_research_is_progressively_disclosed(self) -> None:
+    def test_long_research_is_progressively_disclosed_without_duplicate_h1(self) -> None:
         rendered = company_cards.render_company_detail(self.content)
         self.assertIn('<details class="codex-disclosure"', rendered)
         self.assertIn("Company Research 詳細", rendered)
-        self.assertIn(self.content.strip(), rendered)
+        self.assertIn("## AIサマリー", rendered)
+        self.assertNotIn("# ダイヘン（6622）", rendered)
 
-    def test_missing_freshness_is_explicit(self) -> None:
+    def test_missing_freshness_is_explicit_and_unavailable(self) -> None:
         summary = company_cards.summarize_company(
             "Example",
             "Test",
@@ -65,6 +67,7 @@ class CompanyCardContractTests(unittest.TestCase):
         )
         rendered = company_cards.render_company_page_summary(summary)
         self.assertIn("更新日未記録", rendered)
+        self.assertIn('data-state="unavailable"', rendered)
 
     def test_index_card_is_compact_and_category_aware(self) -> None:
         rendered = company_cards.render_company_index_card(
