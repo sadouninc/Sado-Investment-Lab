@@ -205,6 +205,18 @@ Branch: <branch名>
 
 🌙ルナは `DESIGNING / READY_FOR_IMPLEMENTATION` を主担当、🤖カイは `IMPLEMENTING` を主担当、♦️ソラは `REVIEW / VERIFY` を支援する。
 
+### Owner Acceptance Close Gate
+
+Issue本文・Acceptance Criteria・Definition of Doneで `Owner Acceptance` / `👑サド実使用レビュー` / `Product Owner approval` 等が**必須Gateとして明示されているIssue**は、実装完了・CI成功・内部レビュー完了だけを理由に `completed` Closeしてはならない。
+
+- Owner Gateが明示され、Owner本人の明示PASS evidenceが未確認の場合は `READY_FOR_OWNER_REVIEW` として扱い、completed Closeしない。
+- Gate要否またはPASS evidenceを判定できない場合は `OWNER_ACCEPTANCE_UNVERIFIED` としてfail closedする。
+- 他AI担当の「レビュー可能」「Ownerへ渡せる」、UXレビュー済み、CI green等をOwner Acceptanceへ昇格させない。
+- `PARTIAL` / `FAIL` はcompleted Close不可。Issue contractに従い改善・再レビューへ戻す。
+- Owner Gateが明示されていない通常Issueへ不要なOwner approvalを追加しない。
+- Owner本人のPASS内容をAIが推測・代行しない。自動reopenも行わない。
+- Close時は可能な限りOwner Acceptance evidenceの参照（Issue comment ID等）を残す。
+
 ## 7. 担当者不在・利用制限時の代行
 
 チームの役割分担は原則であり、担当者が利用制限・一時的不在・技術的事情などで作業できない場合、プロジェクトを停滞させないため他メンバーが一時的に代行してよい。
@@ -240,7 +252,7 @@ Branch: <branch名>
 ---
 
 初版制定: 2026-08-08  
-更新: 2026-08-09（Broadcast Read Verification Rule追加提案 / Issue #148、日本語ファースト原則追加提案 / Issue #216）  
-担当: 🌊ナギ  
-関連Issue: #101, #148, #216  
+更新: 2026-08-11（Owner Acceptance Close Gate / Issue #296）  
+担当: ♦️ソラ  
+関連Issue: #101, #148, #216, #296  
 Broadcast: #99
