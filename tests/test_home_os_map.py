@@ -117,6 +117,33 @@ def test_home_uses_canonical_visual_design_system() -> None:
     assert "sil-status-chip" not in home
 
 
+def test_today_open_links_have_distinct_accessible_names() -> None:
+    payload = home_os_map.load_os_map(CONFIG_PATH)
+    rendered = home_os_map.render_today(payload["today_entries"])
+
+    for entry in payload["today_entries"]:
+        if entry["availability"] == "AVAILABLE":
+            assert f'aria-label="{entry["label_ja"]}を開く"' in rendered
+    assert rendered.count(">開く</a>") == sum(
+        entry["availability"] == "AVAILABLE" for entry in payload["today_entries"]
+    )
+
+
+def test_home_mobile_layout_preserves_priority_and_anchor_compatibility() -> None:
+    home = HOME_PATH.read_text(encoding="utf-8")
+    css = HOME_LAYOUT_CSS.read_text(encoding="utf-8")
+
+    for heading_id in ("today-title", "status-title", "map-title", "entry-title"):
+        assert f'id="{heading_id}"' in home
+    assert '@media (max-width: 640px)' in css
+    assert ".home-priority-first" in css and "order: -1" in css
+    assert "scroll-margin-top" in css
+    assert "overflow-wrap: anywhere" in css
+    assert ".home-primary-grid .codex-summary-card" in css
+    assert "min-height: 0" in css
+    assert "min-height: 2.75rem" in css
+
+
 def test_home_remains_read_only_and_does_not_claim_priority_scoring() -> None:
     home = HOME_PATH.read_text(encoding="utf-8")
 
