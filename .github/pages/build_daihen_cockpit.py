@@ -2,10 +2,17 @@ from __future__ import annotations
 
 import html
 import json
+import sys
 from pathlib import Path
 from typing import Any, Mapping
 
 from scripts.daihen_operational_read_model import build_daihen_operational_read_model
+
+PAGES_DIR = Path(__file__).resolve().parent
+if str(PAGES_DIR) not in sys.path:
+    sys.path.insert(0, str(PAGES_DIR))
+
+from scenario_delta import ScenarioSnapshot, build_scenario_delta
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -23,6 +30,15 @@ STATUS_JA = {
     "CURRENT": "現在確認できる情報",
     "STALE": "情報が古いため再確認が必要",
     "UNKNOWN": "鮮度を確認できません",
+}
+
+DIRECTION_JA = {
+    "IMPROVED": "改善",
+    "UNCHANGED": "維持",
+    "DETERIORATED": "悪化",
+    "EXPANDED": "拡大",
+    "NARROWED": "縮小",
+    "UNKNOWN": "比較情報不足",
 }
 
 
@@ -73,6 +89,59 @@ def _scenario_card(label: str, scenario: Mapping[str, Any]) -> str:
     )
 
 
+def _scenario_delta(model: Mapping[str, Any]):
+    valuation = model["valuation"]
+    base = valuation.get("base") or {}
+    # The current acceptance source exposes only a canonical comparison ref, not
+    # the previous snapshot values. Preserve that missing evidence as UNKNOWN;
+    # never reconstruct the historical decision from today's values.
+    previous = ScenarioSnapshot(
+        scenario="UNKNOWN",
+        eps=None,
+        price=None,
+        forward_per=None,
+    )
+    current = ScenarioSnapshot(
+        scenario="Base" if base else "UNKNOWN",
+        eps=base.get("eps"),
+        price=None,
+        forward_per=base.get("forward_per"),
+    )
+    return build_scenario_delta(previous, current)
+
+
+def _scenario_delta_html(model: Mapping[str, Any]) -> str:
+    delta = _scenario_delta(model)
+    history = model["decision_history"]
+    previous_eps = "取得できません" if delta.previous.eps is None else f"{delta.previous.eps:,.2f}円"
+    current_eps = "取得できません" if delta.current.eps is None else f"{delta.current.eps:,.2f}円"
+    previous_per = "取得できません" if delta.previous.forward_per is None else f"{delta.previous.forward_per:,.2f}倍"
+    current_per = "取得できません" if delta.current.forward_per is None else f"{delta.current.forward_per:,.2f}倍"
+    return f"""
+<div class="content-card scenario-delta-summary">
+  <strong>前回から何が変わった？</strong>
+  <span class="status-chip">Scenario: {_e(delta.scenario_transition)}</span>
+  <span>{_e(delta.summary_ja)}</span>
+  <div class="content-grid scenario-delta-directions">
+    <div><strong>業績見通し</strong><span class="delta-indicator">{_e(DIRECTION_JA[delta.earnings_direction])} <code>{_e(delta.earnings_direction)}</code></span></div>
+    <div><strong>Valuation余地</strong><span class="delta-indicator">{_e(DIRECTION_JA[delta.valuation_direction])} <code>{_e(delta.valuation_direction)}</code></span></div>
+  </div>
+  <details class="progressive-disclosure">
+    <summary>Previous / Current の詳細値</summary>
+    <div class="table-scroll"><table>
+      <thead><tr><th>指標</th><th>Previous</th><th>Current</th></tr></thead>
+      <tbody>
+        <tr><th>Scenario</th><td>{_e(delta.previous.scenario)}</td><td>{_e(delta.current.scenario)}</td></tr>
+        <tr><th>EPS</th><td>{_e(previous_eps)}</td><td>{_e(current_eps)}</td></tr>
+        <tr><th>Forward PER</th><td>{_e(previous_per)}</td><td>{_e(current_per)}</td></tr>
+      </tbody>
+    </table></div>
+  </details>
+  <span class="muted">Previous snapshot値はCanonical sourceに存在する場合だけ表示します。現在値から過去値を逆算しません。比較ref: {_refs([history.get('comparison_ref')] if history.get('comparison_ref') else [])}</span>
+</div>
+"""
+
+
 def page_content(model: Mapping[str, Any]) -> str:
     review = model["review_context"]
     earnings = model["earnings_driver"]
@@ -96,28 +165,16 @@ def page_content(model: Mapping[str, Any]) -> str:
     base_profit = earnings.get("base_profit") or {}
     base_eps = earnings.get("base_eps") or {}
     guidance = earnings.get("company_guidance") or {}
-    base_profit_text = (
-        "取得できません"
-        if base_profit.get("value") is None
-        else f"{float(base_profit['value']):,.0f}百万円"
-    )
-    base_eps_text = (
-        "取得できません" if base_eps.get("value") is None else f"{float(base_eps['value']):,.2f}円"
-    )
-    guidance_text = (
-        "取得できません"
-        if guidance.get("net_income_million_jpy") is None
-        else f"{float(guidance['net_income_million_jpy']):,.0f}百万円"
-    )
+    base_profit_text = "取得できません" if base_profit.get("value") is None else f"{float(base_profit['value']):,.0f}百万円"
+    base_eps_text = "取得できません" if base_eps.get("value") is None else f"{float(base_eps['value']):,.2f}円"
+    guidance_text = "取得できません" if guidance.get("net_income_million_jpy") is None else f"{float(guidance['net_income_million_jpy']):,.0f}百万円"
 
-    scenario_html = "".join(
-        [
-            _scenario_card("Bear", valuation.get("bear") or {}),
-            _scenario_card("Base", valuation.get("base") or {}),
-            _scenario_card("Bull", valuation.get("bull") or {}),
-        ]
-    )
-
+    scenario_html = "".join([
+        _scenario_card("Bear", valuation.get("bear") or {}),
+        _scenario_card("Base", valuation.get("base") or {}),
+        _scenario_card("Bull", valuation.get("bull") or {}),
+    ])
+    delta_html = _scenario_delta_html(model)
     warning_html = _list(warnings, "重大warningなし")
     stale = freshness.get("stale_components") or []
     unknown = freshness.get("unknown_components") or []
@@ -137,7 +194,7 @@ permalink: /decision-cockpit/daihen/
 
 <div class="content-grid cockpit-first-view">
   <div class="content-card"><strong>なぜ今日見る？</strong><span>{_e(why_now_text)}</span><span class="muted">最終重要変化: {_e(last_change)}</span></div>
-  <div class="content-card"><strong>前回から何が変わった？</strong><span>判断時点snapshotは固定したまま、現在との差分参照を保持しています。</span><span>{_refs([history.get('comparison_ref')] if history.get('comparison_ref') else [])}</span></div>
+  {delta_html}
   <div class="content-card"><strong>今の投資仮説は？</strong><span>Health: <code>{_e(health)}</code></span><span>状態: {_status(hypothesis.get('status'))}</span></div>
 </div>
 

@@ -49,6 +49,33 @@ class DaihenCockpitPageTests(unittest.TestCase):
         self.assertIn("20.81倍", page)
         self.assertIn("14.05倍", page)
 
+    def test_scenario_delta_is_in_first_view_and_reuses_read_model(self):
+        model = MODULE.load_model()
+        delta = MODULE._scenario_delta(model)
+        page = MODULE.page_content(model)
+        self.assertEqual(delta.current.eps, 720.1)
+        self.assertEqual(delta.current.forward_per, 16.53)
+        self.assertIn("Scenario: UNKNOWN", page)
+        self.assertIn("業績見通し", page)
+        self.assertIn("Valuation余地", page)
+        self.assertIn("Previous / Current の詳細値", page)
+        self.assertIn("progressive-disclosure", page)
+        self.assertIn("delta-indicator", page)
+
+    def test_missing_previous_snapshot_fails_closed_instead_of_reconstructing_history(self):
+        model = MODULE.load_model()
+        delta = MODULE._scenario_delta(model)
+        self.assertEqual(delta.previous.scenario, "UNKNOWN")
+        self.assertIsNone(delta.previous.eps)
+        self.assertIsNone(delta.previous.price)
+        self.assertIsNone(delta.previous.forward_per)
+        self.assertEqual(delta.earnings_direction, "UNKNOWN")
+        self.assertEqual(delta.valuation_direction, "UNKNOWN")
+        page = MODULE.page_content(model)
+        self.assertIn("前回との差分を確定するための情報が不足しています。", page)
+        self.assertIn("現在値から過去値を逆算しません", page)
+        self.assertIn(model["decision_history"]["comparison_ref"], page)
+
 
 if __name__ == "__main__":
     unittest.main()
