@@ -34,6 +34,25 @@ class MoneyFlowPagesContractTests(unittest.TestCase):
         self.assertNotIn('"theme:gaming"', text)
         self.assertNotIn('"sector:foods"', text)
 
+    def test_page_reads_policy_lead_time_v2_without_reclassifying(self) -> None:
+        text = PAGE.read_text(encoding="utf-8")
+        self.assertIn("policy-lead-time-ai-dc-v2.json", text)
+        self.assertIn("policy-lead-time-defense-drone-v2.json", text)
+        self.assertIn("classification", text)
+        self.assertIn("data_quality", text)
+        self.assertIn("limitations", text)
+        self.assertIn("Policy EvidenceはMoney Flow scoreへ混ぜず", text)
+        self.assertIn("REACCELERATION_AFTER_POLICY", text)
+        self.assertIn("MARKET_LEADS", text)
+        self.assertNotIn("calculatePolicyClassification", text)
+        self.assertNotIn("policyScore", text)
+
+    def test_page_fail_closes_when_policy_artifact_is_missing(self) -> None:
+        text = PAGE.read_text(encoding="utf-8")
+        self.assertIn("Policy Lead-Time v2はまだ公開されていません", text)
+        self.assertIn("DATA UNAVAILABLE", text)
+        self.assertIn("response.status === 404", text)
+
 
 if __name__ == "__main__":
     unittest.main()
