@@ -26,6 +26,71 @@ def status_badge(status: object) -> str:
     return f'<span class="status-badge status-{normalized.lower()}">{esc(normalized)}</span>'
 
 
+def compact_value(value: object) -> str:
+    if value is None:
+        return "—"
+    if isinstance(value, bool):
+        return "yes" if value else "no"
+    if isinstance(value, float):
+        return fmt(value)
+    if isinstance(value, (str, int)):
+        return esc(value)
+    if isinstance(value, list):
+        return f"{len(value)} items"
+    if isinstance(value, dict):
+        return f"{len(value)} fields"
+    return esc(value)
+
+
+def section_summary(key: str, value: object) -> list[tuple[str, str]]:
+    if value is None:
+        return [("Data", "MISSING")]
+    if isinstance(value, list):
+        return [("Items", str(len(value)))]
+    if not isinstance(value, dict):
+        return [("Value", compact_value(value))]
+
+    preferred_keys = {
+        "market": ("phase", "risk_state", "indices", "breadth", "sentiment"),
+        "portfolio": ("positions", "exposure", "pnl", "updated_at", "as_of"),
+        "capital": ("cash_available", "buying_power", "margin_usage", "target_reserve", "capital_state"),
+        "investor_dna": (
+            "sample_count",
+            "trade_count",
+            "win_rate",
+            "profit_factor",
+            "native_dna",
+            "environment_fit",
+            "style_drift",
+            "risk_patterns",
+            "updated_at",
+            "as_of",
+        ),
+        "events": ("earnings", "economic", "company", "today", "upcoming"),
+    }
+    rows: list[tuple[str, str]] = []
+    for field in preferred_keys.get(key, ()):
+        if field in value:
+            rows.append((field, compact_value(value.get(field))))
+        if len(rows) >= 6:
+            break
+
+    if not rows:
+        for field, field_value in list(value.items())[:5]:
+            rows.append((str(field), compact_value(field_value)))
+
+    rows.append(("Available fields", str(len(value))))
+    return rows
+
+
+def raw_details(key: str, value: object) -> str:
+    rendered = json.dumps(value, ensure_ascii=False, indent=2)
+    return (
+        f'<details class="raw-json-details"><summary>Raw JSONを見る — {esc(key)}</summary>'
+        f'<pre><code>{esc(rendered)}</code></pre></details>\n\n'
+    )
+
+
 def build_page(payload: dict) -> str:
     quality = payload.get("data_quality") or {}
     sources = payload.get("source_status") or []
@@ -95,18 +160,28 @@ permalink: /research/morning-dataset/
     else:
         page += "- なし\n"
 
-    page += "\n## Input Sections\n\n"
+    page += "\n## Source Summaries\n\n"
+    page += "日次確認では要約を先に表示します。検証・デバッグ時だけ各セクションの Raw JSON を展開してください。\n\n"
     sections = ("market", "portfolio", "capital", "candidates", "investor_dna", "events", "watchlist")
     status_by_name = {row.get("name"): row.get("status") for row in sources}
+    source_by_name = {row.get("name"): row for row in sources}
     for key in sections:
         value = payload.get(key)
+        source_row = source_by_name.get(key) or {}
         section_status = status_by_name.get(key, "MISSING")
+        source_reference = source_row.get("source_reference") or source_row.get("source") or "—"
         page += f"### {key} — {section_status}\n\n"
-        if value is None:
-            page += "`MISSING`\n\n"
-        else:
-            rendered = json.dumps(value, ensure_ascii=False, indent=2)
-            page += f"```json\n{rendered}\n```\n\n"
+        page += (
+            f"- Status: {section_status}\n"
+            f"- As of: {esc(source_row.get('as_of') or '—')}\n"
+            f"- Source: {esc(source_reference)}\n"
+            f"- Reason: {esc(source_row.get('reason') or '—')}\n"
+        )
+        for label, summary_value in section_summary(key, value):
+            page += f"- {esc(label)}: {summary_value}\n"
+        page += "\n"
+        if value is not None:
+            page += raw_details(key, value)
 
     page += (
         "## Public JSON\n\n"
