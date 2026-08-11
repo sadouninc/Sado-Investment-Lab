@@ -11,6 +11,7 @@ from scripts.morning_dataset.providers import SectorRotationProvider
 ROOT = Path(__file__).resolve().parents[2]
 SITE_HOME = ROOT / "site-src" / "index.md"
 MORNING_DATASET = ROOT / "data" / "generated" / "public" / "morning-dataset.json"
+SECTOR_ROTATION_ROUTE = "/market-analysis/2026/sector-rotation/"
 
 STATUS_SECTION_START = '  <section class="home-os-section" aria-labelledby="status-title">'
 STATUS_SECTION_END = '  <section class="home-os-section" aria-labelledby="map-title">'
@@ -20,6 +21,14 @@ STATUS_LABELS = {
     "PARTIAL": ("caution", "一部情報不足"),
     "STALE": ("stale", "情報が古い"),
     "MISSING": ("unavailable", "取得できません"),
+}
+
+SECTOR_STATE_LABELS = {
+    "COLD": "静穏",
+    "WARMING": "温まり始め",
+    "INFLOW": "資金流入",
+    "HOT": "高温",
+    "OVERHEATED": "過熱",
 }
 
 
@@ -76,6 +85,79 @@ def with_sector_rotation(dataset: Mapping[str, Any]) -> dict[str, Any]:
     return merged
 
 
+def _transition_text(row: Mapping[str, Any]) -> tuple[str, str]:
+    previous = str(row.get("previous_state") or "UNKNOWN")
+    current = str(row.get("state") or "UNKNOWN")
+    if previous == "COLD" and current == "WARMING":
+        change = "↗ 初動"
+    elif previous == "WARMING" and current == "INFLOW":
+        change = "⇧ 流入へ移行"
+    elif previous == current:
+        change = "→ 継続"
+    else:
+        change = "↔ 状態変化"
+    return f"{previous} → {current}", change
+
+
+def render_sector_heatmap(dataset: Mapping[str, Any]) -> str:
+    source = _source_status(dataset, "sector_rotation")
+    status, token, label = _status(source.get("status"))
+    payload = dataset.get("sector_rotation") if isinstance(dataset.get("sector_rotation"), Mapping) else {}
+    sectors = payload.get("sectors") if isinstance(payload.get("sectors"), list) else []
+    as_of = payload.get("as_of") or source.get("as_of") or "時点不明"
+
+    if not sectors:
+        return f'''  <section class="home-os-section home-heatmap" aria-labelledby="heatmap-title">
+    <p class="eyebrow">MARKET HEATMAP</p>
+    <h2 id="heatmap-title">市場・テーマの動き</h2>
+    <p>今日の判断に影響しそうな変化を、既存Canonical stateだけで俯瞰します。</p>
+    <div class="codex-alert" data-state="unavailable">
+      <strong>Sector Rotationは取得できません</strong>
+      <p>{_e(source.get('reason') or 'canonical Sector snapshotが未接続です。')}</p>
+    </div>
+  </section>
+
+'''
+
+    cells: list[str] = []
+    for row in sectors:
+        if not isinstance(row, Mapping):
+            continue
+        state = str(row.get("state") or "UNKNOWN")
+        transition, change = _transition_text(row)
+        state_label = SECTOR_STATE_LABELS.get(state, "状態不明")
+        name = row.get("name") or row.get("id") or "名称不明"
+        cells.append(
+            '<article class="home-heatmap-cell" '
+            f'data-sector-state="{_e(state.lower())}">'
+            f'<span class="home-heatmap-cell__state">{_e(state_label)} / {_e(state)}</span>'
+            f'<h3>{_e(name)}</h3>'
+            f'<p class="home-heatmap-cell__transition">{_e(transition)}</p>'
+            f'<p class="home-heatmap-cell__change">{_e(change)}</p>'
+            '</article>'
+        )
+
+    grid = "\n".join(cells)
+    return f'''  <section class="home-os-section home-heatmap" aria-labelledby="heatmap-title">
+    <p class="eyebrow">MARKET HEATMAP</p>
+    <h2 id="heatmap-title">市場・テーマの動き</h2>
+    <p>TOPIX-17 Sector Rotationの前回→現在を表示します。Homeで独自score・ranking・BUY/SELLは生成しません。</p>
+    <div class="codex-alert" data-state="{token}">
+      <strong>Sector Rotation: {_e(label)} / {_e(status)}</strong>
+      <p>as of: {_e(as_of)} / source: canonical sector-history.jsonl</p>
+    </div>
+    <div class="home-heatmap-grid" aria-label="TOPIX-17 Sector Rotation HeatMap">
+{grid}
+    </div>
+    <div class="codex-evidence home-heatmap-evidence">
+      <a href="{{{{ '{SECTOR_ROTATION_ROUTE}' | relative_url }}}}">Sector Rotationの詳細を見る</a>
+      <p class="codex-evidence__meta">state / previous_state / as_of は既存Canonical値をそのまま表示しています。</p>
+    </div>
+  </section>
+
+'''
+
+
 def render_status_section(dataset: Mapping[str, Any] | None) -> str:
     if not isinstance(dataset, Mapping):
         return f'''{STATUS_SECTION_START}
@@ -84,6 +166,15 @@ def render_status_section(dataset: Mapping[str, Any] | None) -> str:
     <div class="codex-alert" data-state="unavailable">
       <strong>Morning Datasetを取得できません</strong>
       <p>取得不能を「問題なし」「最新」とは扱いません。Morning Dataset生成後に再確認してください。</p>
+    </div>
+  </section>
+
+  <section class="home-os-section home-heatmap" aria-labelledby="heatmap-title">
+    <p class="eyebrow">MARKET HEATMAP</p>
+    <h2 id="heatmap-title">市場・テーマの動き</h2>
+    <div class="codex-alert" data-state="unavailable">
+      <strong>HeatMapを表示できません</strong>
+      <p>Canonical sourceを取得できないため、状態を推測表示しません。</p>
     </div>
   </section>
 
@@ -127,7 +218,7 @@ def render_status_section(dataset: Mapping[str, Any] | None) -> str:
 {warning_html}
   </section>
 
-'''
+{render_sector_heatmap(dataset)}'''
 
 
 def load_dataset(path: Path = MORNING_DATASET) -> Mapping[str, Any] | None:
