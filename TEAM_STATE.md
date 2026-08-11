@@ -5,26 +5,56 @@
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
 Last updated: 2026-08-11  
-Sources: Issue #99 Current Active Board; #338  
-Broadcast head at snapshot: `comment_id=5247406486`
+Sources: Issue #99 Current Active Board; #338; #354  
+Broadcast head at snapshot: `comment_id=5249135907`
 
 ## User Mode
 
 - Mode: **ACTIVE**
 - Meaning: 👑サド is currently available to drive decisions/requests. Prepare Authority questions compactly and surface them promptly; do not invent Authority decisions.
+- Mode contract: #354. `ACTIVE` keeps normal roles. `AWAY` activates delegated autonomous operations below.
+
+## Mode Transition Contract
+
+### ACTIVE → AWAY
+The transition owner records one transaction before treating AWAY delegation as active:
+1. Set this file's User Mode to `AWAY`.
+2. Snapshot open implementation WIP, green Merge Gate items, unresolved Authority items, and material blockers in the transition record.
+3. Initialize ♦️ソラ's AWAY cadence at `AWAY_SORA_RUN_MOD3=1` on the first AWAY run. Every third AWAY run (`0`) includes `Delegated Nagi Process Check`.
+4. Verify `docs/handoffs/kaede-policy-intelligence.md` freshness and unresolved Next Checkpoints.
+5. 🌅アサヒ takes Policy Collection/Evidence continuity; ❤️レイ takes Policy Analysis/Hypothesis continuity.
+6. Never resolve Owner Authority merely because the Owner is AWAY; add it to the Authority backlog.
+
+### AWAY → ACTIVE
+1. Set User Mode to `ACTIVE`.
+2. Stop AWAY-only delegation/cadence and restore normal role priority.
+3. Summarize unresolved Authority items, green Merge Gates, material blockers, and delegated Process Check findings accumulated during AWAY.
+4. Summarize material Policy Intelligence changes from the Kaede handoff state.
+5. Present Owner decisions first; do not bury them behind routine progress.
+
+Transition evidence should be durable in GitHub (Issue #99 or the relevant process Issue). Chat history alone is not sufficient.
 
 ## Current Operating Model
 
-| Member | Current role / capacity |
-| --- | --- |
-| ♦️ソラ | **Main Implementation Owner** |
-| 🌊ナギ | Scrum Master / maintenance; **secondary implementation capacity when an independent READY slice exists** |
-| 🌙ルナ | Product / IA / Issue Design; prioritize queue refinement and dependency clarity |
-| ⭐️ミナ | **Design Authority / Product UI Designer**; create visual prototypes, persist them to GitHub, handoff, Design Gate |
-| ❤️レイ | AI Key Person Watch / #124 Operational Heartbeat |
-| 🌅アサヒ | Policy Collection / Policy Radar |
-| 🍁カエデ | Policy Intelligence / Hypothesis Builder |
-| 🤖カイ | Implementation Engineer only when explicitly assigned; do not enter an existing Single Owner scope |
+| Member | ACTIVE role / capacity | AWAY delegation |
+| --- | --- | --- |
+| ♦️ソラ | **Main Implementation Owner** | Main implementation + every 3rd run Delegated Nagi Process Check |
+| 🌊ナギ | Scrum Master / maintenance; **secondary implementation capacity when an independent READY slice exists** | No periodic dependency required; delegated checks handled by Sora |
+| 🌙ルナ | Product / IA / Issue Design; prioritize queue refinement and dependency clarity | Same role; avoid READY oversupply |
+| ⭐️ミナ | **Design Authority / Product UI Designer**; create visual prototypes, persist them to GitHub, handoff, Design Gate | Same role; unblock implementation flow |
+| ❤️レイ | AI Key Person Watch / #124 Operational Heartbeat | Same + Kaede Policy Analysis/Hypothesis continuity |
+| 🌅アサヒ | Policy Collection / Policy Radar | Same + Kaede Policy Collection/Evidence continuity |
+| 🍁カエデ | Policy Intelligence / Hypothesis Builder | Continuity is delegated to Asahi/Rei using GitHub handoff state |
+| 🤖カイ | Implementation Engineer only when explicitly assigned; do not enter an existing Single Owner scope | Same |
+
+## AWAY Authority Backlog Contract
+
+During AWAY, record but do not decide:
+- Owner-only Merge/Acceptance decisions
+- investment philosophy / risk threshold / BUY-SELL-HOLD Authority
+- ambiguous product choices explicitly reserved for 👑サド
+
+Each backlog item should contain: `ref`, `decision_needed`, `why_owner`, `safe_work_completed`, `next_action_on_active`. On ACTIVE return, these items are the first decision queue.
 
 ## Implementation Capacity / Queue
 
@@ -52,6 +82,7 @@ Current priority order (compact reference; read each Issue before work):
 - `TECHNICAL_INVESTIGATION` is normally work, not a reason to wait for the user.
 - Real blockers should classify Authority / Dependency / CI / Missing Artifact / Technical Investigation / External and state next action.
 - CI/external wait should trigger safe work on another non-conflicting READY/review/investigation item when available.
+- Open implementation PR WIP is normally capped at 2; when at cap, reduce merge distance before creating another implementation PR.
 - Issue #79: do not modify/comment/close/implement unless a later explicit authoritative instruction supersedes this constraint.
 
 ## Startup Sync v2
@@ -69,4 +100,4 @@ Fallback: if this file is missing/stale/inconsistent with #99 or TEAM_RULES, use
 
 ## Maintenance Ownership
 
-🌊ナギ checks for drift between this file, Issue #99 Current Active Board, active IMPLEMENTING declarations, and current Authority/handoff state. State changes that materially affect future runs should update this snapshot through the repository change flow.
+🌊ナギ checks for drift between this file, Issue #99 Current Active Board, active IMPLEMENTING declarations, and current Authority/handoff state while ACTIVE/when invoked. During AWAY, ♦️ソラ performs the delegated cross-team Process Check every third run. State changes that materially affect future runs should update this snapshot through the repository change flow.
