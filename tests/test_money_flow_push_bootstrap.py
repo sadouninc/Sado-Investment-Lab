@@ -36,6 +36,7 @@ class MoneyFlowPushBootstrapContractTest(unittest.TestCase):
         self.assertIn("EVENT_NAME: ${{ github.event_name }}", self.text)
         self.assertIn("DISTINCT_DATES", self.text)
         self.assertIn("[ \"$DISTINCT_DATES\" -le 1 ]", self.text)
+        self.assertIn("echo 'mode=SECTOR_BOOTSTRAP'", self.text)
         self.assertIn("echo 'bootstrap_sector_history=true'", self.text)
         self.assertIn("end = datetime.date.today() - datetime.timedelta(days=1)", self.text)
         self.assertIn("start = end - datetime.timedelta(days=8)", self.text)
@@ -54,6 +55,23 @@ class MoneyFlowPushBootstrapContractTest(unittest.TestCase):
             2,
         )
 
+    def test_sector_bootstrap_does_not_replay_theme_or_policy_history(self):
+        theme_backfill = self.text.split("- name: Run bounded historical backfill", 1)[1].split(
+            "- name: Run bounded Sector historical backfill", 1
+        )[0]
+        self.assertIn("if: steps.mode.outputs.mode == 'BACKFILL'", theme_backfill)
+        self.assertNotIn("SECTOR_BOOTSTRAP", theme_backfill)
+
+        sector_backfill = self.text.split("- name: Run bounded Sector historical backfill", 1)[1].split(
+            "- name: Refresh AI/DC Policy Lead-Time projection", 1
+        )[0]
+        self.assertIn("steps.mode.outputs.mode == 'SECTOR_BOOTSTRAP'", sector_backfill)
+
+        policy_refresh = self.text.split("- name: Refresh AI/DC Policy Lead-Time projection", 1)[1].split(
+            "- name: Persist canonical Market Evidence", 1
+        )[0]
+        self.assertNotIn("SECTOR_BOOTSTRAP", policy_refresh)
+
     def test_bootstrap_window_is_dynamic_and_trading_dates_remain_runner_owned(self):
         resolve_block = self.text.split("- name: Resolve run mode", 1)[1].split(
             "- name: Run guarded current-session snapshot", 1
@@ -66,10 +84,7 @@ class MoneyFlowPushBootstrapContractTest(unittest.TestCase):
     def test_canonical_refresh_explicitly_dispatches_pages_for_scheduled_and_backfill(self):
         self.assertIn("  actions: write\n", self.text)
         self.assertIn("Refresh Pages after canonical run", self.text)
-        self.assertIn(
-            "if: steps.mode.outputs.mode == 'BACKFILL' || steps.scheduled.outputs.status == 'COMPLETED'",
-            self.text,
-        )
+        self.assertIn("steps.mode.outputs.mode == 'SECTOR_BOOTSTRAP'", self.text)
         self.assertIn("GH_TOKEN: ${{ github.token }}", self.text)
         self.assertIn("gh workflow run publish-site.yml --ref main", self.text)
 
