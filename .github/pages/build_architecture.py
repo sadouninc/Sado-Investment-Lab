@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import re
+import shutil
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+PAGES = ROOT / ".github" / "pages"
 SOURCE = ROOT / "06_Research" / "Architecture"
-SITE = ROOT / "site-src" / "architecture"
+SITE_ROOT = ROOT / "site-src"
+SITE = SITE_ROOT / "architecture"
+DESIGN_SYSTEM_CSS = PAGES / "design-system.css"
 
 
 def slug(value: str) -> str:
@@ -36,7 +40,16 @@ def write(path: Path, content: str) -> None:
     path.write_text(content.rstrip() + "\n", encoding="utf-8")
 
 
+def publish_shared_assets() -> None:
+    if not DESIGN_SYSTEM_CSS.is_file():
+        raise FileNotFoundError(f"missing shared design system asset: {DESIGN_SYSTEM_CSS}")
+    destination = SITE_ROOT / "assets" / "design-system.css"
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(DESIGN_SYSTEM_CSS, destination)
+
+
 def main() -> None:
+    publish_shared_assets()
     sources = sorted(
         path for path in SOURCE.glob("*.md")
         if path.name.lower() != "readme.md"
