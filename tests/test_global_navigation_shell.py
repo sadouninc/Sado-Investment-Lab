@@ -79,7 +79,8 @@ class GlobalNavigationShellTest(unittest.TestCase):
         self.assertIn("overflow-x: auto", css)
         self.assertIn("scroll-snap-type: inline proximity", css)
         self.assertIn("mask-image: linear-gradient", css)
-        self.assertIn(".codex-nav-item:focus-visible,.codex-global-breadcrumb a:focus-visible", css)
+        self.assertIn(".codex-nav-item:focus-visible", css)
+        self.assertIn(".codex-global-breadcrumb a:focus-visible", css)
         self.assertIn('.codex-global-breadcrumb [aria-current="page"]', css)
         self.assertIn("overflow-wrap: anywhere", css)
         self.assertIn("max-height: 3.1em", css)
@@ -92,7 +93,7 @@ class GlobalNavigationShellTest(unittest.TestCase):
             root = Path(tmp)
             site_root = root / "site-src"
             layout = site_root / "_layouts" / "site.html"
-            layout.parent.mkdir(parents=True)
+            layout.parent.mkdir(parents=True, exist_ok=True)
             layout.write_text(legacy, encoding="utf-8")
             navigation_source = root / "navigation-v1.json"
             navigation_source.write_text((PAGES / "navigation-v1.json").read_text(encoding="utf-8"), encoding="utf-8")
