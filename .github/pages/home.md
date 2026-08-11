@@ -20,9 +20,9 @@ permalink: /
     <h2 id="today-title">今日見る</h2>
     <p>Home独自のBUY/SELL判定や優先順位スコアは作りません。既存のread-only画面へ直接進みます。</p>
     <div class="codex-summary-grid home-today-grid">
-<article class="codex-summary-card home-priority-first" data-availability="available"><span class="codex-status-chip" data-state="normal">利用可能</span><h3>朝の市場状況を見る</h3><p>Morning Reportで市場環境を確認し、気になる変化から必要な画面へ進みます。</p><a class="codex-action codex-action--primary" href="{{ '/reports/morning/' | relative_url }}">開く</a></article>
-<article class="codex-summary-card home-priority-first" data-availability="available"><span class="codex-status-chip" data-state="normal">利用可能</span><h3>ダイヘン 投資判断コックピット</h3><p>前回からの変化と投資仮説をDecision Cockpitで確認します。</p><a class="codex-action codex-action--primary" href="{{ '/decision-cockpit/daihen/' | relative_url }}">開く</a></article>
-<article class="codex-summary-card home-priority-first" data-availability="available"><span class="codex-status-chip" data-state="normal">利用可能</span><h3>売買前の影響を確認する</h3><p>ポートフォリオへの影響を売買前確認で点検します。</p><a class="codex-action codex-action--primary" href="{{ '/risk-preflight/' | relative_url }}">開く</a></article>
+<article class="codex-summary-card home-priority-first" data-availability="available"><span class="codex-status-chip" data-state="normal">利用可能</span><h3>朝の市場状況を見る</h3><p>Morning Reportで市場環境を確認し、気になる変化から必要な画面へ進みます。</p><a class="codex-action codex-action--primary" aria-label="朝の市場状況を見るを開く" href="{{ '/reports/morning/' | relative_url }}">開く</a></article>
+<article class="codex-summary-card home-priority-first" data-availability="available"><span class="codex-status-chip" data-state="normal">利用可能</span><h3>ダイヘン 投資判断コックピット</h3><p>前回からの変化と投資仮説をDecision Cockpitで確認します。</p><a class="codex-action codex-action--primary" aria-label="ダイヘン 投資判断コックピットを開く" href="{{ '/decision-cockpit/daihen/' | relative_url }}">開く</a></article>
+<article class="codex-summary-card home-priority-first" data-availability="available"><span class="codex-status-chip" data-state="normal">利用可能</span><h3>売買前の影響を確認する</h3><p>ポートフォリオへの影響を売買前確認で点検します。</p><a class="codex-action codex-action--primary" aria-label="売買前の影響を確認するを開く" href="{{ '/risk-preflight/' | relative_url }}">開く</a></article>
 </div>
   </section>
 
