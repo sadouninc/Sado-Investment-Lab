@@ -67,7 +67,7 @@ class GlobalNavigationShellTest(unittest.TestCase):
         shell = build_architecture.GLOBAL_NAVIGATION_SHELL
         self.assertIn('id="codex-global-breadcrumb"', shell)
         self.assertIn('aria-label="現在地"', shell)
-        self.assertIn("matchedRoute?.breadcrumb_segments_ja", shell)
+        self.assertIn("matchedRoute.breadcrumb_segments_ja", shell)
         self.assertIn("matchedRoute.user_facing_label_ja", shell)
         self.assertIn("pageTitle", shell)
         self.assertIn("label: '未分類'", shell)
