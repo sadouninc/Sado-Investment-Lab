@@ -27,6 +27,10 @@ jobs:
         with:
           ref: main
 
+      - name: Resolve Japan business date
+        shell: bash
+        run: echo "AS_OF_JST=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_ENV"
+
       - name: Generate market phase report
         run: python3 -m scripts.market_phase.pipeline
 
@@ -40,9 +44,17 @@ jobs:
             tests.test_portfolio_provider \
             tests.test_capital_provider \
             tests.test_candidates_provider \
+            tests.test_candidate_selector_provider \
             tests.test_events_provider \
             tests.test_watchlist_provider \
             tests.test_event_calendar_collector
+
+      - name: Generate Candidate Selector snapshot
+        run: |
+          python3 scripts/candidate_selector_sources.py \
+            --as-of "$AS_OF_JST" \
+            --output data/generated/public/candidate-selector.json \
+            --shortlist data/generated/public/candidate-selector-shortlist.md
 
       - name: Build canonical event calendar from reviewed inputs
         shell: bash
@@ -55,15 +67,19 @@ jobs:
               args+=(--source "${category}=${path}|repository-reviewed-${category}")
             fi
           done
-          python3 scripts/event_calendar_collector.py "${args[@]}" --output data/events/calendar.json
+          python3 scripts/event_calendar_collector.py \
+            "${args[@]}" \
+            --as-of "$AS_OF_JST" \
+            --output data/events/calendar.json
 
       - name: Generate Morning Dataset
         run: |
           python3 scripts/generate_morning_dataset.py \
+            --as-of "$AS_OF_JST" \
             --live-market \
             --repo-portfolio \
             --repo-capital \
-            --repo-candidates \
+            --selector-candidates \
             --repo-events \
             --repo-watchlist \
             --investor-dna data/generated/public/investor-dna.json
@@ -91,6 +107,11 @@ jobs:
                   assert payload[name] is not None, (name, payload[name])
                   assert row.get('source_reference'), row
               print(f'{name} source:', row['status'], row.get('as_of'), row.get('reason'))
+
+          assert payload['as_of'] == __import__('os').environ['AS_OF_JST'], payload['as_of']
+          candidates=next(row for row in payload['source_status'] if row['name']=='candidates')
+          if candidates['status'] == 'OK':
+              assert candidates['source_reference'] == 'data/generated/public/candidate-selector.json', candidates
           PY
 
       - name: Test context optimizer
@@ -130,5 +151,5 @@ jobs:
             echo "No report changes to commit."
             exit 0
           fi
-          git commit -m "chore: add AI morning report $(date -u +%F)"
+          git commit -m "chore: add AI morning report ${AS_OF_JST}"
           git push origin HEAD:main
