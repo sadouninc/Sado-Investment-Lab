@@ -4,7 +4,7 @@
 >
 > Purpose: show the target Codex structure, the current build state, the next build order, and planned evolution without treating Issue state itself as product completion state.
 
-- Architecture version: v1.1-route-verification
+- Architecture version: v1.2-runtime-sync
 - Last reviewed: 2026-08-11
 - Source authority: repository state + GitHub Issue/PR state + reviewed architecture decisions
 - Status rule: route/page existence must be verified independently; an open/closed Issue is never copied mechanically into page status.
@@ -16,6 +16,7 @@
 
 - Canonical Pages design-system foundation is in production use on Home.
 - Home / OS Map is user-reachable at `/` and already exposes verified entries into Company Research, Decision Cockpit, Risk Preflight, Trade Journal, and research tools.
+- Git-Native Agentic Runtime Architecture (#349) is now a completed canonical architecture deliverable: CURRENT runtime text, four reviewed diagrams, and a summary-first Pages/read-model source are merged.
 - Existing Investment OS knowledge/data/runtime layers remain authoritative; this document is a roadmap/status view, not a new investment-data SSoT.
 
 ### IMPLEMENTATION BUILD ORDER
@@ -37,7 +38,6 @@ This is the team implementation dependency order. It is the answer to **“what 
 - Decision Journal / history finalization, including #316 zero-trade / `NOT_EXECUTED` projection and reachability
 - Review / Learning hierarchy
 - Remaining high-value Concept pages
-- Backend Runtime Architecture visualization (#349)
 
 The order above is dependency-aware, not frozen. Existing IMPLEMENTING work should not be interrupted merely to satisfy this document.
 
@@ -69,37 +69,29 @@ HOME
 │   │   ├─ Market Intelligence
 │   │   ├─ News / Daily Context
 │   │   └─ Money Flow
-│   │
 │   ├─ 2 Discover / 発見
 │   │   ├─ Candidate Selector
 │   │   └─ Developing Signals
-│   │
 │   ├─ 3 Understand / 理解
 │   │   └─ Company Research
-│   │
 │   ├─ 4 Hypothesize / 仮説
 │   │   ├─ Investment Hypothesis
 │   │   ├─ Earnings Engine
 │   │   └─ Bear / Base / Bull
-│   │
 │   ├─ 5 Decide / 判断
 │   │   ├─ Cockpit Concept
 │   │   └─ Company Decision Cockpit
-│   │
 │   ├─ 6 Act / 行動
 │   │   ├─ Trade Intent
 │   │   ├─ Portfolio Preflight
 │   │   └─ Execute / Pass
-│   │
 │   ├─ 7 Record / 記録
 │   │   ├─ Decision Journal
 │   │   └─ Decision Snapshot / History
-│   │
 │   ├─ 8 Learn / 振り返り
 │   │   ├─ Decision Review
 │   │   ├─ Learning / Pattern Lab
 │   │   └─ Investment Episode
-│   │
 │   └─ 9 Re-observe / 再観測
 │       └─ Market / Checkpoint loop
 │
@@ -108,16 +100,16 @@ HOME
 ├─ CONCEPT / HOW-TO
 └─ ARCHITECTURE
     ├─ Investment OS / Repository Architecture
-    └─ Backend / Runtime Architecture (#349)
+    └─ Git-Native Agentic Runtime Architecture (#349) — DONE
 ```
 
 This is the target information architecture. A node is not considered live until its actual route/artifact and user reachability have both been verified.
 
 ## 4. Node registry
 
-Evidence basis for verified routes in this revision: merged Home adoption PR #343 and Company Cards integration PR #375.
+Evidence basis for verified routes: merged Home adoption PR #343 and Company Cards integration PR #375. Architecture deliverable completion is verified separately from user-route `LIVE` status.
 
-| Node ID | Display name | Stage | Page status | Concept status | Route | Reachability evidence | Related issues | Next change |
+| Node ID | Display name | Stage | Page status | Concept status | Route | Reachability / completion evidence | Related issues | Next change |
 |---|---|---:|---|---|---|---|---|---|
 | `global.home` | Home | Global | `LIVE` | n/a | `/` | root permalink / primary entry | #312 | Continue Home read-model refinement without creating Home-only truth |
 | `global.codex-map` | Codex Map / OS Overview | Global | `LIVE` | n/a | `/` | embedded in Home Investment OS map | #312, #309 | Keep status/context aligned with real user journey |
@@ -131,11 +123,11 @@ Evidence basis for verified routes in this revision: merged Home adoption PR #34
 | `decide.cockpit` | Investment Decision Cockpit | 5 Decide | `LIVE` | `NEXT` | `/decision-cockpit/daihen/` | Home primary entry / Today entry | #317, #308 | Node-local NEXT: Cockpit Concept + prior/current/delta context |
 | `act.trade-intent` | Trade Intent | 6 Act | `PLANNED` | `DESIGNED` | null | not verified as user surface | #307 | Define practical transition from decision to intended action |
 | `act.preflight` | Portfolio Preflight | 6 Act | `LIVE` | `DESIGNED` | `/risk-preflight/` | Home primary entry / Today entry | #307, #313 | Connect intent semantics without changing canonical portfolio authority |
-| `record.decision-journal` | Decision Journal / Snapshot / History | 7 Record | `LIVE` | `DESIGNED` | `/trade-journal/` | Home primary entry; final semantic/reachability slice still tracked by #316 | #133, #316 | Preserve `0 trades != 0 decisions`, `NOT_EXECUTED != PASS`; finalize 2026-08-10 projection/index reachability |
+| `record.decision-journal` | Decision Journal / Snapshot / History | 7 Record | `LIVE` | `DESIGNED` | `/trade-journal/` | Home primary entry; final semantic/reachability slice still tracked by #316 | #133, #316 | Preserve `0 trades != 0 decisions`, `NOT_EXECUTED != PASS`; finalize projection/index reachability |
 | `learn.review` | Decision Review | 8 Learn | `DESIGNED` | `PLANNED` | null | no dedicated reachable surface verified | #141 | Clarify review priority and evidence-delta drill-down |
 | `learn.pattern-lab` | Decision Pattern Lab | 8 Learn | `DESIGNED` | `PLANNED` | null | no dedicated reachable surface verified | #135 | Broaden learning beyond trade-only analysis |
 | `reobserve.checkpoints` | Catalyst / Checkpoint Timeline | 9 Re-observe | `PLANNED` | `PLANNED` | null | no route verified | #130, #141 | Close loop back into observation/review |
-| `architecture.runtime` | Git-Native Agentic Runtime Architecture | Architecture | `DESIGNED` | n/a | null | canonical runtime doc not yet implemented | #349 | PR1 canonical runtime doc, then diagrams; Pages later |
+| `architecture.runtime` | Git-Native Agentic Runtime Architecture | Architecture | `DONE` | n/a | null | #349 PR1 canonical runtime doc + PR2 four diagrams + PR3 summary-first Pages/read-model source merged | #349 | Maintain as architecture changes; do not invent a standalone public route without #314/navigation review |
 
 ## 5. Build Order
 
@@ -168,8 +160,9 @@ Rules:
 | `record.journal.zero-trade` | `record.decision-journal` | `NEXT` | Preserve zero-trade day, `NOT_EXECUTED`, and index/user reachability in the final journal slice | #316 | High |
 | `act.intent-preflight` | `act.trade-intent` / `act.preflight` | `PLANNED` | Connect decision to trade intent and portfolio preflight | #307 | High |
 | `observe.money-flow.daily` | `observe.money-flow` | `PLANNED` | Turn Money Flow into a dependable daily operational input | #305 | High |
-| `architecture.runtime.current` | `architecture.runtime` | `PLANNED` | Document CURRENT runtime model before future-state diagrams | #349 | High |
-| `architecture.runtime.diagrams` | `architecture.runtime` | `PLANNED` | Add Runtime, Git State Machine, and Versioned Input diagrams | #349 | Medium |
+| `architecture.runtime.current` | `architecture.runtime` | `DONE` | CURRENT Git-native runtime contract is canonical and merged | #349 | High |
+| `architecture.runtime.diagrams` | `architecture.runtime` | `DONE` | System Overview, Runtime, Git State Machine, Versioned Input diagrams are merged | #349 | Medium |
+| `architecture.runtime.pages` | `architecture.runtime` | `DONE` | Summary-first architecture Pages/read-model source is merged | #349 | Medium |
 
 ## 7. Authority and non-overlap
 
@@ -178,7 +171,7 @@ Rules:
 - #313: Concept / How-to architecture. This document tracks which concepts exist or are planned; it does not own their prose.
 - #314: navigation authority. This document does not invent route taxonomy.
 - #317: Cockpit-specific concept. This document places it under Decide and tracks its build state.
-- #349: backend/runtime architecture. It is a separate architecture view, not a child implementation detail of the user-facing 9-stage loop.
+- #349: runtime architecture is a completed separate architecture view; future runtime changes should update its canonical artifacts rather than reopen #324 merely for history.
 
 ## 8. Maintenance contract
 
@@ -198,7 +191,7 @@ Idea
 → update last reviewed
 ```
 
-Drift checks to add in a later slice:
+Drift checks remain candidates for future automation when they have enough value to justify a dedicated implementation slice:
 
 - route is non-null but artifact is missing
 - artifact exists but has no verified user entry path while status says `LIVE`
@@ -207,6 +200,8 @@ Drift checks to add in a later slice:
 - stale `last_reviewed`
 - multiple conflicting global implementation-next claims
 - multiple conflicting node-local `NEXT` changes without an explicit priority
+
+These are maintenance opportunities, not blockers to the #324 canonical baseline. They should be implemented only through a concrete non-duplicate Issue if/when drift cost justifies automation.
 
 ## 9. Architecture plane context
 
@@ -232,4 +227,4 @@ A reader should be able to answer within roughly 30 seconds:
 4. Which Issue owns each meaningful evolution item?
 5. Which routes are verified and user-reachable versus merely planned?
 
-The document should remain useful even when individual Issues open/close, because status is tied to actual artifacts, user reachability, and reviewed architecture state rather than Issue state alone.
+The canonical baseline now satisfies this role. Future product evolution should update this living document through the Issue that changes the relevant node; #324 itself does not need to remain open merely to represent ongoing maintenance.
