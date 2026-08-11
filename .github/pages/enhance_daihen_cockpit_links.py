@@ -8,6 +8,8 @@ from scripts.cockpit_ref_resolver import first_resolved_href
 
 ROOT = Path(__file__).resolve().parents[2]
 TARGET = ROOT / "site-src" / "decision-cockpit" / "daihen" / "index.md"
+CONCEPT_GUIDE_ROUTE = "/concepts/investment-decision-cockpit/"
+CONCEPT_GUIDE_SOURCE = ROOT / "site-src" / "concepts" / "investment-decision-cockpit" / "index.md"
 START = "<!-- cockpit-drilldown:start -->"
 END = "<!-- cockpit-drilldown:end -->"
 
@@ -21,6 +23,15 @@ def _cta(label: str, refs: object, *, unavailable_text: str) -> str:
 
 def _refs_with_prefix(refs: object, prefix: str) -> list[str]:
     return [str(ref) for ref in list(refs or []) if str(ref).startswith(prefix)]
+
+
+def _concept_help_link() -> str:
+    if not CONCEPT_GUIDE_SOURCE.is_file():
+        return '<span class="muted">見方ガイドは現在利用できません</span>'
+    return (
+        "[この画面の見方・判断コックピットの読み方]"
+        f"({{{{ '{CONCEPT_GUIDE_ROUTE}' | relative_url }}}})"
+    )
 
 
 def _block(model: Mapping[str, Any]) -> str:
@@ -43,6 +54,7 @@ def _block(model: Mapping[str, Any]) -> str:
             "",
             "疑問が生じた箇所から、存在が確認できるCanonical詳細だけへ移動します。未生成routeは推測しません。",
             "",
+            "- 画面の見方: " + _concept_help_link(),
             "- 利益予想の根拠: " + _cta("ダイヘン企業研究を開く", earnings_refs, unavailable_text="詳細ページ未生成"),
             "- Valuationの根拠: " + _cta("Forward PER詳細を開く", valuation_refs, unavailable_text="Forward PER専用ページはまだありません。Canonical refは画面内に保持しています"),
             "- 投資仮説: " + _cta("仮説詳細を開く", hypothesis_refs, unavailable_text="仮説専用ページはまだありません。Canonical refは画面内に保持しています"),
