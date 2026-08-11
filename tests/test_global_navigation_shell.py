@@ -63,6 +63,23 @@ class GlobalNavigationShellTest(unittest.TestCase):
         self.assertEqual("record", group_for("/trade-journal/2026/08/2026-08-04/"))
         self.assertEqual("decide", group_for("/decision-cockpit/daihen/"))
 
+    def test_breadcrumb_shell_uses_route_truth_and_fail_safe_semantics(self):
+        shell = build_architecture.GLOBAL_NAVIGATION_SHELL
+        self.assertIn('id="codex-global-breadcrumb"', shell)
+        self.assertIn('aria-label="現在地"', shell)
+        self.assertIn("matchedRoute?.breadcrumb_segments_ja", shell)
+        self.assertIn("matchedRoute.user_facing_label_ja", shell)
+        self.assertIn("pageTitle", shell)
+        self.assertIn("label: '未分類'", shell)
+        self.assertIn("currentPath !== matchedRoute.route", shell)
+        self.assertIn("span.setAttribute('aria-current', 'page')", shell)
+
+    def test_cockpit_has_explicit_japanese_breadcrumb_segments(self):
+        payload = navigation.load_navigation(PAGES / "navigation-v1.json")
+        cockpit = next(row for row in payload["routes"] if row.get("route") == "/decision-cockpit/daihen/")
+        self.assertEqual(["投資判断コックピット", "ダイヘン"], cockpit["breadcrumb_segments_ja"])
+        self.assertEqual("decide", cockpit["primary_journey_stage"])
+
     def test_publish_navigation_shell_is_idempotent(self):
         legacy = """<head>\n  <link rel=\"stylesheet\" href=\"{{ '/assets/book.css' | relative_url }}\">\n</head>\n<body>\n  <header class=\"site-header\">\n    <a>old</a>\n  </header>\n</body>\n"""
         with tempfile.TemporaryDirectory() as tmp:
@@ -92,6 +109,7 @@ class GlobalNavigationShellTest(unittest.TestCase):
 
             self.assertEqual(first, second)
             self.assertEqual(1, first.count('class="codex-global-header"'))
+            self.assertEqual(1, first.count('id="codex-global-breadcrumb"'))
             self.assertEqual(1, first.count("/assets/design-system.css"))
             self.assertTrue((site_root / "_data" / "navigation.json").is_file())
 
