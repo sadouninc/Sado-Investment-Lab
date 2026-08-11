@@ -91,10 +91,11 @@ def publish_shared_assets() -> None:
         raise FileNotFoundError(f"missing shared design system asset: {DESIGN_SYSTEM_CSS}")
     if not INSTRUMENT_SPRITE.is_file():
         raise FileNotFoundError(f"missing Codex instrument sprite: {INSTRUMENT_SPRITE}")
-    assets = SITE_ROOT / "assets"
-    assets.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(DESIGN_SYSTEM_CSS, assets / "design-system.css")
-    shutil.copy2(INSTRUMENT_SPRITE, assets / "instruments.svg")
+    design_system_destination = SITE_ROOT / "assets" / "design-system.css"
+    instrument_destination = SITE_ROOT / "assets" / "instruments.svg"
+    design_system_destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(DESIGN_SYSTEM_CSS, design_system_destination)
+    shutil.copy2(INSTRUMENT_SPRITE, instrument_destination)
 
 
 def publish_navigation_shell() -> None:
