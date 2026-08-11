@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-UPDATED = re.compile(r"^Updated:\s*(.+?)\s*$", re.MULTILINE)
+UPDATED = re.compile(r"^\s*(?:>\s*)?Updated:\s*(.+?)\s*$", re.MULTILINE)
 HEADING = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 TITLE = re.compile(r"^#\s+.+?\s*$", re.MULTILINE)
 
