@@ -1,0 +1,11 @@
+{
+  "first_inflow_date": "2025-10-09",
+  "first_warming_date": "2025-01-09",
+  "limitations": [
+    "RETROSPECTIVE_MEMBERSHIP"
+  ],
+  "policy_t0": "2024-10-04",
+  "policy_to_inflow_days": 370,
+  "policy_to_warming_days": 97,
+  "theme_id": "theme:defense-drone-small-mass-domestic"
+}

@@ -1,0 +1,228 @@
+{
+  "limitations": [
+    "BENCHMARK_PROXY",
+    "NARROW_MEMBERSHIP",
+    "RETROSPECTIVE_MEMBERSHIP"
+  ],
+  "members": [
+    {
+      "company_name": "Terra Drone",
+      "security_code": "278A",
+      "symbol": "278A.T"
+    },
+    {
+      "company_name": "ACSL",
+      "security_code": "6232",
+      "symbol": "6232.T"
+    }
+  ],
+  "membership_as_of": "2026-08-11",
+  "membership_authority": "Issue #259 completed canonical membership",
+  "membership_version": "2026-08-11-v1",
+  "policy_checkpoints": [
+    {
+      "date": "2022-12-16",
+      "evaluation": {
+        "classification": "DATA_LIMITED",
+        "data_quality": "LIMITED",
+        "limitations": [
+          "BENCHMARK_PROXY",
+          "COMPANY_PROXY_ONLY",
+          "NARROW_MEMBERSHIP",
+          "RETROSPECTIVE_MEMBERSHIP",
+          "THEME_BREADTH_NOT_AVAILABLE"
+        ],
+        "policy_evidence_in_market_score": false,
+        "policy_t0": "2022-12-16",
+        "post_policy_persistence": false,
+        "post_policy_reacceleration": false,
+        "raw_first": {
+          "first_market_date": "2025-01-09",
+          "inflow_date": "2025-10-09",
+          "policy_to_inflow_days": 1028,
+          "policy_to_warming_days": 755,
+          "warming_date": "2025-01-09"
+        },
+        "reliable_first": {
+          "first_market_date": "2025-01-09",
+          "inflow_date": "2025-10-09",
+          "policy_to_inflow_days": 1028,
+          "policy_to_warming_days": 755,
+          "warming_date": "2025-01-09"
+        },
+        "schema_version": 2
+      },
+      "label": "National Defense Strategy / Defense Buildup Program",
+      "phase": "COMPANY_PROXY_ACSL_ONLY",
+      "policy_stage": "STRATEGY",
+      "sequence_summary": {
+        "pre_policy_state": null,
+        "reliable_first_post_policy_inflow": "2025-10-09",
+        "reliable_first_post_policy_warming": "2025-01-09",
+        "reliable_strongest_post_policy_state": "OVERHEATED",
+        "reliable_strongest_pre_policy_state": null,
+        "state_at_or_before_policy": null
+      }
+    },
+    {
+      "date": "2024-10-02",
+      "evaluation": {
+        "classification": "DATA_LIMITED",
+        "data_quality": "LIMITED",
+        "limitations": [
+          "BENCHMARK_PROXY",
+          "COMPANY_PROXY_ONLY",
+          "NARROW_MEMBERSHIP",
+          "RETROSPECTIVE_MEMBERSHIP",
+          "THEME_BREADTH_NOT_AVAILABLE"
+        ],
+        "policy_evidence_in_market_score": false,
+        "policy_t0": "2024-10-02",
+        "post_policy_persistence": false,
+        "post_policy_reacceleration": false,
+        "raw_first": {
+          "first_market_date": "2025-01-09",
+          "inflow_date": "2025-10-09",
+          "policy_to_inflow_days": 372,
+          "policy_to_warming_days": 99,
+          "warming_date": "2025-01-09"
+        },
+        "reliable_first": {
+          "first_market_date": "2025-01-09",
+          "inflow_date": "2025-10-09",
+          "policy_to_inflow_days": 372,
+          "policy_to_warming_days": 99,
+          "warming_date": "2025-01-09"
+        },
+        "schema_version": 2
+      },
+      "label": "First small attack UAV procurement signal",
+      "phase": "COMPANY_PROXY_ACSL_ONLY",
+      "policy_stage": "PROCUREMENT_SIGNAL",
+      "sequence_summary": {
+        "pre_policy_state": null,
+        "reliable_first_post_policy_inflow": "2025-10-09",
+        "reliable_first_post_policy_warming": "2025-01-09",
+        "reliable_strongest_post_policy_state": "OVERHEATED",
+        "reliable_strongest_pre_policy_state": null,
+        "state_at_or_before_policy": null
+      }
+    },
+    {
+      "date": "2026-05-12",
+      "evaluation": {
+        "classification": "REACCELERATION_AFTER_POLICY",
+        "data_quality": "OK",
+        "limitations": [
+          "BENCHMARK_PROXY",
+          "NARROW_MEMBERSHIP",
+          "RETROSPECTIVE_MEMBERSHIP"
+        ],
+        "policy_evidence_in_market_score": false,
+        "policy_t0": "2026-05-12",
+        "post_policy_persistence": true,
+        "post_policy_reacceleration": true,
+        "raw_first": {
+          "first_market_date": "2025-01-09",
+          "inflow_date": "2025-10-09",
+          "policy_to_inflow_days": -215,
+          "policy_to_warming_days": -488,
+          "warming_date": "2025-01-09"
+        },
+        "reliable_first": {
+          "first_market_date": "2025-01-09",
+          "inflow_date": "2025-10-09",
+          "policy_to_inflow_days": -215,
+          "policy_to_warming_days": -488,
+          "warming_date": "2025-01-09"
+        },
+        "schema_version": 2
+      },
+      "label": "Domestic mass-production / stable procurement policy",
+      "phase": "TWO_STOCK_THEME",
+      "policy_stage": "DOMESTIC_MASS_PRODUCTION",
+      "sequence_summary": {
+        "pre_policy_state": {
+          "as_of": "2026-05-11",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "OVERHEATED"
+        },
+        "reliable_first_post_policy_inflow": null,
+        "reliable_first_post_policy_warming": null,
+        "reliable_strongest_post_policy_state": "OVERHEATED",
+        "reliable_strongest_pre_policy_state": "OVERHEATED",
+        "state_at_or_before_policy": {
+          "as_of": "2026-05-12",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "OVERHEATED"
+        }
+      }
+    },
+    {
+      "date": "2026-07-01",
+      "evaluation": {
+        "classification": "MARKET_LEADS",
+        "data_quality": "OK",
+        "limitations": [
+          "BENCHMARK_PROXY",
+          "NARROW_MEMBERSHIP",
+          "RETROSPECTIVE_MEMBERSHIP"
+        ],
+        "policy_evidence_in_market_score": false,
+        "policy_t0": "2026-07-01",
+        "post_policy_persistence": false,
+        "post_policy_reacceleration": false,
+        "raw_first": {
+          "first_market_date": "2025-01-09",
+          "inflow_date": "2025-10-09",
+          "policy_to_inflow_days": -265,
+          "policy_to_warming_days": -538,
+          "warming_date": "2025-01-09"
+        },
+        "reliable_first": {
+          "first_market_date": "2025-01-09",
+          "inflow_date": "2025-10-09",
+          "policy_to_inflow_days": -265,
+          "policy_to_warming_days": -538,
+          "warming_date": "2025-01-09"
+        },
+        "schema_version": 2
+      },
+      "label": "Rapid acquisition / demonstration phase",
+      "phase": "TWO_STOCK_THEME",
+      "policy_stage": "RAPID_ACQUISITION_WINDOW",
+      "sequence_summary": {
+        "pre_policy_state": {
+          "as_of": "2026-06-30",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "COLD"
+        },
+        "reliable_first_post_policy_inflow": null,
+        "reliable_first_post_policy_warming": null,
+        "reliable_strongest_post_policy_state": "COLD",
+        "reliable_strongest_pre_policy_state": "OVERHEATED",
+        "state_at_or_before_policy": {
+          "as_of": "2026-07-01",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "COLD"
+        }
+      }
+    }
+  ],
+  "policy_evidence_in_market_score": false,
+  "pre_listing_phase": "COMPANY_PROXY_ACSL_ONLY",
+  "schema_version": 1,
+  "source_refs": {
+    "company_evidence": "Issue #321",
+    "membership": "Issue #259",
+    "money_flow_history": "data/generated/public/money-flow/history.jsonl",
+    "theme_config": "data/config/money-flow-themes-v1.json"
+  },
+  "theme_id": "theme:defense-drone-small-mass-domestic",
+  "theme_name": "Defense Drone / Small Mass Domestic Procurement",
+  "two_stock_theme_from": "2024-11-29"
+}
