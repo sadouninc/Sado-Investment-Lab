@@ -13,8 +13,7 @@ MODULE_PATH = ROOT / ".github" / "pages" / "home_os_map.py"
 CONFIG_PATH = ROOT / ".github" / "pages" / "os-map-v1.json"
 TEMPLATE_PATH = ROOT / ".github" / "pages" / "home-os-map-template.md"
 HOME_PATH = ROOT / ".github" / "pages" / "home.md"
-DESIGN_SYSTEM_SOURCE = ROOT / ".github" / "pages" / "design-system-v1.css"
-DESIGN_SYSTEM_PUBLISHED = ROOT / "assets" / "images" / "design-system-v1.css"
+DESIGN_SYSTEM_SOURCE = ROOT / ".github" / "pages" / "design-system.css"
 HOME_LAYOUT_CSS = ROOT / "assets" / "images" / "home-os-map.css"
 
 SPEC = importlib.util.spec_from_file_location("home_os_map", MODULE_PATH)
@@ -83,7 +82,7 @@ def test_unavailable_destination_must_fail_closed_without_route() -> None:
     )
     observe = rendered.split('data-stage-id="observe"', 1)[1].split("</article>", 1)[0]
     assert "接続先は未設定です" in observe
-    assert "sil-evidence-link" not in observe
+    assert "codex-action--secondary" not in observe
 
 
 def test_unavailable_destination_cannot_keep_a_guessed_route() -> None:
@@ -95,27 +94,27 @@ def test_unavailable_destination_cannot_keep_a_guessed_route() -> None:
         home_os_map.validate_os_map(broken)
 
 
-def test_home_publishes_canonical_visual_design_system_v1() -> None:
+def test_home_uses_canonical_visual_design_system() -> None:
     home = HOME_PATH.read_text(encoding="utf-8")
     source_css = DESIGN_SYSTEM_SOURCE.read_text(encoding="utf-8")
-    published_css = DESIGN_SYSTEM_PUBLISHED.read_text(encoding="utf-8")
     layout_css = HOME_LAYOUT_CSS.read_text(encoding="utf-8")
 
-    assert source_css == published_css
-    assert "/assets/images/design-system-v1.css" in home
+    assert "/assets/design-system.css" in home
+    assert "/assets/images/design-system-v1.css" not in home
     assert "/assets/images/home-os-map.css" in home
     for class_name in (
-        "sil-summary-card",
-        "sil-status-chip",
-        "sil-action",
-        "sil-evidence-link",
-        "sil-disclosure",
+        "codex-summary-card",
+        "codex-status-chip",
+        "codex-action",
+        "codex-disclosure",
     ):
         assert f".{class_name}" in source_css
         assert class_name in home
-    assert "--sil-accent-primary:" not in layout_css
-    assert "--sil-state-unavailable:" not in layout_css
-    assert "var(--sil-" in layout_css
+    assert "--sil-" not in layout_css
+    assert "var(--sil-" not in layout_css
+    assert "var(--codex-" in layout_css
+    assert "sil-summary-card" not in home
+    assert "sil-status-chip" not in home
 
 
 def test_home_remains_read_only_and_does_not_claim_priority_scoring() -> None:
