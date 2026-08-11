@@ -7,7 +7,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from scripts.money_flow_history import load_history
-from scripts.money_flow_sector_canonical_run import canonical_sector_set, persist_sector_set, run_backfill
+from scripts.money_flow_sector_canonical_run import SectorCanonicalRunError, canonical_sector_set, persist_sector_set, run_backfill
 
 DETECTOR = {
     "required_axes": ["relative_strength", "activity", "breadth", "heat", "acceleration"],
@@ -120,6 +120,87 @@ class SectorCanonicalRunTests(unittest.TestCase):
             latest = [row for row in rows if row["as_of"] == "2026-08-10"]
             self.assertEqual({row["state"] for row in latest}, {"WARMING"})
             self.assertEqual({row["previous_state"] for row in latest}, {"WARMING"})
+
+    def test_backfill_rebuilds_existing_window_snapshot_instead_of_conflicting(self):
+        end = date(2026, 8, 10)
+        detector = copy.deepcopy(DETECTOR)
+        detector["thresholds"].update({
+            "warming_score": 0,
+            "inflow_score": 101,
+            "hot_score": 102,
+            "overheated_heat": 101,
+            "max_heat_for_warming": 100,
+            "max_heat_for_inflow": 100,
+        })
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            history = root / "sector-history.jsonl"
+            sector_config = root / "sector.json"
+            detector_config = root / "detector.json"
+            import json
+            sector_config.write_text(json.dumps(CONFIG), encoding="utf-8")
+            detector_config.write_text(json.dumps(detector), encoding="utf-8")
+
+            def fetch(symbol: str, range_: str, interval: str) -> dict:
+                return weekday_chart(end, .05 if symbol == "^TOPX" else .2)
+
+            initial = canonical_sector_set(
+                as_of=end,
+                sector_config=CONFIG,
+                detector_config=detector,
+                history=[],
+                fetcher=fetch,
+            )
+            persist_sector_set(history, initial)
+            self.assertEqual({row["state"] for row in load_history(history)}, {"COLD"})
+
+            result = run_backfill(
+                start=date(2026, 8, 5),
+                end=end,
+                history_path=history,
+                sector_config_path=sector_config,
+                detector_config_path=detector_config,
+                fetcher=fetch,
+            )
+
+            self.assertEqual(result["replaced_existing_sector_rows"], 2)
+            rows = load_history(history)
+            self.assertEqual(len(rows), 8)
+            latest = [row for row in rows if row["as_of"] == "2026-08-10"]
+            self.assertEqual({row["state"] for row in latest}, {"WARMING"})
+
+    def test_backfill_rejects_window_that_stops_before_latest_existing_sector_snapshot(self):
+        end = date(2026, 8, 10)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            history = root / "sector-history.jsonl"
+            sector_config = root / "sector.json"
+            detector_config = root / "detector.json"
+            import json
+            sector_config.write_text(json.dumps(CONFIG), encoding="utf-8")
+            detector_config.write_text(json.dumps(DETECTOR), encoding="utf-8")
+
+            def fetch(symbol: str, range_: str, interval: str) -> dict:
+                return weekday_chart(end, .05 if symbol == "^TOPX" else .2)
+
+            initial = canonical_sector_set(
+                as_of=end,
+                sector_config=CONFIG,
+                detector_config=DETECTOR,
+                history=[],
+                fetcher=fetch,
+            )
+            persist_sector_set(history, initial)
+
+            with self.assertRaisesRegex(SectorCanonicalRunError, "latest existing Sector snapshot date"):
+                run_backfill(
+                    start=date(2026, 8, 5),
+                    end=date(2026, 8, 7),
+                    history_path=history,
+                    sector_config_path=sector_config,
+                    detector_config_path=detector_config,
+                    fetcher=fetch,
+                )
 
 
 if __name__ == "__main__":
