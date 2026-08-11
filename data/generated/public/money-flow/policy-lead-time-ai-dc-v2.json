@@ -1,0 +1,57 @@
+{
+  "evaluation": {
+    "classification": "DATA_LIMITED",
+    "data_quality": "LIMITED",
+    "limitations": [
+      "RETROSPECTIVE_MEMBERSHIP"
+    ],
+    "policy_evidence_in_market_score": false,
+    "policy_t0": "2024-10-04",
+    "post_policy_persistence": false,
+    "post_policy_reacceleration": false,
+    "raw_first": {
+      "first_market_date": "2024-09-26",
+      "inflow_date": "2024-09-26",
+      "policy_to_inflow_days": -8,
+      "policy_to_warming_days": 32,
+      "warming_date": "2024-11-05"
+    },
+    "reliable_first": {
+      "first_market_date": "2024-11-06",
+      "inflow_date": "2024-11-08",
+      "policy_to_inflow_days": 35,
+      "policy_to_warming_days": 33,
+      "warming_date": "2024-11-06"
+    },
+    "schema_version": 2
+  },
+  "policy_evidence_in_market_score": false,
+  "sequence_summary": {
+    "first_post_policy_inflow": "2024-11-08",
+    "first_post_policy_warming": "2024-11-05",
+    "pre_policy_state": {
+      "as_of": "2024-10-03",
+      "data_completeness": "PARTIAL",
+      "reliable": false,
+      "state": "COLD"
+    },
+    "reliable_first_post_policy_inflow": "2024-11-08",
+    "reliable_first_post_policy_warming": "2024-11-06",
+    "reliable_strongest_post_policy_state": "OVERHEATED",
+    "reliable_strongest_pre_policy_state": null,
+    "state_at_or_before_policy": {
+      "as_of": "2024-10-04",
+      "data_completeness": "PARTIAL",
+      "reliable": false,
+      "state": "COLD"
+    },
+    "strongest_post_policy_state": "OVERHEATED",
+    "strongest_pre_policy_state": "INFLOW"
+  },
+  "source_refs": {
+    "money_flow_history": "data/generated/public/money-flow/history.jsonl",
+    "v1_lead_time": "data/generated/public/money-flow/policy-lead-time-ai-dc.json"
+  },
+  "theme_id": "theme:ai-data-center-power-infrastructure",
+  "v1_preserved": true
+}
