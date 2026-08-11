@@ -32,6 +32,25 @@ class DaihenCockpitLinkTests(unittest.TestCase):
         self.assertIn("仮説専用ページはまだありません", page)
         self.assertIn("Decision History専用ページはまだありません", page)
 
+    def test_adds_accessible_in_context_concept_help(self):
+        model = BUILDER.load_model()
+        page = ENHANCER.enhance_page(BUILDER.page_content(model), model)
+        self.assertTrue(ENHANCER.CONCEPT_GUIDE_SOURCE.is_file())
+        self.assertIn("画面の見方", page)
+        self.assertIn("この画面の見方・判断コックピットの読み方", page)
+        self.assertIn(ENHANCER.CONCEPT_GUIDE_ROUTE, page)
+
+    def test_concept_help_fails_closed_when_guide_is_missing(self):
+        original = ENHANCER.CONCEPT_GUIDE_SOURCE
+        try:
+            ENHANCER.CONCEPT_GUIDE_SOURCE = HERE / "fixtures" / "missing-concept-guide.md"
+            self.assertEqual(
+                ENHANCER._concept_help_link(),
+                '<span class="muted">見方ガイドは現在利用できません</span>',
+            )
+        finally:
+            ENHANCER.CONCEPT_GUIDE_SOURCE = original
+
     def test_does_not_guess_unpublished_routes(self):
         model = BUILDER.load_model()
         page = ENHANCER.enhance_page(BUILDER.page_content(model), model)
