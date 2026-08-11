@@ -7,6 +7,7 @@ from typing import Any, Mapping
 from scripts.portfolio_risk_preflight_adapter import (
     PortfolioRiskAdapterError,
     calculate_trade_impact_from_canonical,
+    canonical_data_status,
 )
 
 
@@ -93,8 +94,51 @@ def validate_intent(intent: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _verified_long_quantity(
-    portfolio: Mapping[str, Any], *, security_code: str, account_type: str
+    portfolio: Mapping[str, Any],
+    *,
+    security_code: str,
+    account_type: str,
+    captured_at: str,
+    max_age_days: int | None,
 ) -> float:
+    verification = str(portfolio.get("verification_status") or "").strip().upper()
+    if not verification:
+        raise WhatIfIntentError(
+            "canonical portfolio verification_status is unavailable",
+            state="SOURCE_UNAVAILABLE",
+        )
+    if verification != "VERIFIED":
+        raise WhatIfIntentError(
+            f"SELL requires a VERIFIED canonical portfolio; got {verification}",
+            state="NOT_JUDGABLE",
+        )
+    if not str(portfolio.get("authority") or "").strip():
+        raise WhatIfIntentError(
+            "canonical portfolio authority is unavailable",
+            state="SOURCE_UNAVAILABLE",
+        )
+    if not str(portfolio.get("base_snapshot") or "").strip():
+        raise WhatIfIntentError(
+            "canonical portfolio snapshot ref is unavailable",
+            state="SOURCE_UNAVAILABLE",
+        )
+    try:
+        data_status = canonical_data_status(
+            portfolio, captured_at=captured_at, max_age_days=max_age_days
+        )
+    except PortfolioRiskAdapterError as exc:
+        raise WhatIfIntentError(str(exc), state="SOURCE_UNAVAILABLE") from exc
+    if data_status == "STALE":
+        raise WhatIfIntentError(
+            "canonical portfolio is stale; refresh before SELL holding checks",
+            state="SOURCE_STALE",
+        )
+    if data_status != "CURRENT":
+        raise WhatIfIntentError(
+            "canonical portfolio is not current enough for SELL holding checks",
+            state="NOT_JUDGABLE",
+        )
+
     positions = portfolio.get("positions")
     if not isinstance(positions, list):
         raise WhatIfIntentError("canonical portfolio positions are unavailable", state="SOURCE_UNAVAILABLE")
@@ -119,11 +163,16 @@ def _verified_long_quantity(
             )
         if str(row.get("position_type") or "").strip() == wanted_type:
             try:
-                total += float(row.get("quantity"))
+                quantity = float(row.get("quantity"))
             except (TypeError, ValueError):
                 raise WhatIfIntentError(
                     "canonical holding quantity is invalid", state="SOURCE_UNAVAILABLE"
                 )
+            if isinstance(row.get("quantity"), bool) or not math.isfinite(quantity) or quantity <= 0:
+                raise WhatIfIntentError(
+                    "canonical holding quantity is invalid", state="SOURCE_UNAVAILABLE"
+                )
+            total += quantity
     return total
 
 
@@ -154,6 +203,8 @@ def preview_what_if(
             portfolio_before,
             security_code=normalized["security_code"],
             account_type=normalized["account_type"],
+            captured_at=captured_at,
+            max_age_days=max_age_days,
         )
         if normalized["quantity"] > holding:
             raise WhatIfIntentError(
