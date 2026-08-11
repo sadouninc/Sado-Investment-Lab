@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<svg xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <g id="compass" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M15.5 8.5l-2.1 4.9-4.9 2.1 2.1-4.9z"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></g>
-    <g id="telescope" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l11-4 2 5-11 4zM15 5l3-1 2 5-3 1M9 12l3 3M12 15l-3 6M12 15l5 6"/></g>
-    <g id="microscope" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h5v3H9zM10 6l-2 7M8 13a5 5 0 006 6M6 21h12M13 8l3 5M12 14h6"/></g>
-    <g id="balance" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M6 21h12M5 7h14M8 7l-4 7h8zM16 7l-4 7h8z"/></g>
-    <g id="ledger" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h13a1 1 0 011 1v16H6a2 2 0 01-2-2V5a2 2 0 012-2zM8 3v17M11 8h5M11 12h5M11 16h4"/></g>
-    <g id="quill" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c4-7 8-13 16-17-1 8-5 14-12 16M7 17l8-8M10 13l5 1M13 9l4 1"/></g>
+    <g id="home" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M15.5 8.5l-2.1 4.9-4.9 2.1 2.1-4.9z"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></g>
+    <g id="discover" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l11-4 2 5-11 4zM15 5l3-1 2 5-3 1M9 12l3 3M12 15l-3 6M12 15l5 6"/></g>
+    <g id="understand" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h5v3H9zM10 6l-2 7M8 13a5 5 0 006 6M6 21h12M13 8l3 5M12 14h6"/></g>
+    <g id="decide" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M6 21h12M5 7h14M8 7l-4 7h8zM16 7l-4 7h8z"/></g>
+    <g id="record" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h13a1 1 0 011 1v16H6a2 2 0 01-2-2V5a2 2 0 012-2zM8 3v17M11 8h5M11 12h5M11 16h4"/></g>
+    <g id="review" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c4-7 8-13 16-17-1 8-5 14-12 16M7 17l8-8M10 13l5 1M13 9l4 1"/></g>
   </defs>
 </svg>
