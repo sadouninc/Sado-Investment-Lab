@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import html
 import json
 from pathlib import Path
 
@@ -15,6 +16,32 @@ REQUIRED = {
     "non_goals", "contract_refs", "last_reviewed_at",
 }
 FAIL_CLOSED_STATES = {"UNKNOWN", "UNAVAILABLE", "STALE"}
+ROUTE_LABELS = {
+    "/decision-cockpit/daihen/": "Live Cockpitを開く",
+    "/risk-preflight/": "売買前の影響を確認する",
+    "/trade-journal/": "判断・取引の記録を見る",
+    "/companies/": "企業研究の根拠を見る",
+    "/framework/": "投資Frameworkを確認する",
+}
+STATUS_TOKENS = {
+    "UNKNOWN": "unknown",
+    "UNAVAILABLE": "unavailable",
+    "STALE": "stale",
+}
+# #317 Product/IA contract: Cockpit first view completes Decide. Act/Record are handoffs.
+FIRST_VIEW_CHECKS = (
+    "前回判断からの変化",
+    "市場期待との差",
+    "Warning・Thesis Health（仮説の健全性）",
+)
+DECIDE_FLOW = (
+    "対象・鮮度を確認",
+    "前回との差",
+    "市場期待との差",
+    "Warning・Thesis Health",
+    "Evidenceを確認",
+    "現在の判断を整理",
+)
 
 
 def load_json(path: Path) -> dict:
@@ -47,52 +74,109 @@ def validate_concept(record: dict, os_map: dict) -> None:
         raise ValueError("state meanings must be explicit")
 
 
+def _link(ref: str, class_name: str = "codex-action codex-action--secondary") -> str:
+    label = html.escape(ROUTE_LABELS.get(ref, ref))
+    route = html.escape(ref, quote=True)
+    return f'<a class="{class_name}" href="{{{{ \'{route}\' | relative_url }}}}">{label}</a>'
+
+
 def render(record: dict, os_map: dict) -> str:
     before = copy.deepcopy(record)
     validate_concept(record, os_map)
-    checks = "\n".join(f"{i}. {text}" for i, text in enumerate(record["first_checks"], 1))
-    states = "\n".join(f"- **{item['status']}** — {item['meaning_ja']}" for item in record["common_states"])
-    next_links = "\n".join(f"- [{ref}]({{{{ '{ref}' | relative_url }}}})" for ref in record["next_destination_refs"])
-    evidence = "\n".join(f"- [{ref}]({{{{ '{ref}' | relative_url }}}})" for ref in record["evidence_refs"])
-    non_goals = "\n".join(f"- {text}" for text in record["non_goals"])
-    flow = " → ".join(record["decision_flow_ja"])
+
+    checks = "\n".join(
+        '<article class="codex-summary-card">'
+        f'<p class="codex-card-question">最初に見る {index}</p>'
+        f'<h3>{html.escape(text)}</h3>'
+        '</article>'
+        for index, text in enumerate(FIRST_VIEW_CHECKS, 1)
+    )
+    states = "\n".join(
+        '<article class="codex-alert" '
+        f'data-state="{STATUS_TOKENS[item["status"]]}">'
+        f'<strong><span class="codex-status-chip" data-state="{STATUS_TOKENS[item["status"]]}">'
+        f'{html.escape(item["status"])}</span></strong>'
+        f'<p>{html.escape(item["meaning_ja"])}</p>'
+        '</article>'
+        for item in record["common_states"]
+    )
+    next_links = "\n".join(_link(ref) for ref in record["next_destination_refs"])
+    evidence = "\n".join(
+        '<div class="codex-evidence">'
+        f'{_link(ref, "codex-action codex-action--secondary")}'
+        '<div class="codex-evidence__meta">Canonical source / route truthを参照</div>'
+        '</div>'
+        for ref in record["evidence_refs"]
+    )
+    non_goals = "\n".join(f"<li>{html.escape(text)}</li>" for text in record["non_goals"])
+    flow = " → ".join(html.escape(item) for item in DECIDE_FLOW)
+    contracts = " / ".join(html.escape(item) for item in record["contract_refs"])
+
     output = f'''---
 layout: site
 title: Investment Decision Cockpit — 見方ガイド
 permalink: /concepts/investment-decision-cockpit/
 ---
 
-# Investment Decision Cockpit — 見方ガイド
+<link rel="stylesheet" href="{{{{ '/assets/design-system.css' | relative_url }}}}">
 
-## この機能は何のため？
-{record['purpose_ja']}
+<div class="codex-page-shell">
+  <header class="codex-page-header">
+    <span class="codex-instrument-icon" aria-hidden="true">◇</span>
+    <p class="codex-card-question">Sado Investment Codex / 5 判断</p>
+    <h1>Investment Decision Cockpit — 見方ガイド</h1>
+    <p>{html.escape(record['purpose_ja'])}</p>
+    <div class="codex-page-header__meta">
+      <span>最終確認: {html.escape(record['last_reviewed_at'])}</span>
+      <span>Concept contract: {contracts}</span>
+    </div>
+  </header>
 
-## 最初に見る3点
+  <section aria-labelledby="first-checks">
+    <h2 id="first-checks">最初の30秒で見る3点</h2>
+    <p>まず対象と鮮度を確認し、変化・期待差・仮説の健全性を見ます。売買前のポートフォリオ影響は、判断を整理した後のRisk Preflightで確認します。</p>
+    <div class="codex-summary-grid">
 {checks}
+    </div>
+  </section>
 
-## なぜ見る？
-{record['why_it_matters']}
+  <section aria-labelledby="decision-flow">
+    <h2 id="decision-flow">判断の流れ — What do I think?</h2>
+    <div class="codex-evidence">
+      <strong>{flow}</strong>
+      <div class="codex-evidence__meta">Cockpitは「自分は今どう考えるか」を整理するDecideの画面です。「何をするか」はRisk Preflightへ、実行後の記録はTrade Journalへhandoffします。</div>
+    </div>
+  </section>
 
-### 判断の流れ
-`{flow}`
-
-## 状態の意味
+  <section aria-labelledby="state-meaning">
+    <h2 id="state-meaning">状態の意味</h2>
+    <p>取得不能や古い情報を、正常・中立・悲観へ丸めません。</p>
 {states}
+  </section>
 
-## 次に進む
+  <section aria-labelledby="next-actions">
+    <h2 id="next-actions">判断の次に進む</h2>
+    <p>ここから先はAct / Recordです。Cockpitの判断材料と混ぜず、目的ごとの既存画面へ進みます。</p>
+    <div class="codex-action-row">
+      {_link(record['route_ref'], 'codex-action codex-action--primary')}
 {next_links}
+    </div>
+  </section>
 
-## 根拠を見る
+  <section aria-labelledby="evidence-links">
+    <h2 id="evidence-links">根拠を見る</h2>
 {evidence}
+  </section>
 
-<details class="sil-disclosure">
-<summary>この機能がしないこと</summary>
-<div class="sil-disclosure__body">
+  <details class="codex-disclosure">
+    <summary>この機能がしないこと</summary>
+    <div class="codex-disclosure__body">
+      <ul>
 {non_goals}
+      </ul>
+    </div>
+  </details>
 </div>
-</details>
-
-> 最終確認: {record['last_reviewed_at']} / Contract: {' / '.join(record['contract_refs'])}
 '''
     if record != before:
         raise AssertionError("Concept rendering mutated canonical input")
