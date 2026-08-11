@@ -4,12 +4,21 @@ import re
 import shutil
 from pathlib import Path
 
+from company_cards import (
+    render_company_detail,
+    render_company_index_card,
+    render_company_page_summary,
+    summarize_company,
+)
+
 
 ROOT = Path(__file__).resolve().parents[2]
 PAGES = ROOT / ".github" / "pages"
 SOURCE = ROOT / "06_Research" / "Architecture"
+COMPANY_SOURCE = ROOT / "03_Companies"
 SITE_ROOT = ROOT / "site-src"
 SITE = SITE_ROOT / "architecture"
+COMPANY_SITE = SITE_ROOT / "companies"
 DESIGN_SYSTEM_CSS = PAGES / "design-system.css"
 INSTRUMENT_SPRITE = PAGES / "instruments.svg"
 NAVIGATION_SOURCE = PAGES / "navigation-v1.json"
@@ -171,9 +180,52 @@ def publish_navigation_shell() -> None:
     SITE_LAYOUT.write_text(layout, encoding="utf-8")
 
 
+def publish_company_cards() -> None:
+    """Overwrite legacy long-form Company output with a summary-first read model.
+
+    Canonical research files stay unchanged. Missing metrics remain unavailable instead of
+    being inferred by the presentation layer.
+    """
+    sources = sorted(
+        path
+        for path in COMPANY_SOURCE.glob("*/*.md")
+        if path.name.lower() != "readme.md"
+    )
+    groups: dict[str, list[str]] = {}
+    for source in sources:
+        category = source.parent.name
+        category_slug = slug(category)
+        page_slug = slug(source.stem)
+        title = title_from_markdown(source)
+        url = f"/companies/{category_slug}/{page_slug}/"
+        content = source.read_text(encoding="utf-8")
+        summary = summarize_company(title, category, source, content)
+        groups.setdefault(category, []).append(
+            render_company_index_card(title, category, url, source.name)
+        )
+
+        page = front_matter(title, f"{title}の企業分析", url)
+        page += render_company_page_summary(summary)
+        page += "\n"
+        page += render_company_detail(content)
+        write(COMPANY_SITE / category_slug / page_slug / "index.md", page)
+
+    index = front_matter("Companies", "企業品質と投資機会を30秒で把握するCompany Cards", "/companies/")
+    index += '<section class="codex-page-shell">\n'
+    index += '<header class="codex-page-header"><h1>Companies</h1><p>企業ごとのCanonical Researchを、推測せずSummary-firstで確認します。</p></header>\n'
+    for category, cards in groups.items():
+        index += f"<h2>{category}</h2>\n"
+        index += '<div class="codex-summary-grid">\n' + "\n".join(cards) + "\n</div>\n"
+    if not groups:
+        index += '<div class="codex-alert" data-state="unavailable"><strong>公開中の企業分析はありません。</strong></div>\n'
+    index += "</section>\n"
+    write(COMPANY_SITE / "index.md", index)
+
+
 def main() -> None:
     publish_shared_assets()
     publish_navigation_shell()
+    publish_company_cards()
     sources = sorted(path for path in SOURCE.glob("*.md") if path.name.lower() != "readme.md")
     cards: list[str] = []
     for source in sources:

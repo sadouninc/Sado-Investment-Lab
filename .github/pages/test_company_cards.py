@@ -18,7 +18,8 @@ class CompanyCardContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.content = (
             "# ダイヘン（6622）\n\n"
-            "Updated: 2026-08-08\n\n"
+            "> **Sado投資レポート**\n>\n"
+            "> Updated: 2026-08-08\n\n"
             "## AIサマリー\n\n既存研究。\n\n"
             "## 1. Research Provenance\n\nSource。\n\n"
             "## 5. Research Status / Missing Data\n\n未補完。\n"
@@ -35,6 +36,15 @@ class CompanyCardContractTests(unittest.TestCase):
         self.assertEqual(len(self.summary.sections), 3)
         self.assertIn("Research Status / Missing Data", self.summary.sections[-1])
 
+    def test_plain_updated_metadata_remains_supported(self) -> None:
+        summary = company_cards.summarize_company(
+            "Example",
+            "Test",
+            Path("example.md"),
+            "# Example\n\nUpdated: 2026-08-09\n\n## Thesis\n\nText\n",
+        )
+        self.assertEqual(summary.freshness, "2026-08-09")
+
     def test_summary_surface_uses_canonical_design_system_primitives(self) -> None:
         rendered = company_cards.render_company_page_summary(self.summary)
         for primitive in (
@@ -48,15 +58,17 @@ class CompanyCardContractTests(unittest.TestCase):
             self.assertIn(primitive, rendered)
         self.assertIn("Freshness: 2026-08-08", rendered)
         self.assertIn("推測しない", rendered)
+        self.assertIn("未接続値はUNAVAILABLE", rendered)
         self.assertNotIn("96 / 100", rendered)
 
-    def test_long_research_is_progressively_disclosed(self) -> None:
+    def test_long_research_is_progressively_disclosed_without_duplicate_h1(self) -> None:
         rendered = company_cards.render_company_detail(self.content)
         self.assertIn('<details class="codex-disclosure"', rendered)
         self.assertIn("Company Research 詳細", rendered)
-        self.assertIn(self.content.strip(), rendered)
+        self.assertIn("## AIサマリー", rendered)
+        self.assertNotIn("# ダイヘン（6622）", rendered)
 
-    def test_missing_freshness_is_explicit(self) -> None:
+    def test_missing_freshness_is_explicit_and_unavailable(self) -> None:
         summary = company_cards.summarize_company(
             "Example",
             "Test",
@@ -65,6 +77,7 @@ class CompanyCardContractTests(unittest.TestCase):
         )
         rendered = company_cards.render_company_page_summary(summary)
         self.assertIn("更新日未記録", rendered)
+        self.assertIn('data-state="unavailable"', rendered)
 
     def test_index_card_is_compact_and_category_aware(self) -> None:
         rendered = company_cards.render_company_index_card(
