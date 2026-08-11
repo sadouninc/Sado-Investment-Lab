@@ -22,9 +22,10 @@ class MorningDatasetTest(unittest.TestCase):
         )
         self.assertEqual("1.0", payload["schema_version"])
         self.assertEqual("MISSING", payload["data_quality"]["status"])
-        self.assertEqual("0 / 7", payload["data_quality"]["completeness_label"])
-        self.assertEqual(7, payload["data_quality"]["source_counts"]["MISSING"])
+        self.assertEqual("0 / 8", payload["data_quality"]["completeness_label"])
+        self.assertEqual(8, payload["data_quality"]["source_counts"]["MISSING"])
         self.assertIsNone(payload["capital"]["buying_power"])
+        self.assertIsNone(payload["sector_rotation"])
         self.assertTrue(payload["warnings"])
 
     def test_supplied_facts_are_preserved_without_ai_ranking(self) -> None:
@@ -40,16 +41,16 @@ class MorningDatasetTest(unittest.TestCase):
         self.assertEqual(dna, payload["investor_dna"])
         self.assertNotIn("recommendation", payload)
         self.assertEqual("PARTIAL", payload["data_quality"]["status"])
-        self.assertEqual("2 / 7", payload["data_quality"]["completeness_label"])
+        self.assertEqual("2 / 8", payload["data_quality"]["completeness_label"])
 
     def test_all_sources_produce_ok_quality(self) -> None:
         payload = build_dataset(
-            market={}, portfolio={}, capital={}, candidates=[], investor_dna={}, events={}, watchlist=[]
+            market={}, portfolio={}, capital={}, candidates=[], investor_dna={}, events={}, watchlist=[], sector_rotation={}
         )
         self.assertEqual("OK", payload["data_quality"]["status"])
         self.assertEqual(1.0, payload["data_quality"]["completeness"])
-        self.assertEqual("7 / 7", payload["data_quality"]["completeness_label"])
-        self.assertEqual(7, payload["data_quality"]["source_counts"]["OK"])
+        self.assertEqual("8 / 8", payload["data_quality"]["completeness_label"])
+        self.assertEqual(8, payload["data_quality"]["source_counts"]["OK"])
 
     def test_partial_and_stale_sources_are_visible_but_not_counted_as_complete(self) -> None:
         payload = build_dataset(
@@ -71,7 +72,7 @@ class MorningDatasetTest(unittest.TestCase):
             },
         )
         quality = payload["data_quality"]
-        self.assertEqual("0 / 7", quality["completeness_label"])
+        self.assertEqual("0 / 8", quality["completeness_label"])
         self.assertEqual(2, quality["usable_sources"])
         self.assertEqual(1, quality["source_counts"]["STALE"])
         self.assertEqual(1, quality["source_counts"]["PARTIAL"])

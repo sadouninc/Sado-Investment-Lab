@@ -15,6 +15,7 @@ TOP_LEVEL_FIELDS = (
     "investor_dna",
     "events",
     "watchlist",
+    "sector_rotation",
     "warnings",
     "source_status",
 )
@@ -52,6 +53,7 @@ EMPTY_DATASET = {
         "company": None,
     },
     "watchlist": None,
+    "sector_rotation": None,
     "warnings": [],
     "source_status": [],
 }

@@ -13,6 +13,7 @@ EXPECTED_SOURCES = (
     "investor_dna",
     "events",
     "watchlist",
+    "sector_rotation",
 )
 
 
