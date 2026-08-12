@@ -35,10 +35,21 @@ class StrongWatchProjectionPublicationContractTest(unittest.TestCase):
         self.assertIn("Energy segment利益をAI/DC単独利益として扱いません", text)
         self.assertIn("受注先行と利益転換未確認を分離", text)
 
+    def test_public_title_and_origin_story_make_comparison_intent_explicit(self):
+        text = PROJECTION.read_text(encoding="utf-8")
+        self.assertTrue(text.startswith("# データセンター電源・通信インフラ関連3社 比較レビュー"))
+        self.assertIn("ジェンスン・フアン / NVIDIA", text)
+        self.assertIn("先行シグナル（NVIDIA / AI投資） → 資本流入 → データセンター建設 → 電源・通信設備 → 3社の受注・増産 → 売上・利益", text)
+        self.assertIn("先行シグナルが3社の業績へ実際に伝播したか", text)
+        self.assertIn("SWCC (5805)", text)
+        self.assertIn("富士電機 (6504)", text)
+        self.assertIn("ダイヘン (6622)", text)
+        self.assertNotIn("# AI/DC Strong Watch 3 — Investment Review Projection", text)
+
     def test_strong_watch_page_is_summary_first_and_mobile_stackable(self):
         text = PROJECTION.read_text(encoding="utf-8")
         summary = company_cards.summarize_company(
-            "AI/DC Strong Watch 3 — Investment Review Projection",
+            "データセンター電源・通信インフラ関連3社 比較レビュー",
             "Infrastructure",
             COMPANY_LINK,
             text,
