@@ -236,6 +236,146 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
 
+  preview:
+    name: pages-preview
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout preview tooling
+        uses: actions/checkout@v6
+
+      - name: Download built Pages artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: preview-artifact
+
+      - name: Prepare isolated preview
+        id: prepare
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          mkdir preview-site
+          tar -xf preview-artifact/artifact.tar -C preview-site
+          built_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          python3 .github/pages/prepare_pr_preview.py \
+            --root preview-site \
+            --owner "${GITHUB_REPOSITORY_OWNER}" \
+            --repo "${GITHUB_REPOSITORY#*/}" \
+            --namespace "pr-${PR_NUMBER}" \
+            --pr-number "${PR_NUMBER}" \
+            --head-sha "${HEAD_SHA}" \
+            --built-at "${built_at}"
+
+      - name: Publish preview namespace
+        id: publish
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: pages-previews
+          publish_dir: preview-site
+          destination_dir: pr-${{ github.event.pull_request.number }}
+          keep_files: true
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit_message: >-
+            preview: PR #${{ github.event.pull_request.number }}
+            at ${{ github.event.pull_request.head.sha }}
+
+      - name: Resolve immutable preview URL
+        id: url
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          preview_ref="$(git ls-remote origin refs/heads/pages-previews | cut -f1)"
+          test -n "${preview_ref}"
+          base="https://raw.githack.com/${GITHUB_REPOSITORY}/${preview_ref}/pr-${PR_NUMBER}"
+          echo "preview_ref=${preview_ref}" >> "${GITHUB_OUTPUT}"
+          echo "root=${base}/index.html" >> "${GITHUB_OUTPUT}"
+          echo "cockpit=${base}/concepts/investment-decision-cockpit/index.html" >> "${GITHUB_OUTPUT}"
+          echo "metadata=${base}/preview-metadata.json" >> "${GITHUB_OUTPUT}"
+
+      - name: Verify browser preview
+        id: verify
+        shell: bash
+        env:
+          ROOT_URL: ${{ steps.url.outputs.root }}
+          COCKPIT_URL: ${{ steps.url.outputs.cockpit }}
+          METADATA_URL: ${{ steps.url.outputs.metadata }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 3 "${ROOT_URL}" -o preview-root.html
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 3 "${COCKPIT_URL}" -o preview-cockpit.html
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 3 "${METADATA_URL}" -o preview-metadata.json
+          grep -q "PR PREVIEW" preview-root.html
+          grep -q "NOT PRODUCTION" preview-root.html
+          grep -q "Sado Investment Codex" preview-cockpit.html
+          grep -q "${HEAD_SHA}" preview-metadata.json
+
+      - name: Record preview result
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          PREVIEW_URL: ${{ steps.url.outputs.root }}
+          COCKPIT_URL: ${{ steps.url.outputs.cockpit }}
+          PREVIEW_REF: ${{ steps.url.outputs.preview_ref }}
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        with:
+          script: |
+            const marker = '<!-- sado-pages-preview -->';
+            const ready = process.env.VERIFY_OUTCOME === 'success';
+            const status = ready ? '✅ READY' : '❌ FAILED';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const urls = ready
+              ? `\n- [Open preview](${process.env.PREVIEW_URL})\n- [Open Investment Decision Cockpit](${process.env.COCKPIT_URL})`
+              : `\n- [Inspect Pages preview job](${runUrl})`;
+            const body = `${marker}\n## PR Pages Preview — ${status}\n\n` +
+              `- PR: #${context.issue.number}\n` +
+              `- Source head: \`${process.env.HEAD_SHA}\`\n` +
+              `- Preview artifact commit: \`${process.env.PREVIEW_REF || 'not published'}\`\n` +
+              `- Environment: **NOT PRODUCTION**${urls}\n\n` +
+              `担当: 🤖カイ  \n種別: Implementation / Reliability / Pages Preview`;
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+            const previous = comments.find(comment =>
+              comment.user.type === 'Bot' && comment.body.includes(marker)
+            );
+            if (previous) {
+              await github.rest.issues.updateComment({
+                ...context.repo,
+                comment_id: previous.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+            await core.summary
+              .addHeading(`PR Pages Preview — ${status}`)
+              .addRaw(`Source head: ${process.env.HEAD_SHA}\n\n`)
+              .addRaw(ready ? `Preview: ${process.env.PREVIEW_URL}\n` : `Run: ${runUrl}\n`)
+              .write();
+
   deploy:
     if: github.event_name != 'pull_request'
     environment:
