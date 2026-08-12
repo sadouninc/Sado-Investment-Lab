@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GITIGNORE = ROOT / ".gitignore"
 MONEY_FLOW_WORKFLOW = ROOT / ".github" / "workflows" / "money-flow-canonical.yml"
 PAGES_WORKFLOW = ROOT / ".github" / "workflows" / "publish-site.yml"
+MORNING_WORKFLOW = ROOT / ".github" / "workflows" / "ai-morning-analyst.yml"
 SECTOR_HISTORY = "data/generated/public/money-flow/sector-history.jsonl"
 
 
@@ -22,6 +23,12 @@ def test_canonical_workflow_persists_sector_history_when_generated() -> None:
 def test_sector_history_commit_republishes_pages() -> None:
     text = PAGES_WORKFLOW.read_text(encoding="utf-8")
     assert '"data/generated/public/money-flow/**"' in text
+
+
+def test_ai_morning_runtime_reads_canonical_sector_history() -> None:
+    text = MORNING_WORKFLOW.read_text(encoding="utf-8")
+    assert "--repo-sector-rotation" in text
+    assert "'sector_rotation'" in text
 
 
 def test_pages_home_supply_uses_existing_provider_not_fake_fixture() -> None:
