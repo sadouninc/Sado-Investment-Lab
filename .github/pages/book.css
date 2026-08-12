@@ -312,8 +312,11 @@ code { font-size: .9em; }
   border-radius: .8rem;
   background: var(--card);
 }
-.trade-filters label { display: grid; gap: .35rem; font-size: .8rem; font-weight: 600; }
+.trade-filters label { display: grid; min-width: 0; gap: .35rem; font-size: .8rem; font-weight: 600; }
 .trade-filters select, .trade-filters button {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 42px;
   padding: .5rem .65rem;
   border: 1px solid var(--line);
@@ -357,10 +360,11 @@ td { font-variant-numeric: tabular-nums; }
   .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metric-card strong { font-size: 1.05rem; overflow-wrap: anywhere; }
 }
+@media (max-width: 420px) {
+  .trade-filters { grid-template-columns: 1fr; gap: .7rem; }
+}
 @media print {
   .theme-toggle, .back-to-top, .reading-progress { display: none; }
   body { background: white; color: black; }
   .book-chapter { break-before: page; }
 }
-
-
