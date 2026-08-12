@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import date, datetime
 import importlib.util
 from pathlib import Path
 import sys
@@ -68,7 +69,7 @@ def home_text() -> str:
 def test_render_uses_existing_canonical_status_without_mutating_input():
     payload = dataset()
     before = deepcopy(payload)
-    rendered = module.render_status_section(payload)
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
     assert "Morning Dataset: 一部情報不足 / PARTIAL" in rendered
     assert "市場データ" in rendered
     assert "Sector Rotation" in rendered
@@ -127,6 +128,23 @@ def test_missing_dataset_fails_closed_as_unavailable():
     assert "問題なし" in rendered
 
 
+def test_previous_business_day_dataset_is_not_shown_as_normal_partial():
+    payload = dataset()
+    rendered = module.render_status_section(
+        payload, expected_as_of=date(2026, 8, 12)
+    )
+    assert "NOT_GENERATED_TODAY" in rendered
+    assert "今日のMorning Datasetはまだ生成されていません" in rendered
+    assert "表示中: 2026-08-11" in rendered
+    assert "source completenessのPARTIALとは別" in rendered
+    assert 'data-state="stale"' in rendered
+
+
+def test_expected_business_date_uses_jst_and_skips_weekend():
+    saturday_utc = datetime.fromisoformat("2026-08-15T01:00:00+00:00")
+    assert module.expected_jst_business_date(saturday_utc) == date(2026, 8, 14)
+
+
 def test_missing_source_status_is_not_promoted_to_ok():
     payload = dataset()
     payload["source_status"] = []
@@ -136,7 +154,9 @@ def test_missing_source_status_is_not_promoted_to_ok():
 
 
 def test_enrich_replaces_status_area_adds_heatmap_and_preserves_following_map():
-    rendered = module.enrich_text(home_text(), dataset())
+    rendered = module.enrich_text(
+        home_text(), dataset(), expected_as_of=date(2026, 8, 11)
+    )
     assert rendered.startswith("before\n")
     assert "old status" not in rendered
     assert "市場・テーマの動き" in rendered
