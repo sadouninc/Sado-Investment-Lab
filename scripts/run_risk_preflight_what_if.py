@@ -6,6 +6,7 @@ import os
 import uuid
 from datetime import datetime
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -87,6 +88,28 @@ def build_runtime_result(
     return result
 
 
+def attach_runtime_telemetry(
+    result: dict[str, Any],
+    *,
+    calculation_started_at: str,
+    calculation_completed_at: str,
+    calculation_duration_ms: float,
+    github_run_id: str | None = None,
+    github_run_attempt: str | None = None,
+) -> dict[str, Any]:
+    enriched = dict(result)
+    enriched["runtime_telemetry"] = {
+        "calculation_started_at": calculation_started_at,
+        "calculation_completed_at": calculation_completed_at,
+        "calculation_duration_ms": round(calculation_duration_ms, 3),
+        "github_run_id": github_run_id or None,
+        "github_run_attempt": github_run_attempt or None,
+        "scope": "OPS_DIAGNOSTICS_ONLY",
+        "canonical_mutation": False,
+    }
+    return enriched
+
+
 def _summary_lines(result: dict[str, Any]) -> list[str]:
     intent = result.get("intent") or {}
     runtime = result.get("runtime") or {}
@@ -121,6 +144,18 @@ def _summary_lines(result: dict[str, Any]) -> list[str]:
             "",
             "不足値は0へ補完せず `null` / `UNKNOWN` のまま保持します。",
         ]
+    telemetry = result.get("runtime_telemetry") or {}
+    if telemetry:
+        lines += [
+            "",
+            "## Runtime telemetry（運用診断のみ）",
+            "",
+            f"- Calculation started: `{telemetry.get('calculation_started_at')}`",
+            f"- Calculation completed: `{telemetry.get('calculation_completed_at')}`",
+            f"- Calculation duration: `{telemetry.get('calculation_duration_ms')} ms`",
+            f"- GitHub run id: `{telemetry.get('github_run_id')}`",
+            "- Investment Decision / Portfolioへは保存しません。",
+        ]
     return lines
 
 
@@ -148,11 +183,15 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=Path("artifacts/risk-preflight-what-if/result.json"))
     args = parser.parse_args()
 
+    clock = ZoneInfo("Asia/Tokyo")
+    calculation_started_at = datetime.now(clock).isoformat(timespec="milliseconds")
+    started = perf_counter()
+
     try:
         portfolio_equity = _optional_positive_float(args.portfolio_equity)
         cash_available = _optional_positive_float(args.cash_available)
     except (TypeError, ValueError) as exc:
-        captured_at = datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(timespec="seconds")
+        captured_at = datetime.now(clock).isoformat(timespec="seconds")
         result = {
             "state": "INVALID_INPUT",
             "ephemeral": True,
@@ -161,19 +200,27 @@ def main() -> int:
             "canonical_mutations": [],
             "runtime": _runtime_identity(request_id=args.request_id, captured_at=captured_at),
         }
-        write_outputs(result, output_path=args.output)
-        return 0
+    else:
+        result = build_runtime_result(
+            security_code=args.security_code,
+            action=args.action,
+            quantity=args.quantity,
+            price=args.price,
+            account_type=args.account_type,
+            portfolio_path=args.portfolio,
+            portfolio_equity=portfolio_equity,
+            cash_available=cash_available,
+            request_id=args.request_id,
+        )
 
-    result = build_runtime_result(
-        security_code=args.security_code,
-        action=args.action,
-        quantity=args.quantity,
-        price=args.price,
-        account_type=args.account_type,
-        portfolio_path=args.portfolio,
-        portfolio_equity=portfolio_equity,
-        cash_available=cash_available,
-        request_id=args.request_id,
+    calculation_completed_at = datetime.now(clock).isoformat(timespec="milliseconds")
+    result = attach_runtime_telemetry(
+        result,
+        calculation_started_at=calculation_started_at,
+        calculation_completed_at=calculation_completed_at,
+        calculation_duration_ms=(perf_counter() - started) * 1000,
+        github_run_id=os.environ.get("GITHUB_RUN_ID"),
+        github_run_attempt=os.environ.get("GITHUB_RUN_ATTEMPT"),
     )
     write_outputs(result, output_path=args.output)
     return 0
