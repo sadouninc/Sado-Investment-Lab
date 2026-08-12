@@ -53,6 +53,70 @@
     document.getElementById("phase-heatmap").innerHTML = html + "</tbody></table>";
   }
 
+  function selectedCorrelationRows(code) {
+    return Object.entries(data.correlation.pearson[code] || {})
+      .filter(([other, value]) => other !== code && value != null)
+      .map(([other, value]) => ({
+        code: other,
+        name: symbols[other]?.name || "",
+        correlation: Number(value)
+      }))
+      .sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation))
+      .slice(0, 8);
+  }
+
+  function renderSelectedCorrelation(code) {
+    const target = document.getElementById("phase-mobile-selected-row");
+    if (!target) return;
+    const rows = selectedCorrelationRows(code);
+    target.innerHTML = table(rows, [
+      ["相手", row => `${row.code} ${row.name}`],
+      ["相関", row => row.correlation.toFixed(3)]
+    ]);
+  }
+
+  function renderMobileCorrelationSummary() {
+    if (!window.matchMedia("(max-width: 700px)").matches) return;
+    const heatmap = document.getElementById("phase-heatmap");
+    if (!heatmap || document.getElementById("phase-mobile-correlation-summary")) return;
+
+    const summary = document.createElement("section");
+    summary.id = "phase-mobile-correlation-summary";
+    summary.innerHTML = `
+      <h3>モバイル相関サマリー</h3>
+      <p>40銘柄の完全行列を横スクロールする前に、注目ペアと選択銘柄の強い相関を確認できます。</p>
+      <div class="two-column">
+        <div><h3>相関上位</h3>${table(data.top_positive_pairs.slice(0, 3), [
+          ["銘柄ペア", row => `${row.left} × ${row.right}`],
+          ["相関", row => row.correlation.toFixed(3)]
+        ])}</div>
+        <div><h3>相関下位</h3>${table(data.top_negative_pairs.slice(0, 3), [
+          ["銘柄ペア", row => `${row.left} × ${row.right}`],
+          ["相関", row => row.correlation.toFixed(3)]
+        ])}</div>
+      </div>
+      <div class="phase-controls">
+        <label>選択銘柄の相関
+          <select id="phase-mobile-row-select">
+            ${data.symbols.map(item => `<option value="${esc(item.code)}">${esc(item.code)} ${esc(item.name)}</option>`).join("")}
+          </select>
+        </label>
+      </div>
+      <div id="phase-mobile-selected-row"></div>`;
+    heatmap.before(summary);
+
+    const details = document.createElement("details");
+    const detailsSummary = document.createElement("summary");
+    detailsSummary.textContent = "40銘柄の完全相関行列を表示（詳細）";
+    details.append(detailsSummary);
+    heatmap.before(details);
+    details.append(heatmap);
+
+    const select = document.getElementById("phase-mobile-row-select");
+    select.addEventListener("change", () => renderSelectedCorrelation(select.value));
+    renderSelectedCorrelation(select.value);
+  }
+
   const grouped = {};
   data.symbols.forEach(item => (grouped[item.cluster] ||= []).push(item));
   document.getElementById("phase-clusters").innerHTML = Object.entries(grouped).map(([id, items]) =>
@@ -75,4 +139,5 @@
   document.getElementById("phase-group").addEventListener("change", renderChart);
   renderChart();
   renderHeatmap();
+  renderMobileCorrelationSummary();
 })();
