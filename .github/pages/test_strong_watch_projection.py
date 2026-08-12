@@ -23,7 +23,7 @@ class StrongWatchProjectionPublicationContractTest(unittest.TestCase):
         self.assertIn("Forward PER", text)
         self.assertIn("`UNKNOWN`", text)
         self.assertIn("BUY / SELL / 買値を生成しません", text)
-        self.assertIn("SWCCのsegment profit", text)
+        self.assertIn("segment profitをe-Ribbon単独利益として扱いません", text)
         self.assertIn("Energy segment利益をAI/DC単独利益として扱いません", text)
         self.assertIn("受注先行と利益転換未確認を分離", text)
 
