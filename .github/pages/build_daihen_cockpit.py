@@ -12,6 +12,7 @@ PAGES_DIR = Path(__file__).resolve().parent
 if str(PAGES_DIR) not in sys.path:
     sys.path.insert(0, str(PAGES_DIR))
 
+from live_cockpit_shell import LiveCockpitFirstView, render_first_view
 from scenario_delta import ScenarioSnapshot, build_scenario_delta
 
 
@@ -155,6 +156,19 @@ def page_content(model: Mapping[str, Any]) -> str:
     unknown = freshness.get("unknown_components") or []
     price_as_of = valuation.get("price_as_of") or "取得できません"
     warning_count = len(warnings)
+    first_view_html = render_first_view(
+        LiveCockpitFirstView(
+            company_name="ダイヘン",
+            security_code=str(model.get("security_code") or "UNKNOWN"),
+            freshness_html=_status(freshness.get("overall")),
+            price_as_of=str(price_as_of),
+            decision_delta_html=delta_html,
+            expectation_html=expectation_html,
+            thesis_health=str(health),
+            hypothesis_status_html=_status(hypothesis.get("status")),
+            warning_count=warning_count,
+        )
+    )
 
     return f"""---
 layout: site
@@ -169,12 +183,7 @@ permalink: /decision-cockpit/daihen/
 
 <p><strong>なぜ今日見る？</strong> {_e(why_now_text)} <span class="muted">最終重要変化: {_e(last_change)}</span></p>
 <div class="notice-card"><strong>この画面は売買指示を生成しません。</strong><br>既存Canonical outputを読み取り専用でまとめ、判断に必要な不足・古さ・要確認事項を隠さず表示します。</div>
-<div class="content-grid cockpit-first-view">
-  <div class="content-card cockpit-identity-summary"><strong>ダイヘン / 6622</strong><span>情報鮮度: {_status(freshness.get('overall'))}</span><span class="muted">株価基準日: {_e(price_as_of)}</span></div>
-  {delta_html}
-  {expectation_html}
-  <div class="content-card cockpit-thesis-summary"><strong>今の投資仮説は？ / Warning / Thesis Health</strong><span>Health: <code>{_e(health)}</code></span><span>仮説状態: {_status(hypothesis.get('status'))}</span><span>確認すべきwarning: {_e(warning_count)}件</span></div>
-</div>
+{first_view_html}
 
 ## ⚠ 先に確認する注意点
 - 全体状態: {_status(model.get('overall_status'))}
