@@ -10,21 +10,47 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 
+WHAT_IF_WORKFLOW_URL = "https://github.com/sadouninc/Sado-Investment-Lab/actions/workflows/risk-preflight-what-if.yml"
+
+
 def page_content() -> str:
-    return """---
+    return f"""---
 layout: site
 title: 売買前のポートフォリオ確認
 description: 新規売買前に集中度・現金余力・エクスポージャーとデータ不足を確認する
 permalink: /risk-preflight/
 ---
 
-<p class="breadcrumb"><a href="{{ '/' | relative_url }}">Home</a> / 売買前のポートフォリオ確認</p>
+<p class="breadcrumb"><a href="{{{{ '/' | relative_url }}}}">Home</a> / 売買前のポートフォリオ確認</p>
 
 # 🛡️ 売買前のポートフォリオ確認
 
 新規BUY / ADDなどを検討するとき、銘柄単体の魅力度とは別に、**ポートフォリオ全体の資本リスク**を確認するための画面です。
 
 > この画面は売買指示を生成しません。最終判断はオーナーが行います。
+
+## ▶ 実際にWhat-ifを確認する
+
+<div class="content-card">
+  <strong>売買内容を入力すると、注文前のPF影響を共通計算ロジックで確認できます。</strong>
+  <span>GitHubへログインした状態で専用Actionsを開き、<code>Run workflow</code> から銘柄コード・BUY/SELL・株数・価格を入力します。ダイヘンは <code>6622</code>、BUY 100株なら action=<code>BUY</code> / quantity=<code>100</code> です。</span>
+  <div class="codex-action-row">
+    <a class="codex-action codex-action--primary" href="{WHAT_IF_WORKFLOW_URL}">What-if入力を開始する</a>
+    <a class="codex-action codex-action--secondary" href="{WHAT_IF_WORKFLOW_URL}">実行履歴を開く</a>
+  </div>
+</div>
+
+### iPhoneでの確認手順
+
+1. **What-if入力を開始する**を開く。
+2. GitHub Actionsの `Run workflow` を押し、銘柄コード / BUY・SELL / 株数 / 価格を入力する。
+3. 実行後、同じ画面の最新runを開き、**Step Summary**で結果を確認する。必要なら7日間保持されるresult artifactも確認する。
+
+`SELL` はCASH / MARGINの口座文脈を明示できない場合、信用新規売り等を推測せず `NOT_JUDGABLE` になります。PF評価額・現金余力を入力しなければ、その項目は`UNKNOWN`のままです。
+
+> **重要:** これは注文ではありません。Portfolio、Decision Journal、Execution Intentを変更せず、発注も行いません。GitHub認証済みActionsをruntime境界として使うため、Pagesへtokenやsecretを埋め込みません。
+>
+> **実装境界:** 計算は既存 #307 / #233 Python calculatorだけを実行します。Pages内に別の計算式を持ちません。
 
 ## 確認する内容
 
