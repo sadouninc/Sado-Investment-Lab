@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = ROOT / ".github" / "pages" / "enrich_home_focus.py"
+CSS_PATH = ROOT / "assets" / "images" / "home-os-map.css"
 SPEC = importlib.util.spec_from_file_location("home_focus", MODULE_PATH)
 assert SPEC and SPEC.loader
 home_focus = importlib.util.module_from_spec(SPEC)
@@ -47,6 +48,27 @@ class HomeTodayFocusTest(unittest.TestCase):
         rendered = home_focus.render_today_focus(None)
         self.assertIn("取得できません / MISSING", rendered)
         self.assertIn("Morning Datasetを取得できません", rendered)
+
+    def test_focus_actions_have_contextual_accessible_names(self):
+        rendered = home_focus.render_today_focus(self.dataset())
+        self.assertIn('aria-label="ダイヘンの次決算を確認の根拠をMorning Datasetで確認する"', rendered)
+        self.assertIn('aria-label="富士電機の受注を確認の根拠をMorning Datasetで確認する"', rendered)
+        self.assertIn('aria-label="SWCCの増産効果を確認の根拠をMorning Datasetで確認する"', rendered)
+
+    def test_mobile_focus_is_single_column_tap_safe_and_no_horizontal_scroll(self):
+        css = CSS_PATH.read_text(encoding="utf-8")
+        self.assertIn(".home-today-focus-grid", css)
+        mobile = css.split("@media (max-width: 640px)", 1)[1]
+        self.assertIn(".home-today-focus-grid", mobile)
+        self.assertIn("grid-template-columns: 1fr", mobile)
+        self.assertIn("min-height: 2.75rem", mobile)
+        self.assertNotIn("overflow-x: auto", mobile)
+
+    def test_focus_cards_allow_long_labels_without_overflow(self):
+        css = CSS_PATH.read_text(encoding="utf-8")
+        self.assertIn(".home-today-focus-grid .codex-summary-card", css)
+        self.assertIn("overflow-wrap: anywhere", css)
+        self.assertIn("min-width: 0", css)
 
     def test_enrichment_places_focus_before_map_and_is_idempotent(self):
         with tempfile.TemporaryDirectory() as tmp:
