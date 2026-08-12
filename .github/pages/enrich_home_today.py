@@ -8,12 +8,14 @@ from pathlib import Path
 from typing import Any, Mapping
 from zoneinfo import ZoneInfo
 
+from scripts.home_portfolio_impact import project_portfolio_impact
 from scripts.morning_dataset.providers import SectorRotationProvider
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE_HOME = ROOT / "site-src" / "index.md"
 MORNING_DATASET = ROOT / "data" / "generated" / "public" / "morning-dataset.json"
 SECTOR_ROTATION_ROUTE = "/market-analysis/2026/sector-rotation/"
+PORTFOLIO_PREFLIGHT_ROUTE = "/risk-preflight/"
 
 STATUS_SECTION_START = '  <section class="home-os-section" aria-labelledby="status-title">'
 STATUS_SECTION_END = '  <section class="home-os-section" aria-labelledby="map-title">'
@@ -180,6 +182,75 @@ def render_sector_heatmap(dataset: Mapping[str, Any]) -> str:
 '''
 
 
+def render_portfolio_impact(dataset: Mapping[str, Any]) -> str:
+    projection = project_portfolio_impact(dataset)
+    status, token, label = _status(projection.get("status"))
+    impact_state = str(projection.get("impact_state") or "UNAVAILABLE").upper()
+    positions = projection.get("positions") if isinstance(projection.get("positions"), list) else []
+    as_of = projection.get("as_of") or "時点不明"
+    reason = projection.get("impact_reason") or "影響判定に必要な情報を確認できません。"
+
+    if impact_state == "UNAVAILABLE" or not positions:
+        return f'''  <section class="home-os-section home-portfolio-impact" aria-labelledby="portfolio-impact-title">
+    <p class="eyebrow">PORTFOLIO IMPACT</p>
+    <h2 id="portfolio-impact-title">自分の保有銘柄にどう関係する？</h2>
+    <div class="codex-alert" data-state="unavailable">
+      <strong>自分への影響は判定できません / UNAVAILABLE</strong>
+      <p>{_e(reason)}</p>
+      <p>Portfolio source: {_e(label)} / {_e(status)} / as of: {_e(as_of)}</p>
+    </div>
+  </section>
+
+'''
+
+    cards: list[str] = []
+    for row in positions:
+        if not isinstance(row, Mapping):
+            continue
+        name = row.get("name") or row.get("security_code") or "名称不明"
+        security_code = row.get("security_code")
+        code_html = f'<span class="home-portfolio-position__code">{_e(security_code)}</span>' if security_code else ""
+        details: list[str] = []
+        if row.get("quantity") is not None:
+            details.append(f"数量: {_e(row.get('quantity'))}")
+        if row.get("details"):
+            details.append(_e(row.get("details")))
+        detail_html = " / ".join(details) if details else "Canonical Portfolioに記録された保有銘柄"
+        cards.append(
+            '<article class="home-portfolio-position">'
+            f'{code_html}<h3>{_e(name)}</h3>'
+            f'<p>{detail_html}</p>'
+            '<p class="home-portfolio-position__impact">影響判定: 未接続 / UNKNOWN</p>'
+            '</article>'
+        )
+
+    grid = "\n".join(cards)
+    alert_token = "stale" if status == "STALE" else ("caution" if status == "PARTIAL" else "unknown")
+    freshness_note = (
+        "保有情報が古いため、銘柄評価ではなく鮮度問題として扱います。"
+        if status == "STALE"
+        else "保有銘柄は確認できますが、個別銘柄へのMarket/Research/Signal影響は未接続です。"
+    )
+    return f'''  <section class="home-os-section home-portfolio-impact" aria-labelledby="portfolio-impact-title">
+    <p class="eyebrow">PORTFOLIO IMPACT</p>
+    <h2 id="portfolio-impact-title">自分の保有銘柄にどう関係する？</h2>
+    <div class="codex-alert" data-state="{alert_token}">
+      <strong>自分への影響: 未判定 / {impact_state}</strong>
+      <p>{_e(reason)}</p>
+      <p>{_e(freshness_note)} Portfolio as of: {_e(as_of)}</p>
+    </div>
+    <div class="home-portfolio-grid" aria-label="Canonical Portfolio holdings">
+{grid}
+    </div>
+    <div class="codex-evidence home-portfolio-evidence">
+      <a href="{{{{ '{PORTFOLIO_PREFLIGHT_ROUTE}' | relative_url }}}}">Portfolio Preflightで保有・リスクを確認する</a>
+      <p class="codex-evidence__meta">Homeは保有情報をread-only表示し、独自のimpact score・BUY/SELL・個別銘柄routeを生成しません。</p>
+    </div>
+  </section>
+
+'''
+
+
 def render_status_section(
     dataset: Mapping[str, Any] | None, *, expected_as_of: date | None = None
 ) -> str:
@@ -199,6 +270,15 @@ def render_status_section(
     <div class="codex-alert" data-state="unavailable">
       <strong>HeatMapを表示できません</strong>
       <p>Canonical sourceを取得できないため、状態を推測表示しません。</p>
+    </div>
+  </section>
+
+  <section class="home-os-section home-portfolio-impact" aria-labelledby="portfolio-impact-title">
+    <p class="eyebrow">PORTFOLIO IMPACT</p>
+    <h2 id="portfolio-impact-title">自分の保有銘柄にどう関係する？</h2>
+    <div class="codex-alert" data-state="unavailable">
+      <strong>自分への影響は判定できません / UNAVAILABLE</strong>
+      <p>Morning Datasetを取得できないため、保有情報を推測表示しません。</p>
     </div>
   </section>
 
@@ -258,7 +338,7 @@ def render_status_section(
 {warning_html}
   </section>
 
-{render_sector_heatmap(dataset)}'''
+{render_sector_heatmap(dataset)}{render_portfolio_impact(dataset)}'''
 
 
 def load_dataset(path: Path = MORNING_DATASET) -> Mapping[str, Any] | None:
