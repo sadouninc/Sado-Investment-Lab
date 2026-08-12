@@ -75,7 +75,7 @@ def attach_runtime_telemetry(
     result: dict[str, Any],
     *,
     calculation_started_at: str,
-    result_ready_at: str,
+    calculation_completed_at: str,
     calculation_duration_ms: float,
     github_run_id: str | None = None,
     github_run_attempt: str | None = None,
@@ -83,7 +83,7 @@ def attach_runtime_telemetry(
     enriched = dict(result)
     enriched["runtime_telemetry"] = {
         "calculation_started_at": calculation_started_at,
-        "result_ready_at": result_ready_at,
+        "calculation_completed_at": calculation_completed_at,
         "calculation_duration_ms": round(calculation_duration_ms, 3),
         "github_run_id": github_run_id or None,
         "github_run_attempt": github_run_attempt or None,
@@ -130,7 +130,7 @@ def _summary_lines(result: dict[str, Any]) -> list[str]:
             "## Runtime telemetry（運用診断のみ）",
             "",
             f"- Calculation started: `{telemetry.get('calculation_started_at')}`",
-            f"- Result ready: `{telemetry.get('result_ready_at')}`",
+            f"- Calculation completed: `{telemetry.get('calculation_completed_at')}`",
             f"- Calculation duration: `{telemetry.get('calculation_duration_ms')} ms`",
             f"- GitHub run id: `{telemetry.get('github_run_id')}`",
             "- Investment Decision / Portfolioへは保存しません。",
@@ -188,11 +188,11 @@ def main() -> int:
             cash_available=cash_available,
         )
 
-    result_ready_at = datetime.now(clock).isoformat(timespec="milliseconds")
+    calculation_completed_at = datetime.now(clock).isoformat(timespec="milliseconds")
     result = attach_runtime_telemetry(
         result,
         calculation_started_at=calculation_started_at,
-        result_ready_at=result_ready_at,
+        calculation_completed_at=calculation_completed_at,
         calculation_duration_ms=(perf_counter() - started) * 1000,
         github_run_id=os.environ.get("GITHUB_RUN_ID"),
         github_run_attempt=os.environ.get("GITHUB_RUN_ATTEMPT"),
