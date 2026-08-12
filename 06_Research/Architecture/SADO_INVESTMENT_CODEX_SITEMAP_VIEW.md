@@ -7,8 +7,8 @@
 > Visual Authority: ⭐️ミナ / Issue #324 comment `5249241479`  
 > Design System: #320 / Navigation Authority: #314
 
-<section class="codex-page-shell">
-<header class="codex-page-header">
+<section class="codex-page-shell" markdown="1">
+<header class="codex-page-header" markdown="1">
 <p class="codex-eyebrow">Sitemap / Evolution Roadmap</p>
 
 この画面は、日常の投資プロセスを案内するCodex Mapではなく、**Codexそのものをどう育てているかを見る建築図面**です。Canonical Sitemapをread-onlyに投影し、Issueのopen/closedだけでPages完成状態を決めません。
