@@ -5,13 +5,13 @@
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
 Last updated: 2026-08-12  
-Sources: Issue #99 Current Active Board; #338; #354; AWAY transition comment 5255385557  
+Sources: Issue #99 Current Active Board; #338; #354; AWAY transition comment 5255385557; Owner return to ACTIVE  
 Broadcast head at snapshot: `comment_id=5255385557`
 
 ## User Mode
 
-- Mode: **AWAY**
-- Meaning: 👑サド is temporarily unavailable until morning. Continue delegated autonomous operations; never invent Owner Authority decisions.
+- Mode: **ACTIVE**
+- Meaning: 👑サド is available. Restore normal role priority; Owner Authority decisions may be surfaced directly to 👑サド rather than accumulated under AWAY delegation.
 - Mode contract: #354. `ACTIVE` keeps normal roles. `AWAY` activates delegated autonomous operations below.
 
 ## Mode Transition Contract
