@@ -4,7 +4,7 @@ import hashlib
 import re
 import urllib.request
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Iterable, Mapping
 from urllib.parse import quote
 
 from scripts.evidence_provenance import ProvenanceValidationError
@@ -20,6 +20,13 @@ def _source_hex(source_id: str) -> str:
     if not match:
         raise ProvenanceValidationError("source_id must be an existing #144 SourceRecord identity")
     return match.group(1)
+
+
+def _sha256(value: str) -> str:
+    digest = str(value or "").strip().lower().removeprefix("sha256:")
+    if not re.fullmatch(r"[0-9a-f]{64}", digest):
+        raise ProvenanceValidationError("sha256 must be 64 hexadecimal characters")
+    return digest
 
 
 def release_tag_for(source_id: str) -> str:
@@ -44,13 +51,29 @@ def sha256_bytes(payload: bytes) -> str:
 
 
 def verify_payload(payload: bytes, expected_sha256: str) -> str:
-    expected = str(expected_sha256 or "").strip().lower().removeprefix("sha256:")
-    if not re.fullmatch(r"[0-9a-f]{64}", expected):
-        raise ProvenanceValidationError("expected_sha256 must be 64 hexadecimal characters")
+    expected = _sha256(expected_sha256)
     actual = sha256_bytes(payload)
     if actual != expected:
         raise ProvenanceValidationError(f"archive payload sha256 mismatch: expected={expected} actual={actual}")
     return actual
+
+
+def reusable_archive_ref(records: Iterable[Mapping[str, Any]], sha256: str) -> str | None:
+    """Return one existing immutable binary ref without merging Source identities."""
+
+    digest = _sha256(sha256)
+    refs = {
+        str(record.get("archive_ref") or "").strip()
+        for record in records
+        if str(record.get("access_status") or "").upper() == "ARCHIVED"
+        and str(record.get("sha256") or "").lower().removeprefix("sha256:") == digest
+        and str(record.get("archive_ref") or "").strip()
+    }
+    if not refs:
+        return None
+    if len(refs) > 1:
+        raise ProvenanceValidationError("same sha256 points to multiple ARCHIVED binaries")
+    return next(iter(refs))
 
 
 @dataclass(frozen=True)
@@ -92,7 +115,7 @@ def validate_uploaded_asset(
     if str(asset.get("browser_download_url") or "") != expected_ref:
         raise ProvenanceValidationError("release asset download URL does not match canonical archive_ref")
 
-    expected = str(expected_sha256 or "").strip().lower().removeprefix("sha256:")
+    expected = _sha256(expected_sha256)
     digest_match = DIGEST_RE.fullmatch(str(asset.get("digest") or "").strip().lower())
     if not digest_match:
         raise ProvenanceValidationError("release asset must expose a sha256 digest")
