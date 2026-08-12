@@ -10,6 +10,8 @@ UPDATED = re.compile(r"^\s*(?:>\s*)?(?:Updated|更新日)[:：]\s*(.+?)\s*$", re
 HEADING = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 TITLE = re.compile(r"^#\s+.+?\s*$", re.MULTILINE)
 STRONG_WATCH_TITLE = "AI/DC Strong Watch 3"
+STRONG_WATCH_SOURCE = "AI_DC_Strong_Watch.md"
+STRONG_WATCH_STATE = "状態: `STRONG_WATCH / ENTRY_REVIEW`"
 
 
 @dataclass(frozen=True)
@@ -64,6 +66,18 @@ def _plain_markdown(value: str) -> str:
     value = re.sub(r"\*\*(.*?)\*\*", r"\1", value)
     value = re.sub(r"`([^`]+)`", r"\1", value)
     return value.strip()
+
+
+def _is_strong_watch_summary(summary: CompanyCardSummary) -> bool:
+    return (
+        summary.source_name == STRONG_WATCH_SOURCE
+        or STRONG_WATCH_STATE in summary.content
+        or STRONG_WATCH_TITLE in summary.title
+    )
+
+
+def _is_strong_watch_content(content: str) -> bool:
+    return STRONG_WATCH_STATE in content or STRONG_WATCH_TITLE in content
 
 
 def _render_strong_watch_summary(summary: CompanyCardSummary) -> str:
@@ -126,7 +140,7 @@ def _render_strong_watch_summary(summary: CompanyCardSummary) -> str:
 
 
 def render_company_page_summary(summary: CompanyCardSummary) -> str:
-    if STRONG_WATCH_TITLE in summary.title:
+    if _is_strong_watch_summary(summary):
         return _render_strong_watch_summary(summary)
 
     freshness = html.escape(summary.freshness) if summary.freshness else "更新日未記録"
@@ -200,7 +214,7 @@ def _strong_watch_mobile_detail(content: str) -> str:
 
 
 def render_company_detail(content: str) -> str:
-    if STRONG_WATCH_TITLE in content:
+    if _is_strong_watch_content(content):
         return (
             '<section class="codex-page-shell strong-watch-detail">\n'
             '<div class="codex-disclosure__body" markdown="1">\n\n'
