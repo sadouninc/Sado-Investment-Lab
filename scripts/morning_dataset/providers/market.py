@@ -15,7 +15,11 @@ YAHOO_CHART = "https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?range=
 # available from this endpoint; the proxy is explicit in the output.
 MARKET_SYMBOLS: dict[str, dict[str, Any]] = {
     "nikkei_225": {"symbol": "^N225", "kind": "index"},
-    "topix": {"symbol": "^TOPX", "kind": "index"},
+    "topix": {
+        "symbol": "1306.T",
+        "kind": "etf_proxy",
+        "proxy_for": "TOPIX",
+    },
     "growth_250_proxy": {"symbol": "2516.T", "kind": "etf_proxy", "proxy_for": "TSE Growth Market 250"},
     "sp500": {"symbol": "^GSPC", "kind": "index"},
     "nasdaq": {"symbol": "^IXIC", "kind": "index"},
