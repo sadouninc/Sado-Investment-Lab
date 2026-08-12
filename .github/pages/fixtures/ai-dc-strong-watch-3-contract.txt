@@ -1,5 +1,0 @@
-Authority: #402 comment 5261308293
-Projection: docs/handoffs/ai-dc-strong-watch-3.md
-Published source: 03_Companies/Infrastructure/AI_DC_Strong_Watch.md
-Route: /companies/infrastructure/ai-dc-strong-watch/
-Valuation: UNKNOWN until canonical scenario/fresh price basis exists
