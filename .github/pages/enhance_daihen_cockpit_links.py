@@ -73,8 +73,11 @@ def enhance_page(page: str, model: Mapping[str, Any]) -> str:
         _, after = rest.split(END, 1)
         page = before.rstrip() + "\n\n" + after.lstrip()
 
-    anchor = "\n---\n\n## 30秒チェック"
-    if anchor not in page:
+    # Keep the enhancer compatible with both legacy blank-line spacing and
+    # the current builder's compact separator before the 30-second checklist.
+    anchors = ("\n---\n\n## 30秒チェック", "\n---\n## 30秒チェック")
+    anchor = next((candidate for candidate in anchors if candidate in page), None)
+    if anchor is None:
         raise ValueError("cockpit 30-second anchor not found")
     return page.replace(anchor, "\n\n" + _block(model) + anchor, 1)
 
