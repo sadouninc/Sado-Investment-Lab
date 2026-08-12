@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import date, datetime, timedelta
 import html
 import json
 from pathlib import Path
 from typing import Any, Mapping
+from zoneinfo import ZoneInfo
 
 from scripts.morning_dataset.providers import SectorRotationProvider
 
@@ -40,6 +42,26 @@ def _status(value: Any) -> tuple[str, str, str]:
     status = str(value or "MISSING").upper()
     token, label = STATUS_LABELS.get(status, ("unknown", "状態不明"))
     return status, token, label
+
+
+def expected_jst_business_date(now: datetime | None = None) -> date:
+    current = now or datetime.now(ZoneInfo("Asia/Tokyo"))
+    day = current.astimezone(ZoneInfo("Asia/Tokyo")).date()
+    while day.weekday() >= 5:
+        day -= timedelta(days=1)
+    return day
+
+
+def morning_freshness(dataset_as_of: Any, *, expected_as_of: date) -> str:
+    try:
+        observed = date.fromisoformat(str(dataset_as_of or ""))
+    except ValueError:
+        return "DATASET_DATE_INVALID"
+    if observed < expected_as_of:
+        return "NOT_GENERATED_TODAY"
+    if observed > expected_as_of:
+        return "DATASET_DATE_INVALID"
+    return "CURRENT"
 
 
 def _source_status(dataset: Mapping[str, Any], name: str) -> Mapping[str, Any]:
@@ -158,7 +180,9 @@ def render_sector_heatmap(dataset: Mapping[str, Any]) -> str:
 '''
 
 
-def render_status_section(dataset: Mapping[str, Any] | None) -> str:
+def render_status_section(
+    dataset: Mapping[str, Any] | None, *, expected_as_of: date | None = None
+) -> str:
     if not isinstance(dataset, Mapping):
         return f'''{STATUS_SECTION_START}
     <p class="eyebrow">STATUS</p>
@@ -180,6 +204,8 @@ def render_status_section(dataset: Mapping[str, Any] | None) -> str:
 
 '''
 
+    expected = expected_as_of or expected_jst_business_date()
+    freshness = morning_freshness(dataset.get("as_of"), expected_as_of=expected)
     quality = dataset.get("data_quality") if isinstance(dataset.get("data_quality"), Mapping) else {}
     quality_status, quality_token, quality_label = _status(quality.get("status"))
     market = _source_status(dataset, "market")
@@ -205,13 +231,27 @@ def render_status_section(dataset: Mapping[str, Any] | None) -> str:
             f"最新canonical set内の WARMING {warming}件 / INFLOW {inflow}件。順位や推奨はHomeで生成しません。",
         ),
     ])
+    if freshness == "NOT_GENERATED_TODAY":
+        dataset_alert = f'''<div class="codex-alert" data-state="stale">
+      <strong>今日のMorning Datasetはまだ生成されていません / NOT_GENERATED_TODAY</strong>
+      <p>表示中: {_e(dataset.get('as_of') or '時点不明')} / 期待営業日: {_e(expected.isoformat())}</p>
+      <p>source completenessのPARTIALとは別の、当日pipeline未生成状態です。</p>
+    </div>'''
+    elif freshness == "DATASET_DATE_INVALID":
+        dataset_alert = f'''<div class="codex-alert" data-state="unavailable">
+      <strong>Morning Datasetの日付を検証できません / DATASET_DATE_INVALID</strong>
+      <p>表示値: {_e(dataset.get('as_of') or '時点不明')} / 期待営業日: {_e(expected.isoformat())}</p>
+    </div>'''
+    else:
+        dataset_alert = f'''<div class="codex-alert" data-state="{quality_token}">
+      <strong>Morning Dataset: {_e(quality_label)} / {_e(quality_status)}</strong>
+      <p>Dataset as of: {_e(dataset.get('as_of') or '時点不明')} / completeness: {_e(quality.get('completeness_label') or '不明')}</p>
+    </div>'''
+
     return f'''{STATUS_SECTION_START}
     <p class="eyebrow">STATUS</p>
     <h2 id="status-title">重要な変化・状態</h2>
-    <div class="codex-alert" data-state="{quality_token}">
-      <strong>Morning Dataset: {_e(quality_label)} / {_e(quality_status)}</strong>
-      <p>Dataset as of: {_e(dataset.get('as_of') or '時点不明')} / completeness: {_e(quality.get('completeness_label') or '不明')}</p>
-    </div>
+    {dataset_alert}
     <div class="codex-summary-grid home-primary-grid">
 {cards}
     </div>
@@ -233,12 +273,19 @@ def load_dataset(path: Path = MORNING_DATASET) -> Mapping[str, Any] | None:
     return with_sector_rotation(payload)
 
 
-def enrich_text(text: str, dataset: Mapping[str, Any] | None) -> str:
+def enrich_text(
+    text: str,
+    dataset: Mapping[str, Any] | None,
+    *,
+    expected_as_of: date | None = None,
+) -> str:
     start = text.find(STATUS_SECTION_START)
     end = text.find(STATUS_SECTION_END)
     if start < 0 or end < 0 or end <= start:
         raise ValueError("Home status section boundary not found")
-    return text[:start] + render_status_section(dataset) + text[end:]
+    return text[:start] + render_status_section(
+        dataset, expected_as_of=expected_as_of
+    ) + text[end:]
 
 
 def enrich_home_from_morning(home_path: Path = SITE_HOME, dataset_path: Path = MORNING_DATASET) -> None:

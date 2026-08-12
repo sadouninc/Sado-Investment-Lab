@@ -4,6 +4,8 @@ on:
   schedule:
     # 23:45 UTC Sunday-Thursday = 08:45 JST Monday-Friday.
     - cron: "45 23 * * 0-4"
+    # Recovery run: 00:10 UTC Monday-Friday = 09:10 JST Monday-Friday.
+    - cron: "10 0 * * 1-5"
   workflow_dispatch:
 
 permissions:
@@ -31,13 +33,24 @@ jobs:
         shell: bash
         run: echo "AS_OF_JST=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_ENV"
 
+      - name: Decide whether today's Morning pipeline needs recovery
+        id: recovery
+        shell: bash
+        run: |
+          python3 scripts/morning_scheduler_guard.py \
+            --as-of "$AS_OF_JST" \
+            --github-output "$GITHUB_OUTPUT"
+
       - name: Generate market phase report
+        if: steps.recovery.outputs.should_generate == 'true'
         run: python3 -m scripts.market_phase.pipeline
 
       - name: Generate Investor DNA v2 report
+        if: steps.recovery.outputs.should_generate == 'true'
         run: python3 scripts/investor_dna_v2.py
 
       - name: Test Morning Dataset providers and event collector
+        if: steps.recovery.outputs.should_generate == 'true'
         run: |
           python3 -m unittest \
             tests.test_market_provider \
@@ -50,6 +63,7 @@ jobs:
             tests.test_event_calendar_collector
 
       - name: Generate Candidate Selector snapshot
+        if: steps.recovery.outputs.should_generate == 'true'
         run: |
           python3 scripts/candidate_selector_sources.py \
             --as-of "$AS_OF_JST" \
@@ -57,6 +71,7 @@ jobs:
             --shortlist data/generated/public/candidate-selector-shortlist.md
 
       - name: Build canonical event calendar from reviewed inputs
+        if: steps.recovery.outputs.should_generate == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -73,6 +88,7 @@ jobs:
             --output data/events/calendar.json
 
       - name: Generate Morning Dataset
+        if: steps.recovery.outputs.should_generate == 'true'
         run: |
           python3 scripts/generate_morning_dataset.py \
             --as-of "$AS_OF_JST" \
@@ -85,6 +101,7 @@ jobs:
             --investor-dna data/generated/public/investor-dna.json
 
       - name: Verify Morning Dataset repository sources are explicit
+        if: steps.recovery.outputs.should_generate == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -115,12 +132,15 @@ jobs:
           PY
 
       - name: Test context optimizer
+        if: steps.recovery.outputs.should_generate == 'true'
         run: python3 -m unittest tests.test_context_optimizer
 
       - name: Generate AI Morning Report
+        if: steps.recovery.outputs.should_generate == 'true'
         run: python3 scripts/ai_morning_analyst.py
 
       - name: Verify generated report
+        if: steps.recovery.outputs.should_generate == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -140,6 +160,7 @@ jobs:
           grep -q '"optimized_prompt_chars"' "data/generated/diagnostics/openai/${day}.json"
 
       - name: Commit report and diagnostics
+        if: steps.recovery.outputs.should_generate == 'true'
         shell: bash
         run: |
           set -euo pipefail
