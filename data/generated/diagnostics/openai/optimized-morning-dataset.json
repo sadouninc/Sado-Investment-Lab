@@ -1,44 +1,44 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-08-11T00:05:53+00:00",
-  "as_of": "2026-08-11",
+  "generated_at": "2026-08-12T02:19:24+00:00",
+  "as_of": "2026-08-12",
   "data_quality": {
     "status": "PARTIAL",
-    "completeness": 0.4286,
-    "available_sources": 3,
-    "ok_sources": 3,
-    "usable_sources": 4,
-    "total_sources": 7,
-    "completeness_label": "3 / 7",
+    "completeness": 0.5,
+    "available_sources": 4,
+    "ok_sources": 4,
+    "usable_sources": 5,
+    "total_sources": 8,
+    "completeness_label": "4 / 8",
     "source_counts": {
-      "OK": 3,
-      "PARTIAL": 1,
-      "STALE": 0,
+      "OK": 4,
+      "PARTIAL": 0,
+      "STALE": 1,
       "MISSING": 3
     }
   },
   "warnings": [
-    "market source is partial: 1 of 11 market series unavailable",
+    "portfolio source is stale: portfolio snapshot is 4 days old (freshness limit 3)",
     "capital source is missing: capital_snapshots table not found in canonical history database",
-    "candidates source is missing: candidates table not found in canonical history database",
-    "events source is missing: event calendar contains no events and does not explicitly confirm complete empty coverage"
+    "events source is missing: event calendar contains no events and does not explicitly confirm complete empty coverage",
+    "sector_rotation source is missing: provider not configured"
   ],
   "source_status": [
     {
       "name": "market",
       "source": "https://query1.finance.yahoo.com/v8/finance/chart/",
       "source_reference": "https://query1.finance.yahoo.com/v8/finance/chart/",
-      "as_of": "2026-08-11T00:05:52+00:00",
-      "status": "PARTIAL",
-      "reason": "1 of 11 market series unavailable"
+      "as_of": "2026-08-12T02:19:23+00:00",
+      "status": "OK",
+      "reason": null
     },
     {
       "name": "portfolio",
       "source": "data/portfolio/current.json",
       "source_reference": "data/portfolio/current.json",
       "as_of": "2026-08-08",
-      "status": "OK",
-      "reason": null
+      "status": "STALE",
+      "reason": "portfolio snapshot is 4 days old (freshness limit 3)"
     },
     {
       "name": "capital",
@@ -50,17 +50,17 @@
     },
     {
       "name": "candidates",
-      "source": "data/database/history.db",
-      "source_reference": "data/database/history.db",
-      "as_of": null,
-      "status": "MISSING",
-      "reason": "candidates table not found in canonical history database"
+      "source": "data/generated/public/candidate-selector.json",
+      "source_reference": "data/generated/public/candidate-selector.json",
+      "as_of": "2026-08-12",
+      "status": "OK",
+      "reason": null
     },
     {
       "name": "investor_dna",
       "source": "data/generated/public/investor-dna.json",
       "source_reference": "data/generated/public/investor-dna.json",
-      "as_of": "2026-08-11T00:05:52+00:00",
+      "as_of": "2026-08-12T02:19:21+00:00",
       "status": "OK",
       "reason": null
     },
@@ -68,7 +68,7 @@
       "name": "events",
       "source": "data/events/calendar.json",
       "source_reference": "data/events/calendar.json",
-      "as_of": "2026-08-11",
+      "as_of": "2026-08-12",
       "status": "MISSING",
       "reason": "event calendar contains no events and does not explicitly confirm complete empty coverage"
     },
@@ -79,78 +79,97 @@
       "as_of": "2026-08-11",
       "status": "OK",
       "reason": null
+    },
+    {
+      "name": "sector_rotation",
+      "source": null,
+      "source_reference": null,
+      "as_of": null,
+      "status": "MISSING",
+      "reason": "provider not configured"
     }
   ],
   "market": {
     "phase": null,
     "indices": {
       "nikkei_225": {
-        "value": 65606.7109375,
-        "previous_close": 65683.2578125,
-        "change": -76.546875,
-        "change_pct": -0.1165394006772797,
-        "as_of": "2026-08-07T00:00:00+00:00",
+        "value": 66975.84375,
+        "previous_close": 66970.21875,
+        "change": 5.625,
+        "change_pct": 0.008399255825933821,
+        "as_of": "2026-08-12T00:00:00+00:00",
         "symbol": "^N225",
         "kind": "index",
         "source": "Yahoo Finance chart endpoint"
       },
+      "topix": {
+        "value": 429.0,
+        "previous_close": 427.6000061035156,
+        "change": 1.399993896484375,
+        "change_pct": 0.3274073612022955,
+        "as_of": "2026-08-12T02:04:20+00:00",
+        "symbol": "1306.T",
+        "kind": "etf_proxy",
+        "proxy_for": "TOPIX",
+        "source": "Yahoo Finance chart endpoint"
+      },
       "growth_250_proxy": {
-        "value": 582.9000244140625,
-        "previous_close": 574.4000244140625,
-        "change": 8.5,
-        "change_pct": 1.4798049510305527,
-        "as_of": "2026-08-10T00:00:00+00:00",
+        "value": 588.7000122070312,
+        "previous_close": 582.9000244140625,
+        "change": 5.79998779296875,
+        "change_pct": 0.9950227397569524,
+        "as_of": "2026-08-12T02:03:07+00:00",
         "symbol": "2516.T",
         "kind": "etf_proxy",
         "proxy_for": "TSE Growth Market 250",
         "source": "Yahoo Finance chart endpoint"
       },
       "sp500": {
-        "value": 7753.10986328125,
-        "previous_close": 7757.64013671875,
-        "change": -4.5302734375,
-        "change_pct": -0.05839757139619227,
-        "as_of": "2026-08-10T13:30:00+00:00",
+        "value": 7728.2001953125,
+        "previous_close": 7753.10986328125,
+        "change": -24.90966796875,
+        "change_pct": -0.32128614721071164,
+        "as_of": "2026-08-11T13:30:00+00:00",
         "symbol": "^GSPC",
         "kind": "index",
         "source": "Yahoo Finance chart endpoint"
       },
       "nasdaq": {
-        "value": 26605.357421875,
-        "previous_close": 26690.619140625,
-        "change": -85.26171875,
-        "change_pct": -0.31944451457188444,
-        "as_of": "2026-08-10T13:30:00+00:00",
+        "value": 26445.4453125,
+        "previous_close": 26605.359375,
+        "change": -159.9140625,
+        "change_pct": -0.6010595844469776,
+        "as_of": "2026-08-11T13:30:00+00:00",
         "symbol": "^IXIC",
         "kind": "index",
         "source": "Yahoo Finance chart endpoint"
       },
       "dow": {
-        "value": 53975.98046875,
-        "previous_close": 54036.9296875,
-        "change": -60.94921875,
-        "change_pct": -0.11279178721380792,
-        "as_of": "2026-08-10T13:30:00+00:00",
+        "value": 53791.8515625,
+        "previous_close": 53975.98046875,
+        "change": -184.12890625,
+        "change_pct": -0.3411311932658703,
+        "as_of": "2026-08-11T13:30:00+00:00",
         "symbol": "^DJI",
         "kind": "index",
         "source": "Yahoo Finance chart endpoint"
       },
       "sox": {
-        "value": 11993.861328125,
-        "previous_close": 12356.7900390625,
-        "change": -362.9287109375,
-        "change_pct": -2.9370792073847936,
-        "as_of": "2026-08-10T13:30:00+00:00",
+        "value": 12098.4716796875,
+        "previous_close": 11993.8603515625,
+        "change": 104.611328125,
+        "change_pct": 0.8722073215682534,
+        "as_of": "2026-08-11T13:30:00+00:00",
         "symbol": "^SOX",
         "kind": "index",
         "source": "Yahoo Finance chart endpoint"
       },
       "vix": {
-        "value": 15.460000038146973,
-        "previous_close": 14.899999618530273,
-        "change": 0.5600004196166992,
-        "change_pct": 3.758392174186762,
-        "as_of": "2026-08-10T07:00:00+00:00",
+        "value": 15.279999732971191,
+        "previous_close": 15.460000038146973,
+        "change": -0.18000030517578125,
+        "change_pct": -1.1642969258191282,
+        "as_of": "2026-08-11T07:00:00+00:00",
         "symbol": "^VIX",
         "kind": "index",
         "source": "Yahoo Finance chart endpoint"
@@ -243,7 +262,75 @@
     "target_reserve": null,
     "capital_state": null
   },
-  "candidates": null,
+  "candidates": [
+    {
+      "security_code": "3110",
+      "company_name": "日東紡",
+      "rank": 1,
+      "status": "CURRENT",
+      "total_priority": null,
+      "owner_pick": false,
+      "candidate_sources": [
+        "RESEARCH_INDEX"
+      ],
+      "selection_reason": "RESEARCH_INDEX: Company Research exists: 03_Companies/Semiconductor/3110_Nittobo.md",
+      "last_researched_at": "2026-08-06"
+    },
+    {
+      "security_code": "4063",
+      "company_name": "信越化学工業",
+      "rank": 2,
+      "status": "CURRENT",
+      "total_priority": null,
+      "owner_pick": false,
+      "candidate_sources": [
+        "PORTFOLIO",
+        "RESEARCH_INDEX"
+      ],
+      "selection_reason": "PORTFOLIO: Current portfolio holding (信用買い100株); RESEARCH_INDEX: Company Research exists: 03_Companies/Semiconductor/4063_ShinEtsu.md",
+      "last_researched_at": "2026-08-02"
+    },
+    {
+      "security_code": "6232",
+      "company_name": "ACSL",
+      "rank": 3,
+      "status": "NOT_STARTED",
+      "total_priority": null,
+      "owner_pick": true,
+      "candidate_sources": [
+        "OWNER_PICK"
+      ],
+      "selection_reason": "OWNER_PICK: 防衛省の継続受注、SBIR/K Program政府資金、黒字化・資金繰り改善への転換点を重点監視",
+      "last_researched_at": null
+    },
+    {
+      "security_code": "6622",
+      "company_name": "ダイヘン",
+      "rank": 4,
+      "status": "CURRENT",
+      "total_priority": null,
+      "owner_pick": false,
+      "candidate_sources": [
+        "PORTFOLIO",
+        "RESEARCH_INDEX"
+      ],
+      "selection_reason": "PORTFOLIO: Current portfolio holding (信用買い100株); RESEARCH_INDEX: Company Research exists: 03_Companies/Infrastructure/6622_Daihen.md",
+      "last_researched_at": "2026-08-08"
+    },
+    {
+      "security_code": "6758",
+      "company_name": "Sony Group",
+      "rank": 5,
+      "status": "CURRENT",
+      "total_priority": null,
+      "owner_pick": false,
+      "candidate_sources": [
+        "RESEARCH_INDEX"
+      ],
+      "selection_reason": "RESEARCH_INDEX: Company Research exists: 03_Companies/AI/6758_Sony.md",
+      "last_researched_at": "2026-07-31"
+    }
+  ],
   "investor_dna": {
     "native_dna": {
       "sample_count": 394,
