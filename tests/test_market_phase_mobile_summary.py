@@ -7,7 +7,7 @@ JS = (ROOT / ".github" / "pages" / "market-phase.js").read_text(encoding="utf-8"
 
 def test_mobile_market_phase_uses_summary_before_full_matrix() -> None:
     assert 'matchMedia("(max-width: 700px)")' in JS
-    assert 'id="phase-mobile-correlation-summary"' in JS
+    assert 'summary.id = "phase-mobile-correlation-summary"' in JS
     assert "相関上位" in JS
     assert "相関下位" in JS
     assert "選択銘柄の相関" in JS
