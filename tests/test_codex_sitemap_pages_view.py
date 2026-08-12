@@ -16,6 +16,11 @@ class CodexSitemapPagesViewTest(unittest.TestCase):
         self.assertIn('class="codex-disclosure"', self.text)
         self.assertNotIn("<style", self.text.lower())
 
+    def test_markdown_is_enabled_inside_raw_html_shell(self) -> None:
+        self.assertIn('<section class="codex-page-shell" markdown="1">', self.text)
+        self.assertIn('<header class="codex-page-header" markdown="1">', self.text)
+        self.assertNotIn('<section class="codex-page-shell">', self.text)
+
     def test_first_view_answers_now_next_later(self) -> None:
         self.assertIn("いまどこまで出来ている？", self.text)
         self.assertIn("次に何を作る？", self.text)
