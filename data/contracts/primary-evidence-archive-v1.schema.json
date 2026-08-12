@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "primary-evidence-archive-v1.schema.json",
+  "title": "Sado Investment Lab Primary Evidence Archive v1",
+  "type": "object",
+  "required": ["schema_version", "records"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "records": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/archive_record"}
+    }
+  },
+  "$defs": {
+    "archive_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "access_status",
+        "archive_ref",
+        "ingress_ref",
+        "original_url",
+        "sha256",
+        "original_filename",
+        "received_at",
+        "received_by"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "pattern": "^source:[0-9a-f]{24}$",
+          "description": "Existing #144 SourceRecord identity; #414 does not generate another source identity."
+        },
+        "access_status": {
+          "enum": ["ARCHIVED", "URL_ONLY", "UNAVAILABLE", "NEEDS_RECOVERY"]
+        },
+        "archive_ref": {"type": ["string", "null"]},
+        "ingress_ref": {"type": ["string", "null"]},
+        "original_url": {"type": ["string", "null"]},
+        "sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "original_filename": {"type": ["string", "null"]},
+        "received_at": {"type": ["string", "null"], "format": "date-time"},
+        "received_by": {"type": ["string", "null"]}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {"access_status": {"const": "ARCHIVED"}},
+            "required": ["access_status"]
+          },
+          "then": {
+            "properties": {"archive_ref": {"type": "string", "minLength": 1}}
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "access_status": {"enum": ["URL_ONLY", "UNAVAILABLE", "NEEDS_RECOVERY"]}
+            },
+            "required": ["access_status"]
+          },
+          "then": {
+            "properties": {"archive_ref": {"type": "null"}}
+          }
+        }
+      ]
+    }
+  }
+}
