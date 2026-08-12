@@ -3,6 +3,10 @@ name: Risk Preflight What-if
 on:
   workflow_dispatch:
     inputs:
+      request_id:
+        description: "任意: UI/呼出元が発行するrequest identity。未入力時はrunnerが生成"
+        required: false
+        type: string
       security_code:
         description: "銘柄コード (例: 6622)"
         required: true
@@ -55,6 +59,7 @@ jobs:
 
       - name: Run canonical #233/#307 What-if
         env:
+          REQUEST_ID: ${{ inputs.request_id }}
           SECURITY_CODE: ${{ inputs.security_code }}
           ACTION: ${{ inputs.action }}
           QUANTITY: ${{ inputs.quantity }}
@@ -64,6 +69,7 @@ jobs:
           CASH_AVAILABLE: ${{ inputs.cash_available }}
         run: |
           python3 scripts/run_risk_preflight_what_if.py \
+            --request-id "$REQUEST_ID" \
             --security-code "$SECURITY_CODE" \
             --action "$ACTION" \
             --quantity "$QUANTITY" \
@@ -73,11 +79,27 @@ jobs:
             --cash-available "$CASH_AVAILABLE" \
             --output artifacts/risk-preflight-what-if/result.json
 
+      - name: Extract request identity for artifact name
+        id: identity
+        if: always()
+        run: |
+          REQUEST_ID=$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path('artifacts/risk-preflight-what-if/result.json')
+          if path.is_file():
+              print((json.loads(path.read_text()).get('runtime') or {}).get('request_id') or 'unknown')
+          else:
+              print('unknown')
+          PY
+          )
+          echo "request_id=$REQUEST_ID" >> "$GITHUB_OUTPUT"
+
       - name: Upload ephemeral result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: risk-preflight-what-if-${{ github.run_id }}
+          name: risk-preflight-what-if-${{ steps.identity.outputs.request_id }}-run-${{ github.run_id }}
           path: artifacts/risk-preflight-what-if/result.json
           if-no-files-found: error
           retention-days: 7

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import uuid
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter
@@ -25,6 +26,17 @@ def _optional_positive_float(value: str | None) -> float | None:
     return number
 
 
+def _runtime_identity(*, request_id: str | None, captured_at: str) -> dict[str, Any]:
+    resolved_request_id = (request_id or "").strip() or f"whatif-{uuid.uuid4().hex[:12]}"
+    return {
+        "request_id": resolved_request_id,
+        "github_run_id": os.environ.get("GITHUB_RUN_ID"),
+        "github_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+        "workflow": os.environ.get("GITHUB_WORKFLOW"),
+        "captured_at": captured_at,
+    }
+
+
 def build_runtime_result(
     *,
     security_code: str,
@@ -36,9 +48,11 @@ def build_runtime_result(
     portfolio_equity: float | None = None,
     cash_available: float | None = None,
     captured_at: str | None = None,
+    request_id: str | None = None,
 ) -> dict[str, Any]:
     portfolio = json.loads(portfolio_path.read_text(encoding="utf-8"))
     captured_at = captured_at or datetime.now(ZoneInfo("Asia/Tokyo")).isoformat(timespec="seconds")
+    runtime = _runtime_identity(request_id=request_id, captured_at=captured_at)
     intent = {
         "security_code": security_code,
         "action": action,
@@ -50,7 +64,7 @@ def build_runtime_result(
     }
 
     try:
-        return preview_what_if(
+        result = preview_what_if(
             portfolio,
             intent,
             captured_at=captured_at,
@@ -60,7 +74,7 @@ def build_runtime_result(
             rules={},
         )
     except WhatIfIntentError as exc:
-        return {
+        result = {
             "state": exc.state,
             "ephemeral": True,
             "is_order": False,
@@ -69,6 +83,9 @@ def build_runtime_result(
             "risk_preflight": None,
             "canonical_mutations": [],
         }
+
+    result["runtime"] = runtime
+    return result
 
 
 def attach_runtime_telemetry(
@@ -95,10 +112,14 @@ def attach_runtime_telemetry(
 
 def _summary_lines(result: dict[str, Any]) -> list[str]:
     intent = result.get("intent") or {}
+    runtime = result.get("runtime") or {}
     lines = [
         "# 売買前 What-if 結果",
         "",
         f"- 状態: `{result.get('state', 'UNKNOWN')}`",
+        f"- Request ID: `{runtime.get('request_id', 'UNKNOWN')}`",
+        f"- GitHub Run ID: `{runtime.get('github_run_id') or 'UNKNOWN'}`",
+        f"- Run attempt: `{runtime.get('github_run_attempt') or 'UNKNOWN'}`",
         f"- 対象: `{intent.get('security_code', 'UNKNOWN')}`",
         f"- 仮定: `{intent.get('action', 'UNKNOWN')} {intent.get('quantity', '?')}株 @ {intent.get('price', '?')}円`",
         f"- 口座文脈: `{intent.get('account_type', 'UNKNOWN')}`",
@@ -157,6 +178,7 @@ def main() -> int:
     parser.add_argument("--account-type", default="UNKNOWN", choices=("CASH", "MARGIN", "UNKNOWN"))
     parser.add_argument("--portfolio-equity")
     parser.add_argument("--cash-available")
+    parser.add_argument("--request-id")
     parser.add_argument("--portfolio", type=Path, default=DEFAULT_PORTFOLIO)
     parser.add_argument("--output", type=Path, default=Path("artifacts/risk-preflight-what-if/result.json"))
     args = parser.parse_args()
@@ -169,12 +191,14 @@ def main() -> int:
         portfolio_equity = _optional_positive_float(args.portfolio_equity)
         cash_available = _optional_positive_float(args.cash_available)
     except (TypeError, ValueError) as exc:
+        captured_at = datetime.now(clock).isoformat(timespec="seconds")
         result = {
             "state": "INVALID_INPUT",
             "ephemeral": True,
             "is_order": False,
             "message": str(exc),
             "canonical_mutations": [],
+            "runtime": _runtime_identity(request_id=args.request_id, captured_at=captured_at),
         }
     else:
         result = build_runtime_result(
@@ -186,6 +210,7 @@ def main() -> int:
             portfolio_path=args.portfolio,
             portfolio_equity=portfolio_equity,
             cash_available=cash_available,
+            request_id=args.request_id,
         )
 
     calculation_completed_at = datetime.now(clock).isoformat(timespec="milliseconds")
