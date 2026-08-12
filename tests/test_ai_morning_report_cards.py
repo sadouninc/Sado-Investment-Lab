@@ -57,7 +57,7 @@ class MorningReportCardTests(unittest.TestCase):
         detail = MODULE.card_detail(MODULE.report_card_summary(report), "OK")
         self.assertIn("リスク: VIX上昇とイベント跨ぎに注意。", detail)
 
-    def test_build_keeps_api_diagnostics_on_detail_page_but_not_index_card(self):
+    def test_build_puts_latest_decision_summary_before_generation_details(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             report_dir = root / "reports"
@@ -89,12 +89,45 @@ class MorningReportCardTests(unittest.TestCase):
 
             index = (site / "reports" / "morning" / "index.md").read_text(encoding="utf-8")
             detail = (site / "reports" / "morning" / "2026-08-09" / "index.md").read_text(encoding="utf-8")
-            self.assertIn("AI半導体は底堅い", index)
-            self.assertNotIn("gpt-5 / tokens", index)
+
+            self.assertIn("# 朝の市場レポート", index)
+            self.assertIn("今日まず見る", index)
+            self.assertIn("最新レポート 2026-08-09", index)
+            self.assertIn("市場: AI半導体は底堅い", index)
+            self.assertIn("戦略: 押し目候補を優先", index)
+            self.assertIn("注目: 4063 信越化学", index)
+            self.assertLess(index.index("今日まず見る"), index.index("このレポートについて"))
+            self.assertLess(index.index("市場: AI半導体"), index.index("model / token / execution / cost"))
+            self.assertNotIn("GitHub Actions が", index)
+            self.assertNotIn("gpt-5", index)
             self.assertNotIn("tokens 1234", index)
             self.assertIn("## API Diagnostics", detail)
             self.assertIn("Model: `gpt-5`", detail)
             self.assertIn("Total tokens: `1234`", detail)
+
+    def test_latest_report_is_not_duplicated_in_history(self):
+        older = REPORT.replace("AI半導体は底堅い", "前営業日の市場")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            report_dir = root / "reports"
+            diag_dir = root / "diagnostics"
+            site = root / "site"
+            report_dir.mkdir()
+            diag_dir.mkdir()
+            (report_dir / "2026-08-09.md").write_text(REPORT, encoding="utf-8")
+            (report_dir / "2026-08-08.md").write_text(older, encoding="utf-8")
+
+            old_report_dir, old_diag_dir, old_site = MODULE.REPORT_DIR, MODULE.DIAG_DIR, MODULE.SITE
+            try:
+                MODULE.REPORT_DIR, MODULE.DIAG_DIR, MODULE.SITE = report_dir, diag_dir, site
+                MODULE.build()
+            finally:
+                MODULE.REPORT_DIR, MODULE.DIAG_DIR, MODULE.SITE = old_report_dir, old_diag_dir, old_site
+
+            index = (site / "reports" / "morning" / "index.md").read_text(encoding="utf-8")
+            self.assertEqual(index.count("最新レポート 2026-08-09"), 1)
+            self.assertEqual(index.count("<strong>2026-08-08</strong>"), 1)
+            self.assertNotIn("<strong>2026-08-09</strong>", index)
 
 
 if __name__ == "__main__":
