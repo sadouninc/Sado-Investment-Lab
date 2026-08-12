@@ -31,7 +31,7 @@
     },
     {
       "feature_id": "bear-base-bull-forward-per",
-      "title_ja": "Bear / Base / Bull + Forward PER",
+      "title_ja": "弱気・基準・強気シナリオと予想PER",
       "route_ref": "/decision-cockpit/daihen/",
       "os_stage_ref": "decide",
       "purpose_ja": "一つの利益予想に固定せず、弱気・基準・強気の前提差と、その前提で見た評価水準を分けて確認するための見方です。",
@@ -58,7 +58,7 @@
     },
     {
       "feature_id": "hypothesis-must-happen-invalidation",
-      "title_ja": "投資仮説 / Must happen / Invalidation",
+      "title_ja": "投資仮説の成立条件と崩れる条件",
       "route_ref": "/framework/",
       "os_stage_ref": "hypothesize",
       "purpose_ja": "何が実現すれば投資仮説が強まり、何が起きれば崩れるのかを、事実と解釈を混ぜずに整理するための見方です。",
@@ -85,7 +85,7 @@
     },
     {
       "feature_id": "pre-trade-what-if-portfolio-impact",
-      "title_ja": "Pre-trade What-if / Portfolio impact",
+      "title_ja": "売買前にポートフォリオ影響を確認",
       "route_ref": "/risk-preflight/",
       "os_stage_ref": "pretrade",
       "purpose_ja": "売買を実行する前に、その注文がポートフォリオの集中・余力・リスクへ与える影響を確認するための見方です。",
@@ -112,7 +112,7 @@
     },
     {
       "feature_id": "money-flow-candidate-discovery",
-      "title_ja": "Money Flow / Candidate Discovery",
+      "title_ja": "資金の流れから次の調査候補を探す",
       "route_ref": "/research/market-phase/ai-semiconductor/",
       "os_stage_ref": "discover",
       "purpose_ja": "市場やテーマの資金の流れを観測し、次に企業Researchへ進める候補を見つけるための見方です。",
