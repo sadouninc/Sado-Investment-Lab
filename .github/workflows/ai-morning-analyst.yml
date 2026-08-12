@@ -65,7 +65,7 @@ jobs:
       - name: Generate Candidate Selector snapshot
         if: steps.recovery.outputs.should_generate == 'true'
         run: |
-          python3 scripts/candidate_selector_sources.py \
+          python3 -m scripts.candidate_selector_sources \
             --as-of "$AS_OF_JST" \
             --output data/generated/public/candidate-selector.json \
             --shortlist data/generated/public/candidate-selector-shortlist.md
