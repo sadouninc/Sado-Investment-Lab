@@ -359,6 +359,54 @@ td { font-variant-numeric: tabular-nums; }
   .trade-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metric-card strong { font-size: 1.05rem; overflow-wrap: anywhere; }
+
+  #ta-group-table .sortable-table {
+    display: table;
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+    overflow: visible;
+    font-size: 13px;
+  }
+  #ta-group-table th, #ta-group-table td {
+    padding: .35rem .2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #ta-group-table th:nth-child(6), #ta-group-table td:nth-child(6) { display: none; }
+  #ta-group-table th:nth-child(1), #ta-group-table td:nth-child(1) { width: 24%; text-align: left; }
+  #ta-group-table th:nth-child(2), #ta-group-table td:nth-child(2) { width: 14%; }
+  #ta-group-table th:nth-child(3), #ta-group-table td:nth-child(3) { width: 26%; }
+  #ta-group-table th:nth-child(4), #ta-group-table td:nth-child(4) { width: 18%; }
+  #ta-group-table th:nth-child(5), #ta-group-table td:nth-child(5) { width: 18%; }
+
+  #ta-trades .sortable-table {
+    display: table;
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+    overflow: visible;
+    font-size: 13px;
+  }
+  #ta-trades th, #ta-trades td { padding: .35rem .2rem; }
+  #ta-trades th:nth-child(4), #ta-trades td:nth-child(4),
+  #ta-trades th:nth-child(6), #ta-trades td:nth-child(6),
+  #ta-trades th:nth-child(7), #ta-trades td:nth-child(7),
+  #ta-trades th:nth-child(8), #ta-trades td:nth-child(8),
+  #ta-trades th:nth-child(10), #ta-trades td:nth-child(10),
+  #ta-trades th:nth-child(11), #ta-trades td:nth-child(11) { display: none; }
+  #ta-trades th:nth-child(1), #ta-trades td:nth-child(1) { width: 22%; }
+  #ta-trades th:nth-child(2), #ta-trades td:nth-child(2) { width: 15%; }
+  #ta-trades th:nth-child(3), #ta-trades td:nth-child(3) { width: 28%; }
+  #ta-trades th:nth-child(5), #ta-trades td:nth-child(5) { width: 13%; }
+  #ta-trades th:nth-child(9), #ta-trades td:nth-child(9) { width: 22%; }
+  #ta-trades .sortable-table td:nth-child(3) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: normal;
+  }
 }
 @media (max-width: 420px) {
   .trade-filters { grid-template-columns: 1fr; gap: .7rem; }
