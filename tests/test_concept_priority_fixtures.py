@@ -70,3 +70,13 @@ def test_priority_guide_output_paths_are_stable_and_unique() -> None:
     assert len(paths) == len(set(paths))
     for record, path in zip(data["concepts"], paths):
         assert path == ROOT / "site-src" / "concepts" / record["feature_id"] / "index.md"
+
+
+def test_main_generates_every_priority_concept_route() -> None:
+    concept.main()
+    data, _ = fixtures()
+    for record in data["concepts"]:
+        path = concept.output_path(record)
+        assert path.is_file()
+        rendered = path.read_text(encoding="utf-8")
+        assert f"permalink: /concepts/{record['feature_id']}/" in rendered
