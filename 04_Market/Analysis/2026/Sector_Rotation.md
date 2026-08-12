@@ -5,7 +5,7 @@
 ## 今日のSector Rotation
 
 <div id="sector-rotation-summary" class="notice-card" aria-live="polite">
-  <strong>最新のSector状態を確認中...</strong>
+  <strong>Latest confirmed / 最新確定営業日のSector状態を確認中...</strong>
 </div>
 
 <div id="sector-rotation-focus" class="content-grid" aria-live="polite"></div>
@@ -123,7 +123,7 @@ TOPIX-17 Sector Money Flowの**最新確定営業日**を、前回stateとの差
       return bAccel - aAccel || String(a.name || a.id).localeCompare(String(b.name || b.id), 'ja');
     });
 
-    summary.innerHTML = `<strong>${esc(newest)} の資金ローテーション</strong>`
+    summary.innerHTML = `<strong>Latest confirmed / 最新確定: ${esc(newest)}</strong>`
       + `<p>TOPIX-17 ${latest.length} Sector / WARMING・INFLOW ${early.length}件 / 新しいstate遷移 ${transitions.length}件。</p>`;
     renderFocus(latest, newest);
 
