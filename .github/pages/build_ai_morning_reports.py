@@ -101,9 +101,22 @@ def card_detail(summary: dict[str, str], status: object) -> str:
     return "<br>".join(html.escape(row) for row in rows)
 
 
+def latest_report_card(day: str, url: str, summary: dict[str, str], status: object) -> str:
+    """Render the latest decision-oriented report before any implementation explanation."""
+    return (
+        '<section aria-labelledby="morning-latest">\n'
+        '<h2 id="morning-latest">今日まず見る</h2>\n'
+        f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
+        f'<strong>最新レポート {html.escape(day)}</strong>'
+        f'<span>{card_detail(summary, status)}</span></a>\n'
+        '</section>\n'
+    )
+
+
 def build() -> None:
     sources = sorted(REPORT_DIR.glob("*.md"), reverse=True) if REPORT_DIR.exists() else []
     cards: list[str] = []
+    latest: tuple[str, str, dict[str, str], object] | None = None
     for source in sources:
         day = report_date(source)
         url = f"/reports/morning/{day}/"
@@ -116,18 +129,21 @@ def build() -> None:
         status = diagnostics.get("dataset_status", "unknown")
         report_text = source.read_text(encoding="utf-8")
         summary = report_card_summary(report_text)
-        cards.append(
-            f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
-            f"<strong>{day}</strong><span>{card_detail(summary, status)}</span></a>"
-        )
+        if latest is None:
+            latest = (day, url, summary, status)
+        else:
+            cards.append(
+                f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
+                f"<strong>{day}</strong><span>{card_detail(summary, status)}</span></a>"
+            )
         page = front_matter(
-            f"AI Morning Report {day}",
-            "Morning DatasetをOpenAI APIで分析した自動生成レポート",
+            f"朝の市場レポート {day}",
+            "Morning Datasetを分析した朝の市場・投資チェック",
             url,
         )
         page += (
             '<p class="breadcrumb"><a href="{{ \'/reports/morning/\' | relative_url }}">'
-            f"AI Morning Reports</a> / {day}</p>\n\n"
+            f"朝の市場レポート</a> / {day}</p>\n\n"
         )
         page += strip_source_front_matter(report_text)
         if diagnostics:
@@ -145,20 +161,27 @@ def build() -> None:
         write(SITE / "reports" / "morning" / day / "index.md", page)
 
     index = front_matter(
-        "AI Morning Reports",
-        "Morning Datasetを基にOpenAI APIが自動生成した朝の市場分析",
+        "朝の市場レポート",
+        "最新日の市場要点・戦略・注目銘柄から確認できる朝の投資チェック",
         "/reports/morning/",
     )
-    index += (
-        "# AI Morning Reports\n\n"
-        "GitHub Actions が Morning Dataset を生成し、OpenAI API が分析した朝レポートの履歴です。"
-        "一覧では投資判断の内容を優先し、model / token / execution / cost は個別レポートの API Diagnostics に分離します。"
-        "AIの出力は判断材料であり、事実データと推論を分離して扱います。\n\n"
-    )
-    if cards:
-        index += '<div class="content-grid">\n' + "\n".join(cards) + "\n</div>\n"
+    index += "# 朝の市場レポート\n\n"
+    if latest:
+        index += latest_report_card(*latest) + "\n"
+        if cards:
+            index += "## 過去のレポート\n\n<div class=\"content-grid\">\n" + "\n".join(cards) + "\n</div>\n\n"
+        index += (
+            "<details class=\"codex-disclosure\">\n"
+            "<summary>このレポートについて</summary>\n"
+            "<div class=\"codex-disclosure__body\" markdown=\"1\">\n\n"
+            "Morning Datasetを基に生成した朝レポートの履歴です（旧称: AI Morning Reports）。"
+            "一覧では市場概況・今日の戦略・注目銘柄を先に確認できます。\n\n"
+            "生成処理のmodel / token / execution / costは個別レポート末尾のAPI Diagnosticsで確認できます。"
+            "AIの出力は判断材料であり、事実データと推論を分離して扱います。\n\n"
+            "</div>\n</details>\n"
+        )
     else:
-        index += "まだAI Morning Reportは生成されていません。\n"
+        index += "まだ朝の市場レポートは生成されていません。\n"
     write(SITE / "reports" / "morning" / "index.md", index)
 
 
