@@ -56,6 +56,26 @@ def dataset() -> dict:
     }
 
 
+def portfolio_dataset(*, status: str = "OK") -> dict:
+    payload = dataset()
+    payload["source_status"].append(
+        {
+            "name": "portfolio",
+            "status": status,
+            "as_of": "2026-08-12" if status != "STALE" else "2026-08-01",
+            "source_reference": "data/canonical/portfolio-state.json",
+            "reason": "fixture stale" if status == "STALE" else None,
+        }
+    )
+    payload["portfolio"] = {
+        "positions": [
+            {"security_code": "6622", "name": "ダイヘン", "quantity": 100},
+            {"security_code": "3110", "name": "日東紡", "quantity": 200},
+        ]
+    }
+    return payload
+
+
 def home_text() -> str:
     return (
         "before\n"
@@ -120,10 +140,59 @@ def test_heatmap_mobile_does_not_depend_on_horizontal_scroll():
     assert "overflow-x: auto" not in heatmap_block
 
 
+def test_portfolio_impact_renders_holdings_but_keeps_impact_unknown():
+    payload = portfolio_dataset()
+    before = deepcopy(payload)
+
+    rendered = module.render_portfolio_impact(payload)
+
+    assert "自分の保有銘柄にどう関係する？" in rendered
+    assert "ダイヘン" in rendered
+    assert "日東紡" in rendered
+    assert "6622" in rendered
+    assert "影響判定: 未接続 / UNKNOWN" in rendered
+    assert "自分への影響: 未判定 / UNKNOWN" in rendered
+    assert "/risk-preflight/" in rendered
+    assert "BUY/SELL" in rendered
+    assert payload == before
+
+
+def test_portfolio_impact_stale_is_freshness_problem_not_negative_signal():
+    rendered = module.render_portfolio_impact(portfolio_dataset(status="STALE"))
+
+    assert 'data-state="stale"' in rendered
+    assert "保有情報が古いため、銘柄評価ではなく鮮度問題" in rendered
+    assert "自分への影響: 未判定 / UNKNOWN" in rendered
+
+
+def test_portfolio_impact_missing_fails_closed_without_fake_empty_holdings():
+    payload = dataset()
+    payload["source_status"].append(
+        {"name": "portfolio", "status": "MISSING", "reason": "canonical missing"}
+    )
+    payload["portfolio"] = None
+
+    rendered = module.render_portfolio_impact(payload)
+
+    assert "自分への影響は判定できません / UNAVAILABLE" in rendered
+    assert "home-portfolio-position" not in rendered
+    assert "Portfolio source: 取得できません / MISSING" in rendered
+
+
+def test_portfolio_mobile_uses_stack_grid_not_horizontal_table():
+    css = CSS_PATH.read_text(encoding="utf-8")
+    assert ".home-portfolio-grid" in css
+    mobile = css.split("@media (max-width: 640px)", 1)[1]
+    assert ".home-portfolio-grid" in mobile
+    assert "grid-template-columns: 1fr" in mobile
+    assert "overflow-x: auto" not in mobile
+
+
 def test_missing_dataset_fails_closed_as_unavailable():
     rendered = module.render_status_section(None)
     assert "Morning Datasetを取得できません" in rendered
     assert "HeatMapを表示できません" in rendered
+    assert "自分への影響は判定できません" in rendered
     assert 'data-state="unavailable"' in rendered
     assert "問題なし" in rendered
 
@@ -153,13 +222,15 @@ def test_missing_source_status_is_not_promoted_to_ok():
     assert "source status not available" in rendered
 
 
-def test_enrich_replaces_status_area_adds_heatmap_and_preserves_following_map():
+def test_enrich_replaces_status_area_adds_market_and_portfolio_sections():
     rendered = module.enrich_text(
-        home_text(), dataset(), expected_as_of=date(2026, 8, 11)
+        home_text(), portfolio_dataset(), expected_as_of=date(2026, 8, 11)
     )
     assert rendered.startswith("before\n")
     assert "old status" not in rendered
     assert "市場・テーマの動き" in rendered
+    assert "自分の保有銘柄にどう関係する？" in rendered
+    assert "ダイヘン" in rendered
     assert module.STATUS_SECTION_END in rendered
     assert rendered.endswith("after\n")
     assert "WARMING 1件 / INFLOW 1件" in rendered
