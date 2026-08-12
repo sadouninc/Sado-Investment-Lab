@@ -174,7 +174,7 @@ def build() -> None:
             "<details class=\"codex-disclosure\">\n"
             "<summary>このレポートについて</summary>\n"
             "<div class=\"codex-disclosure__body\" markdown=\"1\">\n\n"
-            "Morning Datasetを基に生成した朝レポートの履歴です。"
+            "Morning Datasetを基に生成した朝レポートの履歴です（旧称: AI Morning Reports）。"
             "一覧では市場概況・今日の戦略・注目銘柄を先に確認できます。\n\n"
             "生成処理のmodel / token / execution / costは個別レポート末尾のAPI Diagnosticsで確認できます。"
             "AIの出力は判断材料であり、事実データと推論を分離して扱います。\n\n"
