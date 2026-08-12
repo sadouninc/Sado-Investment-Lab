@@ -52,6 +52,7 @@ Policy Intelligenceのcheckpointと、独立して計算されたMarket Money Fl
 - Evaluation: `data/generated/public/money-flow/evaluation.json`
 - Policy Lead-Time AI/DC: `data/generated/public/money-flow/policy-lead-time-ai-dc-v2.json`
 - Policy Lead-Time Defense Drone: `data/generated/public/money-flow/policy-lead-time-defense-drone-v2.json`
+- Policy Lead-Time Physical AI: `data/generated/public/money-flow/policy-lead-time-physical-ai-v2.json`
 - 同一 `(kind, id, as_of)` の再保存はidempotentに扱います。
 - 同一identityでpayloadが異なる場合はsilent overwriteせずfail closedです。
 - 将来価格が不足する場合、forward returnは `0%` にせず `null` / 未評価として扱います。
@@ -68,6 +69,7 @@ Policy Intelligenceのcheckpointと、独立して計算されたMarket Money Fl
   const POLICY_URLS = [
     RAW_BASE + 'data/generated/public/money-flow/policy-lead-time-ai-dc-v2.json',
     RAW_BASE + 'data/generated/public/money-flow/policy-lead-time-defense-drone-v2.json',
+    RAW_BASE + 'data/generated/public/money-flow/policy-lead-time-physical-ai-v2.json',
   ];
   const summary = document.getElementById('money-flow-summary');
   const stateTable = document.getElementById('money-flow-state-table');

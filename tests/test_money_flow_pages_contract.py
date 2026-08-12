@@ -38,6 +38,7 @@ class MoneyFlowPagesContractTests(unittest.TestCase):
         text = PAGE.read_text(encoding="utf-8")
         self.assertIn("policy-lead-time-ai-dc-v2.json", text)
         self.assertIn("policy-lead-time-defense-drone-v2.json", text)
+        self.assertIn("policy-lead-time-physical-ai-v2.json", text)
         self.assertIn("classification", text)
         self.assertIn("data_quality", text)
         self.assertIn("limitations", text)
