@@ -1,0 +1,319 @@
+{
+  "limitations": [
+    "BENCHMARK_PROXY",
+    "RETROSPECTIVE_MEMBERSHIP",
+    "THEME_SCOPE_PROXY"
+  ],
+  "members": [
+    {
+      "company_name": "FANUC",
+      "evidence_ref": "https://www.fanuc.co.jp/ja/product/robot/",
+      "inclusion_rationale": "Industrial robots are an explicit business; company also publishes direct Physical AI robotics initiatives.",
+      "security_code": "6954",
+      "symbol": "6954.T"
+    },
+    {
+      "company_name": "安川電機",
+      "evidence_ref": "https://www.yaskawa.co.jp/company/profile/business",
+      "inclusion_rationale": "Motion control and industrial robots are explicit core businesses, directly exposing the company to robotics actuation and control.",
+      "security_code": "6506",
+      "symbol": "6506.T"
+    },
+    {
+      "company_name": "ハーモニック・ドライブ・システムズ",
+      "evidence_ref": "https://www.hds.co.jp/products/list/reducer/",
+      "inclusion_rationale": "Precision reducers are direct robot motion components; company product materials explicitly cite robot lightweighting and high-speed applications.",
+      "security_code": "6324",
+      "symbol": "6324.T"
+    },
+    {
+      "company_name": "ナブテスコ",
+      "evidence_ref": "https://www.nabtesco.com/products/robot/",
+      "inclusion_rationale": "Precision reducers are used in industrial robot joints and are a direct mechanical core component exposure.",
+      "security_code": "6268",
+      "symbol": "6268.T"
+    },
+    {
+      "company_name": "THK",
+      "evidence_ref": "https://www.thk.com/opm/industrial-robot/",
+      "inclusion_rationale": "LM guides, electric actuators, and other mechanical elements are explicitly supplied for industrial robot joints, drives, and support mechanisms.",
+      "security_code": "6481",
+      "symbol": "6481.T"
+    }
+  ],
+  "membership_as_of": "2026-08-12",
+  "membership_authority": "Issue #394 PR1 canonical membership; company primary-source exposure verification",
+  "membership_version": "2026-08-12-v1",
+  "policy_checkpoints": [
+    {
+      "date": "2026-03-24",
+      "evaluation": {
+        "classification": "REACCELERATION_AFTER_POLICY",
+        "data_quality": "OK",
+        "limitations": [
+          "BENCHMARK_PROXY",
+          "RETROSPECTIVE_MEMBERSHIP",
+          "THEME_SCOPE_PROXY"
+        ],
+        "policy_evidence_in_market_score": false,
+        "policy_t0": "2026-03-24",
+        "post_policy_persistence": true,
+        "post_policy_reacceleration": true,
+        "raw_first": {
+          "first_market_date": "2025-01-15",
+          "inflow_date": "2026-03-31",
+          "policy_to_inflow_days": 7,
+          "policy_to_warming_days": -433,
+          "warming_date": "2025-01-15"
+        },
+        "reliable_first": {
+          "first_market_date": "2025-01-15",
+          "inflow_date": "2026-03-31",
+          "policy_to_inflow_days": 7,
+          "policy_to_warming_days": -433,
+          "warming_date": "2025-01-15"
+        },
+        "schema_version": 2
+      },
+      "label": "NEDO multimodal foundation-model program call",
+      "policy_stage": "R&D_CALL",
+      "sequence_summary": {
+        "pre_policy_state": {
+          "as_of": "2026-03-23",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "COLD"
+        },
+        "reliable_first_post_policy_inflow": "2026-03-31",
+        "reliable_first_post_policy_warming": null,
+        "reliable_strongest_post_policy_state": "OVERHEATED",
+        "reliable_strongest_pre_policy_state": "OVERHEATED",
+        "state_at_or_before_policy": {
+          "as_of": "2026-03-24",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "COLD"
+        }
+      },
+      "source_ref": "https://www.nedo.go.jp/koubo/CD2_100431.html"
+    },
+    {
+      "date": "2026-05-14",
+      "evaluation": {
+        "classification": "REACCELERATION_AFTER_POLICY",
+        "data_quality": "OK",
+        "limitations": [
+          "BENCHMARK_PROXY",
+          "RETROSPECTIVE_MEMBERSHIP",
+          "THEME_SCOPE_PROXY"
+        ],
+        "policy_evidence_in_market_score": false,
+        "policy_t0": "2026-05-14",
+        "post_policy_persistence": true,
+        "post_policy_reacceleration": true,
+        "raw_first": {
+          "first_market_date": "2025-01-15",
+          "inflow_date": "2026-03-31",
+          "policy_to_inflow_days": -44,
+          "policy_to_warming_days": -484,
+          "warming_date": "2025-01-15"
+        },
+        "reliable_first": {
+          "first_market_date": "2025-01-15",
+          "inflow_date": "2026-03-31",
+          "policy_to_inflow_days": -44,
+          "policy_to_warming_days": -484,
+          "warming_date": "2025-01-15"
+        },
+        "schema_version": 2
+      },
+      "label": "NEDO GENIAC robot foundation-model selection",
+      "policy_stage": "R&D_SELECTION",
+      "sequence_summary": {
+        "pre_policy_state": {
+          "as_of": "2026-05-13",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "OVERHEATED"
+        },
+        "reliable_first_post_policy_inflow": null,
+        "reliable_first_post_policy_warming": null,
+        "reliable_strongest_post_policy_state": "OVERHEATED",
+        "reliable_strongest_pre_policy_state": "OVERHEATED",
+        "state_at_or_before_policy": {
+          "as_of": "2026-05-14",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "OVERHEATED"
+        }
+      },
+      "source_ref": "https://www.nedo.go.jp/koubo/CD3_100427.html"
+    },
+    {
+      "date": "2026-05-27",
+      "evaluation": {
+        "classification": "REACCELERATION_AFTER_POLICY",
+        "data_quality": "OK",
+        "limitations": [
+          "BENCHMARK_PROXY",
+          "RETROSPECTIVE_MEMBERSHIP",
+          "THEME_SCOPE_PROXY"
+        ],
+        "policy_evidence_in_market_score": false,
+        "policy_t0": "2026-05-27",
+        "post_policy_persistence": true,
+        "post_policy_reacceleration": true,
+        "raw_first": {
+          "first_market_date": "2025-01-15",
+          "inflow_date": "2026-03-31",
+          "policy_to_inflow_days": -57,
+          "policy_to_warming_days": -497,
+          "warming_date": "2025-01-15"
+        },
+        "reliable_first": {
+          "first_market_date": "2025-01-15",
+          "inflow_date": "2026-03-31",
+          "policy_to_inflow_days": -57,
+          "policy_to_warming_days": -497,
+          "warming_date": "2025-01-15"
+        },
+        "schema_version": 2
+      },
+      "label": "AI Robotics Strategy update / social implementation",
+      "policy_stage": "STRATEGY_SOCIAL_IMPLEMENTATION",
+      "sequence_summary": {
+        "pre_policy_state": {
+          "as_of": "2026-05-26",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "OVERHEATED"
+        },
+        "reliable_first_post_policy_inflow": null,
+        "reliable_first_post_policy_warming": null,
+        "reliable_strongest_post_policy_state": "OVERHEATED",
+        "reliable_strongest_pre_policy_state": "OVERHEATED",
+        "state_at_or_before_policy": {
+          "as_of": "2026-05-27",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "OVERHEATED"
+        }
+      },
+      "source_ref": "https://www.meti.go.jp/policy/mono_info_service/mono/robot/index.html"
+    },
+    {
+      "date": "2026-06-30",
+      "evaluation": {
+        "classification": "MARKET_LEADS",
+        "data_quality": "OK",
+        "limitations": [
+          "BENCHMARK_PROXY",
+          "RETROSPECTIVE_MEMBERSHIP",
+          "THEME_SCOPE_PROXY"
+        ],
+        "policy_evidence_in_market_score": false,
+        "policy_t0": "2026-06-30",
+        "post_policy_persistence": false,
+        "post_policy_reacceleration": false,
+        "raw_first": {
+          "first_market_date": "2025-01-15",
+          "inflow_date": "2026-03-31",
+          "policy_to_inflow_days": -91,
+          "policy_to_warming_days": -531,
+          "warming_date": "2025-01-15"
+        },
+        "reliable_first": {
+          "first_market_date": "2025-01-15",
+          "inflow_date": "2026-03-31",
+          "policy_to_inflow_days": -91,
+          "policy_to_warming_days": -531,
+          "warming_date": "2025-01-15"
+        },
+        "schema_version": 2
+      },
+      "label": "NEDO multimodal foundation-model implementer selection",
+      "policy_stage": "R&D_SELECTION_MULTIYEAR",
+      "sequence_summary": {
+        "pre_policy_state": {
+          "as_of": "2026-06-29",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "COLD"
+        },
+        "reliable_first_post_policy_inflow": null,
+        "reliable_first_post_policy_warming": null,
+        "reliable_strongest_post_policy_state": "COLD",
+        "reliable_strongest_pre_policy_state": "OVERHEATED",
+        "state_at_or_before_policy": {
+          "as_of": "2026-06-30",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "COLD"
+        }
+      },
+      "source_ref": "https://www.nedo.go.jp/koubo/CD3_100431.html"
+    },
+    {
+      "date": "2026-07-21",
+      "evaluation": {
+        "classification": "MARKET_LEADS",
+        "data_quality": "OK",
+        "limitations": [
+          "BENCHMARK_PROXY",
+          "RETROSPECTIVE_MEMBERSHIP",
+          "THEME_SCOPE_PROXY"
+        ],
+        "policy_evidence_in_market_score": false,
+        "policy_t0": "2026-07-21",
+        "post_policy_persistence": false,
+        "post_policy_reacceleration": false,
+        "raw_first": {
+          "first_market_date": "2025-01-15",
+          "inflow_date": "2026-03-31",
+          "policy_to_inflow_days": -112,
+          "policy_to_warming_days": -552,
+          "warming_date": "2025-01-15"
+        },
+        "reliable_first": {
+          "first_market_date": "2025-01-15",
+          "inflow_date": "2026-03-31",
+          "policy_to_inflow_days": -112,
+          "policy_to_warming_days": -552,
+          "warming_date": "2025-01-15"
+        },
+        "schema_version": 2
+      },
+      "label": "Japan Growth Strategy / Physical AI investment roadmap and demand creation",
+      "policy_stage": "INVESTMENT_ROADMAP_DEMAND_CREATION",
+      "sequence_summary": {
+        "pre_policy_state": {
+          "as_of": "2026-07-17",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "COLD"
+        },
+        "reliable_first_post_policy_inflow": null,
+        "reliable_first_post_policy_warming": null,
+        "reliable_strongest_post_policy_state": "COLD",
+        "reliable_strongest_pre_policy_state": "OVERHEATED",
+        "state_at_or_before_policy": {
+          "as_of": "2026-07-21",
+          "data_completeness": "OK",
+          "reliable": true,
+          "state": "COLD"
+        }
+      },
+      "source_ref": "https://www5.cao.go.jp/keizai-shimon/kaigi/minutes/2026/0721_shiryo03.pdf"
+    }
+  ],
+  "policy_evidence_in_market_score": false,
+  "schema_version": 1,
+  "source_refs": {
+    "membership": "Issue #394 PR1",
+    "money_flow_history": "data/generated/public/money-flow/history.jsonl",
+    "policy_watchlist": "Issue #154",
+    "theme_config": "data/config/money-flow-themes-v1.json"
+  },
+  "theme_id": "theme:physical-ai-robotics-core",
+  "theme_name": "Physical AI / Robotics Core"
+}

@@ -1,0 +1,11 @@
+{
+  "first_inflow_date": "2026-03-31",
+  "first_warming_date": "2025-01-15",
+  "limitations": [
+    "RETROSPECTIVE_MEMBERSHIP"
+  ],
+  "policy_t0": "2024-10-04",
+  "policy_to_inflow_days": 543,
+  "policy_to_warming_days": 103,
+  "theme_id": "theme:physical-ai-robotics-core"
+}
