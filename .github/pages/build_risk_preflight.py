@@ -32,12 +32,11 @@ permalink: /risk-preflight/
 ## ▶ 実際にWhat-ifを確認する
 
 <div class="content-card">
-  <strong>売買内容を入力すると、注文前のPF影響をCanonical計算で確認できます。</strong>
+  <strong>売買内容を入力すると、注文前のPF影響を共通計算ロジックで確認できます。</strong>
   <span>GitHubへログインした状態で専用Actionsを開き、<code>Run workflow</code> から銘柄コード・BUY/SELL・株数・価格を入力します。ダイヘンは <code>6622</code>、BUY 100株なら action=<code>BUY</code> / quantity=<code>100</code> です。</span>
-  <span>計算は既存 #307 / #233 Python calculatorだけを実行します。Pages内に別の計算式を持ちません。</span>
   <div class="codex-action-row">
     <a class="codex-action codex-action--primary" href="{WHAT_IF_WORKFLOW_URL}">What-if入力を開始する</a>
-    <a class="codex-action codex-action--secondary" href="{WHAT_IF_WORKFLOW_URL}">直近の実行結果を見る</a>
+    <a class="codex-action codex-action--secondary" href="{WHAT_IF_WORKFLOW_URL}">実行履歴を開く</a>
   </div>
 </div>
 
@@ -50,6 +49,8 @@ permalink: /risk-preflight/
 `SELL` はCASH / MARGINの口座文脈を明示できない場合、信用新規売り等を推測せず `NOT_JUDGABLE` になります。PF評価額・現金余力を入力しなければ、その項目は`UNKNOWN`のままです。
 
 > **重要:** これは注文ではありません。Portfolio、Decision Journal、Execution Intentを変更せず、発注も行いません。GitHub認証済みActionsをruntime境界として使うため、Pagesへtokenやsecretを埋め込みません。
+>
+> **実装境界:** 計算は既存 #307 / #233 Python calculatorだけを実行します。Pages内に別の計算式を持ちません。
 
 ## 確認する内容
 
