@@ -28,6 +28,9 @@ class MarketProviderTest(unittest.TestCase):
         self.assertEqual("OK", result.status)
         self.assertEqual(len(MARKET_SYMBOLS), result.data["coverage"]["available"])
         self.assertIn("nikkei_225", result.data["indices"])
+        self.assertEqual("1306.T", result.data["indices"]["topix"]["symbol"])
+        self.assertEqual("TOPIX", result.data["indices"]["topix"]["proxy_for"])
+        self.assertEqual("etf_proxy", result.data["indices"]["topix"]["kind"])
         self.assertIn("usdjpy", result.data["macro"])
         self.assertAlmostEqual(2.0, result.data["indices"]["nikkei_225"]["change_pct"])
         # Yahoo ^TNX is ten times the percentage yield; provider normalizes it.
