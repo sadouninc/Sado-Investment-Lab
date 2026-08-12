@@ -6,7 +6,7 @@
 
 Last updated: 2026-08-13  
 Sources: Issue #99 Current Active Board; #338; #354; AWAY transition comment 5255385557; Owner return to ACTIVE; 2026-08-13 Owner AWAY transition  
-Broadcast head at snapshot: `comment_id=5267179777`
+Broadcast head at snapshot: `comment_id=5269841952`
 
 ## User Mode
 
