@@ -39,6 +39,19 @@ class RiskPreflightWhatIfCtaTests(unittest.TestCase):
         self.assertIn("そのrequestだけを追跡", panel)
         self.assertNotIn("既存 #307 / #233", panel.split("**実装境界:**", 1)[0])
 
+    def test_polling_budget_and_client_failures_are_separated(self):
+        panel = MODULE.interactive_panel()
+        self.assertIn("const POLL_MS = 60000", panel)
+        self.assertIn("RATE_LIMITED", panel)
+        self.assertIn("CLIENT_ERROR", panel)
+        self.assertIn("X-RateLimit-Remaining", panel)
+        self.assertIn("X-RateLimit-Reset", panel)
+        self.assertIn("response.status === 403", panel)
+        self.assertIn("response.status === 429", panel)
+        self.assertIn("setState('CLIENT_ERROR')", panel)
+        self.assertIn("setState('RATE_LIMITED')", panel)
+        self.assertIn("FAILED: '対応run自体が失敗", panel)
+
     def test_page_preserves_non_mutating_fail_closed_boundary(self):
         rendered = MODULE.page_content()
         self.assertIn("これは注文ではありません", rendered)
