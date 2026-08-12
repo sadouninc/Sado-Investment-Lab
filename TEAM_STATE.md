@@ -4,14 +4,14 @@
 > Permanent rules remain in `TEAM_RULES.md`. Broadcast history remains in Issue #99.
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
-Last updated: 2026-08-12  
-Sources: Issue #99 Current Active Board; #338; #354; AWAY transition comment 5255385557; Owner return to ACTIVE  
-Broadcast head at snapshot: `comment_id=5255385557`
+Last updated: 2026-08-13  
+Sources: Issue #99 Current Active Board; #338; #354; AWAY transition comment 5255385557; Owner return to ACTIVE; 2026-08-13 Owner AWAY transition  
+Broadcast head at snapshot: `comment_id=5267179777`
 
 ## User Mode
 
-- Mode: **ACTIVE**
-- Meaning: 👑サド is available. Restore normal role priority; Owner Authority decisions may be surfaced directly to 👑サド rather than accumulated under AWAY delegation.
+- Mode: **AWAY**
+- Meaning: 👑サド is non-active. Activate delegated autonomous operations. Owner Authority decisions must be recorded in the AWAY Authority backlog rather than inferred or resolved by agents.
 - Mode contract: #354. `ACTIVE` keeps normal roles. `AWAY` activates delegated autonomous operations below.
 
 ## Mode Transition Contract
