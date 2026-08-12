@@ -1,0 +1,83 @@
+name: Risk Preflight What-if
+
+on:
+  workflow_dispatch:
+    inputs:
+      security_code:
+        description: "銘柄コード (例: 6622)"
+        required: true
+        type: string
+      action:
+        description: "売買方向"
+        required: true
+        default: BUY
+        type: choice
+        options:
+          - BUY
+          - SELL
+      quantity:
+        description: "株数（正の整数）"
+        required: true
+        default: "100"
+        type: string
+      price:
+        description: "What-if価格（円）"
+        required: true
+        type: string
+      account_type:
+        description: "口座文脈。SELLではCASH/MARGINを明示。不明を推測しない"
+        required: true
+        default: UNKNOWN
+        type: choice
+        options:
+          - UNKNOWN
+          - CASH
+          - MARGIN
+      portfolio_equity:
+        description: "任意: PF評価額（円）。未入力はUNKNOWN"
+        required: false
+        type: string
+      cash_available:
+        description: "任意: 現金余力（円）。未入力はUNKNOWN"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  what-if:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout canonical repository state
+        uses: actions/checkout@v4
+
+      - name: Run canonical #233/#307 What-if
+        env:
+          SECURITY_CODE: ${{ inputs.security_code }}
+          ACTION: ${{ inputs.action }}
+          QUANTITY: ${{ inputs.quantity }}
+          PRICE: ${{ inputs.price }}
+          ACCOUNT_TYPE: ${{ inputs.account_type }}
+          PORTFOLIO_EQUITY: ${{ inputs.portfolio_equity }}
+          CASH_AVAILABLE: ${{ inputs.cash_available }}
+        run: |
+          python3 scripts/run_risk_preflight_what_if.py \
+            --security-code "$SECURITY_CODE" \
+            --action "$ACTION" \
+            --quantity "$QUANTITY" \
+            --price "$PRICE" \
+            --account-type "$ACCOUNT_TYPE" \
+            --portfolio-equity "$PORTFOLIO_EQUITY" \
+            --cash-available "$CASH_AVAILABLE" \
+            --output artifacts/risk-preflight-what-if/result.json
+
+      - name: Upload ephemeral result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: risk-preflight-what-if-${{ github.run_id }}
+          path: artifacts/risk-preflight-what-if/result.json
+          if-no-files-found: error
+          retention-days: 7
