@@ -18,28 +18,39 @@ class RiskPreflightWhatIfCtaTests(unittest.TestCase):
     def test_page_links_to_authenticated_canonical_runner(self):
         rendered = MODULE.page_content()
         self.assertIn("実際にWhat-ifを確認する", rendered)
-        self.assertIn("What-if入力を開始する", rendered)
-        self.assertIn("実行履歴を開く", rendered)
-        self.assertNotIn("直近の実行結果を見る", rendered)
+        self.assertIn("Request IDを発行", rendered)
+        self.assertIn("GitHub ActionsでWhat-ifを実行", rendered)
+        self.assertIn("このRequestを追跡", rendered)
         self.assertIn(MODULE.WHAT_IF_WORKFLOW_URL, rendered)
-        self.assertIn("GitHubへログインした状態", rendered)
+        self.assertIn("GitHub Actions", rendered)
         self.assertIn("Run workflow", rendered)
 
-    def test_daihen_example_and_mobile_steps_are_explicit(self):
+    def test_mobile_steps_keep_explicit_input_and_result_handoff(self):
         rendered = MODULE.page_content()
-        self.assertIn("ダイヘンは <code>6622</code>", rendered)
-        self.assertIn("action=<code>BUY</code> / quantity=<code>100</code>", rendered)
+        self.assertIn("request_id", rendered)
+        self.assertIn("銘柄コード / BUY・SELL / 株数 / 価格", rendered)
         self.assertIn("iPhoneでの確認手順", rendered)
         self.assertIn("Step Summary", rendered)
+        self.assertIn("対応するGitHub run", rendered)
 
-    def test_owner_first_view_avoids_internal_issue_numbers(self):
-        rendered = MODULE.page_content()
-        card_start = rendered.index('<div class="content-card">')
-        card_end = rendered.index("</div>", card_start)
-        first_card = rendered[card_start:card_end]
-        self.assertIn("共通計算ロジック", first_card)
-        self.assertNotIn("#307", first_card)
-        self.assertNotIn("#233", first_card)
+    def test_owner_first_view_prioritizes_request_flow_over_internal_metadata(self):
+        panel = MODULE.interactive_panel()
+        self.assertIn("一意なRequest ID", panel)
+        self.assertIn("そのrequestだけを追跡", panel)
+        self.assertNotIn("既存 #307 / #233", panel.split("**実装境界:**", 1)[0])
+
+    def test_polling_budget_and_client_failures_are_separated(self):
+        panel = MODULE.interactive_panel()
+        self.assertIn("const POLL_MS = 60000", panel)
+        self.assertIn("RATE_LIMITED", panel)
+        self.assertIn("CLIENT_ERROR", panel)
+        self.assertIn("X-RateLimit-Remaining", panel)
+        self.assertIn("X-RateLimit-Reset", panel)
+        self.assertIn("response.status === 403", panel)
+        self.assertIn("response.status === 429", panel)
+        self.assertIn("setState('CLIENT_ERROR')", panel)
+        self.assertIn("setState('RATE_LIMITED')", panel)
+        self.assertIn("FAILED: '対応run自体が失敗", panel)
 
     def test_page_preserves_non_mutating_fail_closed_boundary(self):
         rendered = MODULE.page_content()
@@ -48,8 +59,11 @@ class RiskPreflightWhatIfCtaTests(unittest.TestCase):
         self.assertIn("Pages内に別の計算式を持ちません", rendered)
         self.assertIn("NOT_JUDGABLE", rendered)
         self.assertIn("UNKNOWN", rendered)
+        self.assertIn("CALCULATED", rendered)
+        self.assertIn("投資判断", rendered)
         self.assertNotIn("github_pat_", rendered)
         self.assertNotIn("ghp_", rendered)
+        self.assertNotIn("Authorization", rendered)
 
 
 if __name__ == "__main__":

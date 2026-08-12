@@ -11,6 +11,214 @@ if str(ROOT) not in sys.path:
 
 
 WHAT_IF_WORKFLOW_URL = "https://github.com/sadouninc/Sado-Investment-Lab/actions/workflows/risk-preflight-what-if.yml"
+WHAT_IF_RUNS_API = "https://api.github.com/repos/sadouninc/Sado-Investment-Lab/actions/workflows/risk-preflight-what-if.yml/runs?event=workflow_dispatch&per_page=20"
+
+
+def interactive_panel() -> str:
+    return f"""
+## ▶ 実際にWhat-ifを確認する
+
+<div class="content-card" id="what-if-runner" data-runs-api="{WHAT_IF_RUNS_API}">
+  <strong>このページで一意なRequest IDを作り、そのrequestだけを追跡します。</strong>
+  <span>PagesにはGitHub tokenを置かないため、認証が必要な実行操作はGitHub Actionsで行います。Request IDを貼り付けて実行後、このページへ戻ると対応runだけを追跡できます。</span>
+
+  <div class="what-if-request-box">
+    <div>
+      <span class="what-if-label">Request ID</span>
+      <code id="what-if-request-id">未発行</code>
+    </div>
+    <div class="codex-action-row">
+      <button type="button" class="codex-action codex-action--secondary" id="what-if-generate">Request IDを発行</button>
+      <button type="button" class="codex-action codex-action--secondary" id="what-if-copy" disabled>コピー</button>
+    </div>
+  </div>
+
+  <div class="codex-action-row">
+    <a class="codex-action codex-action--primary" href="{WHAT_IF_WORKFLOW_URL}" target="_blank" rel="noopener">GitHub ActionsでWhat-ifを実行</a>
+    <button type="button" class="codex-action codex-action--secondary" id="what-if-track" disabled>このRequestを追跡</button>
+  </div>
+
+  <div class="what-if-state" aria-live="polite">
+    <span class="what-if-label">実行状態</span>
+    <strong id="what-if-state-code">NOT_STARTED</strong>
+    <span id="what-if-state-message">Request IDを発行してください。</span>
+    <a id="what-if-run-link" href="#" target="_blank" rel="noopener" hidden>対応するGitHub runを開く</a>
+  </div>
+</div>
+
+### iPhoneでの確認手順
+
+1. **Request IDを発行**してコピーする。
+2. **GitHub ActionsでWhat-ifを実行**を開き、`request_id`へ貼り付ける。続けて銘柄コード / BUY・SELL / 株数 / 価格を入力して `Run workflow` を押す。
+3. このページへ戻り、**このRequestを追跡**を押す。60秒間隔で同じRequest IDのrunだけを確認する。
+4. `CALCULATED`になったら、表示された**対応するGitHub run**を開き、Step Summaryでcanonical結果を確認する。
+
+`QUEUED / RUNNING / CALCULATED / FAILED / EXPIRED / RATE_LIMITED / CLIENT_ERROR` は観測状態です。`CALCULATED`は「計算runが正常終了した」という意味で、投資判断の`PASS`や買い推奨を意味しません。`FAILED`は対応run自体の失敗、`RATE_LIMITED`はGitHub APIの取得制限、`CLIENT_ERROR`はnetwork/API取得失敗として分離します。
+
+`SELL` はCASH / MARGINの口座文脈を明示できない場合、信用新規売り等を推測せず `NOT_JUDGABLE` になります。PF評価額・現金余力を入力しなければ、その項目は`UNKNOWN`のままです。
+
+> **重要:** これは注文ではありません。Portfolio、Decision Journal、Execution Intentを変更せず、発注も行いません。Request IDはこのページのメモリ上だけに保持し、reload後にCanonical Decisionとして復元しません。
+>
+> **認証境界:** Pagesにはtoken / secretを保存しません。実行はGitHub認証済みActions、状態確認は公開run metadataのみを利用します。result JSONをPages内へ直接取得する機能はこのsliceでは実装せず、対応runへの正確な到達までを担当します。
+>
+> **実装境界:** 計算は既存 #307 / #233 Python calculatorだけを実行します。Pages内に別の計算式を持ちません。
+
+<script>
+(() => {{
+  const root = document.getElementById('what-if-runner');
+  if (!root) return;
+
+  const generateButton = document.getElementById('what-if-generate');
+  const copyButton = document.getElementById('what-if-copy');
+  const trackButton = document.getElementById('what-if-track');
+  const requestCode = document.getElementById('what-if-request-id');
+  const stateCode = document.getElementById('what-if-state-code');
+  const stateMessage = document.getElementById('what-if-state-message');
+  const runLink = document.getElementById('what-if-run-link');
+  const runsApi = root.dataset.runsApi;
+
+  const POLL_MS = 60000;
+  const EXPIRE_MS = 10 * 60 * 1000;
+  let requestId = null;
+  let createdAt = null;
+  let timer = null;
+
+  const stateText = {{
+    NOT_STARTED: 'Request IDを発行してください。',
+    QUEUED: '対応runの開始を待っています。GitHub Actionsで同じRequest IDを指定したか確認してください。',
+    RUNNING: '対応するWhat-if runを実行中です。',
+    CALCULATED: '対応runは正常終了しました。これは投資判断PASSの意味ではありません。Step Summaryで結果を確認してください。',
+    FAILED: '対応run自体が失敗または取消になりました。GitHub runを確認してください。',
+    EXPIRED: '10分以内に対応runを確認できませんでした。Request IDを作り直して再試行してください。',
+    RATE_LIMITED: 'GitHub APIの取得制限に達したため追跡を停止しました。What-if計算失敗ではありません。',
+    CLIENT_ERROR: 'GitHub APIの状態取得に失敗しました。What-if計算失敗ではありません。'
+  }};
+
+  function setState(code, run) {{
+    stateCode.textContent = code;
+    stateMessage.textContent = stateText[code] || '状態を判定できません。';
+    if (run && run.html_url) {{
+      runLink.href = run.html_url;
+      runLink.hidden = false;
+    }} else {{
+      runLink.hidden = true;
+      runLink.removeAttribute('href');
+    }}
+  }}
+
+  function makeRequestId() {{
+    const random = (globalThis.crypto && crypto.randomUUID)
+      ? crypto.randomUUID().replaceAll('-', '').slice(0, 12)
+      : Math.random().toString(16).slice(2, 14);
+    return `whatif-ui-${{Date.now()}}-${{random}}`;
+  }}
+
+  function stopPolling() {{
+    if (timer) window.clearTimeout(timer);
+    timer = null;
+  }}
+
+  function mapRunState(run) {{
+    const status = String(run.status || '').toLowerCase();
+    const conclusion = String(run.conclusion || '').toLowerCase();
+    if (['queued', 'waiting', 'pending', 'requested'].includes(status)) return 'QUEUED';
+    if (status === 'in_progress') return 'RUNNING';
+    if (status === 'completed' && conclusion === 'success') return 'CALCULATED';
+    if (status === 'completed') return 'FAILED';
+    return 'RUNNING';
+  }}
+
+  async function poll() {{
+    if (!requestId || !createdAt) return;
+    if (Date.now() - createdAt > EXPIRE_MS) {{
+      stopPolling();
+      setState('EXPIRED');
+      trackButton.disabled = false;
+      return;
+    }}
+
+    try {{
+      const response = await fetch(runsApi, {{
+        method: 'GET',
+        headers: {{ 'Accept': 'application/vnd.github+json' }},
+        cache: 'no-store'
+      }});
+      const remaining = Number(response.headers.get('X-RateLimit-Remaining'));
+      const resetEpoch = Number(response.headers.get('X-RateLimit-Reset'));
+      if (response.status === 403 || response.status === 429 || Number.isFinite(remaining) && remaining <= 1) {{
+        stopPolling();
+        setState('RATE_LIMITED');
+        trackButton.disabled = false;
+        if (Number.isFinite(resetEpoch) && resetEpoch > 0) {{
+          const resetAt = new Date(resetEpoch * 1000).toLocaleTimeString();
+          stateMessage.textContent += ` 再取得目安: ${{resetAt}}`;
+        }}
+        return;
+      }}
+      if (!response.ok) throw new Error(`GitHub API ${{response.status}}`);
+      const payload = await response.json();
+      const prefix = `What-if ${{requestId}} ·`;
+      const matchingRuns = (payload.workflow_runs || []).filter((run) =>
+        typeof run.display_title === 'string' && run.display_title.startsWith(prefix)
+      );
+      matchingRuns.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+      const run = matchingRuns[0];
+
+      if (!run) {{
+        setState('QUEUED');
+      }} else {{
+        const code = mapRunState(run);
+        setState(code, run);
+        if (code === 'CALCULATED' || code === 'FAILED') {{
+          stopPolling();
+          trackButton.disabled = false;
+          return;
+        }}
+      }}
+    }} catch (error) {{
+      stopPolling();
+      setState('CLIENT_ERROR');
+      trackButton.disabled = false;
+      stateMessage.textContent = `状態取得に失敗しました: ${{error.message}}。What-if計算失敗や投資上のPASSとして扱いません。`;
+      return;
+    }}
+
+    timer = window.setTimeout(poll, POLL_MS);
+  }}
+
+  generateButton.addEventListener('click', () => {{
+    stopPolling();
+    requestId = makeRequestId();
+    createdAt = Date.now();
+    requestCode.textContent = requestId;
+    copyButton.disabled = false;
+    trackButton.disabled = false;
+    setState('QUEUED');
+  }});
+
+  copyButton.addEventListener('click', async () => {{
+    if (!requestId) return;
+    try {{
+      await navigator.clipboard.writeText(requestId);
+      copyButton.textContent = 'コピー済み';
+      window.setTimeout(() => {{ copyButton.textContent = 'コピー'; }}, 1500);
+    }} catch (_) {{
+      copyButton.textContent = '長押しでコピー';
+    }}
+  }});
+
+  trackButton.addEventListener('click', () => {{
+    if (!requestId) return;
+    stopPolling();
+    trackButton.disabled = true;
+    setState('QUEUED');
+    poll();
+  }});
+
+  setState('NOT_STARTED');
+}})();
+</script>
+"""
 
 
 def page_content() -> str:
@@ -29,28 +237,7 @@ permalink: /risk-preflight/
 
 > この画面は売買指示を生成しません。最終判断はオーナーが行います。
 
-## ▶ 実際にWhat-ifを確認する
-
-<div class="content-card">
-  <strong>売買内容を入力すると、注文前のPF影響を共通計算ロジックで確認できます。</strong>
-  <span>GitHubへログインした状態で専用Actionsを開き、<code>Run workflow</code> から銘柄コード・BUY/SELL・株数・価格を入力します。ダイヘンは <code>6622</code>、BUY 100株なら action=<code>BUY</code> / quantity=<code>100</code> です。</span>
-  <div class="codex-action-row">
-    <a class="codex-action codex-action--primary" href="{WHAT_IF_WORKFLOW_URL}">What-if入力を開始する</a>
-    <a class="codex-action codex-action--secondary" href="{WHAT_IF_WORKFLOW_URL}">実行履歴を開く</a>
-  </div>
-</div>
-
-### iPhoneでの確認手順
-
-1. **What-if入力を開始する**を開く。
-2. GitHub Actionsの `Run workflow` を押し、銘柄コード / BUY・SELL / 株数 / 価格を入力する。
-3. 実行後、同じ画面の最新runを開き、**Step Summary**で結果を確認する。必要なら7日間保持されるresult artifactも確認する。
-
-`SELL` はCASH / MARGINの口座文脈を明示できない場合、信用新規売り等を推測せず `NOT_JUDGABLE` になります。PF評価額・現金余力を入力しなければ、その項目は`UNKNOWN`のままです。
-
-> **重要:** これは注文ではありません。Portfolio、Decision Journal、Execution Intentを変更せず、発注も行いません。GitHub認証済みActionsをruntime境界として使うため、Pagesへtokenやsecretを埋め込みません。
->
-> **実装境界:** 計算は既存 #307 / #233 Python calculatorだけを実行します。Pages内に別の計算式を持ちません。
+{interactive_panel()}
 
 ## 確認する内容
 

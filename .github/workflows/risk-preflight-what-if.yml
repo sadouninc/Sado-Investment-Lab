@@ -1,4 +1,5 @@
 name: Risk Preflight What-if
+run-name: "What-if ${{ inputs.request_id }} · ${{ inputs.security_code }} · ${{ inputs.action }} ${{ inputs.quantity }} @ ${{ inputs.price }}"
 
 on:
   workflow_dispatch:
