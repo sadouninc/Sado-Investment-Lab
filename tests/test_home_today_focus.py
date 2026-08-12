@@ -40,8 +40,8 @@ class HomeTodayFocusTest(unittest.TestCase):
         rendered = home_focus.render_today_focus(self.dataset("STALE"))
         self.assertIn("情報が古い / STALE", rendered)
         self.assertIn("STALEを現在の優先順位へ昇格せず", rendered)
-        self.assertNotIn("BUY", rendered)
-        self.assertNotIn("SELL", rendered)
+        self.assertIn("ダイヘンの次決算を確認", rendered)
+        self.assertNotIn("4件目", rendered)
 
     def test_missing_fails_closed(self):
         rendered = home_focus.render_today_focus(None)
