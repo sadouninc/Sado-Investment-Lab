@@ -92,9 +92,6 @@ def _scenario_card(label: str, scenario: Mapping[str, Any]) -> str:
 def _scenario_delta(model: Mapping[str, Any]):
     valuation = model["valuation"]
     base = valuation.get("base") or {}
-    # The current acceptance source exposes only a canonical comparison ref, not
-    # the previous snapshot values. Preserve that missing evidence as UNKNOWN;
-    # never reconstruct the historical decision from today's values.
     previous = ScenarioSnapshot(
         scenario="UNKNOWN",
         eps=None,
@@ -142,6 +139,23 @@ def _scenario_delta_html(model: Mapping[str, Any]) -> str:
 """
 
 
+def _expectation_first_view(expectations: Mapping[str, Any]) -> str:
+    status = str(expectations.get("status") or "UNKNOWN").upper()
+    if status == "UNAVAILABLE":
+        message = "市場期待データは現在取得できません。差なし・0として扱いません。"
+    elif status in {"PARTIAL", "STALE", "UNKNOWN"}:
+        message = "市場期待との差は情報不足または鮮度制約付きです。根拠を確認してから判断します。"
+    else:
+        message = "市場期待との差はCanonical evidenceが確認できる範囲だけ表示します。"
+    return f"""
+<div class="content-card cockpit-expectation-summary">
+  <strong>市場期待との差は？</strong>
+  <span class="status-chip">{_status(status)}</span>
+  <span>{_e(message)}</span>
+</div>
+"""
+
+
 def page_content(model: Mapping[str, Any]) -> str:
     review = model["review_context"]
     earnings = model["earnings_driver"]
@@ -175,9 +189,12 @@ def page_content(model: Mapping[str, Any]) -> str:
         _scenario_card("Bull", valuation.get("bull") or {}),
     ])
     delta_html = _scenario_delta_html(model)
+    expectation_html = _expectation_first_view(expectations)
     warning_html = _list(warnings, "重大warningなし")
     stale = freshness.get("stale_components") or []
     unknown = freshness.get("unknown_components") or []
+    price_as_of = valuation.get("price_as_of") or "取得できません"
+    warning_count = len(warnings)
 
     return f"""---
 layout: site
@@ -190,12 +207,15 @@ permalink: /decision-cockpit/daihen/
 
 # 🎯 ダイヘン 投資判断コックピット
 
+<p><strong>今日見る理由:</strong> {_e(why_now_text)} <span class="muted">最終重要変化: {_e(last_change)}</span></p>
+
 <div class="notice-card"><strong>この画面は売買指示を生成しません。</strong><br>既存Canonical outputを読み取り専用でまとめ、判断に必要な不足・古さ・要確認事項を隠さず表示します。</div>
 
 <div class="content-grid cockpit-first-view">
-  <div class="content-card"><strong>なぜ今日見る？</strong><span>{_e(why_now_text)}</span><span class="muted">最終重要変化: {_e(last_change)}</span></div>
+  <div class="content-card cockpit-identity-summary"><strong>ダイヘン / 6622</strong><span>情報鮮度: {_status(freshness.get('overall'))}</span><span class="muted">株価基準日: {_e(price_as_of)}</span></div>
   {delta_html}
-  <div class="content-card"><strong>今の投資仮説は？</strong><span>Health: <code>{_e(health)}</code></span><span>状態: {_status(hypothesis.get('status'))}</span></div>
+  {expectation_html}
+  <div class="content-card cockpit-thesis-summary"><strong>Warning / Thesis Health</strong><span>Health: <code>{_e(health)}</code></span><span>仮説状態: {_status(hypothesis.get('status'))}</span><span>確認すべきwarning: {_e(warning_count)}件</span></div>
 </div>
 
 ## ⚠ 先に確認する注意点
@@ -287,12 +307,12 @@ Challenging evidence: {_refs(hypothesis.get('challenging_evidence_refs'))}
 
 この画面の最初のviewportと警告を見て、次を確認します。
 
-1. なぜ今日ダイヘンを見るのか
+1. 対象銘柄と情報鮮度はどうか
 2. 前回から何が変わったか
-3. Base EPSの主な根拠は何か
-4. Bear / Base / BullのForward PERはどうか
-5. 市場期待データは利用可能か
-6. 何が起きたら仮説が崩れるか
+3. 市場期待との差は確認可能か
+4. Warning / Thesis Healthに変化があるか
+5. Base EPSの主な根拠は何か
+6. 何が起きたら仮説が崩れるのか
 7. 次にどこを確認するか
 
 <p class="muted">Generated from #257 PR-A read model. Presentation layer only / no upstream write-back.</p>
