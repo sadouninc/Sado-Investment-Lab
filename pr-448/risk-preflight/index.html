@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #448 · NOT PRODUCTION</strong>
-  <span>Head 1b84fa4e13e0 · Built 2026-08-12T12:30:31Z</span>
+  <span>Head 60e706a381b2 · Built 2026-08-12T13:11:45Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -169,12 +169,11 @@
 <h2 id="-実際にwhat-ifを確認する">▶ 実際にWhat-ifを確認する</h2>
 
 <div class="content-card">
-  <strong>売買内容を入力すると、注文前のPF影響をCanonical計算で確認できます。</strong>
+  <strong>売買内容を入力すると、注文前のPF影響を共通計算ロジックで確認できます。</strong>
   <span>GitHubへログインした状態で専用Actionsを開き、<code>Run workflow</code> から銘柄コード・BUY/SELL・株数・価格を入力します。ダイヘンは <code>6622</code>、BUY 100株なら action=<code>BUY</code> / quantity=<code>100</code> です。</span>
-  <span>計算は既存 #307 / #233 Python calculatorだけを実行します。Pages内に別の計算式を持ちません。</span>
   <div class="codex-action-row">
     <a class="codex-action codex-action--primary" href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-448/actions/workflows/risk-preflight-what-if.yml">What-if入力を開始する</a>
-    <a class="codex-action codex-action--secondary" href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-448/actions/workflows/risk-preflight-what-if.yml">直近の実行結果を見る</a>
+    <a class="codex-action codex-action--secondary" href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-448/actions/workflows/risk-preflight-what-if.yml">実行履歴を開く</a>
   </div>
 </div>
 
@@ -190,6 +189,8 @@
 
 <blockquote>
   <p><strong>重要:</strong> これは注文ではありません。Portfolio、Decision Journal、Execution Intentを変更せず、発注も行いません。GitHub認証済みActionsをruntime境界として使うため、Pagesへtokenやsecretを埋め込みません。</p>
+
+  <p><strong>実装境界:</strong> 計算は既存 #307 / #233 Python calculatorだけを実行します。Pages内に別の計算式を持ちません。</p>
 </blockquote>
 
 <h2 id="確認する内容">確認する内容</h2>
