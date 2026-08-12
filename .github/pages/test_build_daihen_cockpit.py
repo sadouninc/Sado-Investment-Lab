@@ -25,7 +25,7 @@ class DaihenCockpitPageTests(unittest.TestCase):
 
     def test_page_is_japanese_first_and_surfaces_first_viewport_questions(self):
         page = MODULE.page_content(MODULE.load_model())
-        self.assertIn("今日見る理由:", page)
+        self.assertIn("なぜ今日見る？", page)
         self.assertIn("前回から何が変わった？", page)
         self.assertIn("市場期待との差は？", page)
         self.assertIn("Warning / Thesis Health", page)
