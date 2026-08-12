@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #456 · NOT PRODUCTION</strong>
-  <span>Head 95d4ee1a19c8 · Built 2026-08-12T14:42:33Z</span>
+  <span>Head 35f7389c9a9d · Built 2026-08-12T15:41:38Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -201,11 +201,11 @@
 <ol>
   <li><strong>Request IDを発行</strong>してコピーする。</li>
   <li><strong>GitHub ActionsでWhat-ifを実行</strong>を開き、<code class="language-plaintext highlighter-rouge">request_id</code>へ貼り付ける。続けて銘柄コード / BUY・SELL / 株数 / 価格を入力して <code class="language-plaintext highlighter-rouge">Run workflow</code> を押す。</li>
-  <li>このページへ戻り、<strong>このRequestを追跡</strong>を押す。15秒間隔で同じRequest IDのrunだけを確認する。</li>
+  <li>このページへ戻り、<strong>このRequestを追跡</strong>を押す。60秒間隔で同じRequest IDのrunだけを確認する。</li>
   <li><code class="language-plaintext highlighter-rouge">CALCULATED</code>になったら、表示された<strong>対応するGitHub run</strong>を開き、Step Summaryでcanonical結果を確認する。</li>
 </ol>
 
-<p><code class="language-plaintext highlighter-rouge">QUEUED / RUNNING / CALCULATED / FAILED / EXPIRED</code> はGitHub Actionsの実行状態です。<code class="language-plaintext highlighter-rouge">CALCULATED</code>は「計算runが正常終了した」という意味で、投資判断の<code class="language-plaintext highlighter-rouge">PASS</code>や買い推奨を意味しません。</p>
+<p><code class="language-plaintext highlighter-rouge">QUEUED / RUNNING / CALCULATED / FAILED / EXPIRED / RATE_LIMITED / CLIENT_ERROR</code> は観測状態です。<code class="language-plaintext highlighter-rouge">CALCULATED</code>は「計算runが正常終了した」という意味で、投資判断の<code class="language-plaintext highlighter-rouge">PASS</code>や買い推奨を意味しません。<code class="language-plaintext highlighter-rouge">FAILED</code>は対応run自体の失敗、<code class="language-plaintext highlighter-rouge">RATE_LIMITED</code>はGitHub APIの取得制限、<code class="language-plaintext highlighter-rouge">CLIENT_ERROR</code>はnetwork/API取得失敗として分離します。</p>
 
 <p><code class="language-plaintext highlighter-rouge">SELL</code> はCASH / MARGINの口座文脈を明示できない場合、信用新規売り等を推測せず <code class="language-plaintext highlighter-rouge">NOT_JUDGABLE</code> になります。PF評価額・現金余力を入力しなければ、その項目は<code class="language-plaintext highlighter-rouge">UNKNOWN</code>のままです。</p>
 
@@ -231,7 +231,7 @@
   const runLink = document.getElementById('what-if-run-link');
   const runsApi = root.dataset.runsApi;
 
-  const POLL_MS = 15000;
+  const POLL_MS = 60000;
   const EXPIRE_MS = 10 * 60 * 1000;
   let requestId = null;
   let createdAt = null;
@@ -242,8 +242,10 @@
     QUEUED: '対応runの開始を待っています。GitHub Actionsで同じRequest IDを指定したか確認してください。',
     RUNNING: '対応するWhat-if runを実行中です。',
     CALCULATED: '対応runは正常終了しました。これは投資判断PASSの意味ではありません。Step Summaryで結果を確認してください。',
-    FAILED: '対応runが失敗・取消・状態取得不能になりました。GitHub runを確認してください。',
-    EXPIRED: '10分以内に対応runを確認できませんでした。Request IDを作り直して再試行してください。'
+    FAILED: '対応run自体が失敗または取消になりました。GitHub runを確認してください。',
+    EXPIRED: '10分以内に対応runを確認できませんでした。Request IDを作り直して再試行してください。',
+    RATE_LIMITED: 'GitHub APIの取得制限に達したため追跡を停止しました。What-if計算失敗ではありません。',
+    CLIENT_ERROR: 'GitHub APIの状態取得に失敗しました。What-if計算失敗ではありません。'
   };
 
   function setState(code, run) {
@@ -295,6 +297,18 @@
         headers: { 'Accept': 'application/vnd.github+json' },
         cache: 'no-store'
       });
+      const remaining = Number(response.headers.get('X-RateLimit-Remaining'));
+      const resetEpoch = Number(response.headers.get('X-RateLimit-Reset'));
+      if (response.status === 403 || response.status === 429 || Number.isFinite(remaining) && remaining <= 1) {
+        stopPolling();
+        setState('RATE_LIMITED');
+        trackButton.disabled = false;
+        if (Number.isFinite(resetEpoch) && resetEpoch > 0) {
+          const resetAt = new Date(resetEpoch * 1000).toLocaleTimeString();
+          stateMessage.textContent += ` 再取得目安: ${resetAt}`;
+        }
+        return;
+      }
       if (!response.ok) throw new Error(`GitHub API ${response.status}`);
       const payload = await response.json();
       const prefix = `What-if ${requestId} ·`;
@@ -317,9 +331,9 @@
       }
     } catch (error) {
       stopPolling();
-      setState('FAILED');
+      setState('CLIENT_ERROR');
       trackButton.disabled = false;
-      stateMessage.textContent = `状態取得に失敗しました: ${error.message}。投資上のPASSとして扱いません。`;
+      stateMessage.textContent = `状態取得に失敗しました: ${error.message}。What-if計算失敗や投資上のPASSとして扱いません。`;
       return;
     }
 
