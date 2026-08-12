@@ -26,6 +26,25 @@ permalink: /risk-preflight/
 
 > この画面は売買指示を生成しません。最終判断はオーナーが行います。
 
+## What-ifを開始
+
+売買方向・株数・価格を入力して、Canonical Portfolioを変更せずに仮想約定後の影響を確認できます。計算はGitHub Actions上のcanonical #233/#307 calculatorを使い、Pages側に別の計算式を持ちません。
+
+<a class="nav-card" href="https://github.com/sadouninc/Sado-Investment-Lab/actions/workflows/risk-preflight-what-if.yml" target="_blank" rel="noopener">
+  <strong>What-if入力を開く →</strong>
+  <span>GitHubで認証した状態で「Run workflow」から BUY / SELL・株数・価格を入力します。これは注文ではありません。</span>
+</a>
+
+<details class="source-journal">
+  <summary>実行後の結果を見る手順</summary>
+  <ol>
+    <li>実行した <code>Risk Preflight What-if</code> runを開きます。</li>
+    <li>Step Summaryで判定を確認します。</li>
+    <li>必要なら <code>risk-preflight-what-if-&lt;run_id&gt;</code> artifactの <code>result.json</code> を確認します。</li>
+  </ol>
+  <p><code>QUEUED / RUNNING</code> 中やartifact未生成は計算完了として扱いません。結果は7日で期限切れになり、Decision / Execution Intentへ自動保存されません。</p>
+</details>
+
 ## 確認する内容
 
 <div class="content-grid">
@@ -51,30 +70,6 @@ permalink: /risk-preflight/
 - **#186 Opportunity Cost Ledger** — 売買後cash / gross / margin / position contextと、defined rule block・unknown constraintを参照できる。
 
 `PASS`だけを根拠に「資金的に実行可能」と断定しません。SBI等のbrokerage buying powerがcanonicalに検証されていない場合、feasibilityは`UNKNOWN`です。
-
-## 表示イメージ
-
-```text
-ダイヘン / BUY
-
-現在の銘柄金額       80万円
-売買後の銘柄金額    180万円
-売買後の銘柄比率      18%
-
-AI・半導体テーマ
-現在                 38%
-売買後               46%
-
-現金余力
-現在                200万円
-売買後              100万円
-
-判定
-✓ 個別銘柄ルール: PASS
-? 最低現金ルール: UNKNOWN（ルール未設定）
-
-これは売買指示ではありません。
-```
 
 ## Authority / Safety
 
