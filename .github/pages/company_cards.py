@@ -6,9 +6,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-UPDATED = re.compile(r"^\s*(?:>\s*)?Updated:\s*(.+?)\s*$", re.MULTILINE)
+UPDATED = re.compile(r"^\s*(?:>\s*)?(?:Updated|更新日)[:：]\s*(.+?)\s*$", re.MULTILINE)
 HEADING = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 TITLE = re.compile(r"^#\s+.+?\s*$", re.MULTILINE)
+STRONG_WATCH_TITLE = "AI/DC Strong Watch 3"
 
 
 @dataclass(frozen=True)
@@ -18,6 +19,7 @@ class CompanyCardSummary:
     source_name: str
     freshness: str | None
     sections: tuple[str, ...]
+    content: str = ""
 
 
 def summarize_company(title: str, category: str, source: Path, content: str) -> CompanyCardSummary:
@@ -29,10 +31,104 @@ def summarize_company(title: str, category: str, source: Path, content: str) -> 
         source_name=source.name,
         freshness=updated.group(1).strip() if updated else None,
         sections=sections,
+        content=content,
+    )
+
+
+def _markdown_table_rows(content: str, section: str) -> list[dict[str, str]]:
+    match = re.search(
+        rf"^##\s+{re.escape(section)}\s*$\n(?P<body>.*?)(?=^##\s+|\Z)",
+        content,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    if not match:
+        return []
+    table_lines = [line.strip() for line in match.group("body").splitlines() if line.strip().startswith("|")]
+    if len(table_lines) < 3:
+        return []
+
+    def cells(line: str) -> list[str]:
+        return [cell.strip() for cell in line.strip("|").split("|")]
+
+    headers = cells(table_lines[0])
+    rows: list[dict[str, str]] = []
+    for line in table_lines[2:]:
+        values = cells(line)
+        if len(values) != len(headers):
+            continue
+        rows.append(dict(zip(headers, values)))
+    return rows
+
+
+def _plain_markdown(value: str) -> str:
+    value = re.sub(r"\*\*(.*?)\*\*", r"\1", value)
+    value = re.sub(r"`([^`]+)`", r"\1", value)
+    return value.strip()
+
+
+def _render_strong_watch_summary(summary: CompanyCardSummary) -> str:
+    freshness = html.escape(summary.freshness) if summary.freshness else "更新日未記録"
+    freshness_state = "normal" if summary.freshness else "unavailable"
+    rows = _markdown_table_rows(summary.content, "3社比較")
+    cards: list[str] = []
+    anchors = {"5805": "watch-5805", "6504": "watch-6504", "6622": "watch-6622"}
+    for row in rows:
+        company = _plain_markdown(row.get("銘柄", "UNKNOWN"))
+        code = company.split()[0] if company else ""
+        why = _plain_markdown(row.get("Why Watching", "UNKNOWN"))
+        evidence = _plain_markdown(row.get("Evidence Stage", "UNKNOWN"))
+        gap = _plain_markdown(row.get("Expectation Gap", "UNKNOWN"))
+        quality = _plain_markdown(row.get("Fundamental Quality", "UNKNOWN"))
+        anchor = anchors.get(code, "company-detail")
+        cards.append(
+            '<article class="codex-summary-card strong-watch-card">'
+            f'<span class="codex-card-question">{html.escape(company)}</span>'
+            f'<h2>{html.escape(why)}</h2>'
+            f'<p><strong>Evidence:</strong> {html.escape(evidence)}</p>'
+            '<div class="codex-page-header__meta">'
+            f'<span class="codex-status-chip" data-state="normal">Gap: {html.escape(gap)}</span>'
+            f'<span class="codex-status-chip" data-state="normal">Quality: {html.escape(quality)}</span>'
+            '</div>'
+            f'<a class="codex-action codex-action--secondary" href="#{anchor}">Trigger / Risk / Checkpoint</a>'
+            '</article>'
+        )
+
+    if not cards:
+        cards.append(
+            '<article class="codex-summary-card">'
+            '<span class="codex-card-question">Comparison</span>'
+            '<span class="codex-status-chip" data-state="unavailable">比較データを取得できません</span>'
+            '<h2>UNKNOWN</h2><p>Research projectionを推測で補完しません。</p>'
+            '</article>'
+        )
+
+    return (
+        '<section class="codex-page-shell company-decision-surface strong-watch-surface">\n'
+        '<header class="codex-page-header">\n'
+        '<span class="codex-status-chip" data-state="normal">STRONG WATCH / ENTRY REVIEW</span>\n'
+        f'<h1>{html.escape(summary.title)}</h1>\n'
+        '<p>AI/Data Center需要が受注・能力増強・売上・利益へどこまで転換したかを3社で比較します。</p>\n'
+        '<div class="codex-page-header__meta">'
+        f'<span class="codex-status-chip" data-state="{freshness_state}">Freshness: {freshness}</span>'
+        '<span class="codex-status-chip" data-state="unavailable">Valuation: 3社とも未接続 / UNKNOWN</span>'
+        f'<span>Source: {html.escape(summary.source_name)}</span>'
+        '</div>\n'
+        '</header>\n'
+        '<div class="codex-summary-grid strong-watch-grid">\n'
+        + "\n".join(cards)
+        + '\n</div>\n'
+        '<div class="codex-action-row">'
+        '<a class="codex-action codex-action--primary" href="#watch-details">各社のTrigger / Risk / Checkpointを見る</a>'
+        '<a class="codex-action codex-action--secondary" href="{{ \'/companies/\' | relative_url }}">Companies一覧へ</a>'
+        '</div>\n'
+        '</section>\n'
     )
 
 
 def render_company_page_summary(summary: CompanyCardSummary) -> str:
+    if STRONG_WATCH_TITLE in summary.title:
+        return _render_strong_watch_summary(summary)
+
     freshness = html.escape(summary.freshness) if summary.freshness else "更新日未記録"
     freshness_state = "normal" if summary.freshness else "unavailable"
     section_count = len(summary.sections)
@@ -76,7 +172,42 @@ def canonical_detail_body(content: str) -> str:
     return TITLE.sub("", content, count=1).lstrip()
 
 
+def _strong_watch_mobile_detail(content: str) -> str:
+    body = canonical_detail_body(content)
+    body = re.sub(
+        r"^##\s+3社比較\s*$.*?(?=^##\s+Valuation / Scenario\s*$)",
+        "",
+        body,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    body = re.sub(
+        r"^##\s+Valuation / Scenario\s*$.*?(?=^##\s+5805 SWCC\s*$)",
+        (
+            "## Valuation / Scenario\n\n"
+            '<div class="codex-alert" data-state="unavailable">'
+            '<strong>3社ともValuation未接続 / UNKNOWN</strong><br>'
+            'Bear / Base / Bull EPS、fresh-price Forward PER、EPS +10% sensitivityは'
+            'canonical basisが揃うまで推定しません。'
+            '</div>\n\n'
+        ),
+        body,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    body = body.replace("## 5805 SWCC", '<a id="watch-details"></a>\n<a id="watch-5805"></a>\n\n## 5805 SWCC', 1)
+    body = body.replace("## 6504 富士電機", '<a id="watch-6504"></a>\n\n## 6504 富士電機', 1)
+    body = body.replace("## 6622 ダイヘン", '<a id="watch-6622"></a>\n\n## 6622 ダイヘン', 1)
+    return body.strip()
+
+
 def render_company_detail(content: str) -> str:
+    if STRONG_WATCH_TITLE in content:
+        return (
+            '<section class="codex-page-shell strong-watch-detail">\n'
+            '<div class="codex-disclosure__body" markdown="1">\n\n'
+            + _strong_watch_mobile_detail(content)
+            + '\n\n</div>\n</section>\n'
+        )
+
     return (
         '<section class="codex-page-shell">\n'
         '<details class="codex-disclosure" id="company-detail">\n'
