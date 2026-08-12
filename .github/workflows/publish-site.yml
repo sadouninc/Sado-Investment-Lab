@@ -102,6 +102,9 @@ jobs:
       - name: Publish Concept guides
         run: python3 .github/pages/concept.py
 
+      - name: Publish Daihen decision cockpit
+        run: PYTHONPATH=.github/pages python3 .github/pages/build_daihen_cockpit.py
+
       - name: Publish risk preflight confirmation
         run: python3 .github/pages/build_risk_preflight.py
 
@@ -138,6 +141,7 @@ jobs:
           test -f site-src/architecture/index.md
           test -f site-src/architecture/investment-decision-os-data-model/index.md
           test -f site-src/concepts/investment-decision-cockpit/index.md
+          test -f site-src/decision-cockpit/daihen/index.md
           test -f site-src/risk-preflight/index.md
           test -f site-src/trade-journal/index.md
           test -f site-src/trade-analysis/index.md
@@ -165,6 +169,8 @@ jobs:
           grep -q "売買前のポートフォリオ確認" site-src/index.md
           grep -q "Sado Investment Codex / 5 判断" site-src/concepts/investment-decision-cockpit/index.md
           grep -q "Warning・Thesis Health" site-src/concepts/investment-decision-cockpit/index.md
+          grep -q "前回から何が変わった？" site-src/decision-cockpit/daihen/index.md
+          grep -q "Scenario: UNKNOWN" site-src/decision-cockpit/daihen/index.md
           grep -q "BLOCK_REVIEW" site-src/risk-preflight/index.md
           grep -q "Decision Journal" site-src/risk-preflight/index.md
           grep -q "これは売買指示ではありません" site-src/risk-preflight/index.md
@@ -209,6 +215,9 @@ jobs:
           test -f _site/concepts/investment-decision-cockpit/index.html
           grep -q "Sado Investment Codex / 5 判断" _site/concepts/investment-decision-cockpit/index.html
           grep -q "Warning・Thesis Health" _site/concepts/investment-decision-cockpit/index.html
+          test -f _site/decision-cockpit/daihen/index.html
+          grep -q "前回から何が変わった？" _site/decision-cockpit/daihen/index.html
+          grep -q "Scenario: UNKNOWN" _site/decision-cockpit/daihen/index.html
           test -f _site/risk-preflight/index.html
           grep -q "売買前のポートフォリオ確認" _site/risk-preflight/index.html
           test -f _site/research/investor-dna/index.html
