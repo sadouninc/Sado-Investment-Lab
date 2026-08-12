@@ -5,7 +5,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.run_risk_preflight_what_if import build_runtime_result, write_outputs
+from scripts.run_risk_preflight_what_if import (
+    attach_runtime_telemetry,
+    build_runtime_result,
+    write_outputs,
+)
 
 
 PORTFOLIO = {
@@ -80,6 +84,44 @@ class RiskPreflightWhatIfRuntimeTests(unittest.TestCase):
             write_outputs(result, output_path=output)
             loaded = json.loads(output.read_text(encoding="utf-8"))
         self.assertEqual(result, loaded)
+
+    def test_runtime_telemetry_is_ops_only_and_keeps_run_identity(self):
+        base = {
+            "state": "CALCULATED",
+            "ephemeral": True,
+            "is_order": False,
+            "canonical_mutations": [],
+        }
+        result = attach_runtime_telemetry(
+            base,
+            calculation_started_at="2026-08-12T21:40:00.000+09:00",
+            result_ready_at="2026-08-12T21:40:00.125+09:00",
+            calculation_duration_ms=125.1236,
+            github_run_id="123456",
+            github_run_attempt="2",
+        )
+        self.assertEqual(base, {
+            "state": "CALCULATED",
+            "ephemeral": True,
+            "is_order": False,
+            "canonical_mutations": [],
+        })
+        telemetry = result["runtime_telemetry"]
+        self.assertEqual("OPS_DIAGNOSTICS_ONLY", telemetry["scope"])
+        self.assertFalse(telemetry["canonical_mutation"])
+        self.assertEqual("123456", telemetry["github_run_id"])
+        self.assertEqual("2", telemetry["github_run_attempt"])
+        self.assertEqual(125.124, telemetry["calculation_duration_ms"])
+
+    def test_missing_github_metadata_stays_unknown_not_fabricated(self):
+        result = attach_runtime_telemetry(
+            {"state": "INVALID_INPUT", "ephemeral": True},
+            calculation_started_at="2026-08-12T21:40:00.000+09:00",
+            result_ready_at="2026-08-12T21:40:00.001+09:00",
+            calculation_duration_ms=1.0,
+        )
+        self.assertIsNone(result["runtime_telemetry"]["github_run_id"])
+        self.assertIsNone(result["runtime_telemetry"]["github_run_attempt"])
 
 
 if __name__ == "__main__":
