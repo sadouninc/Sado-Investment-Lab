@@ -95,7 +95,7 @@ class RiskPreflightWhatIfRuntimeTests(unittest.TestCase):
         result = attach_runtime_telemetry(
             base,
             calculation_started_at="2026-08-12T21:40:00.000+09:00",
-            result_ready_at="2026-08-12T21:40:00.125+09:00",
+            calculation_completed_at="2026-08-12T21:40:00.125+09:00",
             calculation_duration_ms=125.1236,
             github_run_id="123456",
             github_run_attempt="2",
@@ -109,6 +109,8 @@ class RiskPreflightWhatIfRuntimeTests(unittest.TestCase):
         telemetry = result["runtime_telemetry"]
         self.assertEqual("OPS_DIAGNOSTICS_ONLY", telemetry["scope"])
         self.assertFalse(telemetry["canonical_mutation"])
+        self.assertEqual("2026-08-12T21:40:00.125+09:00", telemetry["calculation_completed_at"])
+        self.assertNotIn("result_ready_at", telemetry)
         self.assertEqual("123456", telemetry["github_run_id"])
         self.assertEqual("2", telemetry["github_run_attempt"])
         self.assertEqual(125.124, telemetry["calculation_duration_ms"])
@@ -117,11 +119,12 @@ class RiskPreflightWhatIfRuntimeTests(unittest.TestCase):
         result = attach_runtime_telemetry(
             {"state": "INVALID_INPUT", "ephemeral": True},
             calculation_started_at="2026-08-12T21:40:00.000+09:00",
-            result_ready_at="2026-08-12T21:40:00.001+09:00",
+            calculation_completed_at="2026-08-12T21:40:00.001+09:00",
             calculation_duration_ms=1.0,
         )
         self.assertIsNone(result["runtime_telemetry"]["github_run_id"])
         self.assertIsNone(result["runtime_telemetry"]["github_run_attempt"])
+        self.assertNotIn("result_ready_at", result["runtime_telemetry"])
 
 
 if __name__ == "__main__":
