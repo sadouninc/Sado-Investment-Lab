@@ -36,7 +36,7 @@ class RiskPreflightWhatIfCtaTests(unittest.TestCase):
     def test_owner_first_view_prioritizes_request_flow_over_internal_metadata(self):
         panel = MODULE.interactive_panel()
         self.assertIn("一意なRequest ID", panel)
-        self.assertIn("同じrequestだけを追跡", panel)
+        self.assertIn("そのrequestだけを追跡", panel)
         self.assertNotIn("既存 #307 / #233", panel.split("**実装境界:**", 1)[0])
 
     def test_page_preserves_non_mutating_fail_closed_boundary(self):
