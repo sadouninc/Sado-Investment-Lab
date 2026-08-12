@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import html
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -12,11 +13,12 @@ OUTPUT_ROOT = ROOT / "site-src" / "concepts"
 OUTPUT_PATH = OUTPUT_ROOT / "investment-decision-cockpit" / "index.md"
 
 REQUIRED = {
-    "feature_id", "route_ref", "os_stage_ref", "purpose_ja", "first_checks",
+    "feature_id", "title_ja", "route_ref", "os_stage_ref", "purpose_ja", "first_checks",
     "why_it_matters", "common_states", "next_destination_refs", "evidence_refs",
     "non_goals", "contract_refs", "last_reviewed_at",
 }
 FAIL_CLOSED_STATES = {"UNKNOWN", "UNAVAILABLE", "STALE"}
+JAPANESE_TEXT = re.compile(r"[ぁ-んァ-ヶ一-龠々]")
 ROUTE_LABELS = {
     "/decision-cockpit/daihen/": "Live Cockpitを開く",
     "/risk-preflight/": "売買前の影響を確認する",
@@ -56,10 +58,25 @@ def route_inventory(os_map: dict) -> set[str]:
     return routes
 
 
+def _validate_japanese_first_title(record: dict) -> None:
+    if record["feature_id"] == "investment-decision-cockpit":
+        return
+    title = record["title_ja"].strip()
+    if not title or not JAPANESE_TEXT.search(title):
+        raise ValueError("generic guide title_ja must contain Japanese")
+    first_japanese = JAPANESE_TEXT.search(title)
+    first_ascii = re.search(r"[A-Za-z]", title)
+    if first_ascii and first_japanese and first_ascii.start() < first_japanese.start():
+        raise ValueError("generic guide title_ja must be Japanese-first")
+    if len(title) > 24:
+        raise ValueError("generic guide title_ja must stay compact for mobile")
+
+
 def validate_concept(record: dict, os_map: dict) -> None:
     missing = REQUIRED - record.keys()
     if missing:
         raise ValueError(f"missing required fields: {sorted(missing)}")
+    _validate_japanese_first_title(record)
     if not 1 <= len(record["first_checks"]) <= 3:
         raise ValueError("first_checks must contain 1..3 items")
     stages = {stage["stage_id"] for stage in os_map["stages"]}
@@ -218,7 +235,7 @@ permalink: /concepts/investment-decision-cockpit/
 def render_generic(record: dict, os_map: dict) -> str:
     before = copy.deepcopy(record)
     validate_concept(record, os_map)
-    title = record.get("title_ja", record["feature_id"])
+    title = record["title_ja"]
     checks = "\n".join(
         '<article class="codex-summary-card">'
         f'<p class="codex-card-question">最初に見る {index}</p>'
@@ -231,17 +248,18 @@ def render_generic(record: dict, os_map: dict) -> str:
 
     output = f'''---
 layout: site
-title: {html.escape(title)} — 見方ガイド
+title: {html.escape(title)} | 見方ガイド
 permalink: /concepts/{html.escape(record['feature_id'], quote=True)}/
 ---
 
 <link rel="stylesheet" href="{{{{ '/assets/design-system.css' | relative_url }}}}">
 
-<div class="codex-page-shell">
+<div class="codex-page-shell concept-guide--compact-title">
   <header class="codex-page-header">
     <span class="codex-instrument-icon" aria-hidden="true">◇</span>
     <p class="codex-card-question">{html.escape(_stage_label(record, os_map))}</p>
-    <h1>{html.escape(title)} — 見方ガイド</h1>
+    <span class="codex-status-chip" data-state="normal">見方ガイド</span>
+    <h1>{html.escape(title)}</h1>
     <p>{html.escape(record['purpose_ja'])}</p>
     <div class="codex-page-header__meta">
       <span>最終確認: {html.escape(record['last_reviewed_at'])}</span>
