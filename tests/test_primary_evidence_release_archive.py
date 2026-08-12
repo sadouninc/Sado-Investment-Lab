@@ -9,6 +9,7 @@ from scripts.primary_evidence_release_archive import (
     archive_ref_for,
     release_asset_name,
     release_tag_for,
+    reusable_archive_ref,
     validate_uploaded_asset,
     verify_payload,
 )
@@ -100,6 +101,33 @@ class ReleaseArchiveTests(unittest.TestCase):
                 asset=asset,
                 release_is_immutable=True,
             )
+
+    def test_existing_archived_binary_can_be_reused_without_merging_source_identity(self) -> None:
+        ref = archive_ref_for(SOURCE_ID, FILENAME)
+        records = [
+            {
+                "source_id": SOURCE_ID,
+                "access_status": "ARCHIVED",
+                "archive_ref": ref,
+                "sha256": SHA256,
+            },
+            {
+                "source_id": "source:222222222222222222222222",
+                "access_status": "URL_ONLY",
+                "archive_ref": None,
+                "sha256": SHA256,
+            },
+        ]
+        self.assertEqual(ref, reusable_archive_ref(records, SHA256))
+        self.assertEqual(2, len({record["source_id"] for record in records}))
+
+    def test_same_hash_pointing_to_two_archived_binaries_fails_closed(self) -> None:
+        records = [
+            {"access_status": "ARCHIVED", "archive_ref": "https://github.com/a", "sha256": SHA256},
+            {"access_status": "ARCHIVED", "archive_ref": "https://github.com/b", "sha256": SHA256},
+        ]
+        with self.assertRaisesRegex(ProvenanceValidationError, "multiple ARCHIVED binaries"):
+            reusable_archive_ref(records, SHA256)
 
     def test_retrieve_rehashes_downloaded_bytes(self) -> None:
         opened = []
