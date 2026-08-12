@@ -8,7 +8,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CONCEPT_PATH = Path(__file__).with_name("concept-v1.json")
 OS_MAP_PATH = Path(__file__).with_name("os-map-v1.json")
-OUTPUT_PATH = ROOT / "site-src" / "concepts" / "investment-decision-cockpit" / "index.md"
+OUTPUT_ROOT = ROOT / "site-src" / "concepts"
+OUTPUT_PATH = OUTPUT_ROOT / "investment-decision-cockpit" / "index.md"
 
 REQUIRED = {
     "feature_id", "route_ref", "os_stage_ref", "purpose_ja", "first_checks",
@@ -22,13 +23,14 @@ ROUTE_LABELS = {
     "/trade-journal/": "判断・取引の記録を見る",
     "/companies/": "企業研究の根拠を見る",
     "/framework/": "投資Frameworkを確認する",
+    "/reports/morning/": "Morning Reportを確認する",
+    "/research/market-phase/ai-semiconductor/": "Market Phaseを確認する",
 }
 STATUS_TOKENS = {
     "UNKNOWN": "unknown",
     "UNAVAILABLE": "unavailable",
     "STALE": "stale",
 }
-# #317 Product/IA contract: Cockpit first view completes Decide. Act/Record are handoffs.
 FIRST_VIEW_CHECKS = (
     "前回判断からの変化",
     "市場期待との差",
@@ -74,13 +76,57 @@ def validate_concept(record: dict, os_map: dict) -> None:
         raise ValueError("state meanings must be explicit")
 
 
+def validate_all(data: dict, os_map: dict) -> None:
+    feature_ids: set[str] = set()
+    for record in data.get("concepts", []):
+        validate_concept(record, os_map)
+        feature_id = record["feature_id"]
+        if feature_id in feature_ids:
+            raise ValueError(f"duplicate feature_id: {feature_id}")
+        feature_ids.add(feature_id)
+
+
 def _link(ref: str, class_name: str = "codex-action codex-action--secondary") -> str:
     label = html.escape(ROUTE_LABELS.get(ref, ref))
     route = html.escape(ref, quote=True)
     return f'<a class="{class_name}" href="{{{{ \'{route}\' | relative_url }}}}">{label}</a>'
 
 
+def _states(record: dict) -> str:
+    return "\n".join(
+        '<article class="codex-alert" '
+        f'data-state="{STATUS_TOKENS[item["status"]]}">'
+        f'<strong><span class="codex-status-chip" data-state="{STATUS_TOKENS[item["status"]]}">'
+        f'{html.escape(item["status"])}</span></strong>'
+        f'<p>{html.escape(item["meaning_ja"])}</p>'
+        '</article>'
+        for item in record["common_states"]
+    )
+
+
+def _non_goals(record: dict) -> str:
+    return "\n".join(f"<li>{html.escape(text)}</li>" for text in record["non_goals"])
+
+
+def _evidence(record: dict) -> str:
+    return "\n".join(
+        '<div class="codex-evidence">'
+        f'{_link(ref)}'
+        '<div class="codex-evidence__meta">Canonical source / route truthを参照</div>'
+        '</div>'
+        for ref in record["evidence_refs"]
+    )
+
+
+def _stage_label(record: dict, os_map: dict) -> str:
+    for index, stage in enumerate(os_map["stages"], 1):
+        if stage["stage_id"] == record["os_stage_ref"]:
+            return f"Sado Investment Codex / {index} {stage['purpose_ja']}"
+    raise ValueError("unknown os_stage_ref")
+
+
 def render(record: dict, os_map: dict) -> str:
+    """Render the Cockpit fixture. Kept stable for #317 visual contract tests."""
     before = copy.deepcopy(record)
     validate_concept(record, os_map)
 
@@ -91,24 +137,10 @@ def render(record: dict, os_map: dict) -> str:
         '</article>'
         for index, text in enumerate(FIRST_VIEW_CHECKS, 1)
     )
-    states = "\n".join(
-        '<article class="codex-alert" '
-        f'data-state="{STATUS_TOKENS[item["status"]]}">'
-        f'<strong><span class="codex-status-chip" data-state="{STATUS_TOKENS[item["status"]]}">'
-        f'{html.escape(item["status"])}</span></strong>'
-        f'<p>{html.escape(item["meaning_ja"])}</p>'
-        '</article>'
-        for item in record["common_states"]
-    )
+    states = _states(record)
     next_links = "\n".join(_link(ref) for ref in record["next_destination_refs"])
-    evidence = "\n".join(
-        '<div class="codex-evidence">'
-        f'{_link(ref, "codex-action codex-action--secondary")}'
-        '<div class="codex-evidence__meta">Canonical source / route truthを参照</div>'
-        '</div>'
-        for ref in record["evidence_refs"]
-    )
-    non_goals = "\n".join(f"<li>{html.escape(text)}</li>" for text in record["non_goals"])
+    evidence = _evidence(record)
+    non_goals = _non_goals(record)
     flow = " → ".join(html.escape(item) for item in DECIDE_FLOW)
     contracts = " / ".join(html.escape(item) for item in record["contract_refs"])
 
@@ -183,12 +215,102 @@ permalink: /concepts/investment-decision-cockpit/
     return output
 
 
+def render_generic(record: dict, os_map: dict) -> str:
+    before = copy.deepcopy(record)
+    validate_concept(record, os_map)
+    title = record.get("title_ja", record["feature_id"])
+    checks = "\n".join(
+        '<article class="codex-summary-card">'
+        f'<p class="codex-card-question">最初に見る {index}</p>'
+        f'<h3>{html.escape(text)}</h3>'
+        '</article>'
+        for index, text in enumerate(record["first_checks"], 1)
+    )
+    next_links = "\n".join(_link(ref) for ref in record["next_destination_refs"])
+    contracts = " / ".join(html.escape(item) for item in record["contract_refs"])
+
+    output = f'''---
+layout: site
+title: {html.escape(title)} — 見方ガイド
+permalink: /concepts/{html.escape(record['feature_id'], quote=True)}/
+---
+
+<link rel="stylesheet" href="{{{{ '/assets/design-system.css' | relative_url }}}}">
+
+<div class="codex-page-shell">
+  <header class="codex-page-header">
+    <span class="codex-instrument-icon" aria-hidden="true">◇</span>
+    <p class="codex-card-question">{html.escape(_stage_label(record, os_map))}</p>
+    <h1>{html.escape(title)} — 見方ガイド</h1>
+    <p>{html.escape(record['purpose_ja'])}</p>
+    <div class="codex-page-header__meta">
+      <span>最終確認: {html.escape(record['last_reviewed_at'])}</span>
+      <span>Concept contract: {contracts}</span>
+    </div>
+  </header>
+
+  <section aria-labelledby="first-checks">
+    <h2 id="first-checks">最初の30秒で見るポイント</h2>
+    <div class="codex-summary-grid">
+{checks}
+    </div>
+  </section>
+
+  <section aria-labelledby="why-it-matters">
+    <h2 id="why-it-matters">なぜ見るのか</h2>
+    <div class="codex-evidence"><strong>{html.escape(record['why_it_matters'])}</strong></div>
+  </section>
+
+  <section aria-labelledby="state-meaning">
+    <h2 id="state-meaning">状態の意味</h2>
+    <p>UNKNOWN / UNAVAILABLE / STALEを正常値へ丸めず、確認できないこと自体を判断材料として残します。</p>
+{_states(record)}
+  </section>
+
+  <section aria-labelledby="next-actions">
+    <h2 id="next-actions">次に進む</h2>
+    <div class="codex-action-row">
+      {_link(record['route_ref'], 'codex-action codex-action--primary')}
+{next_links}
+    </div>
+  </section>
+
+  <section aria-labelledby="evidence-links">
+    <h2 id="evidence-links">根拠を見る</h2>
+{_evidence(record)}
+  </section>
+
+  <details class="codex-disclosure">
+    <summary>この機能がしないこと</summary>
+    <div class="codex-disclosure__body"><ul>
+{_non_goals(record)}
+    </ul></div>
+  </details>
+</div>
+'''
+    if record != before:
+        raise AssertionError("Concept rendering mutated canonical input")
+    return output
+
+
+def render_guide(record: dict, os_map: dict) -> str:
+    if record["feature_id"] == "investment-decision-cockpit":
+        return render(record, os_map)
+    return render_generic(record, os_map)
+
+
+def output_path(record: dict) -> Path:
+    return OUTPUT_ROOT / record["feature_id"] / "index.md"
+
+
 def main() -> None:
     data = load_json(CONCEPT_PATH)
     os_map = load_json(OS_MAP_PATH)
-    record = data["concepts"][0]
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(render(record, os_map), encoding="utf-8")
+    validate_all(data, os_map)
+    for record in data["concepts"]:
+        target = output_path(record)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(render_guide(record, os_map), encoding="utf-8")
 
 
 if __name__ == "__main__":
