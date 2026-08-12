@@ -3,6 +3,7 @@
   "concepts": [
     {
       "feature_id": "investment-decision-cockpit",
+      "title_ja": "Investment Decision Cockpit",
       "route_ref": "/decision-cockpit/daihen/",
       "os_stage_ref": "decide",
       "purpose_ja": "前回の判断から何が変わったかを確認し、現在の投資仮説と評価を一つの流れで点検するための画面です。",
@@ -27,6 +28,114 @@
       ],
       "contract_refs": ["#313", "#317", "#312", "#320"],
       "last_reviewed_at": "2026-08-11"
+    },
+    {
+      "feature_id": "bear-base-bull-forward-per",
+      "title_ja": "Bear / Base / Bull + Forward PER",
+      "route_ref": "/decision-cockpit/daihen/",
+      "os_stage_ref": "decide",
+      "purpose_ja": "一つの利益予想に固定せず、弱気・基準・強気の前提差と、その前提で見た評価水準を分けて確認するための見方です。",
+      "first_checks": [
+        "Bear / Base / Bullで何の前提が違うか",
+        "EPSの根拠とas_ofが揃っているか",
+        "Forward PERがfresh priceと同じbasisで計算されているか"
+      ],
+      "why_it_matters": "シナリオと評価を分離すると、株価が高い・安いという印象ではなく、どの業績前提を市場が織り込んでいるかを確認できます。",
+      "common_states": [
+        {"status": "UNKNOWN", "meaning_ja": "シナリオ、EPS、価格basisのいずれかを確認できず、現在の評価を確定できません。"},
+        {"status": "UNAVAILABLE", "meaning_ja": "必要なシナリオまたは価格情報を利用できません。仮値でForward PERを作りません。"},
+        {"status": "STALE", "meaning_ja": "価格またはシナリオが古く、現在のForward PERとして扱えません。"}
+      ],
+      "next_destination_refs": ["/decision-cockpit/daihen/", "/companies/"],
+      "evidence_refs": ["/companies/", "/framework/"],
+      "non_goals": [
+        "Bear / Base / BullからBUY / SELLを自動決定しない",
+        "欠損EPSや価格を推測してForward PERを生成しない",
+        "株価とEPSのbasis不整合を正常値として扱わない"
+      ],
+      "contract_refs": ["#313", "#308", "#320"],
+      "last_reviewed_at": "2026-08-12"
+    },
+    {
+      "feature_id": "hypothesis-must-happen-invalidation",
+      "title_ja": "投資仮説 / Must happen / Invalidation",
+      "route_ref": "/framework/",
+      "os_stage_ref": "hypothesize",
+      "purpose_ja": "何が実現すれば投資仮説が強まり、何が起きれば崩れるのかを、事実と解釈を混ぜずに整理するための見方です。",
+      "first_checks": [
+        "仮説を支える確認済み事実は何か",
+        "Must happenとして次に実現すべき条件は何か",
+        "Invalidationとして何が起きれば見立てを弱めるか"
+      ],
+      "why_it_matters": "上がる理由だけでなく、必要条件と反証条件を先に置くことで、決算やニュースのたびに都合よく物語を書き換えることを防ぎます。",
+      "common_states": [
+        {"status": "UNKNOWN", "meaning_ja": "必要な事実または反証条件を確認できず、仮説の状態を確定できません。"},
+        {"status": "UNAVAILABLE", "meaning_ja": "参照すべきResearchやEvidenceを現在利用できません。推測で穴埋めしません。"},
+        {"status": "STALE", "meaning_ja": "仮説が古い情報に依存しています。最新の決算・Evidenceで再確認が必要です。"}
+      ],
+      "next_destination_refs": ["/decision-cockpit/daihen/", "/companies/"],
+      "evidence_refs": ["/companies/", "/framework/"],
+      "non_goals": [
+        "仮説を確認済み事実として表示しない",
+        "Ownerの投資理由やconfidenceを説明文から推測しない",
+        "仮説だけからBUY / SELLを生成しない"
+      ],
+      "contract_refs": ["#313", "#317", "#320"],
+      "last_reviewed_at": "2026-08-12"
+    },
+    {
+      "feature_id": "pre-trade-what-if-portfolio-impact",
+      "title_ja": "Pre-trade What-if / Portfolio impact",
+      "route_ref": "/risk-preflight/",
+      "os_stage_ref": "pretrade",
+      "purpose_ja": "売買を実行する前に、その注文がポートフォリオの集中・余力・リスクへ与える影響を確認するための見方です。",
+      "first_checks": [
+        "入力したTrade Intentが正しいか",
+        "実行後のポートフォリオ状態がどう変わるか",
+        "BLOCK_REVIEWやUNKNOWNの理由が残っていないか"
+      ],
+      "why_it_matters": "銘柄単体の魅力と、ポートフォリオ全体でその売買を実行してよいかは別の問いです。実行前に分離して確認します。",
+      "common_states": [
+        {"status": "UNKNOWN", "meaning_ja": "保有・注文・価格など必要入力を確認できず、実行後影響を確定できません。"},
+        {"status": "UNAVAILABLE", "meaning_ja": "必要なPortfolioまたはTrade Intent情報を利用できず、What-ifを計算できません。"},
+        {"status": "STALE", "meaning_ja": "価格やPortfolio snapshotが古く、現在の売買前確認として扱えません。"}
+      ],
+      "next_destination_refs": ["/trade-journal/"],
+      "evidence_refs": ["/decision-cockpit/daihen/", "/framework/"],
+      "non_goals": [
+        "Preflightが注文を自動執行しない",
+        "Ownerの許容損失率やrisk thresholdを推測補完しない",
+        "Trade Intentを約定済みExecutionとして扱わない"
+      ],
+      "contract_refs": ["#313", "#307", "#320"],
+      "last_reviewed_at": "2026-08-12"
+    },
+    {
+      "feature_id": "money-flow-candidate-discovery",
+      "title_ja": "Money Flow / Candidate Discovery",
+      "route_ref": "/research/market-phase/ai-semiconductor/",
+      "os_stage_ref": "discover",
+      "purpose_ja": "市場やテーマの資金の流れを観測し、次に企業Researchへ進める候補を見つけるための見方です。",
+      "first_checks": [
+        "どの市場・テーマへ資金が向かっているか",
+        "一時的な値動きか継続Signalか",
+        "次にResearchすべき候補と確認理由は何か"
+      ],
+      "why_it_matters": "Money Flowは売買指示ではなくDiscoverの入口です。流れを候補発見へ使い、企業の業績・仮説・Valuation確認へ渡します。",
+      "common_states": [
+        {"status": "UNKNOWN", "meaning_ja": "必要な市場データや比較履歴が不足し、資金の流れを確定できません。"},
+        {"status": "UNAVAILABLE", "meaning_ja": "対象データまたは検出結果を現在利用できません。候補を推測生成しません。"},
+        {"status": "STALE", "meaning_ja": "観測データが古く、現在のMoney Flowとして扱えません。"}
+      ],
+      "next_destination_refs": ["/companies/", "/decision-cockpit/daihen/"],
+      "evidence_refs": ["/reports/morning/", "/research/market-phase/ai-semiconductor/"],
+      "non_goals": [
+        "資金流入だけでBUY / SELLを確定しない",
+        "Candidateを保有推奨やEntry priceへ変換しない",
+        "欠損市場データをゼロや中立として扱わない"
+      ],
+      "contract_refs": ["#313", "#305", "#320"],
+      "last_reviewed_at": "2026-08-12"
     }
   ]
 }
