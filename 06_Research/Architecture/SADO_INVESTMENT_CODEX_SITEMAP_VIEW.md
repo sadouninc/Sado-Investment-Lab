@@ -7,8 +7,8 @@
 > Visual Authority: ⭐️ミナ / Issue #324 comment `5249241479`  
 > Design System: #320 / Navigation Authority: #314
 
-<section class="codex-page-shell">
-<header class="codex-page-header">
+<section class="codex-page-shell" markdown="1">
+<header class="codex-page-header" markdown="1">
 <p class="codex-eyebrow">Sitemap / Evolution Roadmap</p>
 
 この画面は、日常の投資プロセスを案内するCodex Mapではなく、**Codexそのものをどう育てているかを見る建築図面**です。Canonical Sitemapをread-onlyに投影し、Issueのopen/closedだけでPages完成状態を決めません。
@@ -65,68 +65,53 @@
 
 <details class="codex-disclosure" open>
 <summary>1. Observe / 観測 <span class="codex-status-chip" data-state="unknown">PLANNED</span></summary>
-<div class="codex-disclosure__body">
-Market Intelligence / News / Daily Context / Money Flow。Money Flow daily operationは #305 で継続。
-</div>
+<div class="codex-disclosure__body">Market Intelligence / News / Daily Context / Money Flow。Money Flow daily operationは #305 で継続。</div>
 </details>
 
 <details class="codex-disclosure">
 <summary>2. Discover / 発見 <span class="codex-status-chip" data-state="unknown">DESIGNED</span></summary>
-<div class="codex-disclosure__body">
-Candidate Selector / Developing Signals。専用routeはこのCanonical snapshotではLIVE確認していません。
-</div>
+<div class="codex-disclosure__body">Candidate Selector / Developing Signals。専用routeはこのCanonical snapshotではLIVE確認していません。</div>
 </details>
 
 <details class="codex-disclosure">
 <summary>3. Understand / 理解 <span class="codex-status-chip" data-state="supportive">LIVE</span></summary>
-<div class="codex-disclosure__body">
-Company Research。verified entry: <a href="{{ '/companies/' | relative_url }}">Companiesを開く</a>。
-</div>
+<div class="codex-disclosure__body">Company Research。verified entry: <a href="{{ '/companies/' | relative_url }}">Companiesを開く</a>。</div>
 </details>
 
 <details class="codex-disclosure">
 <summary>4. Hypothesize / 仮説 <span class="codex-status-chip" data-state="unknown">DESIGNED</span></summary>
-<div class="codex-disclosure__body">
-Investment Hypothesis / Earnings Engine / Bear・Base・Bull。専用routeを推測生成しません。
-</div>
+<div class="codex-disclosure__body">Investment Hypothesis / Earnings Engine / Bear・Base・Bull。専用routeを推測生成しません。</div>
 </details>
 
 <details class="codex-disclosure" open>
 <summary>5. Decide / 判断 <span class="codex-status-chip" data-state="supportive">LIVE</span></summary>
-<div class="codex-disclosure__body">
-Company Decision CockpitはLIVE。Cockpit Conceptはnode-local NEXTです。
+<div class="codex-disclosure__body">Company Decision CockpitはLIVE。Cockpit Conceptはnode-local NEXTです。
 <div class="codex-action-row"><a class="codex-action codex-action--primary" href="{{ '/decision-cockpit/daihen/' | relative_url }}">Decision Cockpitを開く</a></div>
 </div>
 </details>
 
 <details class="codex-disclosure">
 <summary>6. Act / 行動 <span class="codex-status-chip" data-state="unknown">MIXED</span></summary>
-<div class="codex-disclosure__body">
-Trade IntentはPLANNED。Portfolio PreflightはLIVEです。
+<div class="codex-disclosure__body">Trade IntentはPLANNED。Portfolio PreflightはLIVEです。
 <div class="codex-action-row"><a class="codex-action codex-action--secondary" href="{{ '/risk-preflight/' | relative_url }}">Risk Preflightを開く</a></div>
 </div>
 </details>
 
 <details class="codex-disclosure">
 <summary>7. Record / 記録 <span class="codex-status-chip" data-state="supportive">LIVE</span></summary>
-<div class="codex-disclosure__body">
-Decision Journal / Snapshot / History。zero-trade / NOT_EXECUTED semanticsの最終sliceは別途追跡します。
+<div class="codex-disclosure__body">Decision Journal / Snapshot / History。zero-trade / NOT_EXECUTED semanticsの最終sliceは別途追跡します。
 <div class="codex-action-row"><a class="codex-action codex-action--secondary" href="{{ '/trade-journal/' | relative_url }}">Trade Journalを開く</a></div>
 </div>
 </details>
 
 <details class="codex-disclosure">
 <summary>8. Learn / 振り返り <span class="codex-status-chip" data-state="unknown">DESIGNED</span></summary>
-<div class="codex-disclosure__body">
-Decision Review / Pattern Lab / Investment Episode。専用LIVE routeは未確認です。
-</div>
+<div class="codex-disclosure__body">Decision Review / Pattern Lab / Investment Episode。専用LIVE routeは未確認です。</div>
 </details>
 
 <details class="codex-disclosure">
 <summary>9. Re-observe / 再観測 <span class="codex-status-chip" data-state="unknown">PLANNED</span></summary>
-<div class="codex-disclosure__body">
-Catalyst / Checkpoint Timelineから再び市場観測へ戻るloop。routeは未確認です。
-</div>
+<div class="codex-disclosure__body">Catalyst / Checkpoint Timelineから再び市場観測へ戻るloop。routeは未確認です。</div>
 </details>
 
 ## Status legend
