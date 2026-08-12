@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 import sys
 from pathlib import Path
 
@@ -22,6 +23,7 @@ EXPECTED = {
     "pre-trade-what-if-portfolio-impact",
     "money-flow-candidate-discovery",
 }
+JAPANESE = re.compile(r"[ぁ-んァ-ヶ一-龠々]")
 
 
 def fixtures():
@@ -41,8 +43,23 @@ def test_generic_guides_are_japanese_first_and_fail_closed() -> None:
     for record in data["concepts"]:
         if record["feature_id"] == "investment-decision-cockpit":
             continue
+        title = record["title_ja"]
         rendered = concept.render_guide(record, os_map)
+
+        assert JAPANESE.search(title)
+        first_ja = JAPANESE.search(title)
+        first_ascii = re.search(r"[A-Za-z]", title)
+        assert first_ja is not None
+        assert first_ascii is None or first_ja.start() < first_ascii.start()
+        assert len(title) <= 24
+        assert f"title: {title} | 見方ガイド" in rendered
+        assert f"<h1>{title}</h1>" in rendered
+        assert f"<h1>{title} — 見方ガイド</h1>" not in rendered
+        assert 'class="codex-status-chip" data-state="normal">見方ガイド</span>' in rendered
+        assert "concept-guide--compact-title" in rendered
+
         assert "最初の30秒で見るポイント" in rendered
+        assert rendered.index("<h1>") < rendered.index("最初の30秒で見るポイント")
         assert "なぜ見るのか" in rendered
         assert "状態の意味" in rendered
         assert "次に進む" in rendered
@@ -54,6 +71,27 @@ def test_generic_guides_are_japanese_first_and_fail_closed() -> None:
         assert "<style" not in rendered
         assert "sil-" not in rendered
         assert "/assets/design-system.css" in rendered
+
+
+def test_japanese_first_title_contract_rejects_english_first_or_long_titles() -> None:
+    data, os_map = fixtures()
+    generic = next(record for record in data["concepts"] if record["feature_id"] != "investment-decision-cockpit")
+
+    english_first = dict(generic, title_ja="Money Flow / 資金の流れ")
+    try:
+        concept.validate_concept(english_first, os_map)
+    except ValueError as exc:
+        assert "Japanese-first" in str(exc)
+    else:
+        raise AssertionError("English-first title must be rejected")
+
+    too_long = dict(generic, title_ja="これはモバイル表示で過剰改行を起こさないために意図的に長すぎる日本語タイトルです")
+    try:
+        concept.validate_concept(too_long, os_map)
+    except ValueError as exc:
+        assert "compact for mobile" in str(exc)
+    else:
+        raise AssertionError("Overlong mobile title must be rejected")
 
 
 def test_priority_guides_only_reference_existing_route_truth() -> None:
