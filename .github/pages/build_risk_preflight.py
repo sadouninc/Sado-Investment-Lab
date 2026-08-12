@@ -50,10 +50,10 @@ def interactive_panel() -> str:
 
 1. **Request IDを発行**してコピーする。
 2. **GitHub ActionsでWhat-ifを実行**を開き、`request_id`へ貼り付ける。続けて銘柄コード / BUY・SELL / 株数 / 価格を入力して `Run workflow` を押す。
-3. このページへ戻り、**このRequestを追跡**を押す。15秒間隔で同じRequest IDのrunだけを確認する。
+3. このページへ戻り、**このRequestを追跡**を押す。60秒間隔で同じRequest IDのrunだけを確認する。
 4. `CALCULATED`になったら、表示された**対応するGitHub run**を開き、Step Summaryでcanonical結果を確認する。
 
-`QUEUED / RUNNING / CALCULATED / FAILED / EXPIRED` はGitHub Actionsの実行状態です。`CALCULATED`は「計算runが正常終了した」という意味で、投資判断の`PASS`や買い推奨を意味しません。
+`QUEUED / RUNNING / CALCULATED / FAILED / EXPIRED / RATE_LIMITED / CLIENT_ERROR` は観測状態です。`CALCULATED`は「計算runが正常終了した」という意味で、投資判断の`PASS`や買い推奨を意味しません。`FAILED`は対応run自体の失敗、`RATE_LIMITED`はGitHub APIの取得制限、`CLIENT_ERROR`はnetwork/API取得失敗として分離します。
 
 `SELL` はCASH / MARGINの口座文脈を明示できない場合、信用新規売り等を推測せず `NOT_JUDGABLE` になります。PF評価額・現金余力を入力しなければ、その項目は`UNKNOWN`のままです。
 
@@ -77,7 +77,7 @@ def interactive_panel() -> str:
   const runLink = document.getElementById('what-if-run-link');
   const runsApi = root.dataset.runsApi;
 
-  const POLL_MS = 15000;
+  const POLL_MS = 60000;
   const EXPIRE_MS = 10 * 60 * 1000;
   let requestId = null;
   let createdAt = null;
@@ -88,8 +88,10 @@ def interactive_panel() -> str:
     QUEUED: '対応runの開始を待っています。GitHub Actionsで同じRequest IDを指定したか確認してください。',
     RUNNING: '対応するWhat-if runを実行中です。',
     CALCULATED: '対応runは正常終了しました。これは投資判断PASSの意味ではありません。Step Summaryで結果を確認してください。',
-    FAILED: '対応runが失敗・取消・状態取得不能になりました。GitHub runを確認してください。',
-    EXPIRED: '10分以内に対応runを確認できませんでした。Request IDを作り直して再試行してください。'
+    FAILED: '対応run自体が失敗または取消になりました。GitHub runを確認してください。',
+    EXPIRED: '10分以内に対応runを確認できませんでした。Request IDを作り直して再試行してください。',
+    RATE_LIMITED: 'GitHub APIの取得制限に達したため追跡を停止しました。What-if計算失敗ではありません。',
+    CLIENT_ERROR: 'GitHub APIの状態取得に失敗しました。What-if計算失敗ではありません。'
   }};
 
   function setState(code, run) {{
@@ -141,6 +143,18 @@ def interactive_panel() -> str:
         headers: {{ 'Accept': 'application/vnd.github+json' }},
         cache: 'no-store'
       }});
+      const remaining = Number(response.headers.get('X-RateLimit-Remaining'));
+      const resetEpoch = Number(response.headers.get('X-RateLimit-Reset'));
+      if (response.status === 403 || response.status === 429 || Number.isFinite(remaining) && remaining <= 1) {{
+        stopPolling();
+        setState('RATE_LIMITED');
+        trackButton.disabled = false;
+        if (Number.isFinite(resetEpoch) && resetEpoch > 0) {{
+          const resetAt = new Date(resetEpoch * 1000).toLocaleTimeString();
+          stateMessage.textContent += ` 再取得目安: ${{resetAt}}`;
+        }}
+        return;
+      }}
       if (!response.ok) throw new Error(`GitHub API ${{response.status}}`);
       const payload = await response.json();
       const prefix = `What-if ${{requestId}} ·`;
@@ -163,9 +177,9 @@ def interactive_panel() -> str:
       }}
     }} catch (error) {{
       stopPolling();
-      setState('FAILED');
+      setState('CLIENT_ERROR');
       trackButton.disabled = false;
-      stateMessage.textContent = `状態取得に失敗しました: ${{error.message}}。投資上のPASSとして扱いません。`;
+      stateMessage.textContent = `状態取得に失敗しました: ${{error.message}}。What-if計算失敗や投資上のPASSとして扱いません。`;
       return;
     }}
 
