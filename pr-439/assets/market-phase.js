@@ -10,6 +10,11 @@
   const table = (rows, columns) =>
     `<div class="table-scroll"><table><thead><tr>${columns.map(c => `<th>${c[0]}</th>`).join("")}</tr></thead>` +
     `<tbody>${rows.map(row => `<tr>${columns.map(c => `<td>${esc(c[1](row))}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  const symbolLabel = code => {
+    const name = symbols[code]?.name;
+    return name ? `${name} (${code})` : code;
+  };
+  const correlationDirection = value => value >= 0 ? "同方向" : "逆方向";
 
   function renderChart() {
     const svg = document.getElementById("phase-chart");
@@ -70,7 +75,8 @@
     if (!target) return;
     const rows = selectedCorrelationRows(code);
     target.innerHTML = table(rows, [
-      ["相手", row => `${row.code} ${row.name}`],
+      ["相手", row => symbolLabel(row.code)],
+      ["方向", row => correlationDirection(row.correlation)],
       ["相関", row => row.correlation.toFixed(3)]
     ]);
   }
@@ -80,18 +86,19 @@
     const heatmap = document.getElementById("phase-heatmap");
     if (!heatmap || document.getElementById("phase-mobile-correlation-summary")) return;
 
+    const pairLabel = row => `${symbolLabel(row.left)} × ${symbolLabel(row.right)}`;
     const summary = document.createElement("section");
     summary.id = "phase-mobile-correlation-summary";
     summary.innerHTML = `
-      <h3>モバイル相関サマリー</h3>
-      <p>40銘柄の完全行列を横スクロールする前に、注目ペアと選択銘柄の強い相関を確認できます。</p>
+      <h3>注目する相関</h3>
+      <p>40銘柄の中で結びつきが強い組み合わせと逆方向に動きやすい組み合わせを先に確認し、選択銘柄ごとの関係へ掘り下げられます。</p>
       <div class="two-column">
         <div><h3>相関上位</h3>${table(data.top_positive_pairs.slice(0, 3), [
-          ["銘柄ペア", row => `${row.left} × ${row.right}`],
+          ["銘柄ペア", pairLabel],
           ["相関", row => row.correlation.toFixed(3)]
         ])}</div>
         <div><h3>相関下位</h3>${table(data.top_negative_pairs.slice(0, 3), [
-          ["銘柄ペア", row => `${row.left} × ${row.right}`],
+          ["銘柄ペア", pairLabel],
           ["相関", row => row.correlation.toFixed(3)]
         ])}</div>
       </div>
