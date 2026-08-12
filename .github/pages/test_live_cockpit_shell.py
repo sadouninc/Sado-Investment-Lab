@@ -59,6 +59,21 @@ class LiveCockpitShellTests(unittest.TestCase):
         self.assertIn("株価基準日: 取得できません", rendered)
         self.assertIn("Health: <code>取得できません</code>", rendered)
 
+    def test_decision_loop_links_only_to_existing_routes(self):
+        rendered = MODULE.render_first_view(self._view())
+        self.assertIn("判断ループ — 次にどこを見る？", rendered)
+        self.assertIn("/concepts/investment-decision-cockpit/", rendered)
+        self.assertIn("/companies/", rendered)
+        self.assertIn("/risk-preflight/", rendered)
+        self.assertIn("/trade-journal/", rendered)
+        self.assertNotIn("/decision-snapshot/", rendered)
+
+    def test_snapshot_ui_gap_is_explicit_not_fabricated(self):
+        rendered = MODULE.render_first_view(self._view())
+        self.assertIn("Decision Snapshotのbackend contractは既存", rendered)
+        self.assertIn("専用Pages routeはまだ接続されていません", rendered)
+        self.assertIn("存在しない画面を生成済みとは扱いません", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()
