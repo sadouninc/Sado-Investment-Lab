@@ -103,7 +103,7 @@ jobs:
         run: python3 .github/pages/concept.py
 
       - name: Publish Daihen decision cockpit
-        run: python3 -m .github.pages.build_daihen_cockpit
+        run: PYTHONPATH=.github/pages python3 .github/pages/build_daihen_cockpit.py
 
       - name: Publish risk preflight confirmation
         run: python3 .github/pages/build_risk_preflight.py
