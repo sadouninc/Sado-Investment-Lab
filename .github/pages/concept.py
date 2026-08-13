@@ -143,7 +143,7 @@ def _stage_label(record: dict, os_map: dict) -> str:
 
 
 def render(record: dict, os_map: dict) -> str:
-    """Render the Cockpit fixture. Kept stable for #317 visual contract tests."""
+    """Render the Cockpit fixture while keeping #317 and #418 visual contracts aligned."""
     before = copy.deepcopy(record)
     validate_concept(record, os_map)
 
@@ -155,15 +155,21 @@ def render(record: dict, os_map: dict) -> str:
         for index, text in enumerate(FIRST_VIEW_CHECKS, 1)
     )
     states = _states(record)
-    next_links = "\n".join(_link(ref) for ref in record["next_destination_refs"])
-    evidence = _evidence(record)
-    non_goals = _non_goals(record)
+    next_links = "".join(_link(ref) for ref in record["next_destination_refs"])
+    evidence = "".join(
+        '<div class="codex-evidence">'
+        f'{_link(ref)}'
+        '<div class="codex-evidence__meta">Canonical source / route truthを参照</div>'
+        '</div>'
+        for ref in record["evidence_refs"]
+    )
+    non_goals = "".join(f"<li>{html.escape(text)}</li>" for text in record["non_goals"])
     flow = " → ".join(html.escape(item) for item in DECIDE_FLOW)
     contracts = " / ".join(html.escape(item) for item in record["contract_refs"])
 
     output = f'''---
 layout: site
-title: Investment Decision Cockpit — 見方ガイド
+title: 投資判断コックピット — 見方ガイド
 permalink: /concepts/investment-decision-cockpit/
 ---
 
@@ -173,60 +179,31 @@ permalink: /concepts/investment-decision-cockpit/
   <header class="codex-page-header">
     <span class="codex-instrument-icon" aria-hidden="true">◇</span>
     <p class="codex-card-question">Sado Investment Codex / 5 判断</p>
-    <h1>Investment Decision Cockpit — 見方ガイド</h1>
-    <p>{html.escape(record['purpose_ja'])}</p>
-    <div class="codex-page-header__meta">
-      <span>最終確認: {html.escape(record['last_reviewed_at'])}</span>
-      <span>Concept contract: {contracts}</span>
-    </div>
+    <h1>投資判断コックピット</h1>
+    <p>前回からの変化・市場期待との差・投資仮説の健全性を、最初の30秒で確認する画面です。</p>
+    <div class="codex-page-header__meta"><span>最終確認: {html.escape(record['last_reviewed_at'])}</span></div>
   </header>
 
   <section aria-labelledby="first-checks">
     <h2 id="first-checks">最初の30秒で見る3点</h2>
-    <p>まず対象と鮮度を確認し、変化・期待差・仮説の健全性を見ます。売買前のポートフォリオ影響は、判断を整理した後のRisk Preflightで確認します。</p>
+    <p>対象と鮮度を確認したら、次の3点を順に見ます。売買前のポートフォリオ影響は、判断を整理した後のRisk Preflightで確認します。</p>
     <div class="codex-summary-grid">
 {checks}
     </div>
   </section>
 
-  <section aria-labelledby="decision-flow">
-    <h2 id="decision-flow">判断の流れ — What do I think?</h2>
-    <div class="codex-evidence">
-      <strong>{flow}</strong>
-      <div class="codex-evidence__meta">Cockpitは「自分は今どう考えるか」を整理するDecideの画面です。「何をするか」はRisk Preflightへ、実行後の記録はTrade Journalへhandoffします。</div>
-    </div>
-  </section>
+  <section aria-labelledby="decision-flow"><h2 id="decision-flow">判断の流れ — What do I think?</h2><div class="codex-evidence"><strong>{flow}</strong><div class="codex-evidence__meta">Cockpitは「自分は今どう考えるか」を整理するDecideの画面です。「何をするか」はRisk Preflightへ、実行後の記録はTrade Journalへhandoffします。</div></div></section>
 
-  <section aria-labelledby="state-meaning">
-    <h2 id="state-meaning">状態の意味</h2>
-    <p>取得不能や古い情報を、正常・中立・悲観へ丸めません。</p>
-{states}
-  </section>
+  <section aria-labelledby="state-meaning"><h2 id="state-meaning">状態の意味</h2><p>取得不能や古い情報を、正常・中立・悲観へ丸めません。</p>
+{states}</section>
 
-  <section aria-labelledby="next-actions">
-    <h2 id="next-actions">判断の次に進む</h2>
-    <p>ここから先はAct / Recordです。Cockpitの判断材料と混ぜず、目的ごとの既存画面へ進みます。</p>
-    <div class="codex-action-row">
-      {_link(record['route_ref'], 'codex-action codex-action--primary')}
-{next_links}
-    </div>
-  </section>
+  <section aria-labelledby="next-actions"><h2 id="next-actions">判断の次に進む</h2><p>ここから先はAct / Recordです。Cockpitの判断材料と混ぜず、目的ごとの既存画面へ進みます。</p><div class="codex-action-row">{_link(record['route_ref'], 'codex-action codex-action--primary')}{next_links}</div></section>
 
-  <section aria-labelledby="evidence-links">
-    <h2 id="evidence-links">根拠を見る</h2>
-{evidence}
-  </section>
+  <section aria-labelledby="evidence-links"><h2 id="evidence-links">根拠を見る</h2>{evidence}</section>
 
-  <details class="codex-disclosure">
-    <summary>この機能がしないこと</summary>
-    <div class="codex-disclosure__body">
-      <ul>
-{non_goals}
-      </ul>
-    </div>
-  </details>
-</div>
-'''
+  <details class="codex-disclosure"><summary>この機能がしないこと</summary><div class="codex-disclosure__body"><ul>{non_goals}</ul></div></details>
+  <details class="codex-disclosure"><summary>設計・実装情報</summary><div class="codex-disclosure__body"><p>Concept contract: {contracts}</p></div></details>
+</div>'''
     if record != before:
         raise AssertionError("Concept rendering mutated canonical input")
     return output
