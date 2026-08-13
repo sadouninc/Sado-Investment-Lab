@@ -101,12 +101,19 @@ def test_malformed_record_is_partial_and_blocks_write(tmp_path):
         write_signal(make_signal(), path)
 
 
-def test_reader_orders_active_before_terminal(tmp_path):
+def test_reader_orders_active_before_terminal_and_signal_id_breaks_ties(tmp_path):
     path = tmp_path / "signals.jsonl"
     older = make_signal("older", "2026-08-10T09:00:00+09:00")
-    newer = make_signal("newer", "2026-08-12T09:00:00+09:00")
+    same_a = make_signal("same-a", "2026-08-12T09:00:00+09:00")
+    same_b = make_signal("same-b", "2026-08-12T09:00:00+09:00")
     terminal = transition_signal(make_signal("terminal", "2026-08-13T09:00:00+09:00"), "DISMISSED", at="2026-08-13T10:00:00+09:00", reason="反証優勢")
     write_signal(older, path)
     write_signal(terminal, path)
-    write_signal(newer, path)
-    assert [item["signal_key"] for item in read_store(path).signals] == ["newer", "older", "terminal"]
+    write_signal(same_b, path)
+    write_signal(same_a, path)
+
+    result = read_store(path).signals
+    active = result[:3]
+    assert result[3]["signal_key"] == "terminal"
+    assert active[2]["signal_key"] == "older"
+    assert [item["signal_id"] for item in active[:2]] == sorted(item["signal_id"] for item in active[:2])
