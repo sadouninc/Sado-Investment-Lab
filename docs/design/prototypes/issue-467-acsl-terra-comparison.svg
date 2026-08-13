@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1100" viewBox="0 0 1440 1100" role="img" aria-labelledby="title desc">
+  <title id="title">Sado Investment Codex — ACSL vs Terra Drone Comparison Prototype</title>
+  <desc id="desc">Owner-facing comparison prototype for Issue 467 showing growth engine, capital engine, policy leverage, global diversification, revenue quality, profit and cash flow conversion, catalysts, risks, and fact-inference-unknown labels.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f2eee5}.panel{fill:#faf8f2;stroke:#d6d0c3;stroke-width:1.5}.nav{fill:#173f35}.ink{fill:#1b201d}.muted{fill:#626860}.green{fill:#173f35}.brass{fill:#8f7748}.warn{fill:#8d3e3b}.unknown{fill:#7a7165}.serif{font-family:'Noto Serif JP','Yu Mincho',serif}.sans{font-family:'Noto Sans JP',system-ui,sans-serif}.mono{font-family:ui-monospace,monospace}.small{font-size:15px}.body{font-size:18px}.label{font-size:16px;font-weight:700}.h2{font-size:25px;font-weight:700}.h1{font-size:40px;font-weight:700}.kpi{font-size:24px;font-weight:700}
+    </style>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1440" height="1100"/>
+  <rect class="nav" x="0" y="0" width="1440" height="74"/>
+  <text x="54" y="46" class="serif" fill="#f7f4eb" font-size="26" font-weight="700">Sado Investment Codex</text>
+  <text x="1040" y="45" class="sans" fill="#d9d2c4" font-size="15">RESEARCH / COMPARE / EVIDENCE / COCKPIT</text>
+
+  <text x="60" y="124" class="sans muted small">VISUAL PROTOTYPE · Issue #467 · v0.1</text>
+  <text x="60" y="172" class="serif ink h1">ACSL vs Terra Drone</text>
+  <text x="60" y="205" class="sans muted body">国策型 vs Global型ではなく、成長エンジンと利益化経路の違いを同じ軸で読む。</text>
+
+  <rect class="panel" x="60" y="235" width="1320" height="100" rx="14"/>
+  <text x="88" y="267" class="sans muted small">中心問い</text>
+  <text x="88" y="300" class="serif ink h2">どちらが、より再現性高く 売上 → 利益 → CF へ変換できるか？</text>
+  <text x="1015" y="267" class="sans muted small">Evidence freshness</text>
+  <text x="1015" y="300" class="mono ink body">as_of 2026-08 · FACT / INFERENCE / UNKNOWN</text>
+
+  <text x="60" y="385" class="serif ink h2">最初の30秒 — Growth Engine</text>
+  <rect class="panel" x="60" y="405" width="635" height="170" rx="14"/>
+  <text x="88" y="438" class="sans muted small">ACSL · 6232</text>
+  <text x="88" y="477" class="serif ink h2">Government-funded scaling</text>
+  <text x="88" y="515" class="sans body">政府R&amp;D → 国内防衛調達 → 機体 / 保守 / 運用支援</text>
+  <text x="88" y="548" class="sans green label">FACT · 政府R&amp;D / 防衛受注を確認</text>
+
+  <rect class="panel" x="745" y="405" width="635" height="170" rx="14"/>
+  <text x="773" y="438" class="sans muted small">Terra Drone · 278A</text>
+  <text x="773" y="477" class="serif ink h2">Equity-funded global scaling</text>
+  <text x="773" y="515" class="sans body">海外展開 → Drone service / UTM → 契約拡大 → Scale</text>
+  <text x="773" y="548" class="sans brass label">INFERENCE · Global engineの利益化を検証</text>
+
+  <text x="60" y="625" class="serif ink h2">同じ軸で比較する</text>
+  <g>
+    <rect class="panel" x="60" y="648" width="310" height="145" rx="14"/>
+    <text x="84" y="680" class="sans muted small">Capital Engine</text>
+    <text x="84" y="716" class="sans ink label">ACSL</text><text x="160" y="716" class="sans body">補助金 + Equity</text>
+    <text x="84" y="752" class="sans ink label">Terra</text><text x="160" y="752" class="sans body">Growth funding / M&amp;A</text>
+
+    <rect class="panel" x="395" y="648" width="310" height="145" rx="14"/>
+    <text x="419" y="680" class="sans muted small">Policy Leverage</text>
+    <text x="419" y="716" class="sans ink label">ACSL</text><text x="495" y="716" class="sans body">高い / 依存も検証</text>
+    <text x="419" y="752" class="sans ink label">Terra</text><text x="495" y="752" class="sans body">中〜高 / 上昇中</text>
+
+    <rect class="panel" x="730" y="648" width="310" height="145" rx="14"/>
+    <text x="754" y="680" class="sans muted small">Global Diversification</text>
+    <text x="754" y="716" class="sans ink label">ACSL</text><text x="830" y="716" class="sans body">低〜中</text>
+    <text x="754" y="752" class="sans ink label">Terra</text><text x="830" y="752" class="sans body">高</text>
+
+    <rect class="panel" x="1065" y="648" width="315" height="145" rx="14"/>
+    <text x="1089" y="680" class="sans muted small">Revenue Quality</text>
+    <text x="1089" y="716" class="sans ink label">ACSL</text><text x="1165" y="716" class="sans body">官需 / 保守</text>
+    <text x="1089" y="752" class="sans ink label">Terra</text><text x="1165" y="752" class="sans body">Service / UTM</text>
+  </g>
+
+  <rect class="panel" x="60" y="825" width="650" height="185" rx="14"/>
+  <text x="86" y="858" class="sans muted small">Profit / CF Conversion</text>
+  <text x="86" y="895" class="serif ink h2">利益化はまだ同じ確度ではない</text>
+  <text x="86" y="932" class="sans body">ACSL: 国家PJ除外営業損失 / dilution改善を追う</text>
+  <text x="86" y="966" class="sans body">Terra: 海外成長を粗利・CFで吸収できるかを追う</text>
+  <text x="86" y="994" class="sans unknown label">UNKNOWNは点数化せず、そのまま表示</text>
+
+  <rect class="panel" x="735" y="825" width="645" height="185" rx="14"/>
+  <text x="761" y="858" class="sans muted small">Catalyst / Risk</text>
+  <text x="761" y="895" class="sans green label">ACSL Catalyst</text><text x="930" y="895" class="sans body">防衛大量調達 / 継続受注</text>
+  <text x="761" y="929" class="sans warn label">ACSL Risk</text><text x="930" y="929" class="sans body">官需依存 / 赤字・希薄化再発</text>
+  <text x="761" y="963" class="sans green label">Terra Catalyst</text><text x="930" y="963" class="sans body">海外大型契約 + defense</text>
+  <text x="761" y="997" class="sans warn label">Terra Risk</text><text x="930" y="997" class="sans body">海外Execution / 利益化遅延</text>
+
+  <text x="60" y="1058" class="sans muted small">No winner score · No BUY/SELL · 390pxでは1比較軸=1 vertical card · Evidence drill-downを優先</text>
+  <text x="1380" y="1058" text-anchor="end" class="sans muted small">#320 Visual Contract reuse</text>
+</svg>
