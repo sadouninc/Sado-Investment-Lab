@@ -23,6 +23,7 @@ on:
           - 'theme:ai-data-center-power-infrastructure'
           - 'theme:defense-drone-small-mass-domestic'
           - 'theme:physical-ai-robotics-core'
+          - 'theme:fusion-energy-component-supply-chain'
       as_of:
         description: 'YYYY-MM-DD (JST). Empty uses current JST date.'
         required: false
@@ -68,7 +69,9 @@ jobs:
           python -m unittest tests.test_money_flow_push_bootstrap
           python -m unittest tests.test_policy_lead_time_defense_drone
           python -m unittest tests.test_policy_lead_time_physical_ai
+          python -m unittest tests.test_policy_lead_time_fusion
           python -m unittest tests.test_money_flow_physical_ai_workflow
+          python -m unittest tests.test_money_flow_fusion_workflow
 
       - name: Resolve run mode
         id: mode
@@ -93,6 +96,10 @@ jobs:
             theme:physical-ai-robotics-core)
               LEAD_TIME_OUTPUT='data/generated/public/money-flow/policy-lead-time-physical-ai.json'
               V2_OUTPUT='data/generated/public/money-flow/policy-lead-time-physical-ai-v2.json'
+              ;;
+            theme:fusion-energy-component-supply-chain)
+              LEAD_TIME_OUTPUT='data/generated/public/money-flow/policy-lead-time-fusion.json'
+              V2_OUTPUT='data/generated/public/money-flow/policy-lead-time-fusion-v2.json'
               ;;
             *)
               echo "unsupported theme_id: $THEME_ID" >&2
@@ -293,6 +300,12 @@ jobs:
           python -m scripts.policy_lead_time_physical_ai \
             --output '${{ steps.mode.outputs.v2_output }}'
 
+      - name: Refresh Fusion Policy Lead-Time projection
+        if: steps.mode.outputs.theme_id == 'theme:fusion-energy-component-supply-chain' && (steps.mode.outputs.mode == 'BACKFILL' || steps.scheduled.outputs.status == 'COMPLETED')
+        run: |
+          python -m scripts.policy_lead_time_fusion \
+            --output '${{ steps.mode.outputs.v2_output }}'
+
       - name: Persist canonical Market Evidence
         if: steps.mode.outputs.mode == 'BACKFILL' || steps.mode.outputs.mode == 'SECTOR_BOOTSTRAP' || steps.scheduled.outputs.status == 'COMPLETED'
         run: |
@@ -339,5 +352,5 @@ jobs:
             echo '- sector backfill processed: `${{ steps.sector_backfill.outputs.processed }}`'
             echo '- sector backfill unavailable: `${{ steps.sector_backfill.outputs.reason }}`'
             echo ''
-            echo 'Scheduled runs default to AI/DC. Manual workflow_dispatch can select Defense Drone or Physical AI. Historical backfills remain bounded to each as_of so future observations cannot leak into past detector states. An AI/DC main-push SECTOR_BOOTSTRAP auto-backfills Sector history only when it has at most one distinct date, using completed calendar days and benchmark trading-date filtering; it does not replay Theme history or Policy Lead-Time. Defense Drone and Physical AI outputs are kept separate from AI/DC outputs.'
+            echo 'Scheduled runs default to AI/DC. Manual workflow_dispatch can select Defense Drone, Physical AI, or Fusion. Historical backfills remain bounded to each as_of so future observations cannot leak into past detector states. An AI/DC main-push SECTOR_BOOTSTRAP auto-backfills Sector history only when it has at most one distinct date, using completed calendar days and benchmark trading-date filtering; it does not replay Theme history or Policy Lead-Time. Defense Drone, Physical AI, and Fusion outputs are kept separate from AI/DC outputs.'
           } >> "$GITHUB_STEP_SUMMARY"
