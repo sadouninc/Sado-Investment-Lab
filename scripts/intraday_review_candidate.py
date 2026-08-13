@@ -10,12 +10,18 @@ def project_review_candidate(snapshot: Mapping[str, Any]) -> dict[str, Any]:
 
     This projection never invents a market-move threshold. It only consumes an
     explicit upstream ``meaningful_delta`` decision and its ``review_reasons``.
-    Non-OK source data fails closed and cannot become REVIEW_REQUIRED.
+    A review reason is valid only when it is a non-empty string after trimming;
+    normalized output stores the trimmed string. Non-OK source data fails closed
+    and cannot become REVIEW_REQUIRED.
     """
     source_status = snapshot.get("source_status")
     meaningful_delta = snapshot.get("meaningful_delta") is True
     reasons = snapshot.get("review_reasons")
-    explicit_reasons = [str(item) for item in reasons] if isinstance(reasons, list) else []
+    explicit_reasons = (
+        [item.strip() for item in reasons if isinstance(item, str) and item.strip()]
+        if isinstance(reasons, list)
+        else []
+    )
 
     if source_status != USABLE_SOURCE_STATUS:
         state = "DATA_QUALITY_BLOCKED"
