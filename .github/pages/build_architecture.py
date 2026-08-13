@@ -4,6 +4,7 @@ import re
 import shutil
 from pathlib import Path
 
+from build_primary_evidence import main as publish_primary_evidence_library
 from company_cards import (
     render_company_detail,
     render_company_index_card,
@@ -226,6 +227,7 @@ def main() -> None:
     publish_shared_assets()
     publish_navigation_shell()
     publish_company_cards()
+    publish_primary_evidence_library()
     sources = sorted(path for path in SOURCE.glob("*.md") if path.name.lower() != "readme.md")
     cards: list[str] = []
     for source in sources:
