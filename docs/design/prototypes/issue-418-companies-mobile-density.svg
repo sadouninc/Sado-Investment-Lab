@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844" role="img" aria-labelledby="title desc">
+  <title id="title">Companies mobile density prototype</title>
+  <desc id="desc">390 pixel mobile layout showing compact intro, category heading and company cards without excessive vertical whitespace.</desc>
+  <rect width="390" height="844" fill="#f4f0e7"/>
+  <rect x="12" y="12" width="366" height="46" rx="8" fill="#eee7da" stroke="#cfc5b4"/>
+  <text x="24" y="40" font-family="sans-serif" font-size="14" font-weight="700" fill="#171612">Sado Investment Lab</text>
+  <circle cx="348" cy="35" r="16" fill="#f4f0e7" stroke="#cfc5b4"/>
+  <text x="343" y="40" font-family="sans-serif" font-size="14" fill="#171612">◐</text>
+
+  <text x="20" y="102" font-family="serif" font-size="32" font-weight="700" fill="#171612">Companies</text>
+  <text x="20" y="132" font-family="sans-serif" font-size="14" fill="#6f695e">企業の長期的な強さと、現在の投資タイミングを</text>
+  <text x="20" y="153" font-family="sans-serif" font-size="14" fill="#6f695e">分けて分析します。</text>
+
+  <text x="20" y="202" font-family="serif" font-size="24" font-weight="700" fill="#171612">Semiconductor</text>
+
+  <rect x="20" y="222" width="350" height="84" rx="10" fill="#fbf8f1" stroke="#cfc5b4"/>
+  <text x="36" y="252" font-family="serif" font-size="17" font-weight="700" fill="#171612">4063 信越化学工業</text>
+  <text x="36" y="278" font-family="sans-serif" font-size="13" fill="#6f695e">4063_ShinEtsu.md</text>
+
+  <rect x="20" y="318" width="350" height="84" rx="10" fill="#fbf8f1" stroke="#cfc5b4"/>
+  <text x="36" y="348" font-family="serif" font-size="17" font-weight="700" fill="#171612">3110 日東紡績</text>
+  <text x="36" y="374" font-family="sans-serif" font-size="13" fill="#6f695e">3110_Nittobo.md</text>
+
+  <rect x="20" y="414" width="350" height="104" rx="10" fill="#fbf8f1" stroke="#cfc5b4"/>
+  <text x="36" y="444" font-family="serif" font-size="17" font-weight="700" fill="#171612">Mixed Japanese / English</text>
+  <text x="36" y="468" font-family="serif" font-size="17" font-weight="700" fill="#171612">Company Research Title</text>
+  <text x="36" y="494" font-family="sans-serif" font-size="13" fill="#6f695e">long-company-research-file.md</text>
+
+  <text x="20" y="574" font-family="serif" font-size="24" font-weight="700" fill="#171612">Energy</text>
+  <rect x="20" y="594" width="350" height="84" rx="10" fill="#fbf8f1" stroke="#cfc5b4"/>
+  <text x="36" y="624" font-family="serif" font-size="17" font-weight="700" fill="#171612">次の企業カード</text>
+  <text x="36" y="650" font-family="sans-serif" font-size="13" fill="#6f695e">company-file.md</text>
+
+  <line x1="20" y1="714" x2="370" y2="714" stroke="#cfc5b4"/>
+  <text x="20" y="744" font-family="sans-serif" font-size="12" fill="#6f695e">390px acceptance: no horizontal overflow / no blank scroll</text>
+  <text x="20" y="766" font-family="sans-serif" font-size="12" fill="#6f695e">category gap &gt; card gap / title remains readable</text>
+</svg>
