@@ -124,6 +124,14 @@ jobs:
         run: |
           set -euo pipefail
 
+          # `git diff` does not include untracked files. Convert untracked files to
+          # intent-to-add entries so one canonical diff path covers tracked edits,
+          # deletions, and newly-created files without staging file contents.
+          mapfile -t untracked < <(git ls-files --others --exclude-standard)
+          if (( ${#untracked[@]} )); then
+            git add -N -- "${untracked[@]}"
+          fi
+
           changed="$(git diff --name-only)"
           if [[ -z "$changed" ]]; then
             echo "HARNESS_OUTCOME=BLOCKED_NO_REPO_DIFF" >> "$GITHUB_ENV"
@@ -149,8 +157,10 @@ jobs:
 
           # Independent validation: the harness, not the agent, decides whether a diff is reviewable.
           if git diff --name-only -- '*.py' | grep -q .; then
-            mapfile -t pyfiles < <(git diff --name-only -- '*.py')
-            python -m py_compile "${pyfiles[@]}"
+            mapfile -t pyfiles < <(git diff --name-only --diff-filter=ACMRT -- '*.py')
+            if (( ${#pyfiles[@]} )); then
+              python -m py_compile "${pyfiles[@]}"
+            fi
           fi
 
           python -m pytest -q
@@ -189,6 +199,8 @@ jobs:
           fi
 
           # Persist only the repository patch for review; never export the Copilot transcript.
+          # Untracked files were marked intent-to-add in Harness validation, so they are
+          # included here as normal additions in the review patch.
           git diff --binary > /tmp/copilot.patch || true
 
       - name: Upload review patch
