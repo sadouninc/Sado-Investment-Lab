@@ -67,7 +67,7 @@ def test_reviews_and_nonterminal_ci_do_not_create_other_metrics():
     event = {
         "pr_ref": "repo#200",
         "reviews": [
-            {"event": "CHANGES_REQUESTED"},
+            {"round_id": "review-1", "event": "CHANGES_REQUESTED"},
             {"event": "APPROVED"},
         ],
         "ci_runs": [
@@ -81,9 +81,26 @@ def test_reviews_and_nonterminal_ci_do_not_create_other_metrics():
     metrics = tc.collect_from_fixture(event)["metrics"]
     assert metrics["clarification_count"] == 0
     assert metrics["human_confirmation_count"] == 0
-    assert metrics["review_rework_count"] == 1
+    assert metrics["review_rework_count"] == 0
     assert metrics["ci_rework_count"] == 0
     assert metrics["first_pass_ci"] == "UNKNOWN"
+
+
+def test_review_rework_counts_only_rounds_with_explicit_fix_evidence():
+    reviews = [
+        {"round_id": "round-1", "event": "CHANGES_REQUESTED"},
+        {"round_id": "round-2", "event": "CHANGES_REQUESTED"},
+        {"round_id": "round-3", "event": "CHANGES_REQUESTED"},
+    ]
+    fixes = [
+        {"round_id": "round-1", "evidence_ref": "commit-a"},
+        {"round_id": "round-1", "evidence_ref": "commit-a-duplicate"},
+        {"round_id": "round-3", "evidence_ref": "commit-c"},
+        {"round_id": "unknown-round", "evidence_ref": "commit-x"},
+        {"round_id": "round-2"},
+    ]
+    assert tc.count_review_rework(reviews, fixes) == 2
+    assert tc.count_review_rework(reviews, []) == 0
 
 
 def test_ci_rework_counts_closed_failure_episode_only():
