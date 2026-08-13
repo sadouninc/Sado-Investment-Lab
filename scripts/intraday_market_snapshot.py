@@ -97,6 +97,9 @@ def build_snapshot(
 
     source_status = _normalize_source_status(result, business_date)
     market = result.data if isinstance(result.data, Mapping) else {}
+    if source_status in {"OK", "PARTIAL"} and not _market_values(market):
+        source_status = "MISSING"
+
     identity = f"{business_date.isoformat()}:{session_slot}"
     snapshot: dict[str, Any] = {
         "schema_version": "1.0",
