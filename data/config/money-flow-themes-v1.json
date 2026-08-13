@@ -113,6 +113,27 @@
           "evidence_ref": "https://www.thk.com/opm/industrial-robot/"
         }
       ]
+    },
+    {
+      "id": "theme:fusion-energy-component-supply-chain",
+      "name": "Fusion Energy / Component Supply Chain",
+      "membership_as_of": "2026-08-13",
+      "membership_version": "2026-08-13-v1",
+      "authority": "Issue #459 membership gate / company primary-source exposure verification",
+      "backfill_policy": "RETROSPECTIVE_MEMBERSHIP_IF_HISTORICAL_MEMBERSHIP_UNAVAILABLE",
+      "limitations": [
+        "RETROSPECTIVE_MEMBERSHIP",
+        "THEME_SCOPE_PROXY",
+        "CONGLOMERATE_EXPOSURE",
+        "NARROW_MEMBERSHIP"
+      ],
+      "members": [
+        {"security_code": "7011", "company_name": "三菱重工業", "symbol": "7011.T"},
+        {"security_code": "5803", "company_name": "フジクラ", "symbol": "5803.T"},
+        {"security_code": "5801", "company_name": "古河電気工業", "symbol": "5801.T"},
+        {"security_code": "5802", "company_name": "住友電気工業", "symbol": "5802.T"},
+        {"security_code": "7013", "company_name": "IHI", "symbol": "7013.T"}
+      ]
     }
   ]
 }
