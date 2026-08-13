@@ -49,7 +49,7 @@ Transition evidence should be durable in GitHub (Issue #99 or the relevant proce
 
 ## Continuous Execution / Self-Replenishing Queue
 
-While ACTIVE, each member should maximize safe progress per run rather than stop after one item.
+Each member should maximize safe progress per run rather than stop after one item. This applies in ACTIVE and, within delegated Authority, in AWAY.
 
 1. Execute `NOW → NEXT → RESERVE` continuously while work is safe, independent, and within the member's Authority.
 2. Completing one item is not a stop condition. Promote NEXT, then RESERVE, then discover the next READY/non-conflicting candidate from GitHub.
@@ -59,6 +59,14 @@ While ACTIVE, each member should maximize safe progress per run rather than stop
 6. Reversible low-risk choices may use the member's recommended option when consistent with existing SSoT, Issue AC, and TEAM_RULES; preserve rollback/reviewability through PRs.
 7. Stop for explicit Authority/high-risk gates: investment execution or Owner-only investment judgment, secrets/auth/permissions, paid actions, destructive/irreversible changes, material public-scope changes, or other TEAM_RULES gates.
 8. Respect Single Implementation Owner and implementation-lane WIP limits while replenishing the queue.
+
+### Drain-and-Recheck Rule
+
+- Before ending a run, perform one final GitHub recheck for newly actionable work: completed CI, new review feedback, newly READY/non-conflicting Issues, merge-distance reduction, or unblocked dependencies.
+- If actionable work exists, continue in the same run until the safe queue is drained again; do not end merely because the original NOW item finished.
+- If no actionable work exists, end the run cleanly with `NEXT AUTO` describing what the next scheduled/invoked run should check first.
+- Scheduled agents should repeat this drain-and-recheck behavior on every invocation. Between invocations, use the configured task cadence; do not busy-wait or pretend to sleep inside a chat turn.
+- Current ChatGPT scheduled-task minimum cadence is one hour. Therefore a literal five-minute background wake/recheck is not part of this operating contract; use maximum work-per-invocation plus the configured periodic run.
 
 Recommended run-end summary: `DONE / ADVANCED / BLOCKED / USER INPUT NEEDED / NEXT AUTO`.
 
