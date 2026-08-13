@@ -1,0 +1,44 @@
+name: Intraday Market Snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      session_slot:
+        description: Semantic market observation slot
+        required: true
+        type: choice
+        options:
+          - MORNING
+          - MIDDAY
+          - AFTERNOON
+          - CLOSE
+      business_date:
+        description: Optional YYYY-MM-DD override; blank uses current JST date
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Verify market provider contract
+        run: python3 -m unittest tests.test_market_provider
+      - name: Collect snapshot
+        shell: bash
+        run: |
+          args=(--session-slot "${{ inputs.session_slot }}" --output-root "$RUNNER_TEMP/intraday-market")
+          if [[ -n "${{ inputs.business_date }}" ]]; then
+            args+=(--business-date "${{ inputs.business_date }}")
+          fi
+          python3 scripts/run_intraday_market_snapshot.py "${args[@]}"
+      - name: Upload snapshot evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: intraday-market-${{ inputs.session_slot }}
+          path: ${{ runner.temp }}/intraday-market
+          if-no-files-found: error
