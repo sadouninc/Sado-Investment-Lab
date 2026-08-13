@@ -162,6 +162,7 @@ jobs:
             exit 86
           fi
 
+          set +e
           python - <<'PY'
           import fnmatch
           from pathlib import Path
@@ -182,6 +183,7 @@ jobs:
               raise SystemExit(85)
           PY
           rc=$?
+          set -e
           if [[ $rc -eq 85 ]]; then
             echo "HARNESS_OUTCOME=BLOCKED_ISSUE_PATH_CONTRACT" >> "$GITHUB_ENV"
             exit 85
