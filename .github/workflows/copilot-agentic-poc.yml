@@ -11,15 +11,63 @@ on:
 permissions:
   contents: read
   issues: read
+  copilot-requests: write
 
 jobs:
-  validate:
+  poc:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
-      - name: Validate issue input
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Prepare issue context
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+        run: python3 scripts/copilot_poc_prepare.py
+
+      - name: Run isolated Copilot PoC
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          test "$ISSUE_NUMBER" != "79"
-          echo "PoC shell ready" >> "$GITHUB_STEP_SUMMARY"
+          copilot -p "$(cat copilot-poc-prompt.md)" \
+            --no-ask-user \
+            --available-tools='bash,edit,view,grep,glob' \
+            --allow-tool='write' \
+            --allow-tool='shell(python3:*)' \
+            --allow-tool='shell(pytest:*)' \
+            --allow-tool='shell(git status)' \
+            --allow-tool='shell(git diff:*)' \
+            --allow-tool='shell(git log:*)'
+
+      - name: Verify isolated result
+        shell: bash
+        run: |
+          changed="$(git status --porcelain=v1 | sed -E 's/^.. //' | sed -E 's/.* -> //')"
+          if printf '%s\n' "$changed" | grep -Eq '^(\.github/workflows/|TEAM_RULES\.md$|TEAM_STATE\.md$|package(-lock)?\.json$|pyproject\.toml$|requirements.*\.txt$)'; then
+            echo "PoC changed a forbidden path" >&2
+            exit 1
+          fi
+          test -f copilot-poc-result.md
+          {
+            echo "## Copilot Agentic PoC1"
+            echo
+            echo "- issue: #${{ github.event.inputs.issue_number }}"
+            echo "- confirmation_count: 0"
+            echo "- repository_write_permissions: none"
+            echo
+            echo "### Changed files in isolated runner"
+            if [[ -n "$changed" ]]; then printf '%s\n' "$changed" | sed 's/^/- `/' | sed 's/$/`/'; else echo "- none"; fi
+            echo
+            echo "### Agent result"
+            cat copilot-poc-result.md
+          } >> "$GITHUB_STEP_SUMMARY"
