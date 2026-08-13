@@ -5,8 +5,8 @@
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
 Last updated: 2026-08-13  
-Sources: Issue #99 Current Active Board; #338; #354; Owner return to ACTIVE; comment 5275167127  
-Broadcast head at snapshot: `comment_id=5275167127`
+Sources: Issue #99 Current Active Board; #338; #354; Owner return to ACTIVE; comment 5275167127; verified Broadcast head 5275250444  
+Broadcast head at snapshot: `comment_id=5275250444`
 
 ## User Mode
 
