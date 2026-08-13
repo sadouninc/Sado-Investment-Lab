@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -26,6 +28,46 @@ def _existing_signal_for_seed(seed_id: str, path: Path) -> dict[str, Any] | None
     if len(matches) > 1:
         raise ValueError(f"multiple Developing Signals reference origin_seed_ref: {seed_id}")
     return deepcopy(matches[0]) if matches else None
+
+
+def _promotion_fingerprint(signal: dict[str, Any]) -> str:
+    """Fingerprint only the Seed-owned handoff projection, never #170 mutable state."""
+    projection = {
+        "signal_id": signal.get("signal_id"),
+        "signal_key": signal.get("signal_key"),
+        "origin_seed_ref": signal.get("origin_seed_ref"),
+        "title": signal.get("title"),
+        "signal_type": signal.get("signal_type"),
+        "first_observed_at": signal.get("first_observed_at"),
+        "created_by": signal.get("created_by"),
+        "summary": signal.get("summary"),
+        "why_it_may_matter": signal.get("why_it_may_matter"),
+        "source_refs": signal.get("source_refs", []),
+        "related_entities": signal.get("related_entities", []),
+        "next_checkpoint": signal.get("next_checkpoint"),
+        "checkpoint_reason": signal.get("checkpoint_reason"),
+    }
+    payload = json.dumps(
+        projection,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _assert_retry_matches_handoff(existing: dict[str, Any], candidate: dict[str, Any]) -> None:
+    if existing.get("signal_id") != candidate["signal_id"]:
+        raise ValueError("origin_seed_ref already maps to a different canonical Signal")
+    if existing.get("origin_seed_ref") != candidate["origin_seed_ref"]:
+        raise ValueError("canonical Signal origin_seed_ref conflicts with Seed retry")
+
+    existing_fingerprint = existing.get("origin_seed_projection_fingerprint")
+    candidate_fingerprint = candidate.get("origin_seed_projection_fingerprint")
+    if not existing_fingerprint:
+        raise ValueError("canonical Signal is missing origin Seed projection fingerprint")
+    if existing_fingerprint != candidate_fingerprint:
+        raise ValueError("origin_seed_ref already maps to a different Signal payload")
 
 
 def build_signal_from_seed(
@@ -82,7 +124,9 @@ def build_signal_from_seed(
         "duplicate_state": "UNIQUE",
         "origin_seed_ref": validated_seed["seed_id"],
     }
-    return validate_signal(signal)
+    validated_signal = validate_signal(signal)
+    validated_signal["origin_seed_projection_fingerprint"] = _promotion_fingerprint(validated_signal)
+    return validate_signal(validated_signal)
 
 
 def promote_seed_to_signal(
@@ -103,7 +147,8 @@ def promote_seed_to_signal(
     raises before a PROMOTED Seed is returned. If a prior attempt wrote the Signal but
     the caller failed to persist the Seed result, retry finds the existing
     ``origin_seed_ref`` and reuses the same promotion_ref instead of creating another
-    active Signal.
+    active Signal. Retry equality is based only on the Seed-owned handoff projection;
+    later #170 Observation/lifecycle mutations remain authoritative and are preserved.
     """
     validated_seed = validate_seed(seed)
     if validated_seed["status"] == "REJECTED":
@@ -123,8 +168,7 @@ def promote_seed_to_signal(
     existing = _existing_signal_for_seed(validated_seed["seed_id"], signal_path)
 
     if existing is not None:
-        if existing != candidate:
-            raise ValueError("origin_seed_ref already maps to a different Signal payload")
+        _assert_retry_matches_handoff(existing, candidate)
         signal_id = existing["signal_id"]
     else:
         if validated_seed["status"] == "PROMOTED_TO_SIGNAL":
