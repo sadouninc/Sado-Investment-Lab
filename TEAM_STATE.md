@@ -5,14 +5,14 @@
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
 Last updated: 2026-08-13  
-Sources: Issue #99 Current Active Board; #338; #354; AWAY transition comment 5255385557; Owner return to ACTIVE; 2026-08-13 Owner AWAY transition  
-Broadcast head at snapshot: `comment_id=5269841952`
+Sources: Issue #99 Current Active Board; #338; #354; Owner return to ACTIVE; comment 5275167127  
+Broadcast head at snapshot: `comment_id=5275167127`
 
 ## User Mode
 
-- Mode: **AWAY**
-- Meaning: 👑サド is non-active. Activate delegated autonomous operations. Owner Authority decisions must be recorded in the AWAY Authority backlog rather than inferred or resolved by agents.
-- Mode contract: #354. `ACTIVE` keeps normal roles. `AWAY` activates delegated autonomous operations below.
+- Mode: **ACTIVE**
+- Meaning: 👑サド is active. Normal role priority and Owner Authority flow apply. AWAY-only delegated cadence is stopped.
+- Mode contract: #354. `ACTIVE` keeps normal roles. `AWAY` activates delegated autonomous operations.
 
 ## Mode Transition Contract
 
@@ -47,6 +47,21 @@ Transition evidence should be durable in GitHub (Issue #99 or the relevant proce
 | 🍁カエデ | Policy Intelligence / Hypothesis Builder | Continuity is delegated to Asahi/Rei using GitHub handoff state |
 | 🤖カイ | Implementation Engineer only when explicitly assigned; do not enter an existing Single Owner scope | Same |
 
+## Continuous Execution / Self-Replenishing Queue
+
+While ACTIVE, each member should maximize safe progress per run rather than stop after one item.
+
+1. Execute `NOW → NEXT → RESERVE` continuously while work is safe, independent, and within the member's Authority.
+2. Completing one item is not a stop condition. Promote NEXT, then RESERVE, then discover the next READY/non-conflicting candidate from GitHub.
+3. Where practical, carry one slice through investigation/design/implementation/test/PR/self-check/handoff in the same run.
+4. A PR creation is not itself a stop condition; reduce merge distance (tests, CI readiness, review handoff, issue/PR updates) before moving on.
+5. If Owner input is needed, record `USER INPUT NEEDED` with the exact decision, then continue all non-dependent work and another safe item if available.
+6. Reversible low-risk choices may use the member's recommended option when consistent with existing SSoT, Issue AC, and TEAM_RULES; preserve rollback/reviewability through PRs.
+7. Stop for explicit Authority/high-risk gates: investment execution or Owner-only investment judgment, secrets/auth/permissions, paid actions, destructive/irreversible changes, material public-scope changes, or other TEAM_RULES gates.
+8. Respect Single Implementation Owner and implementation-lane WIP limits while replenishing the queue.
+
+Recommended run-end summary: `DONE / ADVANCED / BLOCKED / USER INPUT NEEDED / NEXT AUTO`.
+
 ## AWAY Authority Backlog Contract
 
 During AWAY, record but do not decide:
@@ -60,14 +75,7 @@ Each backlog item should contain: `ref`, `decision_needed`, `why_owner`, `safe_w
 
 Default: ♦️ソラ leads implementation. 🌊ナギ joins implementation only when capacity is needed and the candidate is independent in Issue/slice/file/logic.
 
-Current priority order (compact reference; read each Issue before work):
-1. P0 Reliability / Process — #286, #296 when unowned/non-conflicting
-2. Design System foundation — #320
-3. Investment OS entry — #312
-4. Concept / Cockpit — #313 + #317
-5. Global Navigation — #314
-6. Practical UX — #307, #308
-7. Money Flow operation — #305
+Current priority order is maintained through Issue #99 Current Active Board and current Issue/PR state. Do not rely on a stale static numbered list when newer lane assignments exist.
 
 ## Current Product / Design Guardrails
 
