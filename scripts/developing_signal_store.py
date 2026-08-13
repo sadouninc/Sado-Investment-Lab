@@ -23,18 +23,26 @@ def _canonical_payload(signal: dict[str, Any]) -> str:
     return json.dumps(signal, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
-def _sort_key(signal: dict[str, Any]) -> tuple[int, str, str]:
-    active_rank = 0 if signal["status"] in ACTIVE_STATUSES else 1
-    # ISO-8601 timestamps sort lexically when normalized by the existing validator contract.
-    # Reverse timestamp order is applied separately to avoid lossy timestamp transforms.
-    return active_rank, signal["last_observed_at"], signal["signal_id"]
+def _normalized_entities(signal: dict[str, Any]) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        sorted(
+            (
+                str(item.get("type", "")).strip().upper(),
+                str(item.get("id", "")).strip().upper(),
+            )
+            for item in signal.get("related_entities", [])
+        )
+    )
 
 
 def _ordered(signals: list[dict[str, Any]]) -> list[dict[str, Any]]:
     active = [item for item in signals if item["status"] in ACTIVE_STATUSES]
     terminal = [item for item in signals if item["status"] not in ACTIVE_STATUSES]
-    active.sort(key=lambda item: (item["last_observed_at"], item["signal_id"]), reverse=True)
-    terminal.sort(key=lambda item: (item["last_observed_at"], item["signal_id"]), reverse=True)
+    # Stable two-pass sort gives last_observed_at descending with signal_id ascending ties.
+    active.sort(key=lambda item: item["signal_id"])
+    active.sort(key=lambda item: item["last_observed_at"], reverse=True)
+    terminal.sort(key=lambda item: item["signal_id"])
+    terminal.sort(key=lambda item: item["last_observed_at"], reverse=True)
     return active + terminal
 
 
@@ -73,7 +81,7 @@ def _assert_update_safe(existing: dict[str, Any], incoming: dict[str, Any]) -> N
         if existing.get(field) != incoming.get(field):
             raise ValueError(f"immutable signal identity conflict: {field}")
 
-    if existing.get("related_entities", []) != incoming.get("related_entities", []):
+    if _normalized_entities(existing) != _normalized_entities(incoming):
         raise ValueError("immutable signal identity conflict: related_entities")
 
     old_observations = existing.get("observations", [])
