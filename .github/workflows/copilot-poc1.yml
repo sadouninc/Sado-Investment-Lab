@@ -1,0 +1,140 @@
+name: Copilot PoC1 — safe implementation lane
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "READY_FOR_IMPLEMENTATION Issue number (Issue #79 is forbidden)"
+        required: true
+        type: number
+
+# Least privilege: Copilot requests + repository read only.
+# PoC1 deliberately cannot push, merge, close Issues, or mutate GitHub state.
+permissions:
+  contents: read
+  copilot-requests: write
+
+concurrency:
+  group: copilot-poc1-${{ github.event.inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  safe-implementation-poc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Fail closed for protected Issue #79
+        shell: bash
+        run: |
+          set -euo pipefail
+          issue='${{ github.event.inputs.issue_number }}'
+          if [[ "$issue" == "79" ]]; then
+            echo "## BLOCKED" >> "$GITHUB_STEP_SUMMARY"
+            echo "Issue #79 is protected by TEAM_RULES / autonomy policy." >> "$GITHUB_STEP_SUMMARY"
+            exit 79
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Fetch Issue contract (read only)
+        id: issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" > /tmp/issue.json
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          issue = json.loads(Path('/tmp/issue.json').read_text())
+          if 'pull_request' in issue:
+              raise SystemExit('BLOCKED: input resolves to a pull request, not an Issue')
+          body = issue.get('body') or ''
+          title = issue.get('title') or ''
+          state = issue.get('state') or ''
+          text = f"# Issue #{issue['number']}: {title}\n\nState: {state}\n\n{body}\n"
+          Path('/tmp/issue-contract.md').write_text(text)
+          if state != 'open':
+              raise SystemExit('BLOCKED: Issue is not open')
+          if 'READY_FOR_IMPLEMENTATION' not in body:
+              raise SystemExit('BLOCKED: Issue body does not declare READY_FOR_IMPLEMENTATION')
+          PY
+
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Run one non-interactive Copilot implementation pass
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/poc-prompt.md <<'EOF'
+          You are the implementation worker for Sado Investment Lab PoC1.
+
+          Read TEAM_RULES.md and /tmp/issue-contract.md before changing anything.
+          Work only inside the target Issue Acceptance Criteria.
+
+          AUTONOMY / SAFETY CONTRACT:
+          - Allowed: repository read/search, worktree file edits, existing tests/lint/build, git status/diff/log.
+          - Forbidden: git commit/push, PR/Issue writes, merge/close, workflow self-modification, dependency changes,
+            destructive delete/history rewrite, secrets/permissions/billing changes, canonical investment truth inference,
+            BUY/SELL/HOLD authority decisions, and any change related to Issue #79.
+          - Do not ask questions. If the AC cannot be safely completed inside these boundaries, stop and write BLOCKED plus the exact reason.
+          - Do not broaden scope to make the task pass.
+          - Do not create or export a session transcript.
+
+          Complete one implementation pass. Then write /tmp/copilot-result.md containing:
+          outcome: REVIEW_READY or BLOCKED
+          changed_files: list
+          validation: commands and results
+          blocked_reason: reason or NONE
+          confirmation_count: 0
+          EOF
+
+          copilot -p "$(cat /tmp/poc-prompt.md; printf '\n\n'; cat /tmp/issue-contract.md)" \
+            --no-ask-user \
+            --allow-tool='write' \
+            --allow-tool='shell(git status)' \
+            --allow-tool='shell(git diff:*)' \
+            --allow-tool='shell(git log:*)' \
+            --deny-tool='shell(git commit:*)' \
+            --deny-tool='shell(git push:*)' \
+            --deny-tool='shell(gh:*)'
+
+      - name: Validate safety boundary and summarize
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          echo "## Copilot PoC1 — Issue #${{ github.event.inputs.issue_number }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Working tree" >> "$GITHUB_STEP_SUMMARY"
+          git status --short >> "$GITHUB_STEP_SUMMARY" || true
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Diff stat" >> "$GITHUB_STEP_SUMMARY"
+          git diff --stat >> "$GITHUB_STEP_SUMMARY" || true
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f /tmp/copilot-result.md ]]; then
+            echo "### Agent result" >> "$GITHUB_STEP_SUMMARY"
+            cat /tmp/copilot-result.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Agent result" >> "$GITHUB_STEP_SUMMARY"
+            echo "BLOCKED: Copilot did not produce the required result contract." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # Workflow files and dependency manifests are YELLOW and excluded from PoC1.
+          forbidden="$(git diff --name-only | grep -E '(^\.github/workflows/|(^|/)(package(-lock)?\.json|pyproject\.toml|requirements[^/]*\.txt|poetry\.lock|uv\.lock)$)' || true)"
+          if [[ -n "$forbidden" ]]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### SAFETY BLOCK" >> "$GITHUB_STEP_SUMMARY"
+            echo "Forbidden PoC1 paths were modified:" >> "$GITHUB_STEP_SUMMARY"
+            echo "$forbidden" >> "$GITHUB_STEP_SUMMARY"
+            exit 86
+          fi
