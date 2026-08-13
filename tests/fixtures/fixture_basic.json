@@ -18,8 +18,11 @@
     {"at": "2026-07-01T11:00:00Z", "evidence_ref": "repo#122-comment-2"}
   ],
   "reviews": [
-    {"actor": "bob", "submitted_at": "2026-07-02T12:00:00Z", "event": "CHANGES_REQUESTED"},
+    {"round_id": "review-1", "actor": "bob", "submitted_at": "2026-07-02T12:00:00Z", "event": "CHANGES_REQUESTED"},
     {"actor": "charlie", "submitted_at": "2026-07-02T13:00:00Z", "event": "APPROVED"}
+  ],
+  "review_fix_events": [
+    {"round_id": "review-1", "at": "2026-07-02T13:30:00Z", "evidence_ref": "repo#123-commit-2"}
   ],
   "ci_runs": [
     {"status": "queued", "at": "2026-07-02T10:30:00Z"},
