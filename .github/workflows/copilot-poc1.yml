@@ -28,6 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           issue='${{ github.event.inputs.issue_number }}'
+          issue="${issue%%.*}"
           if [[ "$issue" == "79" ]]; then
             echo "## BLOCKED" >> "$GITHUB_STEP_SUMMARY"
             echo "Issue #79 is protected by TEAM_RULES / autonomy policy." >> "$GITHUB_STEP_SUMMARY"
@@ -47,9 +48,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          ISSUE_NUMBER="${ISSUE_NUMBER%%.*}"
+          echo "ISSUE_NUMBER=${ISSUE_NUMBER}" >> "$GITHUB_ENV"
           gh api "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" > /tmp/issue.json
           python - <<'PY'
-          import json, os
+          import json
           from pathlib import Path
           issue = json.loads(Path('/tmp/issue.json').read_text())
           if 'pull_request' in issue:
@@ -71,12 +74,11 @@ jobs:
       - name: Run one non-interactive Copilot implementation pass
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
         shell: bash
         run: |
           set -euo pipefail
           cat > /tmp/poc-prompt.md <<'EOF'
-          You are the implementation worker for Sado Investment Lab PoC1.
+          You are the implementation worker for Sado Investment Lab PoC1.1.
 
           Read TEAM_RULES.md and /tmp/issue-contract.md before changing anything.
           Work only inside the target Issue Acceptance Criteria.
@@ -89,6 +91,9 @@ jobs:
           - Do not ask questions. If the AC cannot be safely completed inside these boundaries, stop and write BLOCKED plus the exact reason.
           - Do not broaden scope to make the task pass.
           - Do not create or export a session transcript.
+          - REVIEW_READY is allowed only when repository files were actually changed and required validation commands were executed successfully.
+          - If the requested implementation already exists and no repository diff is necessary, report BLOCKED with reason ALREADY_IMPLEMENTED_OR_NO_DIFF; do not claim REVIEW_READY.
+          - If validation cannot be executed under the allowed tools, report BLOCKED with reason VALIDATION_NOT_EXECUTED; do not claim REVIEW_READY.
 
           Complete one implementation pass. Then write /tmp/copilot-result.md containing:
           outcome: REVIEW_READY or BLOCKED
@@ -104,16 +109,62 @@ jobs:
             --allow-tool='shell(git status)' \
             --allow-tool='shell(git diff:*)' \
             --allow-tool='shell(git log:*)' \
+            --allow-tool='shell(python -m pytest:*)' \
+            --allow-tool='shell(python3 -m pytest:*)' \
+            --allow-tool='shell(pytest:*)' \
+            --allow-tool='shell(python -m py_compile:*)' \
+            --allow-tool='shell(python3 -m py_compile:*)' \
             --deny-tool='shell(git commit:*)' \
             --deny-tool='shell(git push:*)' \
             --deny-tool='shell(gh:*)'
+
+      - name: Harness validation
+        id: harness
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          changed="$(git diff --name-only)"
+          if [[ -z "$changed" ]]; then
+            echo "HARNESS_OUTCOME=BLOCKED_NO_REPO_DIFF" >> "$GITHUB_ENV"
+            exit 87
+          fi
+
+          forbidden="$(printf '%s\n' "$changed" | grep -E '(^\.github/workflows/|(^|/)(package(-lock)?\.json|pyproject\.toml|requirements[^/]*\.txt|poetry\.lock|uv\.lock)$)' || true)"
+          if [[ -n "$forbidden" ]]; then
+            echo "HARNESS_OUTCOME=BLOCKED_FORBIDDEN_PATH" >> "$GITHUB_ENV"
+            printf '%s\n' "$forbidden" > /tmp/forbidden-paths.txt
+            exit 86
+          fi
+
+          if [[ ! -f /tmp/copilot-result.md ]]; then
+            echo "HARNESS_OUTCOME=BLOCKED_RESULT_MISSING" >> "$GITHUB_ENV"
+            exit 88
+          fi
+
+          if ! grep -Eq '^outcome:[[:space:]]*REVIEW_READY[[:space:]]*$' /tmp/copilot-result.md; then
+            echo "HARNESS_OUTCOME=BLOCKED_AGENT_NOT_REVIEW_READY" >> "$GITHUB_ENV"
+            exit 89
+          fi
+
+          # Independent validation: the harness, not the agent, decides whether a diff is reviewable.
+          if git diff --name-only -- '*.py' | grep -q .; then
+            mapfile -t pyfiles < <(git diff --name-only -- '*.py')
+            python -m py_compile "${pyfiles[@]}"
+          fi
+
+          python -m pytest -q
+          echo "HARNESS_OUTCOME=REVIEW_READY_VALIDATED" >> "$GITHUB_ENV"
 
       - name: Validate safety boundary and summarize
         if: always()
         shell: bash
         run: |
           set -uo pipefail
-          echo "## Copilot PoC1 — Issue #${{ github.event.inputs.issue_number }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Copilot PoC1.1 — Issue #${ISSUE_NUMBER:-${{ github.event.inputs.issue_number }}}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Harness outcome" >> "$GITHUB_STEP_SUMMARY"
+          echo "${HARNESS_OUTCOME:-BLOCKED_BEFORE_HARNESS_COMPLETE}" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "### Working tree" >> "$GITHUB_STEP_SUMMARY"
           git status --short >> "$GITHUB_STEP_SUMMARY" || true
@@ -121,6 +172,7 @@ jobs:
           echo "### Diff stat" >> "$GITHUB_STEP_SUMMARY"
           git diff --stat >> "$GITHUB_STEP_SUMMARY" || true
           echo "" >> "$GITHUB_STEP_SUMMARY"
+
           if [[ -f /tmp/copilot-result.md ]]; then
             echo "### Agent result" >> "$GITHUB_STEP_SUMMARY"
             cat /tmp/copilot-result.md >> "$GITHUB_STEP_SUMMARY"
@@ -129,12 +181,21 @@ jobs:
             echo "BLOCKED: Copilot did not produce the required result contract." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-          # Workflow files and dependency manifests are YELLOW and excluded from PoC1.
-          forbidden="$(git diff --name-only | grep -E '(^\.github/workflows/|(^|/)(package(-lock)?\.json|pyproject\.toml|requirements[^/]*\.txt|poetry\.lock|uv\.lock)$)' || true)"
-          if [[ -n "$forbidden" ]]; then
+          if [[ -f /tmp/forbidden-paths.txt ]]; then
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "### SAFETY BLOCK" >> "$GITHUB_STEP_SUMMARY"
             echo "Forbidden PoC1 paths were modified:" >> "$GITHUB_STEP_SUMMARY"
-            echo "$forbidden" >> "$GITHUB_STEP_SUMMARY"
-            exit 86
+            cat /tmp/forbidden-paths.txt >> "$GITHUB_STEP_SUMMARY"
           fi
+
+          # Persist only the repository patch for review; never export the Copilot transcript.
+          git diff --binary > /tmp/copilot.patch || true
+
+      - name: Upload review patch
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: copilot-poc1-${{ env.ISSUE_NUMBER || github.event.inputs.issue_number }}-patch
+          path: /tmp/copilot.patch
+          if-no-files-found: ignore
+          retention-days: 3
