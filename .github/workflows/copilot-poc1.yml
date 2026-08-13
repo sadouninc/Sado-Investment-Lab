@@ -90,6 +90,9 @@ jobs:
       - name: Install Copilot CLI
         run: npm install -g @github/copilot
 
+      - name: Install harness test dependencies
+        run: python3 -m pip install --disable-pip-version-check pytest==8.4.1
+
       - name: Run one non-interactive Copilot implementation pass
         env:
           GITHUB_TOKEN: ${{ github.token }}
