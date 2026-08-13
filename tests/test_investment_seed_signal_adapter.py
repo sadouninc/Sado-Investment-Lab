@@ -4,7 +4,8 @@ from copy import deepcopy
 
 import pytest
 
-from scripts.developing_signal_store import read_store
+from scripts.developing_signal_registry import append_observation
+from scripts.developing_signal_store import read_store, write_signal
 from scripts.investment_seed import transition_seed, validate_seed
 from scripts.investment_seed_signal_adapter import promote_seed_to_signal
 
@@ -24,8 +25,7 @@ def make_seed(status: str = "VALIDATING") -> dict:
     })
     if status == "SEED":
         return seed
-    seed = transition_seed(seed, "VALIDATING", at="2026-08-13T09:16:00+09:00")
-    return seed
+    return transition_seed(seed, "VALIDATING", at="2026-08-13T09:16:00+09:00")
 
 
 def promote(seed: dict, path):
@@ -45,14 +45,13 @@ def promote(seed: dict, path):
 def test_valid_promotion_writes_exactly_one_signal_with_lineage(tmp_path):
     path = tmp_path / "signals.jsonl"
     seed = make_seed()
-
     promoted = promote(seed, path)
     result = read_store(path)
-
     assert result.status == "OK"
     assert len(result.signals) == 1
     signal = result.signals[0]
     assert signal["origin_seed_ref"] == seed["seed_id"]
+    assert signal["origin_seed_projection_fingerprint"]
     assert promoted["promotion_ref"] == signal["signal_id"]
     assert promoted["status"] == "PROMOTED_TO_SIGNAL"
     assert signal["first_observed_at"] == seed["observed_at"]
@@ -64,7 +63,6 @@ def test_signal_projection_does_not_copy_seed_raw_or_inference_payload(tmp_path)
     path = tmp_path / "signals.jsonl"
     seed = make_seed()
     promote(seed, path)
-
     signal = read_store(path).signals[0]
     assert "inference" not in signal
     assert "related_seed_refs" not in signal
@@ -77,25 +75,45 @@ def test_signal_projection_does_not_copy_seed_raw_or_inference_payload(tmp_path)
 def test_retry_after_destination_write_reuses_same_signal(tmp_path):
     path = tmp_path / "signals.jsonl"
     seed = make_seed()
-
     first = promote(seed, path)
-    # Simulate destination write succeeding while the caller failed to persist the
-    # returned promoted Seed: retry starts from the original VALIDATING truth.
     second = promote(seed, path)
-
     result = read_store(path)
     assert len(result.signals) == 1
     assert first["promotion_ref"] == second["promotion_ref"]
     assert result.signals[0]["origin_seed_ref"] == seed["seed_id"]
 
 
+def test_retry_after_signal_observation_update_preserves_signal_authority(tmp_path):
+    path = tmp_path / "signals.jsonl"
+    seed = make_seed()
+    first = promote(seed, path)
+
+    signal = read_store(path).signals[0]
+    updated = append_observation(signal, {
+        "observed_at": "2026-08-14T09:00:00+09:00",
+        "source_ref": "source:follow-up",
+        "observation": "後続Evidenceを#170側で観測",
+        "interpretation": None,
+        "effect": "STRENGTHENS",
+        "actor": "REI",
+    })
+    updated["source_refs"].append("source:follow-up")
+    write_signal(updated, path)
+
+    second = promote(seed, path)
+    final = read_store(path).signals[0]
+    assert len(read_store(path).signals) == 1
+    assert first["promotion_ref"] == second["promotion_ref"] == final["signal_id"]
+    assert final["last_observed_at"] == "2026-08-14T09:00:00+09:00"
+    assert len(final["observations"]) == 1
+    assert "source:follow-up" in final["source_refs"]
+
+
 def test_retry_of_already_promoted_seed_is_idempotent(tmp_path):
     path = tmp_path / "signals.jsonl"
     seed = make_seed()
     promoted = promote(seed, path)
-
     retry = promote(promoted, path)
-
     assert retry == promoted
     assert len(read_store(path).signals) == 1
 
@@ -124,10 +142,8 @@ def test_destination_failure_does_not_return_or_mutate_promoted_seed(tmp_path):
     path.write_text("not-json\n", encoding="utf-8")
     seed = make_seed()
     original = deepcopy(seed)
-
     with pytest.raises(ValueError, match="PARTIAL"):
         promote(seed, path)
-
     assert seed == original
     assert seed["status"] == "VALIDATING"
 
@@ -136,7 +152,6 @@ def test_changed_retry_payload_fails_closed_instead_of_second_signal(tmp_path):
     path = tmp_path / "signals.jsonl"
     seed = make_seed()
     promote(seed, path)
-
     with pytest.raises(ValueError, match="different Signal payload"):
         promote_seed_to_signal(
             seed,
@@ -148,7 +163,6 @@ def test_changed_retry_payload_fails_closed_instead_of_second_signal(tmp_path):
             checkpoint_reason="次の主要AI企業決算まで日付未確定",
             signal_path=path,
         )
-
     assert len(read_store(path).signals) == 1
 
 
@@ -156,6 +170,5 @@ def test_missing_checkpoint_keeps_unknown_reason_instead_of_inventing_date(tmp_p
     path = tmp_path / "signals.jsonl"
     promote(make_seed(), path)
     signal = read_store(path).signals[0]
-
     assert signal["next_checkpoint"] is None
     assert signal["checkpoint_reason"] == "次の主要AI企業決算まで日付未確定"
