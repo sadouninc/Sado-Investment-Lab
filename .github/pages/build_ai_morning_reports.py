@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import importlib.util
 import json
 from pathlib import Path
 import re
@@ -9,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SITE = ROOT / "site-src"
 REPORT_DIR = ROOT / "05_Daily_Reports" / "Morning"
 DIAG_DIR = ROOT / "data" / "generated" / "diagnostics" / "openai"
+DEVELOPING_SIGNALS_BUILDER = Path(__file__).with_name("build_developing_signals.py")
 
 
 def front_matter(title: str, description: str, permalink: str) -> str:
@@ -185,5 +187,16 @@ def build() -> None:
     write(SITE / "reports" / "morning" / "index.md", index)
 
 
+def publish_developing_signals() -> None:
+    """Publish the canonical Developing Signals read model in the existing post-build phase."""
+    spec = importlib.util.spec_from_file_location("build_developing_signals", DEVELOPING_SIGNALS_BUILDER)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("Developing Signals builder unavailable")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.build()
+
+
 if __name__ == "__main__":
     build()
+    publish_developing_signals()
