@@ -25,6 +25,8 @@ data/generated/public/**
 !data/generated/public/money-flow/policy-lead-time-defense-drone-v2.json
 !data/generated/public/money-flow/policy-lead-time-physical-ai.json
 !data/generated/public/money-flow/policy-lead-time-physical-ai-v2.json
+!data/generated/public/money-flow/policy-lead-time-fusion.json
+!data/generated/public/money-flow/policy-lead-time-fusion-v2.json
 
 *.sqlite
 *.sqlite3
