@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "issue_ref": 480,
+  "validator": "scripts/work_contract_validator.py",
+  "status": "IMPLEMENTED_FOR_REVIEW",
+  "expected_valid_case": {
+    "valid": true,
+    "executable": true,
+    "errors": []
+  },
+  "fail_closed_cases": [
+    "MISSING_FIELD",
+    "UNSUPPORTED_VERSION",
+    "NOT_READY",
+    "INVALID_RISK",
+    "INVALID_AUTHORITY",
+    "ALLOWED_FORBIDDEN_OVERLAP",
+    "GREEN_PROTECTED_PATH",
+    "GREEN_ISSUE_79_PATH",
+    "EMPTY_ACCEPTANCE_TESTS",
+    "PARSE_ERROR"
+  ],
+  "investment_canonical_mutation": false
+}
