@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1080" viewBox="0 0 1440 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Sado Investment Codex — Sony Entry Review Prototype</title>
+  <desc id="desc">Owner-facing Sony entry review prototype separating why now, earnings engine, image sensor observation, physical AI hypothesis, valuation freshness, catalysts, invalidation and next checkpoint.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f2eee5}.panel{fill:#faf8f2;stroke:#d6d0c3;stroke-width:1.5}.nav{fill:#173f35}.ink{fill:#1b201d}.muted{fill:#626860}.green{fill:#173f35}.brass{fill:#8f7748}.warn{fill:#8d3e3b}.stale{fill:#7c6540}.serif{font-family:'Noto Serif JP','Yu Mincho',serif}.sans{font-family:'Noto Sans JP',system-ui,sans-serif}.mono{font-family:ui-monospace,monospace}.small{font-size:15px}.body{font-size:18px}.label{font-size:16px;font-weight:700}.h2{font-size:25px;font-weight:700}.h1{font-size:40px;font-weight:700}.kpi{font-size:27px;font-weight:700}
+    </style>
+  </defs>
+  <rect class="bg" width="1440" height="1080"/>
+  <rect class="nav" width="1440" height="74"/>
+  <text x="54" y="46" class="serif" fill="#f7f4eb" font-size="26" font-weight="700">Sado Investment Codex</text>
+  <text x="1050" y="45" class="sans" fill="#d9d2c4" font-size="15">BOARD / RESEARCH / COCKPIT / EVIDENCE</text>
+
+  <text x="60" y="124" class="sans muted small">VISUAL PROTOTYPE · Issue #403 · v0.1</text>
+  <text x="60" y="172" class="serif ink h1">Sony Group · 6758</text>
+  <text x="60" y="205" class="sans green label">STRONG WATCH · ENTRY REVIEW</text>
+  <text x="355" y="205" class="sans muted body">買う画面ではなく、投資開始前に判断材料を短時間で復元する。</text>
+
+  <rect class="panel" x="60" y="235" width="1320" height="96" rx="14"/>
+  <text x="88" y="267" class="sans muted small">Freshness</text>
+  <text x="88" y="298" class="mono ink body">Research 2026-07-31 · Price FRESH/UNKNOWN · Scenario provisional</text>
+  <text x="880" y="267" class="sans muted small">Position</text>
+  <text x="880" y="298" class="sans ink body">Canonical Portfolio State only</text>
+  <text x="1180" y="267" class="sans muted small">Decision</text>
+  <text x="1180" y="298" class="sans warn label">NO BUY SIGNAL</text>
+
+  <text x="60" y="382" class="serif ink h2">最初の30秒 — Why Now</text>
+  <rect class="panel" x="60" y="402" width="1320" height="132" rx="14"/>
+  <text x="88" y="438" class="serif ink h2">複数の利益エンジン + Image Sensorの再評価</text>
+  <text x="88" y="476" class="sans body">G&amp;NS / Music / Pictures / I&amp;SSを分けて確認し、Image Sensorの設備投資・収益化を事実ベースで追う。</text>
+  <text x="88" y="508" class="sans brass label">Physical AIは将来optionality。現在利益として扱わない。</text>
+
+  <text x="60" y="586" class="serif ink h2">Earnings Engine</text>
+  <g>
+    <rect class="panel" x="60" y="606" width="300" height="118" rx="14"/>
+    <text x="84" y="640" class="sans muted small">G&amp;NS</text><text x="84" y="680" class="serif ink h2">Game</text>
+    <rect class="panel" x="385" y="606" width="300" height="118" rx="14"/>
+    <text x="409" y="640" class="sans muted small">Music</text><text x="409" y="680" class="serif ink h2">IP / recurring</text>
+    <rect class="panel" x="710" y="606" width="300" height="118" rx="14"/>
+    <text x="734" y="640" class="sans muted small">Pictures</text><text x="734" y="680" class="serif ink h2">Content / IP</text>
+    <rect class="panel" x="1035" y="606" width="345" height="118" rx="14"/>
+    <text x="1059" y="640" class="sans muted small">I&amp;SS</text><text x="1059" y="680" class="serif ink h2">Image Sensor</text>
+  </g>
+
+  <rect class="panel" x="60" y="758" width="640" height="170" rx="14"/>
+  <text x="86" y="792" class="sans green label">OBSERVATION · Image Sensor</text>
+  <text x="86" y="832" class="serif ink h2">会社開示で設備投資・需要・利益を確認</text>
+  <text x="86" y="870" class="sans body">現在業績への寄与はPrimary Evidenceで追跡。</text>
+  <text x="86" y="902" class="sans muted small">Company Research / Evidenceへdrill-down</text>
+
+  <rect class="panel" x="740" y="758" width="640" height="170" rx="14"/>
+  <text x="766" y="792" class="sans brass label">HYPOTHESIS · Physical AI Optionality</text>
+  <text x="766" y="832" class="serif ink h2">Automotive / Robotics / Machine Vision</text>
+  <text x="766" y="870" class="sans body">将来需要の仮説。現在のSony利益と混同しない。</text>
+  <text x="766" y="902" class="sans muted small">Factとは別visual roleで表示</text>
+
+  <rect class="panel" x="60" y="956" width="820" height="86" rx="14"/>
+  <text x="86" y="988" class="sans muted small">Valuation / Next</text>
+  <text x="86" y="1018" class="sans ink body">Fresh price + Bear/Base/Bull EPS → Forward PER。staleなら UNKNOWN。次Checkpoint: 決算 / guidance / I&amp;SS進捗。</text>
+
+  <rect class="panel" x="910" y="956" width="470" height="86" rx="14"/>
+  <text x="936" y="988" class="sans warn label">Invalidation</text>
+  <text x="936" y="1018" class="sans ink body">Sensor需要・収益性 / Game / 投資回収の悪化</text>
+
+  <text x="60" y="1065" class="sans muted small">No BUY/SELL · No stale valuation · No Sony-only UI system · 390px: summary first, details progressive</text>
+  <text x="1380" y="1065" text-anchor="end" class="sans muted small">#320 Visual Contract reuse</text>
+</svg>
