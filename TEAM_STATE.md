@@ -5,13 +5,13 @@
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
 Last updated: 2026-08-13  
-Sources: Issue #99 Current Active Board; #338; #354; AWAY transition comment 5255385557; Owner return to ACTIVE; 2026-08-13 Owner AWAY transition  
-Broadcast head at snapshot: `comment_id=5269841952`
+Sources: Issue #99 Current Active Board; #338; #354; Owner ACTIVE return Broadcast `5275167127`; verified Broadcast head `5275250444`  
+Broadcast head at snapshot: `comment_id=5275250444`
 
 ## User Mode
 
-- Mode: **AWAY**
-- Meaning: 👑サド is non-active. Activate delegated autonomous operations. Owner Authority decisions must be recorded in the AWAY Authority backlog rather than inferred or resolved by agents.
+- Mode: **ACTIVE**
+- Meaning: 👑サド is active. Normal role priority and Owner Final Merge / Authority gates apply. AWAY-only delegated merge/cadence is inactive.
 - Mode contract: #354. `ACTIVE` keeps normal roles. `AWAY` activates delegated autonomous operations below.
 
 ## Mode Transition Contract
@@ -60,14 +60,12 @@ Each backlog item should contain: `ref`, `decision_needed`, `why_owner`, `safe_w
 
 Default: ♦️ソラ leads implementation. 🌊ナギ joins implementation only when capacity is needed and the candidate is independent in Issue/slice/file/logic.
 
-Current priority order (compact reference; read each Issue before work):
-1. P0 Reliability / Process — #286, #296 when unowned/non-conflicting
-2. Design System foundation — #320
-3. Investment OS entry — #312
-4. Concept / Cockpit — #313 + #317
-5. Global Navigation — #314
-6. Practical UX — #307, #308
-7. Money Flow operation — #305
+Current compact queue after verified completion cleanup:
+1. Finish existing implementation WIP / Merge Gate distance first — #459 PR #470 currently Owner Final Merge Gate
+2. Practical UX — #307 / #308 remaining field-validation or evidence-completeness gaps
+3. Continue with the latest Issue #99 Current Active Board / #324 verified build order after completed nodes are removed
+
+Recently verified completed and removed from active implementation queue: #312, #313, #317, #314, #305.
 
 ## Current Product / Design Guardrails
 
