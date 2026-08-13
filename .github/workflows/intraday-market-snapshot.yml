@@ -16,6 +16,9 @@ on:
         description: Optional YYYY-MM-DD override; blank uses current JST date
         required: false
         type: string
+  schedule:
+    # 15:30 JST. CLOSE is the first bounded production schedule for #444.
+    - cron: '30 6 * * 1-5'
 
 permissions:
   contents: read
@@ -29,16 +32,31 @@ jobs:
       - name: Verify market provider contract
         run: python3 -m unittest tests.test_market_provider
       - name: Collect snapshot
+        id: collect
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_SESSION_SLOT: ${{ inputs.session_slot }}
+          INPUT_BUSINESS_DATE: ${{ inputs.business_date }}
         run: |
-          args=(--session-slot "${{ inputs.session_slot }}" --output-root "$RUNNER_TEMP/intraday-market")
-          if [[ -n "${{ inputs.business_date }}" ]]; then
-            args+=(--business-date "${{ inputs.business_date }}")
+          session_slot="$INPUT_SESSION_SLOT"
+          if [[ "$EVENT_NAME" == "schedule" ]]; then
+            session_slot="CLOSE"
+          fi
+          args=(--session-slot "$session_slot" --output-root "$RUNNER_TEMP/intraday-market")
+          if [[ -n "$INPUT_BUSINESS_DATE" ]]; then
+            args+=(--business-date "$INPUT_BUSINESS_DATE")
           fi
           python3 scripts/run_intraday_market_snapshot.py "${args[@]}"
+          if find "$RUNNER_TEMP/intraday-market" -type f -print -quit 2>/dev/null | grep -q .; then
+            echo "has_artifact=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_artifact=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Upload snapshot evidence
+        if: steps.collect.outputs.has_artifact == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: intraday-market-${{ inputs.session_slot }}
+          name: intraday-market-${{ github.event_name == 'schedule' && 'CLOSE' || inputs.session_slot }}
           path: ${{ runner.temp }}/intraday-market
           if-no-files-found: error
