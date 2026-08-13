@@ -8,8 +8,6 @@ on:
         required: true
         type: number
 
-# Least privilege: Copilot requests + repository read only.
-# PoC1 deliberately cannot push, merge, close Issues, or mutate GitHub state.
 permissions:
   contents: read
   copilot-requests: write
@@ -53,19 +51,40 @@ jobs:
           gh api "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" > /tmp/issue.json
           python - <<'PY'
           import json
+          import re
           from pathlib import Path
+
           issue = json.loads(Path('/tmp/issue.json').read_text())
           if 'pull_request' in issue:
               raise SystemExit('BLOCKED: input resolves to a pull request, not an Issue')
+
           body = issue.get('body') or ''
           title = issue.get('title') or ''
           state = issue.get('state') or ''
           text = f"# Issue #{issue['number']}: {title}\n\nState: {state}\n\n{body}\n"
           Path('/tmp/issue-contract.md').write_text(text)
+
           if state != 'open':
               raise SystemExit('BLOCKED: Issue is not open')
           if 'READY_FOR_IMPLEMENTATION' not in body:
               raise SystemExit('BLOCKED: Issue body does not declare READY_FOR_IMPLEMENTATION')
+
+          def extract_list(name: str):
+              match = re.search(
+                  rf'(?ms)^\s*{re.escape(name)}:\s*\n(?P<items>(?:\s+-\s+[^\n]+\n?)*)',
+                  body,
+              )
+              if not match:
+                  return []
+              values = []
+              for line in match.group('items').splitlines():
+                  item = re.sub(r'^\s*-\s+', '', line).strip()
+                  if item:
+                      values.append(item.strip('"\''))
+              return values
+
+          Path('/tmp/issue-allowed-paths.txt').write_text('\n'.join(extract_list('allowed_paths')))
+          Path('/tmp/issue-forbidden-paths.txt').write_text('\n'.join(extract_list('forbidden_paths')))
           PY
 
       - name: Install Copilot CLI
@@ -81,7 +100,7 @@ jobs:
           You are the implementation worker for Sado Investment Lab PoC1.1.
 
           Read TEAM_RULES.md and /tmp/issue-contract.md before changing anything.
-          Work only inside the target Issue Acceptance Criteria.
+          Work only inside the target Issue Acceptance Criteria and any work_contract allowed_paths / forbidden_paths.
 
           AUTONOMY / SAFETY CONTRACT:
           - Allowed: repository read/search, worktree file edits, existing tests/lint/build, git status/diff/log.
@@ -91,14 +110,14 @@ jobs:
           - Do not ask questions. If the AC cannot be safely completed inside these boundaries, stop and write BLOCKED plus the exact reason.
           - Do not broaden scope to make the task pass.
           - Do not create or export a session transcript.
-          - REVIEW_READY is allowed only when repository files were actually changed and required validation commands were executed successfully.
-          - If the requested implementation already exists and no repository diff is necessary, report BLOCKED with reason ALREADY_IMPLEMENTED_OR_NO_DIFF; do not claim REVIEW_READY.
-          - If validation cannot be executed under the allowed tools, report BLOCKED with reason VALIDATION_NOT_EXECUTED; do not claim REVIEW_READY.
+          - The Harness is the final validation authority. You may run allowed validation commands, but do not invent successful validation if a command was denied or not executed.
+          - REVIEW_READY means you prepared an implementation diff that you believe satisfies the contract; the Harness will independently validate it.
+          - If the requested implementation already exists and no repository diff is necessary, report BLOCKED with reason ALREADY_IMPLEMENTED_OR_NO_DIFF.
 
-          Complete one implementation pass. Then write /tmp/copilot-result.md containing:
+          Complete one implementation pass. Then write /tmp/copilot-result.md as plain text with these exact field names and no Markdown decoration:
           outcome: REVIEW_READY or BLOCKED
-          changed_files: list
-          validation: commands and results
+          changed_files: comma-separated list
+          validation: concise commands/results, or DEFERRED_TO_HARNESS
           blocked_reason: reason or NONE
           confirmation_count: 0
           EOF
@@ -124,9 +143,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          # `git diff` does not include untracked files. Convert untracked files to
-          # intent-to-add entries so one canonical diff path covers tracked edits,
-          # deletions, and newly-created files without staging file contents.
           mapfile -t untracked < <(git ls-files --others --exclude-standard)
           if (( ${#untracked[@]} )); then
             git add -N -- "${untracked[@]}"
@@ -137,12 +153,42 @@ jobs:
             echo "HARNESS_OUTCOME=BLOCKED_NO_REPO_DIFF" >> "$GITHUB_ENV"
             exit 87
           fi
+          printf '%s\n' "$changed" > /tmp/changed-paths.txt
 
-          forbidden="$(printf '%s\n' "$changed" | grep -E '(^\.github/workflows/|(^|/)(package(-lock)?\.json|pyproject\.toml|requirements[^/]*\.txt|poetry\.lock|uv\.lock)$)' || true)"
-          if [[ -n "$forbidden" ]]; then
+          generic_forbidden="$(printf '%s\n' "$changed" | grep -E '(^\.github/workflows/|(^|/)(package(-lock)?\.json|pyproject\.toml|requirements[^/]*\.txt|poetry\.lock|uv\.lock)$)' || true)"
+          if [[ -n "$generic_forbidden" ]]; then
             echo "HARNESS_OUTCOME=BLOCKED_FORBIDDEN_PATH" >> "$GITHUB_ENV"
-            printf '%s\n' "$forbidden" > /tmp/forbidden-paths.txt
+            printf '%s\n' "$generic_forbidden" > /tmp/forbidden-paths.txt
             exit 86
+          fi
+
+          set +e
+          python - <<'PY'
+          import fnmatch
+          from pathlib import Path
+
+          changed = [p for p in Path('/tmp/changed-paths.txt').read_text().splitlines() if p]
+          allowed = [p for p in Path('/tmp/issue-allowed-paths.txt').read_text().splitlines() if p]
+          forbidden = [p for p in Path('/tmp/issue-forbidden-paths.txt').read_text().splitlines() if p]
+
+          violations = []
+          for path in changed:
+              if allowed and not any(fnmatch.fnmatch(path, pattern) for pattern in allowed):
+                  violations.append(f'OUTSIDE_ALLOWED_PATHS {path}')
+              if any(fnmatch.fnmatch(path, pattern) for pattern in forbidden):
+                  violations.append(f'ISSUE_FORBIDDEN_PATH {path}')
+
+          if violations:
+              Path('/tmp/forbidden-paths.txt').write_text('\n'.join(violations) + '\n')
+              raise SystemExit(85)
+          PY
+          rc=$?
+          set -e
+          if [[ $rc -eq 85 ]]; then
+            echo "HARNESS_OUTCOME=BLOCKED_ISSUE_PATH_CONTRACT" >> "$GITHUB_ENV"
+            exit 85
+          elif [[ $rc -ne 0 ]]; then
+            exit "$rc"
           fi
 
           if [[ ! -f /tmp/copilot-result.md ]]; then
@@ -150,12 +196,13 @@ jobs:
             exit 88
           fi
 
-          if ! grep -Eq '^outcome:[[:space:]]*REVIEW_READY[[:space:]]*$' /tmp/copilot-result.md; then
+          # Be tolerant of accidental Markdown decoration such as **outcome:**,
+          # while keeping REVIEW_READY as an explicit agent declaration.
+          if ! grep -Eq '^\*{0,2}outcome:\*{0,2}[[:space:]]*REVIEW_READY[[:space:]]*$' /tmp/copilot-result.md; then
             echo "HARNESS_OUTCOME=BLOCKED_AGENT_NOT_REVIEW_READY" >> "$GITHUB_ENV"
             exit 89
           fi
 
-          # Independent validation: the harness, not the agent, decides whether a diff is reviewable.
           if git diff --name-only -- '*.py' | grep -q .; then
             mapfile -t pyfiles < <(git diff --name-only --diff-filter=ACMRT -- '*.py')
             if (( ${#pyfiles[@]} )); then
@@ -194,13 +241,9 @@ jobs:
           if [[ -f /tmp/forbidden-paths.txt ]]; then
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "### SAFETY BLOCK" >> "$GITHUB_STEP_SUMMARY"
-            echo "Forbidden PoC1 paths were modified:" >> "$GITHUB_STEP_SUMMARY"
             cat /tmp/forbidden-paths.txt >> "$GITHUB_STEP_SUMMARY"
           fi
 
-          # Persist only the repository patch for review; never export the Copilot transcript.
-          # Untracked files were marked intent-to-add in Harness validation, so they are
-          # included here as normal additions in the review patch.
           git diff --binary > /tmp/copilot.patch || true
 
       - name: Upload review patch
