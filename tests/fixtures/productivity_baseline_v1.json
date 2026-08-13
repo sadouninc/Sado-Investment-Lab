@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "case_id": "stale-base-472",
+      "case_class": "STALE_BASE_MERGE_CONFLICT",
+      "evidence_quality": "PARTIAL",
+      "explicit_result": "UNKNOWN",
+      "source_refs": [
+        "https://github.com/sadouninc/Sado-Investment-Lab/pull/472",
+        "https://github.com/sadouninc/Sado-Investment-Lab/pull/472#issuecomment-5275434176",
+        "https://github.com/sadouninc/Sado-Investment-Lab/pull/472#issuecomment-5275456468",
+        "https://github.com/sadouninc/Sado-Investment-Lab/pull/482"
+      ],
+      "event": {
+        "issue_ref": null,
+        "pr_ref": "repo#472",
+        "actor": "♦️ソラ",
+        "conflicts": ["stale base", "merge conflict", "superseded"]
+      }
+    },
+    {
+      "case_id": "duplicate-owner-475",
+      "case_class": "DUPLICATE_WORK_OWNER_CONFLICT",
+      "evidence_quality": "PARTIAL",
+      "explicit_result": "UNKNOWN",
+      "source_refs": [
+        "https://github.com/sadouninc/Sado-Investment-Lab/pull/475",
+        "https://github.com/sadouninc/Sado-Investment-Lab/pull/475#issuecomment-5275474350",
+        "https://github.com/sadouninc/Sado-Investment-Lab/pull/476"
+      ],
+      "event": {
+        "issue_ref": "repo#429",
+        "pr_ref": "repo#475",
+        "actor": null,
+        "conflicts": ["superseded"]
+      }
+    },
+    {
+      "case_id": "false-ready-483",
+      "case_class": "FALSE_READY_HARNESS_GAP",
+      "evidence_quality": "PARTIAL",
+      "explicit_result": "UNKNOWN",
+      "source_refs": [
+        "https://github.com/sadouninc/Sado-Investment-Lab/pull/483"
+      ],
+      "event": {
+        "issue_ref": "repo#429",
+        "pr_ref": "repo#483",
+        "actor": null,
+        "markers": [
+          {"name": "FALSE_READY", "at": null}
+        ]
+      }
+    },
+    {
+      "case_id": "normal-control-504",
+      "case_class": "NORMAL_LOW_RISK_CONTROL",
+      "evidence_quality": "PARTIAL",
+      "explicit_result": "UNKNOWN",
+      "source_refs": [
+        "https://github.com/sadouninc/Sado-Investment-Lab/pull/504",
+        "https://github.com/sadouninc/Sado-Investment-Lab/pull/504#pullrequestreview-4924671640",
+        "https://github.com/sadouninc/Sado-Investment-Lab/pull/504#pullrequestreview-4924873484"
+      ],
+      "event": {
+        "issue_ref": "repo#170",
+        "pr_ref": "repo#504",
+        "actor": "♦️ソラ",
+        "risk": "low",
+        "ci_runs": [
+          {"status": "success", "at": null}
+        ]
+      }
+    }
+  ]
+}
