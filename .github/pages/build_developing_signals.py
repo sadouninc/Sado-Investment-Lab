@@ -35,9 +35,11 @@ def _age_text(value: str, *, now: datetime) -> str:
     try:
         observed = datetime.fromisoformat(value.replace("Z", "+00:00"))
         if observed.tzinfo is None:
-            return "経過時間 UNKNOWN"
-        days = max(0, (now.astimezone(timezone.utc) - observed.astimezone(timezone.utc)).days)
-        return f"最終観測 {days}日前"
+            return "最終観測 UNKNOWN — timezone未設定"
+        delta = now.astimezone(timezone.utc) - observed.astimezone(timezone.utc)
+        if delta.total_seconds() < 0:
+            return "最終観測 UNKNOWN — future timestamp"
+        return f"最終観測 {delta.days}日前"
     except (TypeError, ValueError):
         return "最終観測 UNKNOWN"
 

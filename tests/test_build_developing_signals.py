@@ -64,6 +64,29 @@ def test_unknown_direction_is_not_rendered_as_negative():
     assert "SELL推奨" in page
 
 
+def test_future_last_observed_at_fails_closed():
+    builder = load_builder()
+    page = builder.render(
+        StoreReadResult(
+            "OK",
+            (signal(last_observed_at="2026-08-14T00:00:00+00:00"),),
+            (),
+        ),
+        now=datetime(2026, 8, 13, tzinfo=timezone.utc),
+    )
+    assert "最終観測 UNKNOWN — future timestamp" in page
+    assert "最終観測 0日前" not in page
+
+
+def test_naive_last_observed_at_fails_closed():
+    builder = load_builder()
+    page = builder.render(
+        StoreReadResult("OK", (signal(last_observed_at="2026-08-12T00:00:00"),), ()),
+        now=datetime(2026, 8, 13, tzinfo=timezone.utc),
+    )
+    assert "最終観測 UNKNOWN — timezone未設定" in page
+
+
 def test_terminal_signal_is_not_in_active_watch():
     builder = load_builder()
     page = builder.render(StoreReadResult("OK", (signal(status="PROMOTED"),), ()))
@@ -79,6 +102,21 @@ def test_partial_store_fails_closed_without_inventing_signal():
     assert "line 2 invalid" in page
     assert "欠損を正常値・negative signalへ変換しません" in page
     assert "Active WATCH: 0" in page
+
+
+def test_standalone_builder_generates_canonical_route_source(tmp_path, monkeypatch):
+    builder = load_builder()
+    expected = StoreReadResult("OK", (signal(),), ())
+    monkeypatch.setattr(builder, "read_store", lambda _path: expected)
+
+    target = tmp_path / "research" / "developing-signals" / "index.md"
+    generated = builder.build(target)
+    page = generated.read_text(encoding="utf-8")
+
+    assert generated == target
+    assert "permalink: /research/developing-signals/" in page
+    assert "Active WATCH: 1" in page
+    assert "AI/DC設備投資の先行兆候" in page
 
 
 def test_builder_consumes_canonical_reader_only():
