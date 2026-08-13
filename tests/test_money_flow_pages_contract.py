@@ -39,6 +39,7 @@ class MoneyFlowPagesContractTests(unittest.TestCase):
         self.assertIn("policy-lead-time-ai-dc-v2.json", text)
         self.assertIn("policy-lead-time-defense-drone-v2.json", text)
         self.assertIn("policy-lead-time-physical-ai-v2.json", text)
+        self.assertIn("policy-lead-time-fusion-v2.json", text)
         self.assertIn("classification", text)
         self.assertIn("data_quality", text)
         self.assertIn("limitations", text)
@@ -47,6 +48,21 @@ class MoneyFlowPagesContractTests(unittest.TestCase):
         self.assertIn("MARKET_LEADS", text)
         self.assertNotIn("calculatePolicyClassification", text)
         self.assertNotIn("policyScore", text)
+
+    def test_fusion_limitations_are_human_readable_and_causality_is_not_claimed(self) -> None:
+        text = PAGE.read_text(encoding="utf-8")
+        self.assertIn("政策が原因とまでは判定していません", text)
+        self.assertIn("現在のmembershipを過去へ遡及適用", text)
+        self.assertIn("上場component supply-chain proxy", text)
+        self.assertIn("複合企業を含みFusion以外の株価要因が大きい", text)
+        self.assertIn("少数銘柄basketで産業全体を完全代表しない", text)
+        for limitation in (
+            "RETROSPECTIVE_MEMBERSHIP",
+            "THEME_SCOPE_PROXY",
+            "CONGLOMERATE_EXPOSURE",
+            "NARROW_MEMBERSHIP",
+        ):
+            self.assertIn(limitation, text)
 
     def test_page_fail_closes_when_policy_artifact_is_missing(self) -> None:
         text = PAGE.read_text(encoding="utf-8")
