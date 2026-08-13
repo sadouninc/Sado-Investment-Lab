@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER = ROOT / ".github" / "pages" / "build_developing_signals.py"
+PUBLISH_PHASE = ROOT / ".github" / "pages" / "build_ai_morning_reports.py"
 
 
 def load_builder():
@@ -117,6 +118,13 @@ def test_standalone_builder_generates_canonical_route_source(tmp_path, monkeypat
     assert "permalink: /research/developing-signals/" in page
     assert "Active WATCH: 1" in page
     assert "AI/DC設備投資の先行兆候" in page
+
+
+def test_pages_post_build_phase_invokes_developing_signals_builder():
+    text = PUBLISH_PHASE.read_text(encoding="utf-8")
+    assert 'build_developing_signals.py' in text
+    assert "publish_developing_signals()" in text
+    assert text.index("build()\n    publish_developing_signals()") > 0
 
 
 def test_builder_consumes_canonical_reader_only():
