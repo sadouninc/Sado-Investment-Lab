@@ -32,6 +32,8 @@ Policy Intelligenceのcheckpointと、独立して計算されたMarket Money Fl
 - **REACCELERATION_AFTER_POLICY** — 市場が先行・冷却した後、政策後に再加速
 - **DATA_LIMITED / INCONCLUSIVE** — データ品質・期間・membership等の制約で強い判定をしない
 
+> `REACCELERATION_AFTER_POLICY` は「政策後に再加速が観測された」という時系列判定です。**政策が原因とまでは判定していません。**
+
 <div id="policy-lead-time-summary" class="notice-card" aria-live="polite">
   <strong>Policy Lead-Timeを確認中...</strong>
 </div>
@@ -53,6 +55,7 @@ Policy Intelligenceのcheckpointと、独立して計算されたMarket Money Fl
 - Policy Lead-Time AI/DC: `data/generated/public/money-flow/policy-lead-time-ai-dc-v2.json`
 - Policy Lead-Time Defense Drone: `data/generated/public/money-flow/policy-lead-time-defense-drone-v2.json`
 - Policy Lead-Time Physical AI: `data/generated/public/money-flow/policy-lead-time-physical-ai-v2.json`
+- Policy Lead-Time Fusion: `data/generated/public/money-flow/policy-lead-time-fusion-v2.json`
 - 同一 `(kind, id, as_of)` の再保存はidempotentに扱います。
 - 同一identityでpayloadが異なる場合はsilent overwriteせずfail closedです。
 - 将来価格が不足する場合、forward returnは `0%` にせず `null` / 未評価として扱います。
@@ -70,6 +73,7 @@ Policy Intelligenceのcheckpointと、独立して計算されたMarket Money Fl
     RAW_BASE + 'data/generated/public/money-flow/policy-lead-time-ai-dc-v2.json',
     RAW_BASE + 'data/generated/public/money-flow/policy-lead-time-defense-drone-v2.json',
     RAW_BASE + 'data/generated/public/money-flow/policy-lead-time-physical-ai-v2.json',
+    RAW_BASE + 'data/generated/public/money-flow/policy-lead-time-fusion-v2.json',
   ];
   const summary = document.getElementById('money-flow-summary');
   const stateTable = document.getElementById('money-flow-state-table');
@@ -91,6 +95,15 @@ Policy Intelligenceのcheckpointと、独立して計算されたMarket Money Fl
     DATA_LIMITED: 'データ制約あり',
     INCONCLUSIVE: '判定保留',
   };
+  const limitationJa = {
+    RETROSPECTIVE_MEMBERSHIP: '現在のmembershipを過去へ遡及適用',
+    THEME_SCOPE_PROXY: 'テーマ全体ではなく上場component supply-chain proxy',
+    CONGLOMERATE_EXPOSURE: '複合企業を含みFusion以外の株価要因が大きい',
+    NARROW_MEMBERSHIP: '少数銘柄basketで産業全体を完全代表しない',
+  };
+  const renderLimitation = (value) => limitationJa[value]
+    ? `${limitationJa[value]} (${value})`
+    : String(value ?? '');
 
   function latestPerEntity(rows) {
     const latest = new Map();
@@ -215,7 +228,7 @@ Policy Intelligenceのcheckpointと、独立して計算されたMarket Money Fl
         const after = sequence.reliable_strongest_post_policy_state || '—';
         const limitations = evaluation.limitations || payload.limitations || [];
         const classification = evaluation.classification || 'INCONCLUSIVE';
-        return `<tr><td>${esc(payload.theme_name || payload.theme_id || '—')}</td><td>${esc(checkpoint.date || evaluation.policy_t0 || '—')}</td><td>${esc(checkpoint.policy_stage || checkpoint.label || '—')}<br><small>${esc(checkpoint.label || '')}</small></td><td><strong>${esc(classificationJa[classification] || classification)}</strong><br><small>${esc(classification)}</small></td><td>${esc(evaluation.data_quality || '—')}</td><td>${esc(before)} → ${esc(at)} → ${esc(after)}</td><td>${limitations.length ? limitations.map(esc).join('<br>') : '—'}</td></tr>`;
+        return `<tr><td>${esc(payload.theme_name || payload.theme_id || '—')}</td><td>${esc(checkpoint.date || evaluation.policy_t0 || '—')}</td><td>${esc(checkpoint.policy_stage || checkpoint.label || '—')}<br><small>${esc(checkpoint.label || '')}</small></td><td><strong>${esc(classificationJa[classification] || classification)}</strong><br><small>${esc(classification)}</small></td><td>${esc(evaluation.data_quality || '—')}</td><td>${esc(before)} → ${esc(at)} → ${esc(after)}</td><td>${limitations.length ? limitations.map((item) => esc(renderLimitation(item))).join('<br>') : '—'}</td></tr>`;
       }).join('') + '</tbody></table>';
   }
 
