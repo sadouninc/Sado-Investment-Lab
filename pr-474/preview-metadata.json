@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "preview": true,
+  "not_production": true,
+  "pull_request": 474,
+  "head_sha": "56f22328fe8603b2174d9ce4ef70261bf2f0fd0d",
+  "built_at": "2026-08-13T02:56:17Z",
+  "namespace": "pr-474",
+  "html_files": 57
+}
