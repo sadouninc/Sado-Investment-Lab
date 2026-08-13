@@ -1,0 +1,25 @@
+name: Copilot Agentic PoC
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "READY issue number"
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate issue input
+        env:
+          ISSUE_NUMBER: ${{ github.event.inputs.issue_number }}
+        run: |
+          test "$ISSUE_NUMBER" != "79"
+          echo "PoC shell ready" >> "$GITHUB_STEP_SUMMARY"
