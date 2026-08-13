@@ -30,8 +30,13 @@ jobs:
           # Preflight gates workflow YAML / GitHub Actions semantics. Existing
           # shell scripts are tested by their own suites and should not turn
           # informational shellcheck findings into unrelated merge blockers.
+          # GitHub officially supports `copilot-requests: write`, but actionlint
+          # 1.7.12 does not yet include that permission in its static allowlist.
+          # Ignore only that exact compatibility diagnostic; all other workflow
+          # validation remains gated.
           find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) -print0 \
-            | xargs -0 ./actionlint -shellcheck= -pyflakes=
+            | xargs -0 ./actionlint -shellcheck= -pyflakes= \
+                -ignore 'unknown permission scope "copilot-requests"'
 
       - name: Install test dependencies
         run: python3 -m pip install --disable-pip-version-check pytest==8.4.1
