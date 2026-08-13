@@ -13,6 +13,7 @@ from scripts.morning_dataset.providers.base import ProviderResult
 
 def result(*, value=100.0, status="OK", as_of="2026-08-13T01:00:00+00:00"):
     return ProviderResult(
+        name="market",
         status=status,
         data={"indices": {"nikkei225": {"value": value}}},
         as_of=as_of,
