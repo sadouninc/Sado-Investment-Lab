@@ -6,7 +6,7 @@ from copy import deepcopy
 import pytest
 
 from scripts.developing_signal_registry import append_observation, deterministic_signal_id, transition_signal
-from scripts.developing_signal_store import read_store, write_signal
+from scripts.developing_signal_store import CANONICAL_SIGNAL_STORE, read_store, write_signal
 
 
 def make_signal(key="ai-capex", observed_at="2026-08-13T09:00:00+09:00"):
@@ -117,3 +117,13 @@ def test_reader_orders_active_before_terminal_and_signal_id_breaks_ties(tmp_path
     assert result[3]["signal_key"] == "terminal"
     assert active[2]["signal_key"] == "older"
     assert [item["signal_id"] for item in active[:2]] == sorted(item["signal_id"] for item in active[:2])
+
+
+def test_canonical_store_contains_representative_existing_signals():
+    result = read_store(CANONICAL_SIGNAL_STORE)
+    assert result.status == "OK"
+    by_key = {item["signal_key"]: item for item in result.signals}
+    assert "defense-drone-domestic-mass-production" in by_key
+    assert "hormuz-supply-chain-cost-transmission" in by_key
+    assert by_key["defense-drone-domestic-mass-production"]["source_refs"][0] == "github:issue:170#comment-5229521986"
+    assert by_key["hormuz-supply-chain-cost-transmission"]["source_refs"][0] == "github:issue:447"
