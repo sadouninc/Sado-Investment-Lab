@@ -25,6 +25,20 @@ def first_marker_time(markers, name):
     return None
 
 
+def count_review_rework(reviews, review_fix_events):
+    requested_rounds = {
+        review.get("round_id")
+        for review in reviews or []
+        if review.get("event") == "CHANGES_REQUESTED" and review.get("round_id")
+    }
+    fixed_rounds = {
+        fix.get("round_id")
+        for fix in review_fix_events or []
+        if fix.get("round_id") and fix.get("evidence_ref")
+    }
+    return len(requested_rounds & fixed_rounds)
+
+
 def count_ci_rework(ci_runs):
     rework_count = 0
     failure_open = False
@@ -70,10 +84,9 @@ def collect_from_fixture(event: Dict[str, Any]) -> Dict[str, Any]:
         "metrics": {
             "clarification_count": len(event.get("clarification_events") or []),
             "human_confirmation_count": len(event.get("human_confirmation_events") or []),
-            "review_rework_count": sum(
-                1
-                for review in event.get("reviews", [])
-                if review.get("event") == "CHANGES_REQUESTED"
+            "review_rework_count": count_review_rework(
+                event.get("reviews"),
+                event.get("review_fix_events"),
             ),
             "ci_rework_count": count_ci_rework(ci_runs),
             "conflict_count": len(conflicts),
