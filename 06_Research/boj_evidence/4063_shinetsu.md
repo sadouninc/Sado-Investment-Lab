@@ -31,7 +31,7 @@ Source: 2027年3月期 第1四半期決算短信（2026-07-24, company IR）
 ```yaml
 rate_sensitivity: LOW
 yen_sensitivity: MIXED
-aenergy_input_sensitivity: MEDIUM
+energy_input_sensitivity: MEDIUM
 valuation_duration: MEDIUM_HIGH
 balance_sheet_rate_risk: LOW
 boj_orange_action: WATCH
