@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import shutil
 
+from build_intraday_market import main as build_intraday_market
+
 ROOT = Path(__file__).resolve().parents[2]
 REPORT = ROOT / "data" / "generated" / "public" / "morning-dataset.json"
 SITE = ROOT / "site-src" / "research" / "morning-dataset"
@@ -198,6 +200,7 @@ def main() -> None:
     SITE.mkdir(parents=True, exist_ok=True)
     (SITE / "index.md").write_text(build_page(payload), encoding="utf-8")
     shutil.copyfile(REPORT, SITE / "morning-dataset.json")
+    build_intraday_market()
 
 
 if __name__ == "__main__":
