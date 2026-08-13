@@ -17,27 +17,29 @@ SPEC.loader.exec_module(MODULE)
 class RiskPreflightWhatIfCtaTests(unittest.TestCase):
     def test_page_links_to_authenticated_canonical_runner(self):
         rendered = MODULE.page_content()
-        self.assertIn("実際にWhat-ifを確認する", rendered)
-        self.assertIn("Request IDを発行", rendered)
-        self.assertIn("GitHub ActionsでWhat-ifを実行", rendered)
+        self.assertIn("売買前のPF影響を確認する", rendered)
+        self.assertIn("PF影響の確認を準備", rendered)
+        self.assertIn("GitHub Actionsで計算を実行", rendered)
         self.assertIn("このRequestを追跡", rendered)
         self.assertIn(MODULE.WHAT_IF_WORKFLOW_URL, rendered)
         self.assertIn("GitHub Actions", rendered)
-        self.assertIn("Run workflow", rendered)
 
-    def test_mobile_steps_keep_explicit_input_and_result_handoff(self):
+    def test_mobile_flow_keeps_explicit_input_and_result_handoff(self):
         rendered = MODULE.page_content()
-        self.assertIn("request_id", rendered)
-        self.assertIn("銘柄コード / BUY・SELL / 株数 / 価格", rendered)
-        self.assertIn("iPhoneでの確認手順", rendered)
+        self.assertIn("対象 / BUY・SELL / 数量 / 価格 / 口座文脈", rendered)
+        self.assertIn("入力した仮定", rendered)
         self.assertIn("Step Summary", rendered)
-        self.assertIn("対応するGitHub run", rendered)
+        self.assertIn("Before → After / Rule / Data status", rendered)
+        self.assertIn("条件を修正", rendered)
 
-    def test_owner_first_view_prioritizes_request_flow_over_internal_metadata(self):
+    def test_owner_first_view_prioritizes_trade_assumption_over_diagnostics(self):
         panel = MODULE.interactive_panel()
-        self.assertIn("一意なRequest ID", panel)
-        self.assertIn("そのrequestだけを追跡", panel)
-        self.assertNotIn("既存 #307 / #233", panel.split("**実装境界:**", 1)[0])
+        input_index = panel.index("対象銘柄コード")
+        diagnostics_index = panel.index("実行・診断情報")
+        self.assertLess(input_index, diagnostics_index)
+        self.assertIn("BUY / SELLは入力する仮定であり推奨ではありません", panel)
+        self.assertIn("これは注文ではありません", panel)
+        self.assertIn("Request ID", panel[diagnostics_index:])
 
     def test_polling_budget_and_client_failures_are_separated(self):
         panel = MODULE.interactive_panel()
@@ -56,7 +58,7 @@ class RiskPreflightWhatIfCtaTests(unittest.TestCase):
         rendered = MODULE.page_content()
         self.assertIn("これは注文ではありません", rendered)
         self.assertIn("Portfolio、Decision Journal、Execution Intentを変更せず", rendered)
-        self.assertIn("Pages内に別の計算式を持ちません", rendered)
+        self.assertIn("Pages内に別のrisk計算式を持ちません", rendered)
         self.assertIn("NOT_JUDGABLE", rendered)
         self.assertIn("UNKNOWN", rendered)
         self.assertIn("CALCULATED", rendered)
