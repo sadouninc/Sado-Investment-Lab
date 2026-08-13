@@ -24,12 +24,10 @@ jobs:
   snapshot:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install project dependencies
-        run: pip install -r requirements.txt
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Verify market provider contract
+        run: python3 -m unittest tests.test_market_provider
       - name: Collect snapshot
         shell: bash
         run: |
@@ -37,7 +35,7 @@ jobs:
           if [[ -n "${{ inputs.business_date }}" ]]; then
             args+=(--business-date "${{ inputs.business_date }}")
           fi
-          python scripts/run_intraday_market_snapshot.py "${args[@]}"
+          python3 scripts/run_intraday_market_snapshot.py "${args[@]}"
       - name: Upload snapshot evidence
         uses: actions/upload-artifact@v4
         with:
