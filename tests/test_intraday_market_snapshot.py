@@ -8,23 +8,25 @@ from scripts.intraday_market_snapshot import (
     calculate_delta,
     persist_snapshot,
 )
+from scripts.japan_market_calendar import is_japan_market_business_day
 from scripts.morning_dataset.providers.base import ProviderResult
 
 
-def result(*, value=100.0, status="OK", as_of="2026-08-13T01:00:00+00:00"):
+def result(*, value=100.0, status="OK", as_of="2026-08-13T01:00:00+00:00", data=None):
+    payload = data if data is not None else {"indices": {"nikkei225": {"value": value}}}
     return ProviderResult(
         name="market",
         status=status,
-        data={"indices": {"nikkei225": {"value": value}}},
+        data=payload,
         as_of=as_of,
         source_reference="test",
         reason=None,
     )
 
 
-def snapshot(slot="MORNING", *, value=100.0, previous=None, morning=None, status="OK", as_of="2026-08-13T01:00:00+00:00"):
+def snapshot(slot="MORNING", *, value=100.0, previous=None, morning=None, status="OK", as_of="2026-08-13T01:00:00+00:00", data=None):
     return build_snapshot(
-        result(value=value, status=status, as_of=as_of),
+        result(value=value, status=status, as_of=as_of, data=data),
         business_date=date(2026, 8, 13),
         session_slot=slot,
         observed_at=datetime(2026, 8, 13, 10, 0, tzinfo=timezone.utc),
@@ -55,6 +57,24 @@ def test_missing_base_does_not_invent_zero_delta():
 def test_stale_source_fails_closed():
     stale = snapshot(as_of="2026-08-12T01:00:00+00:00")
     assert stale["source_status"] == "STALE"
+
+
+def test_empty_ok_payload_is_missing_not_fresh():
+    missing = snapshot(data={})
+    assert missing["source_status"] == "MISSING"
+    assert missing["market"] == {}
+
+
+def test_japan_market_business_day_guard():
+    assert is_japan_market_business_day(date(2026, 8, 13)) is True
+    assert is_japan_market_business_day(date(2026, 8, 15)) is False
+    assert is_japan_market_business_day(date(2026, 8, 11)) is False
+    assert is_japan_market_business_day(date(2026, 12, 31)) is False
+
+
+def test_unsupported_calendar_year_fails_closed():
+    with pytest.raises(ValueError, match="supports years"):
+        is_japan_market_business_day(date(2100, 1, 4))
 
 
 def test_retry_is_idempotent_and_conflict_is_rejected(tmp_path):

@@ -12,6 +12,7 @@ from scripts.intraday_market_snapshot import (
     load_previous,
     persist_snapshot,
 )
+from scripts.japan_market_calendar import is_japan_market_business_day
 from scripts.morning_dataset.providers.market import MarketProvider
 
 JST = ZoneInfo("Asia/Tokyo")
@@ -30,6 +31,10 @@ def main() -> int:
     args = parse_args()
     observed_at = datetime.now(JST)
     business_date = date.fromisoformat(args.business_date) if args.business_date else observed_at.date()
+
+    if not is_japan_market_business_day(business_date):
+        print(f"skipped_non_business_day={business_date.isoformat()}")
+        return 0
 
     result = MarketProvider().collect()
     previous = load_previous(args.output_root, business_date, args.session_slot)
