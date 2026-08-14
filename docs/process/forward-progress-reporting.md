@@ -9,6 +9,53 @@
 
 Issue数の削減や確認項目の消化は補助指標であり、プロジェクトの大目標ではない。
 
+## 発散と収束 — Scrum Master Operating Principle
+
+Sado Investment Labでは、プロジェクト推進に **発散と収束の両軸** が必要。
+
+### 発散
+目的: 進む道しるべ・可能性・未来の選択肢を増やす。
+
+- 新しい課題、リスク、アイデア、Researchテーマ、UX改善、技術負債、自動化機会を見つける
+- 意味のあるIssue / Discovery Issue / Future Issueを積極的に残す
+- 既存Queueが薄い時はlane gapを探索し、未来のworkを作る
+- まだ実装READYでなくても、価値のある可能性は失わず保存する
+
+発散局面で `open_issue_count` の増加を悪化と判定しない。意味のあるIssue増加は探索力・創造力のEvidenceになり得る。
+
+### 収束
+目的: 視界を良好にし、実装・判断・検証を完了方向へ進める。
+
+- READY / IMPLEMENTING / REVIEW中のIssueを解決する
+- blocker、重複、曖昧さ、古いhandoffを除去する
+- PRをmerge-ready / mergeへ進める
+- 完了済み・重複・価値喪失Issueを整理する
+- WIPを絞り、重要な成果を完成させる
+
+収束局面では、未完了workを増やし続けるより完成・統合を優先する。
+
+### 🌊ナギの判断責任
+
+🌊ナギは `Issueを増やす / 減らす` のどちらかを恒久方針にしない。現在の状態を見て、どちらを強めるか判断する。
+
+発散を強める代表条件:
+- READY / NEXT / RESERVEが薄い
+- workerがidleなのに安全な実行候補が少ない
+- 新しいProduct/Research方向が必要
+- 同じIssue群だけを回し未来workが枯れている
+- 新しい市場・技術・UX・automation機会が見えている
+
+収束を強める代表条件:
+- Open PR / IMPLEMENTING / REVIEW WIPが多い
+- blocker/依存/owner conflictが増えている
+- duplicate/vague/stale IssueでBacklogの可読性が落ちている
+- 重要Issueが多数あるのに完成率が低い
+- context switchingや重複着手が生産性を落としている
+
+最適状態は **発散と収束が交互または並行に機能し、未来の選択肢を増やしながら現在の成果も完成させること**。
+
+ナギのレポートでは必要に応じて `現在は発散優位 / 収束優位 / バランス` を明示し、その判断理由を示す。
+
 ## Productive Step と Verification Step
 
 ### Productive Step
@@ -42,6 +89,8 @@ Issue数の削減や確認項目の消化は補助指標であり、プロジェ
 - Queueが空・blockedの時に自律的に作り出したwork
 - 「確認はしたが実際には進んでいない」runを明示
 - Net Forward Progress: 実装・設計・Research・Productのどこが前進したか
+- 発散/収束バランス: `DIVERGENCE / CONVERGENCE / BALANCED`
+- 新規の意味あるIssue数と、解決・merge・closeで収束したwork数を別々に扱う
 
 推奨フォーマット:
 
@@ -102,7 +151,10 @@ Issue数の削減や確認項目の消化は補助指標であり、プロジェ
 - READY_empty_but_work_created_count
 - meaningful_issue_created_count
 - duplicate_or_vague_issue_rate
+- meaningful_issue_created_count（発散）
+- completed_or_merged_work_count（収束）
+- divergence_convergence_balance
 
-重要なのは `open_issue_count` の減少ではなく、**forward progressとbacklog quality**。
+重要なのは `open_issue_count` の減少ではなく、**forward progress、backlog quality、発散と収束のバランス**。
 
 Refs: #479 #547 #556 #587 #593
