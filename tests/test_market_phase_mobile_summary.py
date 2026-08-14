@@ -5,23 +5,47 @@ ROOT = Path(__file__).resolve().parents[1]
 JS = (ROOT / ".github" / "pages" / "market-phase.js").read_text(encoding="utf-8")
 
 
-def test_mobile_market_phase_uses_summary_before_full_matrix() -> None:
+def test_market_phase_exposes_real_date_range_and_ticks() -> None:
+    assert 'range.textContent = `表示期間: ${formatDay(days[0])} — ${formatDay(days[days.length - 1])}`;' in JS
+    assert 'class="phase-date-tick"' in JS
+    assert "tickIndexes" in JS
+
+
+def test_market_phase_uses_direct_series_labels_not_color_only() -> None:
+    assert 'class="phase-line-label"' in JS
+    assert 'data-phase-code=' in JS
+    assert "phase-series-choice" in JS
+    assert 'input type="checkbox"' in JS
+
+
+def test_selected_correlation_is_primary_and_fail_closed() -> None:
+    assert "選択銘柄内の相関" in JS
+    assert "相関を比較するには2銘柄以上選択してください" in JS
+    assert "データ不足を0相関として扱いません" in JS
+    assert 'const value = row[right];' in JS
+    assert 'return value == null ? null : Number(value);' in JS
+
+
+def test_comparison_and_discovery_are_separate_views() -> None:
+    assert 'target.id = "phase-selected-pairs"' in JS
+    assert 'target.id = "phase-related-discovery"' in JS
+    assert "関連銘柄を探す" in JS
+    assert "比較中の銘柄とは分離し" in JS
+    assert '!selectedCodes.has(other)' in JS
+
+
+def test_chart_and_heatmap_share_one_selection_state() -> None:
+    assert "let selectedCodes = new Set();" in JS
+    assert "data.symbols.filter(item => selectedCodes.has(item.code))" in JS
+    assert "const codes = [...selectedCodes];" in JS
+    assert "renderAllSelectionViews" in JS
+
+
+def test_mobile_market_phase_keeps_progressive_explanation() -> None:
     assert 'matchMedia("(max-width: 700px)")' in JS
     assert 'summary.id = "phase-mobile-correlation-summary"' in JS
-    assert "注目する相関" in JS
-    assert "相関上位" in JS
-    assert "相関下位" in JS
-    assert "選択銘柄の相関" in JS
-    assert "40銘柄の完全相関行列を表示" in JS
-    assert "モバイル相関サマリー" not in JS
-    assert "横スクロールする前に" not in JS
-
-
-def test_mobile_market_phase_pairs_include_company_names() -> None:
-    assert "const symbolLabel = code =>" in JS
-    assert 'return name ? `${name} (${code})` : code;' in JS
-    assert 'const pairLabel = row => `${symbolLabel(row.left)} × ${symbolLabel(row.right)}`;' in JS
-    assert '["銘柄ペア", pairLabel]' in JS
+    assert "相関の見方" in JS
+    assert "個別銘柄の相関を確認" in JS
 
 
 def test_selected_correlation_explains_direction() -> None:
@@ -29,13 +53,7 @@ def test_selected_correlation_explains_direction() -> None:
     assert '["方向", row => correlationDirection(row.correlation)]' in JS
 
 
-def test_mobile_market_phase_keeps_full_matrix_as_progressive_disclosure() -> None:
-    assert 'document.createElement("details")' in JS
-    assert 'details.append(heatmap)' in JS
-    assert "renderHeatmap();" in JS
-
-
-def test_mobile_market_phase_does_not_change_canonical_payload() -> None:
+def test_market_phase_does_not_change_canonical_payload() -> None:
     assert "data.correlation.pearson" in JS
     assert "data.top_positive_pairs" in JS
     assert "data.top_negative_pairs" in JS
