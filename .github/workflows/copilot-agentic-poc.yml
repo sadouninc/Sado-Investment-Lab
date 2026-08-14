@@ -1,0 +1,106 @@
+name: Copilot Agentic PoC
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "PoC mode"
+        required: true
+        default: "brisk-readonly"
+        type: choice
+        options:
+          - brisk-readonly
+          - copilot-smoke
+
+permissions:
+  contents: read
+
+jobs:
+  brisk-readonly:
+    if: ${{ inputs.mode == 'brisk-readonly' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe BRiSK SBI heatmap with ordinary read-only HTTP
+        shell: bash
+        run: |
+          set -u
+          URL='https://heatmap.brisk.jp/sbi/plus'
+          BODY="$RUNNER_TEMP/brisk-body.html"
+          HEADERS="$RUNNER_TEMP/brisk-headers.txt"
+          STATUS=$(curl --silent --show-error --location \
+            --max-time 20 \
+            --connect-timeout 10 \
+            --output "$BODY" \
+            --dump-header "$HEADERS" \
+            --write-out '%{http_code}' \
+            "$URL" || true)
+
+          SIZE=$(wc -c < "$BODY" 2>/dev/null || echo 0)
+          {
+            echo '## BRiSK read-only probe'
+            echo
+            echo "- URL: $URL"
+            echo "- HTTP status: $STATUS"
+            echo "- Body bytes: $SIZE"
+            echo
+            echo 'No authentication bypass, CAPTCHA bypass, cookie injection, or bot-protection evasion is attempted.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          case "$STATUS" in
+            200)
+              echo 'RESULT=HTTP_OK' >> "$GITHUB_ENV"
+              ;;
+            401|403|429)
+              echo 'RESULT=ACCESS_BLOCKED' >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo 'RESULT=HTTP_OTHER' >> "$GITHUB_ENV"
+              ;;
+          esac
+
+      - name: Record classification
+        run: |
+          echo "- Classification: **${RESULT:-UNKNOWN}**" >> "$GITHUB_STEP_SUMMARY"
+
+  copilot-smoke:
+    if: ${{ inputs.mode == 'copilot-smoke' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Require Copilot token
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+        run: |
+          if [ -z "$COPILOT_GITHUB_TOKEN" ]; then
+            echo '## Copilot smoke test' >> "$GITHUB_STEP_SUMMARY"
+            echo '- BLOCKED: repository secret `COPILOT_GITHUB_TOKEN` is not configured.' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Run safe non-interactive Copilot smoke test
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+        run: |
+          copilot -p 'Read TEAM_RULES.md if present and summarize, in at most 8 bullets, the repository rules that an implementation agent must obey. Do not modify repository files. Do not push, merge, close issues, or make investment decisions.' \
+            --allow-tool='shell(git:status)' \
+            --no-ask-user \
+            -s > "$RUNNER_TEMP/copilot-summary.txt"
+          {
+            echo '## Copilot smoke test'
+            echo
+            cat "$RUNNER_TEMP/copilot-summary.txt"
+          } >> "$GITHUB_STEP_SUMMARY"
