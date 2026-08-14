@@ -131,6 +131,7 @@ def test_missing_gate_inputs_return_deterministic_blocking_reasons():
         beyond_topic_reason=None,
         japan_equity_links=[],
     )
+    candidate["dimensions"]["counter_evidence_strength"]["evidence_refs"] = []
     result = evaluate_research_candidate_readiness(candidate)
     assert result["decision"] == "NEEDS_MORE_EVIDENCE"
     codes = {item["code"] for item in result["blocking_reasons"]}
