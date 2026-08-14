@@ -1,0 +1,2774 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11100d">
+  <meta name="description" content="市場と企業を理解し、自分自身の投資理論を磨き続けるためのFramework">
+  <title>Framework Web Edition — Sado Investment Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/assets/book.css">
+  <link rel="stylesheet" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/assets/design-system.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$', '$'], ['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
+  <strong>PR PREVIEW · #562 · NOT PRODUCTION</strong>
+  <span>Head 57a57e4c3dc9 · Built 2026-08-14T12:25:41Z</span>
+</div>
+<style>
+  #sado-pr-preview-banner {
+    box-sizing: border-box; position: relative; z-index: 2147483647;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1rem;
+    width: 100%; padding: .55rem 1rem; color: #fff; background: #8b1e2d;
+    font: 600 .82rem/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-align: center;
+  }
+  #sado-pr-preview-banner span { font-weight: 400; overflow-wrap: anywhere; }
+  @media (max-width: 640px) { #sado-pr-preview-banner { align-items: center; flex-direction: column; gap: .15rem; } }
+</style>
+
+  <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
+  <button class="theme-toggle" id="theme-toggle" type="button" aria-label="表示テーマを切り替える">◐</button>
+  <header class="codex-global-header">
+    <div class="codex-global-header__brand-row">
+      <a class="codex-global-brand" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/">SADO INVESTMENT CODEX</a>
+      <span class="codex-global-context" id="codex-global-context" aria-live="polite">現在地を確認中</span>
+    </div>
+    <nav class="codex-global-nav" aria-label="投資目的ナビゲーション">
+      
+      <a class="codex-nav-item" data-nav-group="home" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/assets/instruments.svg#home"></use></svg>
+        <span class="codex-nav-item__label">Home</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="discover" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/research/market-phase/ai-semiconductor/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/assets/instruments.svg#discover"></use></svg>
+        <span class="codex-nav-item__label">銘柄を探す</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="understand" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/companies/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/assets/instruments.svg#understand"></use></svg>
+        <span class="codex-nav-item__label">企業を理解する</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="decide" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/decision-cockpit/daihen/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/assets/instruments.svg#decide"></use></svg>
+        <span class="codex-nav-item__label">判断する</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="record" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/trade-journal/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/assets/instruments.svg#record"></use></svg>
+        <span class="codex-nav-item__label">記録する</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="review" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/trade-analysis/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/assets/instruments.svg#review"></use></svg>
+        <span class="codex-nav-item__label">振り返る</span>
+      </a>
+      
+    </nav>
+  </header>
+  <nav class="breadcrumb codex-global-breadcrumb" id="codex-global-breadcrumb" aria-label="現在地" hidden></nav>
+  <script>
+    (() => {
+      const navigation = {"schema_version":"1.0","model_note_ja":"9-stageは投資プロセスの意味モデル、6-purposeは日常移動のNavigation group。NavigationはOS Mapを置換しない。","navigation_groups":[{"id":"home","label_ja":"Home","primary_destination":"/","icon_ja":"羅"},{"id":"discover","label_ja":"銘柄を探す","primary_destination":"/research/market-phase/ai-semiconductor/","icon_ja":"望"},{"id":"understand","label_ja":"企業を理解する","primary_destination":"/companies/","icon_ja":"顕"},{"id":"decide","label_ja":"判断する","primary_destination":"/decision-cockpit/daihen/","icon_ja":"衡"},{"id":"record","label_ja":"記録する","primary_destination":"/trade-journal/","icon_ja":"帳"},{"id":"review","label_ja":"振り返る","primary_destination":"/trade-analysis/","icon_ja":"筆"}],"os_stage_to_navigation":{"observe":{"primary":"home","secondary":[]},"discover":{"primary":"discover","secondary":[]},"understand":{"primary":"understand","secondary":[]},"hypothesize":{"primary":"understand","secondary":["decide"]},"decide":{"primary":"decide","secondary":[]},"pretrade":{"primary":"decide","secondary":["record"]},"record":{"primary":"record","secondary":[]},"learn":{"primary":"review","secondary":[]},"observe_next":{"primary":"home","secondary":[]}},"routes":[{"route":"/","primary_journey_stage":"home","secondary_journey_stages":[],"user_facing_label_ja":"Home","parent_route":null,"canonical_destination":"/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/reports/morning/","primary_journey_stage":"home","secondary_journey_stages":["discover"],"user_facing_label_ja":"朝の市場レポート","parent_route":"/","canonical_destination":"/reports/morning/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/market/intraday/","primary_journey_stage":"home","secondary_journey_stages":["discover"],"user_facing_label_ja":"場中の市場変化","parent_route":"/","canonical_destination":"/market/intraday/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/research/market-phase/ai-semiconductor/","primary_journey_stage":"discover","secondary_journey_stages":[],"user_facing_label_ja":"市場フェーズ","parent_route":"/","canonical_destination":"/research/market-phase/ai-semiconductor/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/companies/","primary_journey_stage":"understand","secondary_journey_stages":[],"user_facing_label_ja":"企業研究","parent_route":"/","canonical_destination":"/companies/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/framework/","primary_journey_stage":"understand","secondary_journey_stages":["decide"],"user_facing_label_ja":"投資Framework","parent_route":"/","canonical_destination":"/framework/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/decision-cockpit/daihen/","primary_journey_stage":"decide","secondary_journey_stages":[],"user_facing_label_ja":"投資判断コックピット / ダイヘン","breadcrumb_segments_ja":["投資判断コックピット","ダイヘン"],"parent_route":"/","canonical_destination":"/decision-cockpit/daihen/","legacy_aliases":[],"concept_route":"/concepts/investment-decision-cockpit/","availability":"AVAILABLE"},{"route":"/risk-preflight/","primary_journey_stage":"decide","secondary_journey_stages":["record"],"user_facing_label_ja":"売買前のポートフォリオ確認","parent_route":"/","canonical_destination":"/risk-preflight/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":null,"feature_id":"portfolio-current","primary_journey_stage":"record","secondary_journey_stages":[],"user_facing_label_ja":"現在の保有","parent_route":"/","canonical_destination":null,"legacy_aliases":[],"concept_route":null,"availability":"UNMAPPED"},{"route":"/trade-journal/","primary_journey_stage":"record","secondary_journey_stages":["review"],"user_facing_label_ja":"売買・判断の記録","parent_route":"/","canonical_destination":"/trade-journal/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/trade-analysis/","primary_journey_stage":"review","secondary_journey_stages":[],"user_facing_label_ja":"取引分析","parent_route":"/","canonical_destination":"/trade-analysis/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/research/investor-dna/","primary_journey_stage":"review","secondary_journey_stages":["discover"],"user_facing_label_ja":"Investor DNA","parent_route":"/","canonical_destination":"/research/investor-dna/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/market-analysis/","primary_journey_stage":"home","secondary_journey_stages":["review"],"user_facing_label_ja":"市場分析","parent_route":"/","canonical_destination":"/market-analysis/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/concepts/investment-decision-cockpit/","primary_journey_stage":"decide","secondary_journey_stages":[],"user_facing_label_ja":"投資判断コックピットの使い方","parent_route":"/decision-cockpit/daihen/","canonical_destination":"/concepts/investment-decision-cockpit/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"}]};
+      const baseUrl = "/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/pages-previews/pr-562" || '';
+      let currentPath = window.location.pathname;
+      if (baseUrl && currentPath.startsWith(baseUrl)) currentPath = currentPath.slice(baseUrl.length) || '/';
+      if (!currentPath.startsWith('/')) currentPath = '/' + currentPath;
+      if (!currentPath.endsWith('/')) currentPath += '/';
+
+      const candidates = (navigation.routes || [])
+        .filter((route) => route.availability === 'AVAILABLE' && route.route)
+        .filter((route) => route.route === '/' ? currentPath === '/' : currentPath.startsWith(route.route))
+        .sort((left, right) => right.route.length - left.route.length);
+      const matchedRoute = candidates[0] || null;
+      const currentGroup = matchedRoute?.primary_journey_stage || null;
+      const group = (navigation.navigation_groups || []).find((item) => item.id === currentGroup);
+      const context = document.getElementById('codex-global-context');
+      if (context) context.textContent = group ? `現在地: ${group.label_ja}` : '現在地: 未分類';
+
+      document.querySelectorAll('.codex-nav-item').forEach((item) => {
+        const active = currentGroup && item.dataset.navGroup === currentGroup;
+        item.toggleAttribute('data-current', Boolean(active));
+        if (active) item.setAttribute('aria-current', 'location');
+        else item.removeAttribute('aria-current');
+      });
+
+      const breadcrumb = document.getElementById('codex-global-breadcrumb');
+      if (!breadcrumb || currentPath === '/') return;
+      const pageTitle = document.querySelector('main.book-shell h1')?.textContent?.trim()
+        || document.title.replace(/\s+[—-]\s+Sado Investment Lab$/, '').trim();
+      const items = [{ label: 'Home', route: '/' }];
+      if (group && group.id !== 'home') {
+        items.push({ label: group.label_ja, route: group.primary_destination });
+      } else if (!group) {
+        items.push({ label: '未分類', route: null });
+      }
+
+      if (matchedRoute) {
+        const routeSegments = Array.isArray(matchedRoute.breadcrumb_segments_ja)
+          ? matchedRoute.breadcrumb_segments_ja
+          : [matchedRoute.user_facing_label_ja];
+        for (const label of routeSegments.filter(Boolean)) {
+          if (items.some((item) => item.label === label)) continue;
+          items.push({ label, route: matchedRoute.route });
+        }
+        if (currentPath !== matchedRoute.route && pageTitle && !items.some((item) => item.label === pageTitle)) {
+          items.push({ label: pageTitle, route: null });
+        }
+      } else if (pageTitle) {
+        items.push({ label: pageTitle, route: null });
+      }
+
+      const fragment = document.createDocumentFragment();
+      items.forEach((item, index) => {
+        if (index) fragment.append(' / ');
+        const isLast = index === items.length - 1;
+        if (item.route && !isLast) {
+          const link = document.createElement('a');
+          link.href = `${baseUrl}${item.route}`.replace(/\/+/g, '/');
+          link.textContent = item.label;
+          fragment.append(link);
+        } else {
+          const span = document.createElement('span');
+          span.textContent = item.label;
+          if (isLast) span.setAttribute('aria-current', 'page');
+          fragment.append(span);
+        }
+      });
+      breadcrumb.replaceChildren(fragment);
+      breadcrumb.hidden = false;
+    })();
+  </script>
+  <main class="book-shell">
+    <header class="book-hero" id="framework-top">
+  <p class="eyebrow">SADO INVESTMENT LAB</p>
+  <h1>投資という、終わりのない研究。</h1>
+  <p class="lead">市場を理解し、企業を理解し、自分自身の投資理論を磨き続けるためのFramework。</p>
+  <p class="edition">Framework Web Edition</p>
+</header>
+
+<section class="framework-overview" aria-labelledby="framework-overview-title">
+  <p class="toc-label">30 SECOND OVERVIEW</p>
+  <h2 id="framework-overview-title">読みたい章から始める</h2>
+  <p>Frameworkは8つの大章で構成されています。最初から通読するだけでなく、いま必要な判断基準へ直接移動できます。</p>
+  <div class="framework-chapter-cards">
+    <a class="framework-chapter-card" href="#philosophy"><strong>01 Investment Philosophy</strong><span>投資の目的と、企業価値・市場評価をどう捉えるか。</span></a>
+    <a class="framework-chapter-card" href="#psychology"><strong>02 Market Psychology</strong><span>市場参加者の期待・恐怖・評価変化をどう読むか。</span></a>
+    <a class="framework-chapter-card" href="#thinking"><strong>03 Thinking Process</strong><span>事実・解釈・仮説を分け、判断へつなげる思考手順。</span></a>
+    <a class="framework-chapter-card" href="#rules"><strong>04 Investment Rules</strong><span>売買・リスク管理・意思決定で守る実践ルール。</span></a>
+    <a class="framework-chapter-card" href="#evaluation"><strong>05 Evaluation Framework</strong><span>企業・成長性・市場評価を同じ尺度で比較する枠組み。</span></a>
+    <a class="framework-chapter-card" href="#allocation"><strong>06 Capital Allocation</strong><span>資金配分・余力・ポジションサイズを管理する考え方。</span></a>
+    <a class="framework-chapter-card" href="#lessons"><strong>07 Lessons Learned</strong><span>過去の判断から再利用可能な教訓を蓄積する章。</span></a>
+    <a class="framework-chapter-card" href="#metrics"><strong>08 Original Metrics</strong><span>Sado Investment Lab独自の評価軸・観測指標。</span></a>
+  </div>
+</section>
+
+<nav class="framework-jump-nav" aria-label="Framework章ナビゲーション">
+  <a href="#framework-top" class="framework-jump-home">目次</a>
+  <div class="framework-jump-scroll">
+    <a href="#philosophy" data-framework-target="philosophy">01 Philosophy</a>
+    <a href="#psychology" data-framework-target="psychology">02 Psychology</a>
+    <a href="#thinking" data-framework-target="thinking">03 Thinking</a>
+    <a href="#rules" data-framework-target="rules">04 Rules</a>
+    <a href="#evaluation" data-framework-target="evaluation">05 Evaluation</a>
+    <a href="#allocation" data-framework-target="allocation">06 Allocation</a>
+    <a href="#lessons" data-framework-target="lessons">07 Lessons</a>
+    <a href="#metrics" data-framework-target="metrics">08 Metrics</a>
+  </div>
+</nav>
+
+<p class="reading-note">このWeb書籍は、リポジトリ内の各Framework文書を唯一の元データとして自動生成しています。表示上のナビゲーションだけを追加し、Framework本文は変更しません。</p>
+
+<style>
+  .framework-overview {
+    margin: clamp(3rem, 8vw, 6rem) 0 3rem;
+    padding: clamp(1.3rem, 4vw, 2.2rem);
+    border: 1px solid var(--line);
+    background: var(--card);
+  }
+  .framework-overview h2 { margin: .35rem 0 1rem; }
+  .framework-overview > p:last-of-type { color: var(--muted); }
+  .framework-chapter-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .8rem;
+    margin-top: 1.5rem;
+  }
+  .framework-chapter-card {
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+    min-height: 8rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    text-decoration: none;
+    background: color-mix(in srgb, var(--card) 78%, transparent);
+  }
+  .framework-chapter-card:hover,
+  .framework-chapter-card:focus-visible { border-color: var(--accent); }
+  .framework-chapter-card strong { font-family: "Noto Serif JP", serif; line-height: 1.45; }
+  .framework-chapter-card span { color: var(--muted); font-size: .82rem; line-height: 1.7; }
+  .framework-jump-nav {
+    position: sticky;
+    z-index: 12;
+    top: 64px;
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    margin: 2rem 0 4rem;
+    padding: .7rem;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--paper) 94%, transparent);
+    backdrop-filter: blur(14px);
+  }
+  .framework-jump-home,
+  .framework-jump-scroll a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.2rem;
+    padding: .35rem .65rem;
+    color: var(--muted);
+    border: 1px solid transparent;
+    text-decoration: none;
+    font-size: .74rem;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+  .framework-jump-home { color: var(--ink); font-weight: 700; border-color: var(--line); }
+  .framework-jump-scroll { display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: thin; }
+  .framework-jump-scroll a[aria-current="location"] {
+    color: var(--ink);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .book-chapter { scroll-margin-top: 9rem; }
+  .book-chapter blockquote {
+    position: relative;
+    padding-top: 2rem;
+    color: var(--ink);
+    background: color-mix(in srgb, var(--accent-soft) 45%, transparent);
+  }
+  .book-chapter blockquote::before {
+    content: "KEY PRINCIPLE";
+    position: absolute;
+    top: .45rem;
+    left: 1.5rem;
+    color: var(--accent);
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+  }
+  .framework-chapter-footer {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: .7rem;
+    margin: 4rem 0 1rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--line);
+  }
+  .framework-chapter-footer a {
+    padding: .7rem .8rem;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: .78rem;
+    line-height: 1.45;
+  }
+  .framework-chapter-footer .next { text-align: right; }
+  @media (max-width: 640px) {
+    .framework-chapter-cards { grid-template-columns: 1fr; }
+    .framework-jump-nav { top: 112px; margin-left: -15px; margin-right: -15px; border-left: 0; border-right: 0; }
+    .framework-jump-scroll { padding-right: .5rem; }
+    .framework-chapter-footer { grid-template-columns: 1fr 1fr; }
+    .framework-chapter-footer .contents { grid-column: 1 / -1; grid-row: 1; text-align: center; }
+    .framework-chapter-footer .previous { grid-column: 1; grid-row: 2; }
+    .framework-chapter-footer .next { grid-column: 2; grid-row: 2; }
+  }
+</style>
+
+<script>
+(() => {
+  const setupFrameworkNavigation = () => {
+    const sections = Array.from(document.querySelectorAll('.book-chapter[id]'));
+    const jumpLinks = Array.from(document.querySelectorAll('[data-framework-target]'));
+    if (!sections.length || !jumpLinks.length) return;
+
+    sections.forEach((section, index) => {
+      if (section.querySelector(':scope > .framework-chapter-footer')) return;
+      const footer = document.createElement('nav');
+      footer.className = 'framework-chapter-footer';
+      footer.setAttribute('aria-label', '章移動');
+
+      const previous = index > 0
+        ? `<a class="previous" href="#${sections[index - 1].id}">← 前の章</a>`
+        : '<span></span>';
+      const next = index < sections.length - 1
+        ? `<a class="next" href="#${sections[index + 1].id}">次の章 →</a>`
+        : '<span></span>';
+      footer.innerHTML = `${previous}<a class="contents" href="#framework-top">目次へ戻る</a>${next}`;
+      section.appendChild(footer);
+    });
+
+    const byId = new Map(jumpLinks.map(link => [link.dataset.frameworkTarget, link]));
+    const setCurrent = id => {
+      jumpLinks.forEach(link => link.removeAttribute('aria-current'));
+      const current = byId.get(id);
+      if (current) current.setAttribute('aria-current', 'location');
+    };
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(entries => {
+        const visible = entries
+          .filter(entry => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]) setCurrent(visible[0].target.id);
+      }, { rootMargin: '-18% 0px -62% 0px', threshold: [0, .1, .25] });
+      sections.forEach(section => observer.observe(section));
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFrameworkNavigation, { once: true });
+  } else {
+    setupFrameworkNavigation();
+  }
+})();
+</script>
+
+<section class="book-chapter" id="philosophy">
+
+  <h1 id="investment-philosophy">Investment Philosophy</h1>
+
+  <blockquote>
+    <p><strong>Version 2.0</strong><br />
+Sado Investment Lab</p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="section">はじめに</h2>
+
+  <p>このドキュメントは、私の株式投資における最も根本的な考え方をまとめたものである。</p>
+
+  <p>ここに書かれる内容は、売買手法や個別銘柄の分析ではない。</p>
+
+  <p>市場とどのように向き合い、企業をどのような視点で見て、何を目的として投資を行うのか。その思想を記録する。</p>
+
+  <p>この哲学は完成することはない。</p>
+
+  <p>経験を積み、知識を得るたびに更新され続ける。</p>
+
+  <hr />
+
+  <h2 id="section-1">1. 私にとって株式投資とは</h2>
+
+  <p>私は株式投資を、単なる資産運用として考えていない。</p>
+
+  <p>私にとって株式投資には、次の三つの価値がある。</p>
+
+  <h3 id="section-2">1-1. 知的なゲームとしての楽しさ</h3>
+
+  <p>株式市場では、見えている情報から市場参加者の心理や次の動きを考える。</p>
+
+  <p>この感覚は麻雀に似ている。</p>
+
+  <p>麻雀では、場に見えている牌、捨て牌、相手の行動から、相手が何を考えているかを推測する。</p>
+
+  <p>株式市場でも、株価、出来高、板、ニュース、需給などから、市場参加者が何を期待し、何を恐れているかを考える。</p>
+
+  <p>自分の読みが当たった時の喜びは大きい。</p>
+
+  <p>一方で、麻雀と同様に、どれだけ合理的に考えても運に左右される部分がある。</p>
+
+  <p>そのため、結果だけに追い詰められず、ゲームとして楽しめる心理的余裕を持つことも大切にする。</p>
+
+  <h3 id="section-3">1-2. 将来の資産形成</h3>
+
+  <p>株式投資は、将来の生活を豊かにするための資産形成の手段でもある。</p>
+
+  <p>利益を得ることは重要であり、長期的に資産を成長させることを目指す。</p>
+
+  <p>ただし、利益だけを唯一の目的とはしない。</p>
+
+  <h3 id="section-4">1-3. 世界と経済を学ぶ機会</h3>
+
+  <p>株式投資をすることで、経済だけでなく、政治、技術、国際情勢、エネルギー、人口、社会の変化など、世界全体のニュースへの感度が高まる。</p>
+
+  <p>日常生活でも、店の商品、陳列、人気商品、広告、サービス、人々の行動などを見る視点が変わる。</p>
+
+  <ul>
+    <li>この商品はどの会社が作っているのか</li>
+    <li>なぜ売れているのか</li>
+    <li>このサービスは今後広がるのか</li>
+  </ul>
+
+  <p>という好奇心が生まれる。</p>
+
+  <p>投資を通じて、社会の良い面だけでなく、構造的な問題や暗い面も見えてくる。</p>
+
+  <p>知識と視野が広がること自体が、株式投資の大きな価値である。</p>
+
+  <p>株式投資は、お金を増やすためだけの手段ではない。</p>
+
+  <p>世界を理解し、自分の知識と視野を広げ、人生を豊かにするための知的な探究でもある。</p>
+
+  <hr />
+
+  <h2 id="section-5">2. 手法にこだわらない</h2>
+
+  <p>私は、ファンダメンタル分析派でも、テクニカル分析派でもない。</p>
+
+  <p>長期投資、スイング、短期、超短期のどれか一つだけを正しい手法だとも考えない。</p>
+
+  <p>投資手法は目的ではなく、投資判断を行うための道具である。</p>
+
+  <p>市場環境や対象企業によって、有効な道具は変わる。</p>
+
+  <p>必要に応じて、次のようなものをすべて利用する。</p>
+
+  <ul>
+    <li>ファンダメンタル分析</li>
+    <li>テクニカル分析</li>
+    <li>市場心理</li>
+    <li>需給</li>
+    <li>出来高</li>
+    <li>板</li>
+    <li>信用残</li>
+    <li>ニュース</li>
+    <li>政策</li>
+    <li>テーマ</li>
+    <li>長期分析</li>
+    <li>中期分析</li>
+    <li>短期分析</li>
+    <li>超短期分析</li>
+  </ul>
+
+  <p>この考え方は釣りにも似ている。</p>
+
+  <p>私は釣り方そのものにはこだわらない。</p>
+
+  <p>釣る場所、季節、潮、天候、魚種によって、最も釣れる方法は変わる。</p>
+
+  <p>そのため、釣りへ行く時には、さまざまな竿や仕掛けを準備し、その場で最も有効な方法を選ぶ。</p>
+
+  <p>株式投資も同じである。</p>
+
+  <p>一つの手法へ固執することは、使える選択肢を自ら狭めることになる。</p>
+
+  <p>ファンダメンタルが有効な局面ではファンダメンタルを使い、テクニカルや需給が重要な局面ではそれらを使う。</p>
+
+  <p>長期で考えるべき局面もあれば、超短期の市場反応を見るべき局面もある。</p>
+
+  <p>私は特定の投資手法へ忠誠を誓わない。</p>
+
+  <p>市場に合わせて、自分の使う道具と時間軸を変える。</p>
+
+  <p>使えるものはすべて使い、その時、その場所で最も期待値の高い方法を選ぶ。</p>
+
+  <hr />
+
+  <h2 id="section-6">3. 投資の目的</h2>
+
+  <p>私の目的は、短期間の利益だけを追うことではない。</p>
+
+  <p>知的な探究と学びを楽しみながら、社会の変化を理解し、その変化によって価値を生み出す企業へ投資する。</p>
+
+  <p>その積み重ねを通じて、長期的な資産形成と人生の豊かさの両方を目指す。</p>
+
+  <p>企業の実力を理解し、市場が付けている評価と比較することで、両者の間にあるギャップを見つける。</p>
+
+  <p>そのギャップが解消される過程から投資利益を得ることが、企業分析と市場分析を行う目的である。</p>
+
+  <p>株価は日々変動する。しかし企業は、一日で大きく変わるものではない。</p>
+
+  <p>私は短期的な値動きではなく、企業が生み出す価値の成長へ投資したい。</p>
+
+  <hr />
+
+  <h2 id="section-7">4. 私が目指す投資家</h2>
+
+  <p>私は、ニュースに振り回される投資家にはなりたくない。</p>
+
+  <p>社会がどのように変化していくのか。技術がどのように進歩していくのか。人々の生活がどのように変わっていくのか。</p>
+
+  <p>その変化を理解し、市場より一歩先の未来を考えられる投資家を目指す。</p>
+
+  <hr />
+
+  <h2 id="section-8">5. 社会の変化へ投資する</h2>
+
+  <p>企業は社会の変化によって成長する。</p>
+
+  <ul>
+    <li>AI</li>
+    <li>半導体</li>
+    <li>原子力</li>
+    <li>宇宙</li>
+    <li>モビリティ</li>
+    <li>通信</li>
+    <li>エネルギー</li>
+  </ul>
+
+  <p>新しい技術は、新しい需要を生み出す。</p>
+
+  <p>私は一時的な流行ではなく、社会を変える大きな流れを見つけたい。</p>
+
+  <p>その流れの中で、長期的に価値を生み出し続ける企業へ投資する。</p>
+
+  <hr />
+
+  <h2 id="section-9">6. 良い企業とは何か</h2>
+
+  <p>私が考える良い企業とは、単に現在の業績が良い企業ではない。</p>
+
+  <p>長期的に社会から必要とされ続ける企業である。</p>
+
+  <p>そのため、私は次のような企業を高く評価する。</p>
+
+  <ul>
+    <li>高い技術力を持つ</li>
+    <li>参入障壁が高い</li>
+    <li>世界市場で競争力がある</li>
+    <li>継続的な需要が期待できる</li>
+    <li>経営陣が優秀である</li>
+    <li>長期的な成長余地がある</li>
+  </ul>
+
+  <p>企業分析とは、現在の姿を見ることではなく、未来の姿を想像することである。</p>
+
+  <hr />
+
+  <h2 id="section-10">7. 長期的な価値を考える</h2>
+
+  <p>株価は毎日動く。</p>
+
+  <p>しかし、企業価値は毎日変わるわけではない。</p>
+
+  <p>市場は短期で企業を評価することもある。一方で、企業は数年、数十年という時間をかけて成長する。</p>
+
+  <p>私は、短期的な価格ではなく、長期的な企業価値の変化を重視したい。</p>
+
+  <hr />
+
+  <h2 id="section-11">8. 株価は未来を買う</h2>
+
+  <p>株式投資とは、</p>
+
+  <p>現在の利益へ投資するものではない。</p>
+
+  <p>企業の未来へ投資するものである。</p>
+
+  <p>来年利益が伸びるだけでは十分ではない。</p>
+
+  <p>市場参加者は、</p>
+
+  <p>その先の未来まで期待して株価を形成する。</p>
+
+  <p>例えば、</p>
+
+  <p>来年利益が大きく伸びる企業でも、</p>
+
+  <p>再来年以降に</p>
+
+  <ul>
+    <li>競争激化</li>
+    <li>価格競争</li>
+    <li>技術革新</li>
+    <li>新規参入</li>
+    <li>市場縮小</li>
+  </ul>
+
+  <p>などが見え始めれば、</p>
+
+  <p>株価は利益が伸びている途中でも下落する可能性がある。</p>
+
+  <p>私は、</p>
+
+  <p>企業の現在ではなく、</p>
+
+  <p>市場が何年先まで期待できる企業なのかを考えながら投資判断を行う。</p>
+
+  <hr />
+
+  <h2 id="section-12">9. 勝ち続ける期間を考える</h2>
+
+  <p>私は、</p>
+
+  <p>材料メーカーへ投資したいわけではない。</p>
+
+  <p>半導体メーカーへ投資したくないわけでもない。</p>
+
+  <p>重要なのは、</p>
+
+  <p>その時代において、</p>
+
+  <p>最も競争優位が長く続く企業はどこか</p>
+
+  <p>ということである。</p>
+
+  <p>その企業が</p>
+
+  <p>材料メーカーになることもあれば、</p>
+
+  <p>半導体メーカーになることもある。</p>
+
+  <p>重要なのは業種ではない。</p>
+
+  <p>競争優位がどれだけ持続するかである。</p>
+
+  <p>そして、</p>
+
+  <p>市場がその未来をどこまで株価へ織り込んでいるのかも同時に考える。</p>
+
+  <p>私は、</p>
+
+  <p>企業へ投資するのではない。</p>
+
+  <p>企業が描く未来へ投資する。</p>
+
+  <hr />
+
+  <h2 id="section-13">10. 企業分析を投資利益へつなげる</h2>
+
+  <p>企業分析は目的ではなく、投資判断を行うための手段である。</p>
+
+  <p>企業の実力を正しく理解するだけでは、投資は完結しない。</p>
+
+  <p>株式投資の勝利条件は、分析の正しさを証明することではなく、想定した時間軸の中で投資利益を得ることである。</p>
+
+  <p>そのため私は、</p>
+
+  <ul>
+    <li>市場が企業の実力を現在どのように評価しているか</li>
+    <li>市場がどの指標を重視しているか</li>
+    <li>評価が変わる可能性と、そのきっかけは何か</li>
+    <li>評価の変化が株価へつながるまでに、どの程度の時間が必要か</li>
+  </ul>
+
+  <p>まで含めて投資仮説を作る。</p>
+
+  <p>企業の実力と市場評価のギャップを見つけ、そのギャップが解消される過程を投資利益へ変えることを目指す。</p>
+
+  <p>一方で、企業の実力を市場が評価しない状態が長く続く可能性もある。</p>
+
+  <p>短期的に株価が動かないことだけで分析を誤りとはしないが、想定した時間軸の中で市場評価が変わる見通しが失われた場合は、投資仮説を見直す。</p>
+
+  <hr />
+
+  <h2 id="section-14">11. 複数の時間軸を一つの銘柄で積み重ねる</h2>
+
+  <p>私は、長期投資、中期投資、短期投資、超短期投資を、それぞれ別の投資手法とは考えていない。</p>
+
+  <p>長期的に成長する優れた銘柄であっても、株価が一直線に上昇することはない。</p>
+
+  <p>市場心理、需給、決算、金利、ニュースなどの影響を受けながら、小さな上昇と下落を繰り返し、その積み重ねとして長期的な上昇トレンドが形成される。</p>
+
+  <p>私は、この一つの銘柄の中に存在する複数の時間軸を、できる限りすべて利益機会として活用したい。</p>
+
+  <ul>
+    <li>長期では、企業価値の成長を保有する</li>
+    <li>中期では、業績や市場期待の変化を捉える</li>
+    <li>短期では、需給や相場の波を利用する</li>
+    <li>超短期では、一日の中に生まれる過熱や反動を捉える</li>
+  </ul>
+
+  <p>長期的に上昇すると考える銘柄を保有しながら、短期的に大きく上昇した局面では一部を売却し、その後の押し目で買い戻す。</p>
+
+  <p>この売却は、その企業を見限るための売りではない。</p>
+
+  <p>同じ銘柄をより有利な価格で再び保有し、株数や投資余力を増やすための、攻めの資金回転である。</p>
+
+  <p>長期保有だけで得られる利益に加え、その途中に存在する一つひとつの波でも利益を積み重ねることができれば、利益を得る機会は最大化される。</p>
+
+  <p>同時に、長期的な成長仮説を持つ銘柄を短期売買の対象とすることで、短期の判断を誤った場合にも、企業価値の成長が時間を味方にする可能性がある。</p>
+
+  <p>私は、この方法が短期的な利益機会と長期的な成長性を組み合わせた、効率性とリスク抑制を両立しやすい投資手法だと考えている。</p>
+
+  <p>ただし、私は専業投資家ではなく会社員である。</p>
+
+  <p>仕事の状況によって、市場へアクセスできる頻度や、売買に使える時間は変化する。</p>
+
+  <p>常に超短期売買ができるわけではなく、日中に相場を確認できない期間もある。</p>
+
+  <p>そのため、その時々の生活環境に応じて、長期、中期、短期、超短期のどの時間軸を重視するかを柔軟に変える。</p>
+
+  <p>市場を見られる時には小さな波も活用し、見られない時には長期仮説を軸に保有する。</p>
+
+  <p>どの時間軸でも利益を生み出せる銘柄を選び、どの時間軸でも対応できる投資家を目指す。</p>
+
+  <hr />
+
+  <h2 id="section-15">12. 学び続けることが最大の武器</h2>
+
+  <p>投資には終わりがない。</p>
+
+  <p>社会は変わる。市場も変わる。技術も変わる。</p>
+
+  <p>だから、私自身も変わり続けなければならない。</p>
+
+  <p>経験から学び、失敗から学び、新しい知識を受け入れ、自分の考えを更新し続ける。</p>
+
+  <p>最も重要なのは、</p>
+
+  <blockquote>
+    <p><strong>「知識を増やすこと」ではなく、「思考を進化させ続けること」である。</strong></p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="sado-investment-lab">13. Sado Investment Labの目的</h2>
+
+  <p>この研究所の目的は、投資手法を固定化することではない。</p>
+
+  <p>市場を理解し、企業を理解し、社会を理解し、そして自分自身の投資判断を改善し続けることである。</p>
+
+  <p>知識は蓄積されるだけでは価値にならない。</p>
+
+  <p>仮説を立て、検証し、改善し続けることで、初めて自分だけの投資理論になる。</p>
+
+  <p>私はこの研究所を、未来の自分へ受け継ぐ資産として育てていく。</p>
+
+  <hr />
+
+  <h2 id="section-16">おわりに</h2>
+
+  <p>投資とは、未来を予測することではない。</p>
+
+  <p>未来の可能性を考え続けることである。</p>
+
+  <p>私は企業へ投資する前に、社会を学ぶ。市場を学ぶ。そして、自分自身の思考を学ぶ。</p>
+
+  <p>この積み重ねが、長期的に再現性のある投資へつながると信じている。</p>
+
+</section>
+
+<section class="book-chapter" id="psychology">
+
+  <h1 id="market-psychology">Market Psychology</h1>
+
+  <blockquote>
+    <p><strong>Version 1.0</strong><br />
+Sado Investment Lab</p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="section-17">はじめに</h2>
+
+  <p>市場を理解することは、企業を理解することと同じくらい重要である。</p>
+
+  <p>企業価値が高くても株価は下がる。逆に、企業価値以上に株価が上昇することもある。この違いを生み出しているのが市場心理である。</p>
+
+  <p>私は株価だけを見るのではなく、</p>
+
+  <blockquote>
+    <p><strong>市場参加者が何を考え、何を期待し、何を恐れているのか</strong></p>
+  </blockquote>
+
+  <p>を理解したい。</p>
+
+  <hr />
+
+  <h2 id="section-18">1. 市場とは何か</h2>
+
+  <p>市場は企業価値を映す鏡ではない。</p>
+
+  <p>市場は、その時代、その瞬間の市場参加者全体の心理を映す鏡である。</p>
+
+  <p>株価とは、企業価値そのものではなく、市場参加者がその瞬間に下した評価である。</p>
+
+  <p>その評価は企業業績だけでは決まらない。</p>
+
+  <ul>
+    <li>期待</li>
+    <li>恐怖</li>
+    <li>流動性</li>
+    <li>金利</li>
+    <li>政策</li>
+    <li>海外資金</li>
+    <li>ニュース</li>
+    <li>SNS</li>
+    <li>テーマ性</li>
+  </ul>
+
+  <p>様々な要素が複雑に絡み合い、株価を形成している。</p>
+
+  <p>だから市場には、</p>
+
+  <blockquote>
+    <p><strong>永遠に正しい評価も、永遠に間違った評価も存在しない。</strong></p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="section-19">2. 市場は常に変化する</h2>
+
+  <p>市場参加者が変われば、市場の評価基準も変わる。</p>
+
+  <p>昨日まで評価されていた企業が、今日は売られることもある。逆に、長年評価されなかった企業が、突然市場の中心になることもある。</p>
+
+  <p>市場とは、常に変化し続ける生き物である。</p>
+
+  <p>私は市場を固定的に考えない。常に、</p>
+
+  <blockquote>
+    <p><strong>「今、市場は何を見ているのか」</strong></p>
+  </blockquote>
+
+  <p>を考え続ける。</p>
+
+  <hr />
+
+  <h2 id="section-20">3. 市場に絶対的な正解は存在しない</h2>
+
+  <p>私は投資において、「絶対的な正解」というものは存在しないと考えている。</p>
+
+  <p>株価とは、企業価値だけではなく、その時代、その瞬間に市場参加者が下した評価である。</p>
+
+  <p>つまり、昨日の正解が今日も正解とは限らない。今日の正解が一年後も正解とは限らない。</p>
+
+  <p>市場環境が変われば、評価基準そのものが変わる。</p>
+
+  <p>重要なのは、「正解」を探すことではない。その時代、その相場で、市場参加者が何を重視しているのかを理解し、最も合理的と思われる判断を行うことである。</p>
+
+  <p>市場が変われば、私も変わる。</p>
+
+  <p>固定観念を持たず、仮説を修正し続ける姿勢を大切にする。</p>
+
+  <hr />
+
+  <h2 id="section-21">4. 市場心理と企業価値は分けて考える</h2>
+
+  <p>企業価値と株価は必ずしも一致しない。</p>
+
+  <p>私は常に、次の二つを分けて考える。</p>
+
+  <ul>
+    <li>企業価値</li>
+    <li>市場心理</li>
+  </ul>
+
+  <p>企業価値が変わっていないにもかかわらず、市場心理だけで売られている企業は、投資機会になる可能性がある。</p>
+
+  <p>逆に、市場心理だけで買われている企業には慎重になる。</p>
+
+  <p>株価だけを見て企業を判断しない。企業そのものを見ることを忘れない。</p>
+
+  <hr />
+
+  <h2 id="section-22">5. 市場は期待値を売買する場所である</h2>
+
+  <p>私は、市場は企業価値そのものを売買している場所ではないと考えている。</p>
+
+  <p>市場が売買しているのは、</p>
+
+  <blockquote>
+    <p><strong>企業の未来に対する期待値</strong></p>
+  </blockquote>
+
+  <p>である。</p>
+
+  <p>現在の利益が大きくても株価が下がることがある。逆に、利益がまだ小さくても、将来への期待だけで株価は大きく上昇する。</p>
+
+  <p>つまり、株価は現在の企業価値ではなく、</p>
+
+  <blockquote>
+    <p><strong>市場がその企業の未来をどう評価しているか</strong></p>
+  </blockquote>
+
+  <p>によって決まる。</p>
+
+  <p>私は企業分析だけではなく、市場がどの程度期待しているのかを必ず考える。</p>
+
+  <p>期待が高すぎれば、良い決算でも失望売りになる。期待が低すぎれば、少しの改善でも大きく評価される。</p>
+
+  <p>私は、</p>
+
+  <blockquote>
+    <p><strong>企業価値と市場期待のギャップ</strong></p>
+  </blockquote>
+
+  <p>こそが投資機会になると考えている。</p>
+
+  <hr />
+
+  <h2 id="section-23">6. 市場期待を読む</h2>
+
+  <p>市場期待を理解するために、私は様々な情報を組み合わせて考える。</p>
+
+  <p>例えば、</p>
+
+  <ul>
+    <li>PER</li>
+    <li>信用残</li>
+    <li>出来高</li>
+    <li>決算予想</li>
+    <li>アナリスト予想</li>
+    <li>IR資料</li>
+    <li>ニュース</li>
+    <li>SNS</li>
+    <li>テーマ性</li>
+  </ul>
+
+  <p>これらは、企業価値そのものを見るためではない。</p>
+
+  <p>PERも企業価値を決める指標ではない。</p>
+
+  <p>市場参加者が現在と将来の利益へどの程度の期待を置いているかを読み、市場評価の高さを確認するために使う。</p>
+
+  <p>市場参加者が、</p>
+
+  <blockquote>
+    <p><strong>「何を期待しているのか」</strong></p>
+  </blockquote>
+
+  <p>を知るための材料である。</p>
+
+  <p>企業分析だけでも、市場分析だけでも十分ではない。</p>
+
+  <p>両方を組み合わせることで、市場とのギャップを見つけることができる。</p>
+
+  <hr />
+
+  <h2 id="section-24">7. 市場が信じる指標を理解する</h2>
+
+  <p>私は、特定の指標を信じて投資判断を行わない。</p>
+
+  <p>ただし、市場参加者がどの指標を重視し、その変化へどう反応するかは理解する必要がある。</p>
+
+  <p>PERは、その代表例である。</p>
+
+  <p>PERは次の式で構成される。</p>
+
+  <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>PER = 株価 ÷ EPS
+</code></pre></div>  </div>
+
+  <p>EPSの基礎となる利益には、研究開発、広告宣伝、人材採用、新規事業、海外展開、設備投資、M&amp;A、減損、特別損益、税負担などが反映される。</p>
+
+  <p>経営判断や一時要因によって利益が大きく変われば、PERも短期間で半分や10分の1になる可能性がある。</p>
+
+  <p>このような不安定な指標を多くの市場参加者が割高・割安の判断に使っていること自体が、市場心理の一部である。</p>
+
+  <blockquote>
+    <p><strong>私はPERを信じているのではない。PERを信じて売買する市場参加者の心理を読もうとしている。</strong></p>
+  </blockquote>
+
+  <p>現在のPERだけを見るのではなく、将来の売上、利益率、純利益、EPSを推定し、市場が「割高ではなくなった」と認識する前に将来PERの変化を考える。</p>
+
+  <p>PERを否定するのではない。</p>
+
+  <p>PERの限界と、市場がPERへ反応する仕組みの両方を理解し、市場心理が変わる前に投資機会を見つけるために利用する。</p>
+
+  <hr />
+
+  <h2 id="section-25">8. 機関投資家と個人投資家</h2>
+
+  <p>市場には、異なる目的を持つ参加者が存在する。</p>
+
+  <ul>
+    <li>短期トレーダー</li>
+    <li>長期投資家</li>
+    <li>年金</li>
+    <li>海外ファンド</li>
+    <li>インデックス運用</li>
+    <li>個人投資家</li>
+  </ul>
+
+  <p>それぞれ、投資期間も判断基準も異なる。</p>
+
+  <p>私は株価だけを見るのではなく、</p>
+
+  <blockquote>
+    <p><strong>「誰が買っているのか」</strong><br />
+<strong>「誰が売っているのか」</strong></p>
+  </blockquote>
+
+  <p>を考える。</p>
+
+  <p>需給を理解することも、市場心理を理解する上で重要である。</p>
+
+  <hr />
+
+  <h2 id="section-26">9. 過熱と悲観</h2>
+
+  <p>市場は合理的ではない。</p>
+
+  <p>期待が膨らめば、企業価値以上に買われる。恐怖が広がれば、企業価値以下まで売られる。</p>
+
+  <p>私は、この感情による振れ幅こそが、投資機会になると考えている。</p>
+
+  <p>市場全体が悲観している時ほど、企業価値を冷静に見つめたい。</p>
+
+  <p>市場全体が楽観している時ほど、期待が織り込まれ過ぎていないかを確認したい。</p>
+
+  <hr />
+
+  <h2 id="section-27">10. 私が目指す投資</h2>
+
+  <p>私は市場に勝とうとは思わない。</p>
+
+  <p>市場を理解したい。</p>
+
+  <p>市場を理解できれば、結果として、市場より少し早く行動できる。</p>
+
+  <p>その積み重ねが、長期的な成果につながると考えている。</p>
+
+  <p>企業分析を学び、市場心理を学び、そして自分自身の心理も学び続ける。</p>
+
+  <hr />
+
+  <h2 id="section-28">11. この研究所の役割</h2>
+
+  <p>Market Psychologyは、株価を予想するための理論ではない。</p>
+
+  <p>市場参加者が、次のことを理解するための研究である。</p>
+
+  <ul>
+    <li>何を見ているのか</li>
+    <li>何を恐れているのか</li>
+    <li>何を期待しているのか</li>
+    <li>何を評価しているのか</li>
+  </ul>
+
+  <p>市場を理解することは、企業を理解することと同じくらい重要である。</p>
+
+  <p>私はこの研究を続けることで、市場との対話を続け、投資理論を進化させ続けたい。</p>
+
+  <hr />
+
+  <h2 id="section-29">12. 市場感覚を磨く</h2>
+
+  <p>市場は、知識だけで理解できるものではない。</p>
+
+  <p>私は、市場感覚も投資技術の一つだと考えている。</p>
+
+  <p>毎日の値動き、出来高、寄り付き、引け、板の強弱、市場参加者の反応を継続して観察することで、市場の小さな変化を感じ取る感覚が養われる。</p>
+
+  <p>この感覚は、後からチャートを見返すだけでは身につかない。</p>
+
+  <p>実際に市場へ参加し、市場と向き合い続けることで得られる。</p>
+
+  <p>これは釣りにも似ている。</p>
+
+  <p>海は毎日違う表情を見せる。</p>
+
+  <p>潮の流れ、風、水温、天候、時間帯によって魚の動きは変化する。</p>
+
+  <p>頻繁に海へ通っている人ほど、その日の小さな変化を自然と読み取れるようになる。</p>
+
+  <p>市場も同じである。</p>
+
+  <p>毎日市場と向き合うことで、市場参加者の心理、資金の流れ、値動きの癖、相場の強弱を感じられるようになる。</p>
+
+  <p>超短期売買を意識する理由は、短期利益を得るためだけではない。</p>
+
+  <p>常に売買する視点を持って相場を観察し、市場との距離を近く保つためでもある。</p>
+
+  <p>市場感覚とは、知識ではなく、経験の積み重ねによって磨かれるものである。</p>
+
+</section>
+
+<section class="book-chapter" id="thinking">
+
+  <h1 id="thinking-process">Thinking Process</h1>
+
+  <blockquote>
+    <p>Version 0.1<br />
+Sado Investment Lab</p>
+  </blockquote>
+
+  <p>投資判断を一貫した手順で行うための思考プロセスです。今後の実践と振り返りを通じて更新します。</p>
+
+  <h2 id="section-30">1. 事実を集める</h2>
+
+  <ul>
+    <li>決算、IR、一次情報を優先する</li>
+    <li>事実と第三者の解釈を区別する</li>
+    <li>情報の日付と出典を記録する</li>
+  </ul>
+
+  <h2 id="section-31">2. 企業価値を考える</h2>
+
+  <ul>
+    <li>需要の持続性</li>
+    <li>競争優位と参入障壁</li>
+    <li>売上・利益・キャッシュフロー</li>
+    <li>財務と資本配分</li>
+    <li>主なリスク</li>
+  </ul>
+
+  <h2 id="section-32">3. 市場期待を考える</h2>
+
+  <p>企業分析だけで判断せず、市場分析を同時に行う。</p>
+
+  <p>市場分析では、価格の予想ではなく、市場参加者の期待値と需給の状態を確認する。</p>
+
+  <ul>
+    <li>市場が何を期待しているか</li>
+    <li>期待がどこまで株価に織り込まれているか</li>
+    <li>PERなどの評価指標が何を示しているか</li>
+    <li>誰が買い、誰が売っているか</li>
+    <li>出来高、信用残、板にどのような変化があるか</li>
+    <li>過熱、悲観、無関心のどこにあるか</li>
+  </ul>
+
+  <h2 id="section-33">4. ギャップを見つける</h2>
+
+  <p>企業価値の見通しと市場期待を比較し、認識の差が存在するかを検討する。</p>
+
+  <h2 id="section-34">5. 仮説を作る</h2>
+
+  <ul>
+    <li>因果関係</li>
+    <li>前提条件</li>
+    <li>時間軸</li>
+    <li>観測指標</li>
+    <li>反証条件</li>
+  </ul>
+
+  <h2 id="section-35">仮説の寿命</h2>
+
+  <p>すべての仮説には寿命がある。</p>
+
+  <p>私は、</p>
+
+  <ul>
+    <li>何年間有効か</li>
+    <li>市場は何年先まで期待しているか</li>
+    <li>競争優位は何年間続くか</li>
+  </ul>
+
+  <p>を必ず考える。</p>
+
+  <h3 id="section-36">仮説管理</h3>
+
+  <p>仮説ごとに、次の項目を記録する。</p>
+
+  <ul>
+    <li>開始日</li>
+    <li>有効期限</li>
+    <li>反証条件</li>
+    <li>見直し予定日</li>
+  </ul>
+
+  <h2 id="section-37">6. 判断する</h2>
+
+  <p>買う、保有する、売る、見送るのいずれかを選び、理由とリスクを記録する。</p>
+
+  <h2 id="section-38">7. 検証する</h2>
+
+  <p>結果と判断過程を分けて評価し、得られた教訓をLessons Learnedへ反映する。</p>
+
+  <h2 id="section-39">8. 市場との対話を続ける</h2>
+
+  <p>私は、超短期売買を利益だけのためには行わない。</p>
+
+  <p>短期的な利益を積み重ねることも目的の一つであるが、それ以上に重要なのは、市場との対話を続けることである。</p>
+
+  <p>市場は毎日変化している。</p>
+
+  <ul>
+    <li>市場参加者の心理</li>
+    <li>資金の流れ</li>
+    <li>出来高</li>
+    <li>寄り付きと引けの動き</li>
+    <li>板の強弱</li>
+    <li>値動きの癖</li>
+    <li>ニュースに対する反応</li>
+  </ul>
+
+  <p>これらを継続して観察することで、言葉では説明しにくい小さな変化を感じ取る感覚が磨かれる。</p>
+
+  <p>この感覚は、後からチャートや決算資料を確認するだけでは身につかない。</p>
+
+  <p>実際に市場へ参加し、売買する意識を持って値動きを見続けることで得られるものだと考えている。</p>
+
+  <p>私は釣りが好きである。</p>
+
+  <p>海の状況を頻繁に見ていなければ、潮、風、水温、天候などの変化から魚の動きを読む感覚が鈍ってしまう。</p>
+
+  <p>市場も同じである。</p>
+
+  <p>継続して相場と向き合っていなければ、市場参加者の心理や資金の微妙な変化を読み取る感覚は鈍っていく。</p>
+
+  <p>超短期という時間軸を意識することは、利益機会を得るためだけではない。</p>
+
+  <p>市場感覚を維持し、長期・中期・短期を含むすべての投資判断の精度を高めるための実践でもある。</p>
+
+  <p>市場を見る時間が限られる会社員だからこそ、参加できる時には市場との距離を縮め、その感覚を失わないようにしたい。</p>
+
+</section>
+
+<section class="book-chapter" id="rules">
+
+  <h1 id="investment-rules">Investment Rules</h1>
+
+  <blockquote>
+    <p><strong>Version 1.0</strong><br />
+Sado Investment Lab</p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="section-40">はじめに</h2>
+
+  <p>このドキュメントは、私が投資判断を行う際の基本ルールをまとめたものである。</p>
+
+  <p>ここに書かれている内容は、機械的な売買ルールではない。</p>
+
+  <p>市場は常に変化する。</p>
+
+  <p>したがって、ルールも固定されたものではなく、経験や市場環境の変化に応じて改善し続ける。</p>
+
+  <p>重要なのはルールを守ることではない。</p>
+
+  <blockquote>
+    <p><strong>市場を理解し、自分の判断を改善し続けること</strong>である。</p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="section-41">1. 投資は仮説から始める</h2>
+
+  <p>私は企業から投資先を探さない。</p>
+
+  <p>まず社会の変化を考える。</p>
+
+  <ul>
+    <li>AI</li>
+    <li>半導体</li>
+    <li>原子力</li>
+    <li>宇宙</li>
+    <li>モビリティ</li>
+    <li>エネルギー</li>
+    <li>人口動態</li>
+    <li>政策</li>
+    <li>世界情勢</li>
+  </ul>
+
+  <p>これらの変化が、これからどのような需要を生み出すのかを考える。</p>
+
+  <p>その後、その需要によって恩恵を受ける企業を探す。</p>
+
+  <p>企業分析は、社会の変化という仮説を検証する作業である。</p>
+
+  <hr />
+
+  <h2 id="section-42">2. 数字は仮説を検証するために存在する</h2>
+
+  <p>私は数字だけで企業を評価しない。</p>
+
+  <p>数字は、企業価値そのものではなく、自分が立てた仮説が正しいかどうかを確認するために存在する。</p>
+
+  <p>重要なのは、数字の大小ではない。</p>
+
+  <p>その数字が何を意味しているのかを理解することである。</p>
+
+  <hr />
+
+  <h2 id="section-43">3. 売上成長を最も重視する</h2>
+
+  <p>私が最も重視する指標は売上である。</p>
+
+  <p>利益は、次のような要因によって短期的に変動する。</p>
+
+  <ul>
+    <li>設備投資</li>
+    <li>研究開発</li>
+    <li>人材投資</li>
+    <li>減価償却</li>
+  </ul>
+
+  <p>しかし売上は、市場から必要とされている結果である。</p>
+
+  <p>売上が継続して伸びている企業は、その企業が社会から価値を認められている証拠だと考える。</p>
+
+  <p>そのため私は、利益よりも売上の成長を重視する。</p>
+
+  <hr />
+
+  <h2 id="section-44">4. 業界によって重視する指標は変える</h2>
+
+  <p>私はすべての企業を同じ指標で評価しない。</p>
+
+  <p>業界によって、未来を最も表す数字は異なる。</p>
+
+  <p>例えば、</p>
+
+  <ul>
+    <li>SaaS企業では売上成長率</li>
+    <li>インフラ企業では受注残</li>
+    <li>製造業では設備投資や利益率</li>
+    <li>半導体企業では設備投資計画や需要動向</li>
+  </ul>
+
+  <p>つまり重要なのは、</p>
+
+  <blockquote>
+    <p><strong>「その会社の未来を最もよく表している指標は何か」</strong></p>
+  </blockquote>
+
+  <p>を考えることである。</p>
+
+  <hr />
+
+  <h2 id="section-45">5. 受注残は未来の売上である</h2>
+
+  <p>重工業や社会インフラ企業では、受注から売上計上まで数年かかることがある。</p>
+
+  <p>そのため、現在の売上だけでは企業価値は判断できない。</p>
+
+  <p>受注残が増えているということは、将来の売上が積み上がっている可能性を示している。</p>
+
+  <p>私は、受注残の増減から、数年後の企業の姿を想像する。</p>
+
+  <hr />
+
+  <h2 id="section-46">6. 利益率改善を見る</h2>
+
+  <p>利益率は、企業の競争力を表す重要な指標である。</p>
+
+  <p>同じ売上成長でも、利益率が改善している企業は、競争優位性が高まっている可能性がある。</p>
+
+  <p>私は利益率を、企業がどれだけ効率よく価値を生み出しているかを見るために利用する。</p>
+
+  <hr />
+
+  <h2 id="per">7. PERは市場心理を見るための指標</h2>
+
+  <p>私はPERだけで企業価値を判断しない。</p>
+
+  <p>PERを見る理由は、市場参加者の多くがPERを重視しているからである。</p>
+
+  <p>市場は、利益成長によってPERがどのように変化するかを見ながら企業を評価する傾向がある。</p>
+
+  <p>そのため私は、将来の利益を予測し、将来PERを計算する。</p>
+
+  <p>目的は企業価値を求めることではない。</p>
+
+  <p>市場が将来どのように評価する可能性があるのかを考えるためである。</p>
+
+  <blockquote>
+    <p><strong>PERは、企業分析ではなく、市場期待を理解するための指標として利用する。</strong></p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="section-47">8. 良い決算とは何か</h2>
+
+  <p>私は決算を、数字だけで判断しない。</p>
+
+  <p>市場期待と比較して考える。</p>
+
+  <p>良い決算でも、市場期待の方が高ければ株価は下がる。</p>
+
+  <p>逆に、数字が平凡でも、市場期待を上回れば株価は上昇する。</p>
+
+  <p>私は決算を見る時、必ず、</p>
+
+  <blockquote>
+    <p><strong>「市場は何を期待していたのか」</strong></p>
+  </blockquote>
+
+  <p>を考える。</p>
+
+  <hr />
+
+  <h2 id="section-48">9. 買いの判断</h2>
+
+  <p>私は、株価が下がったから買うことはしない。</p>
+
+  <p>次の条件が揃った時に投資を検討する。</p>
+
+  <ul>
+    <li>長期テーマが継続している</li>
+    <li>企業価値は変わっていない</li>
+    <li>市場期待だけが低下している</li>
+    <li>将来の成長シナリオが維持されている</li>
+  </ul>
+
+  <p>市場が悲観している時ほど、冷静に企業価値を確認する。</p>
+
+  <hr />
+
+  <h2 id="section-49">10. 売りの判断</h2>
+
+  <p>私は利益が出たから売ることはしない。</p>
+
+  <p>売却を検討するのは、次のような場合である。</p>
+
+  <ul>
+    <li>市場期待が過熱し過ぎた</li>
+    <li>企業価値以上に買われている</li>
+    <li>投資した仮説が崩れた</li>
+    <li>より期待値の高い投資先が見つかった</li>
+    <li>資金管理上の調整が必要になった</li>
+  </ul>
+
+  <p>売却も投資判断の一部である。</p>
+
+  <hr />
+
+  <h2 id="section-50">11. 市場は常に変化する</h2>
+
+  <p>市場環境は変化する。</p>
+
+  <ul>
+    <li>金利</li>
+    <li>政策</li>
+    <li>世界情勢</li>
+    <li>技術革新</li>
+    <li>市場参加者</li>
+  </ul>
+
+  <p>すべて変化し続ける。</p>
+
+  <p>だから、私のルールも固定しない。</p>
+
+  <p>常に、</p>
+
+  <blockquote>
+    <p><strong>「今の市場では何が重要なのか」</strong></p>
+  </blockquote>
+
+  <p>を考え続ける。</p>
+
+  <hr />
+
+  <h2 id="section-51">12. 投資は改善の積み重ね</h2>
+
+  <p>私は、投資で最も重要なのは、一度も間違えないことではないと考えている。</p>
+
+  <p>重要なのは、自分の判断を振り返り、仮説を検証し、改善を積み重ねることである。</p>
+
+  <p>成功も失敗も、すべて未来の投資理論を育てる材料になる。</p>
+
+  <p>私はこの研究所を通して、自分自身の投資理論を進化させ続ける。</p>
+
+</section>
+
+<section class="book-chapter" id="evaluation">
+
+  <h1 id="evaluation-framework">Evaluation Framework</h1>
+
+  <blockquote>
+    <p><strong>Version 1.0</strong><br />
+Sado Investment Lab</p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="section-52">はじめに</h2>
+
+  <p>このドキュメントは、企業分析を行う際の評価基準をまとめたものである。</p>
+
+  <p>企業分析の目的は、企業を順位付けすることではない。</p>
+
+  <p>評価や点数化そのものも目的ではない。</p>
+
+  <p>社会の変化によって長期的に価値を生み出す企業を見つけ、その実力と市場評価のギャップを投資機会として判断するために評価を行う。</p>
+
+  <p>私は、一つの指標だけで企業を判断しない。</p>
+
+  <p>複数の視点から総合的に企業を評価し、その後、市場期待や株価水準と組み合わせて投資判断を行う。</p>
+
+  <hr />
+
+  <h2 id="section-53">評価方法</h2>
+
+  <p>各項目を点数化する。</p>
+
+  <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>10点：非常に優れている
+8点：優れている
+6点：平均以上
+4点：やや弱い
+2点：弱い
+0点：評価対象外
+</code></pre></div>  </div>
+
+  <p>点数は絶対評価ではない。</p>
+
+  <p>同業他社との比較も考慮する。</p>
+
+  <hr />
+
+  <h2 id="section-54">1. 長期成長性（30点）</h2>
+
+  <h3 id="section-55">1-1 社会変化との整合性（10点）</h3>
+
+  <p>企業が、次のような長期テーマとどれだけ一致しているか。</p>
+
+  <ul>
+    <li>AI</li>
+    <li>原子力</li>
+    <li>半導体</li>
+    <li>宇宙</li>
+    <li>モビリティ</li>
+    <li>通信</li>
+  </ul>
+
+  <hr />
+
+  <h3 id="section-56">1-2 市場規模（10点）</h3>
+
+  <p>対象市場が今後どれだけ成長するか。</p>
+
+  <p>世界市場なのか、日本市場だけなのか。</p>
+
+  <p>市場が大きいほど成長余地も大きい。</p>
+
+  <hr />
+
+  <h3 id="section-57">1-3 将来性（10点）</h3>
+
+  <p>5年後、10年後でも需要が続くか。</p>
+
+  <p>一時的なブームではないか。</p>
+
+  <p>企業の競争優位が何年間持続すると考えられるか。</p>
+
+  <p>需要の継続期間だけでなく、競合、技術革新、価格競争、新規参入によって優位性が失われる時期も考える。</p>
+
+  <hr />
+
+  <h2 id="section-58">2. 企業競争力（30点）</h2>
+
+  <h3 id="section-59">2-1 売上成長（10点）</h3>
+
+  <p>私が最も重視する指標。</p>
+
+  <p>市場から必要とされている結果である。</p>
+
+  <hr />
+
+  <h3 id="section-60">2-2 利益率・利益率改善（5点）</h3>
+
+  <p>利益率だけではなく、改善傾向も見る。</p>
+
+  <hr />
+
+  <h3 id="section-61">2-3 技術力（5点）</h3>
+
+  <p>代替できない技術か。</p>
+
+  <p>世界トップクラスか。</p>
+
+  <hr />
+
+  <h3 id="section-62">2-4 参入障壁（5点）</h3>
+
+  <p>簡単に真似できるか。</p>
+
+  <p>長年のノウハウが必要か。</p>
+
+  <p>現在の参入障壁だけでなく、その競争優位が1年、3年、5年、10年以上のどの期間まで持続すると考えられるかを評価する。</p>
+
+  <hr />
+
+  <h3 id="section-63">2-5 経営陣（5点）</h3>
+
+  <p>次の項目を確認する。</p>
+
+  <ul>
+    <li>経営者の考え方</li>
+    <li>資本配分</li>
+    <li>将来ビジョン</li>
+    <li>IR</li>
+  </ul>
+
+  <hr />
+
+  <h2 id="section-64">3. 市場評価（20点）</h2>
+
+  <h3 id="section-65">3-1 市場期待（10点）</h3>
+
+  <p>市場期待は、企業価値そのものではなく、市場参加者が企業の未来へどの程度の期待値を置いているかを測るものである。</p>
+
+  <p>市場期待が高すぎないか、低すぎないか。</p>
+
+  <p>私はここを非常に重要視する。</p>
+
+  <p>市場期待が低い優良企業は、大きな投資機会になる。</p>
+
+  <p>企業が描く未来と、市場が株価へ織り込んでいる未来の差を確認する。</p>
+
+  <p>競争優位が続くと考える期間に対して市場期待が低いほど、投資機会となる可能性がある。</p>
+
+  <hr />
+
+  <h3 id="section-66">3-2 バリュエーション（5点）</h3>
+
+  <ul>
+    <li>PER</li>
+    <li>PBR</li>
+    <li>PEG</li>
+  </ul>
+
+  <p>企業価値ではなく、市場期待を知るために使う。</p>
+
+  <p>PERだけでは評価しにくい成長企業については、
+<a href="08_Original_Metrics.md">08_Original_Metrics.md</a> に定義する
+SS-Growthや将来PERを補助的に使用する。</p>
+
+  <p>独自指標だけで投資判断は行わず、
+売上成長の継続性、利益率、市場期待、財務、需給と組み合わせて評価する。</p>
+
+  <hr />
+
+  <h3 id="section-67">3-3 需給（5点）</h3>
+
+  <ul>
+    <li>信用残</li>
+    <li>出来高</li>
+    <li>海外投資家</li>
+    <li>空売り</li>
+  </ul>
+
+  <p>短中期の動きを確認する。</p>
+
+  <hr />
+
+  <h2 id="section-68">4. 安全性（20点）</h2>
+
+  <h3 id="section-69">4-1 財務（5点）</h3>
+
+  <ul>
+    <li>自己資本比率</li>
+    <li>有利子負債</li>
+    <li>キャッシュ</li>
+  </ul>
+
+  <hr />
+
+  <h3 id="section-70">4-2 設備投資（5点）</h3>
+
+  <p>将来へ投資しているか。</p>
+
+  <p>過剰投資ではないか。</p>
+
+  <hr />
+
+  <h3 id="section-71">4-3 研究開発（5点）</h3>
+
+  <p>未来への投資。</p>
+
+  <p>競争力維持。</p>
+
+  <hr />
+
+  <h3 id="section-72">4-4 リスク（5点）</h3>
+
+  <ul>
+    <li>中国依存</li>
+    <li>顧客依存</li>
+    <li>法規制</li>
+    <li>技術革新</li>
+    <li>為替</li>
+  </ul>
+
+  <hr />
+
+  <h2 id="section-73">業界ごとに重視する項目を変える</h2>
+
+  <p>私は、すべての企業を同じ基準では評価しない。</p>
+
+  <p>例えば、</p>
+
+  <ul>
+    <li>SaaSなら売上成長</li>
+    <li>重工業なら受注残</li>
+    <li>半導体なら設備投資</li>
+    <li>素材メーカーなら利益率</li>
+    <li>インフラなら受注残と財務</li>
+  </ul>
+
+  <p>その企業の未来を最もよく表す指標を重視する。</p>
+
+  <hr />
+
+  <h2 id="sado-score">Sado Score</h2>
+
+  <p>企業評価は100点満点で行う。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>項目</th>
+        <th style="text-align: right">配点</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>長期成長性</td>
+        <td style="text-align: right">30</td>
+      </tr>
+      <tr>
+        <td>企業競争力</td>
+        <td style="text-align: right">30</td>
+      </tr>
+      <tr>
+        <td>市場評価</td>
+        <td style="text-align: right">20</td>
+      </tr>
+      <tr>
+        <td>安全性</td>
+        <td style="text-align: right">20</td>
+      </tr>
+      <tr>
+        <td><strong>合計</strong></td>
+        <td style="text-align: right"><strong>100</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>ただし、点数だけで投資判断は行わない。</p>
+
+  <p>投資判断は、次の4つを組み合わせて行う。</p>
+
+  <ul>
+    <li>Sado Score</li>
+    <li>市場期待</li>
+    <li>株価水準</li>
+    <li>資金配分</li>
+  </ul>
+
+  <p>この4つが揃って初めて投資判断を行う。</p>
+
+  <hr />
+
+  <h2 id="section-74">評価は目的ではない</h2>
+
+  <p>高得点の企業を探すこと自体が目的ではない。</p>
+
+  <p>企業品質が高くても、その強さがすでに株価へ十分に織り込まれていれば、投資機会としての期待値は低いことがある。</p>
+
+  <p>逆に、現在の評価点が完全ではなくても、改善の可能性を市場が過小評価していれば投資機会になり得る。</p>
+
+  <p>評価では、企業の実力だけでなく、</p>
+
+  <ul>
+    <li>市場が現在どこまで評価しているか</li>
+    <li>実力と市場評価の間にどの程度のギャップがあるか</li>
+    <li>何が評価を変えるきっかけになるか</li>
+    <li>想定した時間軸で、その変化が株価へ反映される可能性があるか</li>
+  </ul>
+
+  <p>を確認する。</p>
+
+  <p>Sado Scoreは結論ではない。</p>
+
+  <p>企業品質と投資機会を分けて考え、企業の実力と市場評価のギャップを投資利益へつなげるための判断材料である。</p>
+
+  <hr />
+
+  <h2 id="section-75">最後に</h2>
+
+  <p>企業分析は、現在を評価するものではない。</p>
+
+  <p>未来を想像するために行う。</p>
+
+  <p>点数を付けることが目的ではない。</p>
+
+  <p>企業の実力を深く理解し、市場評価とのギャップから投資利益を得られる機会かを判断することが目的である。</p>
+
+  <p>評価基準も、市場とともに改善を続けていく。</p>
+
+</section>
+
+<section class="book-chapter" id="allocation">
+
+  <h1 id="capital-allocation">Capital Allocation</h1>
+
+  <blockquote>
+    <p><strong>Version 1.0</strong><br />
+Sado Investment Lab</p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="section-76">はじめに</h2>
+
+  <p>投資で最も重要なのは、「何を買うか」だけではない。</p>
+
+  <p>限られた資金を、「いつ」「どこへ」「どれだけ」配分するかによって、最終的なリターンは大きく変わる。</p>
+
+  <p>私は、資本配分（Capital Allocation）を、投資判断そのものと考えている。</p>
+
+  <hr />
+
+  <h2 id="section-77">1. お金にも働く場所がある</h2>
+
+  <p>資金は常に一つの場所で働いている。</p>
+
+  <p>ある企業へ投資すれば、その資金はその企業で働く。</p>
+
+  <p>しかし、もっと期待値の高い企業が現れたなら、資金も移動させるべきである。</p>
+
+  <p>私は、企業を売るのではない。</p>
+
+  <p>資金の働く場所を変えているだけである。</p>
+
+  <hr />
+
+  <h2 id="section-78">2. 投資とは資金の再配置である</h2>
+
+  <p>売却は、利益確定ではない。</p>
+
+  <p>資金を、より期待値の高い場所へ移動するための手段である。</p>
+
+  <p>そのため私は、「利益が出たから売る」という考え方はしない。</p>
+
+  <p>常に、現在の保有資産の中で、最も期待値が高い場所へ資金を置くことを考える。</p>
+
+  <hr />
+
+  <h2 id="section-79">3. 期待値が資本配分を決める</h2>
+
+  <p>私が最も重視するのは期待値である。</p>
+
+  <p>期待値とは、利益の大きさだけではない。</p>
+
+  <p>次のような要素を総合して考える。</p>
+
+  <ul>
+    <li>企業価値</li>
+    <li>市場期待</li>
+    <li>株価水準</li>
+    <li>リスク</li>
+    <li>時間軸</li>
+    <li>将来の成長可能性</li>
+  </ul>
+
+  <p>期待値が高いほど、より多くの資金を配分する。</p>
+
+  <hr />
+
+  <h2 id="section-80">4. 一つの銘柄でも資金は動かす</h2>
+
+  <p>私は、保有している企業を「買う」「売る」の二択では考えない。</p>
+
+  <p>例えば、長期で成長すると考えている企業でも、短期的に市場期待が過熱していることがある。</p>
+
+  <p>そのような時は、保有量の一部を売却する。</p>
+
+  <p>その後、市場が落ち着けば、再び買い戻す。</p>
+
+  <p>これは、企業への期待が下がったからではない。</p>
+
+  <p>より効率よく、同じ企業へ資金を配分するためである。</p>
+
+  <hr />
+
+  <h2 id="section-81">5. 長期保有と資金回転は両立する</h2>
+
+  <p>私は、長期投資と短期投資を対立するものとは考えていない。</p>
+
+  <p>長期で成長すると考える企業を保有しながら、短期的な市場の波も利用する。</p>
+
+  <p>その結果、長期の利益と、短期の利益を積み重ねることができる。</p>
+
+  <p>資金回転は、長期投資を否定するものではない。</p>
+
+  <p>長期投資をより効率的にする方法である。</p>
+
+  <hr />
+
+  <h2 id="section-82">6. 市場環境によって配分は変える</h2>
+
+  <p>市場環境は常に変化する。</p>
+
+  <p>強気相場では、積極的に資金を投入する。</p>
+
+  <p>不透明な相場では、現金比率を高める。</p>
+
+  <p>重要なのは、相場を当てることではない。</p>
+
+  <p>その時々の期待値に合わせて、資金配分を変えることである。</p>
+
+  <hr />
+
+  <h2 id="section-83">7. 仕事も資本配分に影響する</h2>
+
+  <p>私は専業投資家ではない。</p>
+
+  <p>会社員である。</p>
+
+  <p>そのため、市場を見られる時間は一定ではない。</p>
+
+  <p>仕事が忙しい時は、長期投資を中心に考える。</p>
+
+  <p>時間に余裕がある時は、短期の値動きも積極的に利用する。</p>
+
+  <p>生活環境も、資本配分の一部である。</p>
+
+  <hr />
+
+  <h2 id="section-84">8. 現金も投資対象である</h2>
+
+  <p>現金は、何もしていない資産ではない。</p>
+
+  <p>未来の投資機会へ備えるための資産である。</p>
+
+  <p>期待値の高い投資先が見つからない時は、無理に投資をしない。</p>
+
+  <p>現金を持つことも、重要な投資判断である。</p>
+
+  <hr />
+
+  <h2 id="section-85">9. ポートフォリオ全体で考える</h2>
+
+  <p>私は、一つの企業だけを見ない。</p>
+
+  <p>ポートフォリオ全体で考える。</p>
+
+  <ul>
+    <li>AI関連に偏りすぎていないか</li>
+    <li>景気敏感株ばかりではないか</li>
+    <li>政策リスクはないか</li>
+    <li>テーマは分散できているか</li>
+  </ul>
+
+  <p>資金は、ポートフォリオ全体の期待値が最大になるよう配分する。</p>
+
+  <hr />
+
+  <h2 id="section-86">10. 投資効率を最大化する</h2>
+
+  <p>投資効率とは、売買回数ではない。</p>
+
+  <p>長期保有だけでもない。</p>
+
+  <p>短期売買だけでもない。</p>
+
+  <p>その時、最も期待値が高い場所へ資金を置き続けることである。</p>
+
+  <p>私は、利益ではなく、期待値を追い続ける。</p>
+
+  <p>期待値を追い続けた結果として、長期的な利益はついてくると考えている。</p>
+
+  <hr />
+
+  <h2 id="section-87">最後に</h2>
+
+  <p>資本配分とは、未来への意思決定である。</p>
+
+  <p>資金には限りがある。</p>
+
+  <p>だからこそ、その一円一円を、最も価値を生み出す場所へ配分したい。</p>
+
+  <p>私は、企業へ投資する前に、資金の働き方を考える。</p>
+
+  <p>そして、期待値の変化とともに、資本配分も進化させ続ける。</p>
+
+  <p>それが、私の投資スタイルである。</p>
+
+</section>
+
+<section class="book-chapter" id="lessons">
+
+  <h1 id="lessons-learned">Lessons Learned</h1>
+
+  <h2 id="yyyy-mm-dd--">YYYY-MM-DD — タイトル</h2>
+
+  <ul>
+    <li>状況:</li>
+    <li>判断:</li>
+    <li>結果:</li>
+    <li>学び:</li>
+    <li>次回の行動:</li>
+  </ul>
+
+  <hr />
+
+  <h2 id="section-88">運用方針</h2>
+
+  <p>将来的には、個別事例を <code class="language-plaintext highlighter-rouge">Lessons/</code> ディレクトリへ保存する。</p>
+
+  <p>Frameworkには、複数の企業や局面で再利用可能な教訓だけを残す。</p>
+
+  <hr />
+
+  <h2 id="section-89">分析を実行条件へ落とし込む</h2>
+
+  <ul>
+    <li>状況: 値動きのシナリオを想定していても、具体的な注文条件が決まっていなかった</li>
+    <li>判断: 「上がりそう」という分析だけでは、実際の売買へ移れない</li>
+    <li>学び: 分析精度だけでなく、実行準備が投資結果を左右する</li>
+    <li>次回の行動: 寄り付きで狙う銘柄は、前日までに価格、株数、注文方法、成立・否定条件、損切り、利益確定条件を決める</li>
+  </ul>
+
+  <h2 id="section-90">市場予想との差を明示する</h2>
+
+  <ul>
+    <li>状況: 企業業績の良し悪しだけでは、株価の反応を説明できない</li>
+    <li>判断: 市場が何を織り込み、自分の予想とどこが異なるかを区別する</li>
+    <li>学び: 企業の実力と市場期待の差が、評価変更の機会になる</li>
+    <li>次回の行動: 投資仮説に市場予想、自分の予想、差が解消される触媒を記録する</li>
+  </ul>
+
+  <h2 id="section-91">未約定注文と保有を区別する</h2>
+
+  <ul>
+    <li>状況: 指値注文を出しても、約定するまでは保有ではない</li>
+    <li>判断: 未約定注文を取引実績や保有状況へ含めない</li>
+    <li>学び: 注文、約定、保有を分けることで記録の矛盾を防げる</li>
+    <li>次回の行動: 未約定注文はWatch Listで管理し、約定確認後にHoldingsへ反映する</li>
+  </ul>
+
+  <h2 id="section-92">信用取引では注文区分を発注前に確認する</h2>
+
+  <ul>
+    <li>状況: 信用買い建玉の返済売りを行う際、誤って信用新規売りを選択した</li>
+    <li>判断: 信用取引では、同じ「売り」でも新規売りと返済売りの意味が異なる</li>
+    <li>学び: 注文区分の誤りは、意図しない両建て、信用余力の減少、金利・貸株料、損益管理の複雑化につながる</li>
+    <li>次回の行動: 発注前に、新規か返済か、買いか売りか、返済対象、株数、確認画面の取引区分を確認する</li>
+  </ul>
+
+  <h2 id="section-93">誤発注は投資判断と分けて記録する</h2>
+
+  <ul>
+    <li>状況: 操作ミスで意図しない売り建玉が作られた</li>
+    <li>判断: 誤発注を相場観に基づくポジション変更として解釈しない</li>
+    <li>学び: 本来の意図、実際の約定、現在の建玉、解消方法、再発防止策を分けて残す</li>
+    <li>次回の行動: 建玉を確認し、実際に解消取引が約定するまでは解消済みと記録しない</li>
+  </ul>
+
+  <h2 id="section-94">不明な損益を推定しない</h2>
+
+  <ul>
+    <li>状況: 取得単価、株数、手数料、信用金利などを確認できない取引がある</li>
+    <li>判断: 差額だけから利益を確定しない</li>
+    <li>学び: 不完全な情報から計算した損益は、後続の判断を誤らせる</li>
+    <li>次回の行動: 根拠データを確認できるまで「未確認」と記録する</li>
+  </ul>
+
+</section>
+
+<section class="book-chapter" id="metrics">
+
+  <h1 id="original-metrics">Original Metrics</h1>
+
+  <blockquote>
+    <p><strong>Version 0.1</strong><br />
+Sado Investment Lab</p>
+  </blockquote>
+
+  <hr />
+
+  <h2 id="section-95">はじめに</h2>
+
+  <p>このドキュメントは、企業の成長性と市場期待を異なる角度から測り、企業の実力と市場評価のギャップを見つけるために、Sado Investment Labで考案・検証する独自指標を記録するものである。</p>
+
+  <p>独自指標の目的は企業を順位付けすることではない。</p>
+
+  <p>市場に十分織り込まれていない成長や収益性を見つけ、投資利益につながる可能性を検討することである。</p>
+
+  <p>ここに記載する数式は、完成した投資判断式ではない。</p>
+
+  <p>実際の企業分析、過去データによる検証、売買結果の振り返りを通じて継続的に修正する研究対象である。</p>
+
+  <p>独自指標だけで投資判断は行わない。</p>
+
+  <p>次の要素と組み合わせて利用する。</p>
+
+  <ul>
+    <li>企業の競争優位</li>
+    <li>需要の持続性</li>
+    <li>市場期待</li>
+    <li>財務</li>
+    <li>需給</li>
+    <li>リスク</li>
+    <li>投資仮説</li>
+  </ul>
+
+  <hr />
+
+  <h2 id="section-96">1. 企業の実力と市場評価のギャップ</h2>
+
+  <p>独自指標は、市場が使う指標を否定するためのものではない。</p>
+
+  <p>市場が使う指標だけでは見つけにくい投資機会を探すためのものである。</p>
+
+  <p>企業価値を一つの数式で正確に計算することだけが目的でもない。</p>
+
+  <p>まず、売上、利益率、成長率、受注残、ARR、契約数、利用者数、競争優位などから、企業が将来利益を生み出す力を推定する。</p>
+
+  <p>売上は、顧客が商品やサービスに価値を感じ、実際にお金を支払った結果である。</p>
+
+  <p>利益より経営判断による調整余地が比較的小さく、企業が社会から必要とされているかを表しやすい。</p>
+
+  <p>ただし、売上だけを絶対視しない。</p>
+
+  <p>業種に応じて、将来の売上を示す受注残やARRなど、将来の利益を生み出す力を最も適切に表す指標を選ぶ。</p>
+
+  <p>利益も重要であるが、企業の実力をそのまま表す数字ではない。</p>
+
+  <p>現在の利益には、次のような要素が混ざっている。</p>
+
+  <ul>
+    <li>研究開発費</li>
+    <li>広告宣伝費</li>
+    <li>人材採用</li>
+    <li>新規事業投資</li>
+    <li>海外展開</li>
+    <li>設備投資</li>
+    <li>M&amp;A</li>
+    <li>減損</li>
+    <li>特別損益</li>
+    <li>税負担</li>
+    <li>経営者が現在の利益をどの程度見せたいかという意思</li>
+  </ul>
+
+  <p>将来への投資を増やせば現在の利益は小さくなり、研究開発、広告、採用などを抑えれば短期的な利益を大きく見せることもできる。</p>
+
+  <p>例えば、売上100円から生まれた利益1円と、売上10,000円から生まれた利益1円は、現在の利益額だけを見れば同じである。</p>
+
+  <p>しかし、売上規模、利益率、コスト構造、利益率の改善余地、将来生み出せる利益はまったく異なる。</p>
+
+  <p>そのため、利益額だけでなく、どれだけの売上から生まれた利益か、売上がどれだけ伸びているか、利益率をどこまで改善できるか、将来の売上を示す先行指標があるかまで確認する。</p>
+
+  <p>次に、PER、PSR、将来PERなどから、市場参加者が企業を現在どのように評価しているかを推定する。</p>
+
+  <p>PERは次の式で構成される。</p>
+
+  <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>PER = 株価 ÷ EPS
+</code></pre></div>  </div>
+
+  <p>EPSの基礎となる利益が経営判断や一時要因によって変動するため、PERも短期間で大きく変わり得る。</p>
+
+  <p>それでも多くの市場参加者がPERを割高・割安の判断に利用する。</p>
+
+  <p>私はPERを信じているのではなく、利益成長によってPERが低下した時に、市場参加者の評価がどう変わるかを考えるために利用する。</p>
+
+  <p>将来PERを見る目的は、企業価値を決めることではない。</p>
+
+  <p>将来の売上、利益率、純利益、EPSを推定し、市場が評価を変える前に、企業の実力と市場期待のギャップを見つけることである。</p>
+
+  <p>企業分析が正しくても、その実力が株価へ反映されなければ投資利益にはならない。</p>
+
+  <p>独自指標の目的は、企業を評価して終わることではなく、市場評価が変わる可能性と時期を見つけ、その変化を投資利益へつなげることである。</p>
+
+  <hr />
+
+  <h2 id="ss-growth">2. SS-Growth</h2>
+
+  <h3 id="section-97">2-1 目的</h3>
+
+  <p>SS-Growthは、売上成長と利益率を、市場が売上に付けている評価で調整するための試作指標である。</p>
+
+  <p>成長企業では、現在の利益が先行投資によって小さく、PERが極端に高くなったり算出不能になったりすることがある。</p>
+
+  <p>そのような企業を評価する際に、売上を起点として成長性と収益性を同時に見る。</p>
+
+  <p>ただし、競争優位が何年間持続するかは数式だけでは表現できない。</p>
+
+  <p>SS-Growthは、参入障壁、技術革新、競合動向、価格競争、市場構造などの定性的評価と必ず組み合わせて使用する。</p>
+
+  <hr />
+
+  <h3 id="version-01">2-2 Version 0.1</h3>
+
+  <p>$
+\text{SS-Growth}
+=
+\frac{
+(\text{売上成長率})^2
+\times
+\text{営業利益率}
+}{
+\text{PSR}
+}
+$</p>
+
+  <h3 id="section-98">変数</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>変数</th>
+        <th>内容</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>売上成長率</td>
+        <td>原則として前年同期比または前年度比</td>
+      </tr>
+      <tr>
+        <td>営業利益率</td>
+        <td>営業利益 ÷ 売上高</td>
+      </tr>
+      <tr>
+        <td>PSR</td>
+        <td>時価総額 ÷ 売上高</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>計算時には、百分率をどの形式で入力したかを必ず記録する。</p>
+
+  <p>例として、売上成長率20%を <code class="language-plaintext highlighter-rouge">20</code> とするのか <code class="language-plaintext highlighter-rouge">0.20</code> とするのかで結果が大きく変わるため、比較対象では入力形式を統一する。</p>
+
+  <hr />
+
+  <h3 id="section-99">2-3 売上成長率を二乗する理由</h3>
+
+  <p>私は企業分析において、売上の伸びを特に重視する。</p>
+
+  <p>売上成長は、企業の商品やサービスに対する需要が拡大していることを示す。</p>
+
+  <p>成長率を二乗することで、高成長企業の差を強く反映する。</p>
+
+  <p>ただし、成長率の二乗は一時的な急成長を過大評価する可能性がある。</p>
+
+  <p>そのため、次の点を別途確認する。</p>
+
+  <ul>
+    <li>成長が複数年継続しているか</li>
+    <li>M&amp;Aによる見かけ上の成長ではないか</li>
+    <li>一時的な特需ではないか</li>
+    <li>将来も市場規模が拡大するか</li>
+    <li>売上成長が利益へ転換できるか</li>
+  </ul>
+
+  <hr />
+
+  <h3 id="section-100">2-4 営業利益率を掛ける理由</h3>
+
+  <p>売上が伸びても、利益を生み出せなければ企業価値の成長にはつながりにくい。</p>
+
+  <p>営業利益率は、本業がどれだけ効率よく利益を生み出しているかを示す。</p>
+
+  <p>売上成長と営業利益率を組み合わせることで、</p>
+
+  <blockquote>
+    <p><strong>成長しているだけでなく、収益へ転換できる企業か</strong></p>
+  </blockquote>
+
+  <p>を確認する。</p>
+
+  <p>現在の利益率だけでなく、改善方向も重要である。</p>
+
+  <hr />
+
+  <h3 id="psr">2-5 PSRで割る理由</h3>
+
+  <p>PSRは、市場が企業の売上に対してどの程度の評価を付けているかを示す。</p>
+
+  <p>高い売上成長と利益率を持っていても、その期待が株価へ過度に織り込まれていれば、投資余地は小さくなる可能性がある。</p>
+
+  <p>PSRで調整することで、</p>
+
+  <blockquote>
+    <p><strong>成長性と収益性に対して市場評価が高すぎないか</strong></p>
+  </blockquote>
+
+  <p>を見る。</p>
+
+  <hr />
+
+  <h2 id="ss-growth-1">3. SS-Growthの読み方</h2>
+
+  <p>SS-Growthは、数値が高ければ自動的に買いという指標ではない。</p>
+
+  <p>主に同業種や、近い成長段階にある企業を比較するために使う。</p>
+
+  <p>異なる業種間では、利益率、資本構造、適正PSRが大きく異なるため、単純比較しない。</p>
+
+  <p>確認例は次のとおりである。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>状態</th>
+        <th>解釈</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>売上成長が高く利益率も高い</td>
+        <td>強い成長企業の可能性</td>
+      </tr>
+      <tr>
+        <td>売上成長は高いが利益率が低い</td>
+        <td>先行投資中か、収益化に課題</td>
+      </tr>
+      <tr>
+        <td>成長性は高いがPSRも極端に高い</td>
+        <td>市場期待が先行している可能性</td>
+      </tr>
+      <tr>
+        <td>成長率は低いが利益率が高い</td>
+        <td>成熟した高収益企業の可能性</td>
+      </tr>
+      <tr>
+        <td>指標が急改善している</td>
+        <td>利益率改善や市場評価変化の確認が必要</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr />
+
+  <h2 id="ss-growth-2">4. SS-Growthの限界</h2>
+
+  <p>この指標には、次の限界がある。</p>
+
+  <h3 id="section-101">一時的な成長を過大評価する</h3>
+
+  <p>売上成長率を二乗するため、単年度の特需やM&amp;Aによる成長を強く評価する可能性がある。</p>
+
+  <h3 id="section-102">赤字企業を扱いにくい</h3>
+
+  <p>営業利益率がマイナスの場合、指標もマイナスになる。</p>
+
+  <p>赤字企業では、限界利益、粗利益率、損益分岐点、黒字化時期を別途確認する。</p>
+
+  <h3 id="section-103">業種間比較に向かない</h3>
+
+  <p>SaaS、製造業、商社、金融では適正利益率やPSRが異なる。</p>
+
+  <p>同業比較を基本とする。</p>
+
+  <h3 id="section-104">受注産業を十分に評価できない</h3>
+
+  <p>重工業、建設、原子力、インフラなどでは、現在の売上より受注残が将来を表す場合がある。</p>
+
+  <p>この場合は、受注残成長率を別の補助指標として扱う。</p>
+
+  <h3 id="section-105">財務リスクを含まない</h3>
+
+  <p>有利子負債、キャッシュフロー、増資リスクなどは式に含まれない。</p>
+
+  <p>安全性はEvaluation Frameworkで別途評価する。</p>
+
+  <hr />
+
+  <h2 id="per-1">5. 将来PER</h2>
+
+  <p>私はPERそのものよりも、利益成長後に市場からどう見えるかを考えるため、将来PERを利用する。</p>
+
+  <p>$
+\text{将来PER}
+=
+\frac{
+\text{現在株価}
+}{
+\text{将来予想EPS}
+}
+$</p>
+
+  <p>将来予想EPSは、会社予想、アナリスト予想、独自の利益予測を区別して記録する。</p>
+
+  <p>将来PERの目的は、企業価値を断定することではない。</p>
+
+  <blockquote>
+    <p><strong>利益が成長した時、市場参加者が割安と感じ始める可能性を考えること</strong></p>
+  </blockquote>
+
+  <p>である。</p>
+
+  <hr />
+
+  <h2 id="eps">6. 将来EPSの考え方</h2>
+
+  <p>将来EPSは、次の順番で推定する。</p>
+
+  <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>将来売上高
+↓
+想定営業利益率
+↓
+将来営業利益
+↓
+税引前利益・純利益への調整
+↓
+将来純利益
+↓
+発行済株式数で除算
+↓
+将来EPS
+</code></pre></div>  </div>
+
+  <p>簡易式は次のとおりである。</p>
+
+  <p>$
+\text{将来営業利益}
+=
+\text{将来売上高}
+\times
+\text{想定営業利益率}
+$</p>
+
+  <p>$
+\text{将来EPS}
+=
+\frac{
+\text{将来純利益}
+}{
+\text{発行済株式数}
+}
+$</p>
+
+  <p>営業利益から純利益へ変換する際は、過去の税負担率、営業外損益、特別損益を確認する。</p>
+
+  <p>単純に一定割合を掛ける場合は、その仮定を明記する。</p>
+
+  <hr />
+
+  <h2 id="section-106">7. 受注残を用いる補助評価</h2>
+
+  <p>重工業、建設、インフラ、原子力関連企業では、売上計上までに長い時間を要することがある。</p>
+
+  <p>この場合、売上成長だけでなく次を確認する。</p>
+
+  <p>$
+\text{受注残成長率}
+=
+\frac{
+\text{当期受注残}
+-
+\text{前期受注残}
+}{
+\text{前期受注残}
+}
+$</p>
+
+  <p>加えて、次の点を確認する。</p>
+
+  <ul>
+    <li>受注残の質</li>
+    <li>採算性</li>
+    <li>納期</li>
+    <li>売上への転換時期</li>
+    <li>キャンセルリスク</li>
+    <li>生産能力</li>
+    <li>売上計上の進捗</li>
+  </ul>
+
+  <p>受注残は未来の売上候補であるが、未来の利益を保証するものではない。</p>
+
+  <hr />
+
+  <h2 id="section-107">8. 今後検討する改良版</h2>
+
+  <p>SS-Growth Version 0.1は、売上成長、営業利益率、PSRのみを使用している。</p>
+
+  <p>今後、次の要素を追加する可能性がある。</p>
+
+  <ul>
+    <li>複数年の売上成長継続性</li>
+    <li>営業利益率の改善幅</li>
+    <li>粗利益率</li>
+    <li>受注残成長率</li>
+    <li>フリーキャッシュフロー</li>
+    <li>希薄化率</li>
+    <li>有利子負債</li>
+    <li>市場規模</li>
+    <li>競争優位</li>
+    <li>仮説確信度</li>
+  </ul>
+
+  <p>ただし、要素を増やしすぎると指標が複雑になり、何を測っているか分からなくなる。</p>
+
+  <p>数式は可能な限り単純に保ち、定性的な評価はSado Scoreと投資仮説で補完する。</p>
+
+  <hr />
+
+  <h2 id="section-108">9. 検証ルール</h2>
+
+  <p>独自指標を実用化する前に、必ず検証する。</p>
+
+  <h3 id="section-109">記録する内容</h3>
+
+  <ul>
+    <li>計算日</li>
+    <li>使用した決算期</li>
+    <li>各変数の出典</li>
+    <li>入力値</li>
+    <li>算出結果</li>
+    <li>同業他社との比較</li>
+    <li>その時点の株価</li>
+    <li>3か月後、6か月後、1年後の株価</li>
+    <li>業績の変化</li>
+    <li>仮説が正しかったか</li>
+    <li>指標が機能しなかった理由</li>
+  </ul>
+
+  <h3 id="section-110">検証方針</h3>
+
+  <ul>
+    <li>成功例だけを残さない</li>
+    <li>後から都合よく式を変更しない</li>
+    <li>変更時は旧バージョンを残す</li>
+    <li>業種別に有効性を確認する</li>
+    <li>過去データでバックテストする</li>
+    <li>実運用では他の評価項目と併用する</li>
+  </ul>
+
+  <hr />
+
+  <h2 id="section-111">10. バージョン管理</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Version</th>
+        <th>内容</th>
+        <th>状態</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>0.1</td>
+        <td>売上成長率² × 営業利益率 ÷ PSR</td>
+        <td>検証前</td>
+      </tr>
+      <tr>
+        <td>0.2</td>
+        <td>未定</td>
+        <td>構想中</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>数式を変更する場合は、旧式を削除せず、変更理由と検証結果を記録する。</p>
+
+  <hr />
+
+  <h2 id="section-112">注意事項</h2>
+
+  <p>SS-Growthは、まだ研究中の指標である。</p>
+
+  <p>単独では投資判断を行わない。</p>
+
+  <p>売上成長率がマイナスの場合、Version 0.1は正しく機能しない。</p>
+
+  <p>この点はVersion 0.2で改善予定である。</p>
+
+  <p>Version 0.1の入力形式は、次のように固定する。</p>
+
+  <ul>
+    <li>売上成長率：0〜1の小数形式</li>
+    <li>営業利益率：0〜1の小数形式</li>
+  </ul>
+
+  <p>例：</p>
+
+  <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>20%
+↓
+0.20
+</code></pre></div>  </div>
+
+  <hr />
+
+  <h2 id="section-113">最後に</h2>
+
+  <p>独自指標の目的は、万能な数式を作ることでも、企業分析そのものを完成させることでもない。</p>
+
+  <p>自分が企業の何を重視し、市場の何を疑い、どのギャップから投資利益を得ようとしているのかを明確にすることである。</p>
+
+  <p>数式は答えではない。</p>
+
+  <p>投資判断を深めるための道具である。</p>
+
+</section>
+
+<p class="book-end">Sado Investment Lab — Framework</p>
+
+  </main>
+  <a class="back-to-top" href="#" aria-label="ページ上部へ戻る">↑</a>
+  <script>
+    const root = document.documentElement;
+    const savedTheme = localStorage.getItem('book-theme');
+    if (savedTheme) root.dataset.theme = savedTheme;
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      localStorage.setItem('book-theme', next);
+    });
+    const progress = document.getElementById('progress');
+    const updateProgress = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      progress.style.width = (max > 0 ? window.scrollY / max * 100 : 0) + '%';
+    };
+    addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+
+    (() => {
+      const normalizedPath = window.location.pathname.replace(/\/+$/, '');
+      if (!normalizedPath.endsWith('/research/ai-key-person-watch')) return;
+      const main = document.querySelector('main.book-shell');
+      const title = main?.querySelector('h1');
+      if (!main || !title) return;
+
+      const panel = document.createElement('section');
+      panel.className = 'notice-card';
+      panel.setAttribute('aria-live', 'polite');
+      panel.innerHTML = '<strong>Monitoring status</strong><p>Heartbeatを確認中...</p>';
+      title.insertAdjacentElement('afterend', panel);
+
+      const issueCommentsBaseUrl = 'https://api.github.com/repos/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/issues/124/comments?per_page=100';
+      const trustedAuditAuthors = new Set(['sadouninc']);
+      const statusUrl = 'https://raw.githubusercontent.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-562/main/Ops/Monitoring/AI_Key_Person_Watch/status.json';
+      const staleAfterMinutes = 150;
+      const maxFutureSkewMinutes = 5;
+      const escapeHtml = (value) => String(value ?? '')
+        .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+      const renderTime = (value) => value
+        ? new Date(value).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }) + ' JST'
+        : '未記録';
+      const parseJst = (value) => {
+        if (!value) return null;
+        const normalized = value.trim().replace(/\s*JST$/i, '').replace(' ', 'T');
+        const withOffset = /(?:Z|[+-]\d{2}:?\d{2})$/.test(normalized) ? normalized : `${normalized}+09:00`;
+        const parsed = new Date(withOffset);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      };
+      const isTooFarFuture = (date) => date && date.getTime() > Date.now() + maxFutureSkewMinutes * 60000;
+      const parseAuditComment = (comment) => {
+        const author = String(comment?.user?.login || '').toLowerCase();
+        if (!trustedAuditAuthors.has(author)) return null;
+        const body = comment?.body;
+        if (!body || !body.includes('Operational Heartbeat / Run Audit')) return null;
+        const field = (name) => {
+          const match = body.match(new RegExp(`^${name}:\\s*(.+)$`, 'mi'));
+          return match ? match[1].trim() : null;
+        };
+        const runAt = parseJst(field('run_at_jst'));
+        const status = field('status');
+        if (!runAt || !status) return null;
+        return {
+          runAt,
+          status: status.toUpperCase(),
+          newsDelta: Number(field('news_delta') || 0),
+          newsPersisted: String(field('news_persisted') || '').toLowerCase() === 'true',
+          persistenceStatus: (field('persistence_status') || 'NOT_REQUIRED').toUpperCase()
+        };
+      };
+      const classifyAudit = (audit) => {
+        if (isTooFarFuture(audit.runAt)) {
+          return { state: 'DEGRADED', reason: `直近run時刻が現在より${maxFutureSkewMinutes}分超先です。時計・timezone・入力を確認してください。` };
+        }
+        const ageMinutes = (Date.now() - audit.runAt.getTime()) / 60000;
+        if (ageMinutes > staleAfterMinutes) {
+          return { state: 'STALE', reason: `最終runから約${Math.floor(ageMinutes)}分経過しています。` };
+        }
+        if (audit.status === 'ERROR') return { state: 'DEGRADED', reason: '直近runがERRORです。' };
+        if (audit.persistenceStatus === 'PENDING_PERSIST') return { state: 'DEGRADED', reason: 'ニュース保存がPENDING_PERSISTです。' };
+        return { state: 'HEALTHY', reason: 'Issue #124の直近Run Auditは監視閾値内です。' };
+      };
+      const renderAudit = (audit, sourceLabel) => {
+        const health = classifyAudit(audit);
+        panel.innerHTML = `<strong>Monitoring status: ${escapeHtml(health.state)}</strong><dl>`
+          + `<dt>直近run</dt><dd>${escapeHtml(renderTime(audit.runAt.toISOString()))}</dd>`
+          + `<dt>ニュース差分</dt><dd>${escapeHtml(audit.newsDelta)}</dd>`
+          + `<dt>Persistence</dt><dd>${escapeHtml(audit.persistenceStatus)}</dd>`
+          + `<dt>監視ソース</dt><dd>${escapeHtml(sourceLabel)}</dd>`
+          + `<dt>状態理由</dt><dd>${escapeHtml(health.reason)}</dd></dl>`;
+      };
+      const classifyStatusFile = (payload) => {
+        const lastRun = payload.last_run_at ? new Date(payload.last_run_at) : null;
+        const lastSuccess = payload.last_success_at ? new Date(payload.last_success_at) : null;
+        const lastNewsDelta = payload.last_news_delta_at ? new Date(payload.last_news_delta_at) : null;
+        if (!lastSuccess || Number.isNaN(lastSuccess.getTime())) {
+          return { state: 'UNKNOWN', reason: 'Run Audit APIとstatus.jsonのどちらからも成功runを確認できません。' };
+        }
+        if (isTooFarFuture(lastRun) || isTooFarFuture(lastSuccess) || isTooFarFuture(lastNewsDelta)) {
+          return { state: 'DEGRADED', reason: `Heartbeat timestampが現在より${maxFutureSkewMinutes}分超先です。` };
+        }
+        if (lastRun && !Number.isNaN(lastRun.getTime()) && lastSuccess.getTime() > lastRun.getTime()) {
+          return { state: 'DEGRADED', reason: 'last_success_atがlast_run_atより後です。' };
+        }
+        if (lastRun && lastNewsDelta && !Number.isNaN(lastNewsDelta.getTime()) && lastNewsDelta.getTime() > lastRun.getTime()) {
+          return { state: 'DEGRADED', reason: 'last_news_delta_atがlast_run_atより後です。' };
+        }
+        const ageMinutes = (Date.now() - lastSuccess.getTime()) / 60000;
+        const staleAfter = Number(payload.stale_after_minutes || staleAfterMinutes);
+        if (ageMinutes > staleAfter) return { state: 'STALE', reason: `最終成功runから約${Math.floor(ageMinutes)}分経過しています。` };
+        if (payload.last_status === 'ERROR') return { state: 'DEGRADED', reason: '直近runがERRORです。' };
+        if (payload.persistence_status === 'PENDING_PERSIST') return { state: 'DEGRADED', reason: 'ニュース保存がPENDING_PERSISTです。' };
+        return { state: 'HEALTHY', reason: 'status.jsonの直近成功runは監視閾値内です。' };
+      };
+      const renderStatusFile = (payload) => {
+        const health = classifyStatusFile(payload);
+        panel.innerHTML = `<strong>Monitoring status: ${escapeHtml(health.state)}</strong><dl>`
+          + `<dt>最終監視成功</dt><dd>${escapeHtml(renderTime(payload.last_success_at))}</dd>`
+          + `<dt>最終ニュース差分</dt><dd>${escapeHtml(renderTime(payload.last_news_delta_at))}</dd>`
+          + `<dt>直近run</dt><dd>${escapeHtml(renderTime(payload.last_run_at))}</dd>`
+          + `<dt>監視ソース</dt><dd>status.json fallback</dd>`
+          + `<dt>状態理由</dt><dd>${escapeHtml(health.reason)}</dd></dl>`;
+      };
+      const loadStatusFallback = (issueError) => fetch(`${statusUrl}?t=${Date.now()}`, { cache: 'no-store' })
+        .then((response) => {
+          if (!response.ok) throw new Error(`status.json HTTP ${response.status}`);
+          return response.json();
+        })
+        .then(renderStatusFile)
+        .catch((statusError) => {
+          panel.innerHTML = `<strong>Monitoring status: UNKNOWN</strong><p>Heartbeat取得に失敗しました: ${escapeHtml(issueError.message)} / ${escapeHtml(statusError.message)}</p>`;
+        });
+
+      const linkedPage = (header, rel) => {
+        for (const part of String(header || '').split(',')) {
+          if (!part.includes(`rel="${rel}"`)) continue;
+          const url = part.match(/<([^>]+)>/)?.[1];
+          if (!url) continue;
+          const page = new URL(url).searchParams.get('page');
+          if (page && /^\d+$/.test(page)) return Number(page);
+        }
+        return null;
+      };
+      const fetchIssuePage = (page) => fetch(`${issueCommentsBaseUrl}&page=${page}`, {
+        cache: 'no-store',
+        headers: { Accept: 'application/vnd.github+json' }
+      }).then((response) => {
+        if (!response.ok) throw new Error(`Issue #124 API HTTP ${response.status}`);
+        const link = response.headers.get('Link');
+        return response.json().then((comments) => ({ comments, link }));
+      });
+      const latestTrustedAudit = (comments) => {
+        const audits = comments.map(parseAuditComment).filter(Boolean);
+        audits.sort((a, b) => b.runAt.getTime() - a.runAt.getTime());
+        return audits[0] || null;
+      };
+      const findLatestTrustedAudit = (page) => fetchIssuePage(page).then(({ comments }) => {
+        const audit = latestTrustedAudit(comments);
+        if (audit) return audit;
+        if (page <= 1) throw new Error('Issue #124に信頼済みRun Auditがありません');
+        return findLatestTrustedAudit(page - 1);
+      });
+      const loadLatestIssueAudit = () => fetchIssuePage(1)
+        .then(({ comments, link }) => {
+          const lastPage = linkedPage(link, 'last') || linkedPage(link, 'next') || 1;
+          if (lastPage === 1) {
+            const audit = latestTrustedAudit(comments);
+            if (!audit) throw new Error('Issue #124に信頼済みRun Auditがありません');
+            return audit;
+          }
+          return findLatestTrustedAudit(lastPage);
+        })
+        .then((audit) => renderAudit(audit, 'Issue #124 Run Audit (trusted/latest page)'));
+
+      loadLatestIssueAudit().catch(loadStatusFallback);
+    })();
+  </script>
+</body>
+</html>
