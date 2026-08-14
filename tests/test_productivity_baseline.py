@@ -74,6 +74,36 @@ def test_tracked_jsonl_matches_fixture_projection():
     assert actual == expected
 
 
+def test_safe_ratio_normal_case_computes_expected_value():
+    assert baseline.safe_ratio(9, 3) == 3
+    assert baseline.safe_ratio(1, 4) == 0.25
+
+
+def test_safe_ratio_zero_denominator_is_unknown():
+    assert baseline.safe_ratio(5, 0) is None
+
+
+def test_safe_ratio_missing_input_is_unknown():
+    assert baseline.safe_ratio(None, 5) is None
+    assert baseline.safe_ratio(5, None) is None
+    assert baseline.safe_ratio(None, None) is None
+
+
+def test_safe_ratio_negative_input_is_unknown():
+    assert baseline.safe_ratio(-1, 5) is None
+    assert baseline.safe_ratio(5, -1) is None
+    assert baseline.safe_ratio(-1, -1) is None
+
+
+def test_safe_ratio_non_finite_and_boolean_inputs_are_unknown():
+    assert baseline.safe_ratio(float("inf"), 5) is None
+    assert baseline.safe_ratio(5, float("inf")) is None
+    assert baseline.safe_ratio(float("nan"), 5) is None
+    assert baseline.safe_ratio(5, float("nan")) is None
+    assert baseline.safe_ratio(True, 5) is None
+    assert baseline.safe_ratio(5, False) is None
+
+
 def test_invalid_explicit_result_fails_closed():
     case = {
         "case_id": "bad",
