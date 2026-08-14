@@ -18,13 +18,35 @@ as_of: 2026-08-13
 
 ## 同じ軸で比較
 
-| 軸 | ACSL | Terra Drone |
-|---|---|---|
-| **Growth Engine** | 国内政策 / 官需 / 国家R&D / 国産化 | Global市場 / UTM / drone services / 海外契約・partner |
-| **Capital Engine** | Government R&D・調達が民間資本負担を代替し、希薄化依存を下げられるか | Equity capitalをM&A・海外展開・defenseへ投下し、希薄化以上の企業価値を作れるか |
-| **Revenue Quality** | 防衛・官需の具体的order visibilityが強み。保守・運用支援のrecurring化は要検証 | UTM / SaaS / inspection / licenseのrecurring optionality。全社利益への変換はUNPROVEN |
-| **最大Catalyst** | 防衛調達の継続・大型化、粗利/CF改善、政府資金から自立収益化への接続 | 海外大型契約、UTM recurring拡大、defense scale、global footprintの収益化 |
-| **最大Risk** | 官需集中、program delay、赤字継続、再度のequity financing | 海外execution、M&A integration、希薄化、利益化遅延、複雑な事業mix |
+### Growth Engine
+<div class="content-grid">
+  <div class="content-card"><strong>ACSL</strong><span>国内政策 / 官需 / 国家R&D / 国産化。</span></div>
+  <div class="content-card"><strong>Terra Drone</strong><span>Global市場 / UTM / drone services / 海外契約・partner。</span></div>
+</div>
+
+### Capital Engine
+<div class="content-grid">
+  <div class="content-card"><strong>ACSL</strong><span>Government R&D・調達が民間資本負担を代替し、希薄化依存を下げられるか。</span></div>
+  <div class="content-card"><strong>Terra Drone</strong><span>Equity capitalをM&A・海外展開・defenseへ投下し、希薄化以上の企業価値を作れるか。</span></div>
+</div>
+
+### Revenue Quality
+<div class="content-grid">
+  <div class="content-card"><strong>ACSL</strong><span>防衛・官需の具体的order visibilityが強み。保守・運用支援のrecurring化は要検証。</span></div>
+  <div class="content-card"><strong>Terra Drone</strong><span>UTM / SaaS / inspection / licenseのrecurring optionality。全社利益への変換はUNPROVEN。</span></div>
+</div>
+
+### 最大Catalyst
+<div class="content-grid">
+  <div class="content-card"><strong>ACSL</strong><span>防衛調達の継続・大型化、粗利/CF改善、政府資金から自立収益化への接続。</span></div>
+  <div class="content-card"><strong>Terra Drone</strong><span>海外大型契約、UTM recurring拡大、defense scale、global footprintの収益化。</span></div>
+</div>
+
+### 最大Risk
+<div class="content-grid">
+  <div class="content-card"><strong>ACSL</strong><span>官需集中、program delay、赤字継続、再度のequity financing。</span></div>
+  <div class="content-card"><strong>Terra Drone</strong><span>海外execution、M&A integration、希薄化、利益化遅延、複雑な事業mix。</span></div>
+</div>
 
 ### 読み違え防止
 
@@ -142,6 +164,7 @@ Research baselineでは大型equity financingをM&A・global footprint・defense
 
 ---
 
-**Research status:** `COMPARISON HYPOTHESIS = STRENGTHENING` / `EARNINGS CONVERSION = UNPROVEN FOR BOTH`
+**比較仮説の状態（Research state）:** `COMPARISON HYPOTHESIS = STRENGTHENING`  
+**利益変換の状態:** `EARNINGS CONVERSION = UNPROVEN FOR BOTH`
 
 これは企業比較Researchであり、投資判断・売買指示ではありません。
