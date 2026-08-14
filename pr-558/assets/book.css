@@ -253,18 +253,38 @@ code { font-size: .9em; }
 .theme-toggle { top: 78px; font-size: 1.1rem; }
 .back-to-top { bottom: 18px; }
 @media (max-width: 640px) {
-  body { font-size: 16px; }
-  .site-header { width: min(100% - 24px, 1120px); align-items: flex-start; flex-direction: column; padding: .7rem 0; }
-  .site-nav { width: 100%; padding-bottom: .2rem; }
-  .theme-toggle { top: 118px; }
-  .book-shell { width: min(100% - 30px, 840px); }
+  body { font-size: 16px; line-height: 1.75; }
+  .site-header { width: min(100% - 24px, 1120px); align-items: flex-start; flex-direction: column; gap: .4rem; min-height: 0; padding: .55rem 0; }
+  .site-nav { width: 100%; padding-bottom: .15rem; }
+  .theme-toggle { top: 108px; right: 12px; }
+  .book-shell { width: min(100% - 24px, 840px); padding-bottom: 3rem; }
+  .book-toc { margin: 2rem 0; padding: 1rem; }
   .book-toc ol { columns: 1; }
-  .book-hero { min-height: 72vh; }
-  .card-grid, .content-grid { grid-template-columns: 1fr; }
-  .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .nav-card, .content-card { min-height: 0; }
+  .book-hero { min-height: 0; padding: 2rem 0 2.25rem; justify-content: flex-start; }
+  .book-hero h1 { margin: .3em 0; font-size: clamp(1.9rem, 8.8vw, 2.2rem); line-height: 1.22; overflow-wrap: anywhere; }
+  .lead { margin: .6rem 0; font-size: 1rem; line-height: 1.7; }
+  .edition { margin-top: 1.25rem; }
+  .breadcrumb { margin: 1rem 0 1.5rem; }
+  .book-overview { margin: 2rem 0; }
+  .book-overview > p { line-height: 1.75; }
+  .reading-note { margin-bottom: 3rem; }
+  .section-index { padding: 2.5rem 0 1.5rem; }
+  .book-chapter { padding: 2.5rem 0 1.5rem; }
+  .book-chapter > h1:first-of-type { margin-bottom: 1.5rem; font-size: clamp(1.85rem, 8.5vw, 2.15rem); line-height: 1.25; overflow-wrap: anywhere; }
+  h2 { margin-top: 2.1em; font-size: clamp(1.35rem, 6.5vw, 1.55rem); line-height: 1.35; }
+  h3 { margin-top: 1.8em; font-size: 1.12rem; line-height: 1.4; }
+  p { margin: .9em 0; }
+  blockquote { margin: 1.5rem 0; padding-left: 1rem; }
+  hr { margin: 2rem 0; }
+  .card-grid, .content-grid { grid-template-columns: 1fr; gap: .75rem; margin: 1.25rem 0 2rem; }
+  .nav-card, .content-card { min-height: 0; gap: .45rem; padding: 1rem; }
+  .nav-card strong, .content-card strong { font-size: 1.05rem; line-height: 1.4; overflow-wrap: anywhere; }
+  .nav-card span, .content-card span { font-size: .84rem; line-height: 1.55; }
+  .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 1.25rem 0 2rem; }
   .market-chart { width: calc(100vw - 1.5rem); }
-  table { display: block; overflow-x: auto; }
+  .book-end { margin-top: 3rem; }
+  table { display: block; max-width: 100%; overflow-x: auto; }
+  pre { max-width: 100%; padding: .9rem; }
 }
 .phase-controls { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
 .phase-controls label { font-weight: 600; }
@@ -410,6 +430,12 @@ td { font-variant-numeric: tabular-nums; }
 }
 @media (max-width: 420px) {
   .trade-filters { grid-template-columns: 1fr; gap: .7rem; }
+}
+@media (max-width: 360px) {
+  .book-shell { width: min(100% - 20px, 840px); }
+  .book-hero h1, .book-chapter > h1:first-of-type { font-size: 1.75rem; }
+  .theme-toggle, .back-to-top { width: 40px; height: 40px; }
+  .content-card, .nav-card { padding: .9rem; }
 }
 @media print {
   .theme-toggle, .back-to-top, .reading-progress { display: none; }
