@@ -5,16 +5,14 @@
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
 Last updated: 2026-08-14  
-Sources: Issue #99 Current Active Board; #338; #354; Owner explicit AWAY transition; transition prep comment 5283976502; verified Broadcast head 5282646722  
+Sources: Issue #99 Current Active Board; #338; #354; Owner explicit ACTIVE return on 2026-08-14; prior AWAY transition state  
 Broadcast head at snapshot: `comment_id=5282646722`
 
 ## User Mode
 
-- Mode: **AWAY**
-- Meaning: 👑サド is inactive. AWAY delegated autonomous operations are active within existing Authority; Owner-only decisions are backlogged, not inferred.
+- Mode: **ACTIVE**
+- Meaning: 👑サド is active. Normal role priority and Owner Authority flow apply. AWAY-only delegated cadence is stopped.
 - Mode contract: #354. `ACTIVE` keeps normal roles. `AWAY` activates delegated autonomous operations.
-- AWAY runtime: initialize ♦️ソラ cadence with `AWAY_SORA_RUN_MOD3=1` on the first AWAY run. Every third AWAY run (`0`) includes `Delegated Nagi Process Check`.
-- Reviewer routing: 🌊ナギ is not a required reviewer while AWAY. Existing Single Implementation Owners continue; review/process continuity uses delegated lanes and explicit Authority boundaries.
 
 ## Mode Transition Contract
 
