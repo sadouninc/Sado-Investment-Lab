@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sadouninc.github.io/Sado-Investment-Lab/contracts/intraday-subsector-flow-v1.schema.json",
+  "title": "Intraday Subsector Flow v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","observed_at","source","freshness","data_completeness","benchmark","sector","subsector","observations","leaders","flow_state","acceleration_state"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "source": {"type": "string", "minLength": 1},
+    "freshness": {"enum": ["FRESH","STALE","UNKNOWN"]},
+    "data_completeness": {"enum": ["COMPLETE","PARTIAL","UNKNOWN"]},
+    "benchmark": {"enum": ["TOPIX","NIKKEI225","OTHER","UNKNOWN"]},
+    "sector": {"$ref": "#/$defs/sector"},
+    "subsector": {"$ref": "#/$defs/subsector"},
+    "observations": {"$ref": "#/$defs/observations"},
+    "leaders": {"type":"array","items":{"$ref":"#/$defs/leader"}},
+    "flow_state": {"const":"UNKNOWN"},
+    "acceleration_state": {"const":"UNKNOWN"}
+  },
+  "$defs": {
+    "nullableNumber": {"type":["number","null"]},
+    "sector": {
+      "type":"object","additionalProperties":false,
+      "required":["id","label","medium_term_regime"],
+      "properties":{"id":{"type":"string","minLength":1},"label":{"type":"string","minLength":1},"medium_term_regime":{"type":"string","minLength":1}}
+    },
+    "subsector": {
+      "type":"object","additionalProperties":false,
+      "required":["id","label","taxonomy_version","as_of","source_or_authority"],
+      "properties":{"id":{"type":"string","minLength":1},"label":{"type":"string","minLength":1},"taxonomy_version":{"type":"string","minLength":1},"as_of":{"type":"string","minLength":1},"source_or_authority":{"type":"string","minLength":1}}
+    },
+    "observations": {
+      "type":"object","additionalProperties":false,
+      "required":["intraday_return","benchmark_return","relative_return","rising_count","constituent_count","breadth","median_constituent_return","turnover_ratio","concentration_top1"],
+      "properties":{
+        "intraday_return":{"$ref":"#/$defs/nullableNumber"},"benchmark_return":{"$ref":"#/$defs/nullableNumber"},"relative_return":{"$ref":"#/$defs/nullableNumber"},
+        "rising_count":{"type":["integer","null"],"minimum":0},"constituent_count":{"type":["integer","null"],"minimum":0},"breadth":{"$ref":"#/$defs/nullableNumber"},
+        "median_constituent_return":{"$ref":"#/$defs/nullableNumber"},"turnover_ratio":{"$ref":"#/$defs/nullableNumber"},"concentration_top1":{"$ref":"#/$defs/nullableNumber"}
+      }
+    },
+    "leader": {
+      "type":"object","additionalProperties":false,"required":["security_code","name","intraday_return"],
+      "properties":{"security_code":{"type":"string","minLength":1},"name":{"type":"string","minLength":1},"intraday_return":{"$ref":"#/$defs/nullableNumber"}}
+    }
+  }
+}

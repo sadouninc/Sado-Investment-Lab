@@ -1,0 +1,23 @@
+[
+  {
+    "schema_version":1,"observed_at":"2026-08-14T10:30:00+09:00","source":"fixture","freshness":"FRESH","data_completeness":"COMPLETE","benchmark":"TOPIX",
+    "sector":{"id":"pharmaceutical","label":"Pharmaceutical","medium_term_regime":"COLD"},
+    "subsector":{"id":"biotechnology","label":"Biotechnology","taxonomy_version":"existing-canonical-ref-v1","as_of":"2026-08-14","source_or_authority":"existing-canonical-taxonomy"},
+    "observations":{"intraday_return":0.04,"benchmark_return":0.005,"relative_return":0.035,"rising_count":8,"constituent_count":10,"breadth":0.8,"median_constituent_return":0.025,"turnover_ratio":1.7,"concentration_top1":0.22},
+    "leaders":[{"security_code":"4588","name":"Oncolys BioPharma","intraday_return":0.08}],"flow_state":"UNKNOWN","acceleration_state":"UNKNOWN"
+  },
+  {
+    "schema_version":1,"observed_at":"2026-08-14T11:00:00+09:00","source":"fixture","freshness":"FRESH","data_completeness":"COMPLETE","benchmark":"TOPIX",
+    "sector":{"id":"example-sector","label":"Example Sector","medium_term_regime":"NEUTRAL"},
+    "subsector":{"id":"example-theme","label":"Example Theme","taxonomy_version":"existing-canonical-ref-v1","as_of":"2026-08-14","source_or_authority":"existing-canonical-taxonomy"},
+    "observations":{"intraday_return":0.015,"benchmark_return":0.005,"relative_return":0.01,"rising_count":1,"constituent_count":10,"breadth":0.1,"median_constituent_return":-0.002,"turnover_ratio":1.2,"concentration_top1":0.78},
+    "leaders":[{"security_code":"0000","name":"Single Leader","intraday_return":0.12}],"flow_state":"UNKNOWN","acceleration_state":"UNKNOWN"
+  },
+  {
+    "schema_version":1,"observed_at":"2026-08-14T09:00:00+09:00","source":"fixture","freshness":"STALE","data_completeness":"PARTIAL","benchmark":"UNKNOWN",
+    "sector":{"id":"unknown-sector","label":"Unknown Sector","medium_term_regime":"UNKNOWN"},
+    "subsector":{"id":"unknown-subsector","label":"Unknown Subsector","taxonomy_version":"UNKNOWN","as_of":"UNKNOWN","source_or_authority":"UNKNOWN"},
+    "observations":{"intraday_return":null,"benchmark_return":null,"relative_return":null,"rising_count":null,"constituent_count":null,"breadth":null,"median_constituent_return":null,"turnover_ratio":null,"concentration_top1":null},
+    "leaders":[],"flow_state":"UNKNOWN","acceleration_state":"UNKNOWN"
+  }
+]
