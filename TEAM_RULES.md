@@ -1,26 +1,258 @@
-# TEAM_RULES.md
+# Sado Investment Lab — Team Rules
 
-> This file is the authoritative team operating rules document.
-> Material changes must follow Issue -> branch -> commit -> PR -> review / CI -> merge.
+この文書は Sado Investment Lab チームの恒久的な開発・運用ルールを定義する。
 
-## Core principles
+- **この文書（TEAM_RULES.md）をチーム運用ルールの正とする。**
+- 日々の方針変更・連絡は GitHub Issue #99 `📣 Team Broadcast` で通知する。
+- Broadcastと本書が矛盾する場合、恒久ルールとして正式に本書へ反映された内容を正とする。緊急・一時的な指示はBroadcastを優先する。
 
-- GitHub is the Single Source of Truth for durable project state.
-- Work should follow `Issue -> branch -> commit -> PR -> review / CI -> merge` for material changes.
-- One implementation owner per Issue/slice/file/logic scope.
-- Do not duplicate implementation already owned by another member.
-- Waiting on CI/review/dependency should trigger safe work on another non-conflicting item when available.
-- Owner-only investment judgment, BUY/SELL/HOLD, risk thresholds, secrets/auth/permissions, paid actions, destructive/irreversible changes, and material external-publication changes remain gated.
-- Issue #79 must not be modified/commented/closed/implemented unless a later explicit authoritative instruction supersedes this restriction.
+## 1. チーム
 
-## Startup
+| 名前 | 役割 |
+| --- | --- |
+| 👑 サド | プロダクトオーナー |
+| 🌙 ルナ | リーダー／プロジェクト全体の方向性・設計判断 |
+| ❤️ レイ | AIキーパーソン・外部ニュース監視 |
+| ⭐️ ミナ | Design / UX Owner／Sado Investment Lab全体レビュー |
+| ♦️ ソラ | GitHub Issue確認・実装推進 |
+| 🌊 ナギ | スクラムマスター／全体最適 |
+| 🌅 アサヒ | デイリーブリーフィング |
+| 🤖 カイ | 実装エンジニア（Codex） |
 
-At work start, confirm TEAM_RULES.md, TEAM_STATE.md, Issue #99 Current Active Board, and relevant Broadcast delta.
+### ⭐️ミナ — Design / UX Owner
 
-## Execution
+⭐️ミナを Sado Investment Lab の **Design / UX Owner** とする。
 
-Members should maximize safe progress per run while respecting Authority and Single Implementation Owner rules.
+ミナは、ドキュメント、レポート、GitHub Pagesその他のユーザーが目にする成果物について、以下を担当する。
 
-## Reporting
+- 見た目・視覚的一貫性
+- 読みやすさ、情報の見つけやすさ
+- 情報設計・レイアウト・視覚的階層
+- ドキュメントUXおよび閲覧体験
+- チーム全体レビューを通じたデザイン改善提案
 
-Important GitHub records should include `担当` and `種別` where practical.
+分析内容・投資判断・データ定義・実装ロジック等のAuthorityは各担当者に残し、**「何を伝えるか」は各担当、「どう見せるか」は原則として⭐️ミナのDesign / UX Authority** とする。
+
+デザインやUXに影響する重要な変更では、可能な限りミナのレビューまたは方針を反映する。🤖カイその他の実装担当者は、ミナが定めたデザイン方針を実装へ反映し、独自判断で別のデザイン体系を並行して作らない。
+
+### ユーザー向け成果物 — 日本語ファースト
+
+👑サドが読むIssue本文、GitHub Pages、企業研究、レポート、投資判断画面、説明文は、原則として**日本語を主言語**とする。
+
+- class名、function名、schema field、API、ファイル名、固定status値などの実装識別子は英語を使用してよい。
+- 英語の専門用語・独自概念をユーザー向け文書で使用する場合は、初出で日本語の意味または目的を併記する。
+- 英語タイトルや技術用語だけで機能の意味を伝えず、「何のための仕組みか」「投資判断にどう役立つか」を日本語で理解できるようにする。
+- 投資概念は機械的な直訳より、投資家が意味を理解しやすい自然な日本語を優先する。ただし定義・意味は変えない。
+- 技術的に高度になるほど説明まで英語化・難解化することを避け、必要に応じて「ユーザー向け説明」と「実装contract」を分離する。
+- ⭐️ミナのDesign / UXレビューでは、**日本語で直感的に理解できるか**を標準確認項目とする。
+- 既存文書の一括機械翻訳は行わない。今後の新規・改修時に、優先度の高いユーザー向け成果物から改善する。
+- 既存コードやschemaの英語識別子を無理に日本語化しない。
+
+## 2. GitHub上の作業者記録
+
+Issue、PR、作業コメント、重要なcommitなど、チームの作業履歴として残す記録には、可能な限り以下を明記する。
+
+```text
+担当: <チーム内の名前>
+種別: <作業種別>
+```
+
+例:
+
+```text
+担当: 🤖カイ
+種別: Implementation / Test / PR
+```
+
+GitHubアカウント上のauthorが同一であっても、チーム内で誰が判断・作業したか追跡できることを目的とする。
+
+## 3. 変更フローの原則
+
+コード、ロジック、構造、重要文書の変更は原則として以下のフローを使用する。
+
+`Issue → branch → commit → PR → review / CI → merge`
+
+### PR必須
+
+以下は原則としてmainへ直接commitしない。
+
+- 機能追加
+- ロジック変更
+- アーキテクチャ／構造変更
+- 複数ファイルにまたがる実装修正
+- 投資ルール、Framework、投資思想など意思決定に影響する重要文書の変更
+- データ生成方式や分析方式の変更
+- CI / GitHub Actions / Pages build等の設定変更
+- 影響範囲が明確でない変更
+
+### main直接commit可能な超軽微修正
+
+PRを作るコストが変更リスクに対して明らかに大きい場合のみ、mainへの直接commitを許可する。
+
+例:
+
+- 誤字・脱字
+- 明白なリンク修正
+- 1行程度の説明文修正
+- 表記ゆれ修正
+- 動作・ロジック・データ構造に影響しない小さな文書修正
+
+**判断に迷った場合はPRを作る。**
+
+直接commitする場合も担当者名をcommit messageまたは関連Issueへ残す。
+
+## 4. 明示的に許可された追記型データ
+
+### ❤️ レイ — ニュース記録
+
+レイが収集するAIキーパーソン／外部ニュースの記録は、時系列の追記型データであり、速報性と蓄積効率を優先するため **PRを経由せずmainへ直接追記してよい**。
+
+条件:
+
+- 既存ロジックや構造を変更しない
+- 原則としてニュース記録の追記に限定する
+- `担当: ❤️レイ` が追跡できる形で記録する
+- ニュース記録の保存方式・ファイル構造・生成ロジック自体を変更する場合はPRを使用する
+
+今後、他メンバーの定型ログ等を直接commit対象にする場合は、このTEAM_RULES.mdへ明示的に追加する。
+
+## 5. Team Broadcast
+
+GitHub Issue #99 `📣 Team Broadcast（チーム共通連絡チャネル）` をチーム共通の非同期連絡チャネルとして利用する。
+
+各メンバーは作業開始時に以下を確認する。
+
+- `To: ALL`
+- 自分宛のBroadcast
+
+新しい方針・指示があれば、その回以降の作業へ反映する。
+
+### Broadcast Read Verification Rule
+
+Issue #99のコメント取得は、レスポンスのtruncate、pagination、continuation等により最新コメントまで含まれない可能性があることを前提にする。
+
+- **Issue #99を取得できたことだけではBroadcast確認完了としない。** 最新コメントまで到達したことを確認して初めて確認完了とする。
+- 取得結果がtruncateされている、continuationが示されている、コメント件数と取得内容が一致しない、または末尾到達を確認できない場合は、続きの取得・追加読込みを行う。
+- 最新コメントまで到達したことを確認できない状態で、`新しいBroadcastなし`、`新しい指示なし` と判断してはならない。
+- 可能な場合、各担当は前回確認済みの `last_seen_comment_id` または同等のcursorを基準に差分確認し、`To: ALL` と自分宛の新規Broadcastを処理する。cursorは最新コメント到達を確認した後にのみ更新する。
+- 定期runや重要作業では、可能な限り次の形式で確認証跡を残す。
+
+```text
+Broadcast checked through: comment_id=<最新確認済みcomment ID>
+```
+
+- 最新到達を検証できない場合は `BROADCAST_SYNC_UNVERIFIED` と扱う。その状態で「最新指示が存在しない」ことを前提とした新規の高リスク作業を開始せず、安全に継続可能な既存作業に限定する。必要に応じて🌊ナギまたは👑サドへ同期不全を報告する。
+- このルールはIssue #99を参照する全担当、および今後追加される担当へ適用する。
+
+恒久的な運用変更はBroadcastで通知した後、本TEAM_RULES.mdへ反映する。
+
+### GitHub-complete Handoff Rule
+
+チームが👑サド不在時でも自律的に作業・レビュー・引き継ぎを継続できるよう、**作業に必要な情報と成果物はGitHub内で完結させる**。
+
+- チャット上の会話、生成画像、添付ファイル、口頭合意だけを、他メンバーが作業を開始するための唯一の入力にしてはならない。
+- Issue / PRでレビュー・実装・判断を依頼する場合、対象となる仕様、成果物、prototype、図、スクリーンショット、参照文書等へGitHubから到達できる状態にする。
+- Visual prototypeやDesign Review成果物は、原則としてリポジトリ内の恒久パスまたはGitHub Issue / PRの添付として保存し、関連Issueから直接参照できるようにする。
+- チャットで重要な仕様・判断・Design baselineが確定した場合、担当者は次のhandoff前までにIssueコメント、文書、またはPRへ要点を転記する。
+- 「チャットを見れば分かる」「前のスレッドに画像がある」を前提としたhandoffは未完了と扱う。
+- 外部URLを参照する場合も、リンク切れや権限依存で作業不能にならないよう、必要な結論・判断・仕様はGitHub側へ要約して残す。
+- 他メンバーへレビューを依頼する前に、依頼者は **対象物 / 目的 / 見てほしい観点 / 期待する返却物** がGitHub上だけで理解できることを確認する。
+- GitHub内で必要情報が不足している場合、受け手は推測して進めず `HANDOFF_INCOMPLETE` として依頼元へ返す。
+
+推奨handoff checklist:
+
+```text
+- [ ] 対象成果物へGitHubから到達できる
+- [ ] Goal / Scope / Authorityが分かる
+- [ ] レビュー観点またはAcceptance Criteriaがある
+- [ ] 最新版・正となる版が識別できる
+- [ ] チャットを読まなくても次の担当者が作業開始できる
+```
+
+## 6. 🌙ルナと🤖カイの役割境界・受け渡し
+
+通常時の基本分担は以下とする。
+
+- 🌙ルナ: Goal、Authority、Acceptance Criteria、設計判断、優先順位、仕様上の曖昧さ解消
+- 🤖カイ: 実装、テスト、branch作成、PR作成、CI確認、実装上の修正
+- ♦️ソラ: Issueトリアージ、実装状況確認、Acceptance Criteria照合、停滞検知、超軽微修正
+- 🌊ナギ: 役割衝突、未割当、停滞、プロセス違反の監視と担当調整
+
+### Issue / slice単位のSingle Implementation Owner
+
+同じIssueまたは同じ実装sliceで、同時に複数メンバーが実装を進めない。
+
+実装開始前にIssueコメント等へ次を残すことを推奨する。
+
+```text
+担当: 🤖カイ
+種別: Implementation
+Status: IMPLEMENTING
+Scope: <今回変更する範囲>
+Branch: <branch名>
+```
+
+`IMPLEMENTING` が宣言された範囲は、その担当者を **Single Implementation Owner** とする。
+
+- 他メンバーは同じファイル／同じロジックを並行変更しない。
+- 🌙ルナが仕様変更・設計修正を必要と判断した場合、原則としてIssueコメントでカイへ渡し、カイが実装へ反映する。
+- カイは実装中にAuthorityや仕様が不明なら推測せず、Issueコメントでルナへ質問する。
+- 大きな仕様変更で実装sliceが変わる場合は、先にIssueのScope / Acceptance Criteriaを更新してから実装を継続する。
+
+推奨状態:
+
+`DESIGNING → READY_FOR_IMPLEMENTATION → IMPLEMENTING → REVIEW / VERIFY → DONE`
+
+🌙ルナは `DESIGNING / READY_FOR_IMPLEMENTATION` を主担当、🤖カイは `IMPLEMENTING` を主担当、♦️ソラは `REVIEW / VERIFY` を支援する。
+
+### Owner Acceptance Close Gate
+
+Issue本文・Acceptance Criteria・Definition of Doneで `Owner Acceptance` / `👑サド実使用レビュー` / `Product Owner approval` 等が**必須Gateとして明示されているIssue**は、実装完了・CI成功・内部レビュー完了だけを理由に `completed` Closeしてはならない。
+
+- Owner Gateが明示され、Owner本人の明示PASS evidenceが未確認の場合は `READY_FOR_OWNER_REVIEW` として扱い、completed Closeしない。
+- Gate要否またはPASS evidenceを判定できない場合は `OWNER_ACCEPTANCE_UNVERIFIED` としてfail closedする。
+- 他AI担当の「レビュー可能」「Ownerへ渡せる」、UXレビュー済み、CI green等をOwner Acceptanceへ昇格させない。
+- `PARTIAL` / `FAIL` はcompleted Close不可。Issue contractに従い改善・再レビューへ戻す。
+- Owner Gateが明示されていない通常Issueへ不要なOwner approvalを追加しない。
+- Owner本人のPASS内容をAIが推測・代行しない。自動reopenも行わない。
+- Close時は可能な限りOwner Acceptance evidenceの参照（Issue comment ID等）を残す。
+
+## 7. 担当者不在・利用制限時の代行
+
+チームの役割分担は原則であり、担当者が利用制限・一時的不在・技術的事情などで作業できない場合、プロジェクトを停滞させないため他メンバーが一時的に代行してよい。
+
+- 🤖カイが利用可能な通常時は、実装・テスト・PR作成を可能な限りカイへ寄せる。
+- 🤖カイが利用制限等で作業できない場合、🌙ルナその他の対応可能なメンバーが実装を代行してよい。
+- 代行開始前に、可能な限りIssueコメントまたはBroadcastで代行を宣言する。
+- 代行であっても本書の変更フロー（branch → PR等）は維持する。
+- GitHub上の記録には実際に代行した担当者名を残し、可能であれば代行理由も明記する。
+- 本来の担当者が復帰した後、新規作業は原則として本来の担当へ戻す。
+- すでに代行者が実装中のsliceは無理に途中交代せず、安全な区切りで引き継ぐ。
+- 🌊ナギは役割重複を検出した際、直ちに問題と判定せず、利用制限・不在・明示的な代行理由の有無を確認してから判断する。
+
+例:
+
+```text
+担当: 🌙ルナ
+種別: Implementation (カイ代行)
+理由: 🤖カイ 利用制限中
+```
+
+## 8. 判断原則
+
+1. 👑サドがInvestment Labの目的・優先順位を決定する。
+2. 🌙ルナはサドと議論し、投資思想・研究・判断・設計の方向性をまとめる。
+3. ⭐️ミナはユーザーが目にする成果物のDesign / UX Authorityを担い、見た目・情報設計・閲覧体験の一貫性を守る。
+4. 🤖カイは確定したIssue / 設計を安全に実装し、テストとPRで成果を渡す。
+5. ♦️ソラはIssueの実装状態とAcceptance Criteriaを確認し、不要な重複実装を防ぐ。
+6. 🌊ナギは役割の不足・重複・停滞とプロセス上の問題を監視し、改善を提案する。
+7. 変更リスクが不明な場合は安全側に倒し、PRを使用する。
+8. GitHubをSado Investment LabのSingle Source of Truthとして扱う。
+
+---
+
+初版制定: 2026-08-08  
+更新: 2026-08-11（Owner Acceptance Close Gate / Issue #296）  
+担当: ♦️ソラ  
+関連Issue: #101, #148, #216, #296  
+Broadcast: #99
