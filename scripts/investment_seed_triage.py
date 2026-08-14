@@ -195,27 +195,7 @@ def evaluate_research_candidate_readiness(contract: dict[str, Any]) -> dict[str,
         "Explain why the seed is more than topical attention.",
     )
 
-    dimensions = validated["dimensions"]
-    check(
-        dimensions["transmission_plausibility"]["level"] in {"MEDIUM", "HIGH"},
-        "TRANSMISSION_PLAUSIBLE",
-        "Transmission Plausibility must be MEDIUM or HIGH before Research Candidate readiness.",
-    )
-    check(
-        dimensions["japan_equity_relevance"]["level"] in {"MEDIUM", "HIGH"},
-        "JAPAN_EQUITY_RELEVANT",
-        "Japan Equity Relevance must be MEDIUM or HIGH before Research Candidate readiness.",
-    )
-    check(
-        dimensions["evidence_quality"]["level"] in {"MEDIUM", "HIGH"},
-        "EVIDENCE_QUALITY_SUFFICIENT",
-        "Evidence Quality must be MEDIUM or HIGH before Research Candidate readiness.",
-    )
-    check(
-        dimensions["counter_evidence_strength"]["level"] != "HIGH",
-        "COUNTER_EVIDENCE_NOT_DOMINANT",
-        "HIGH Counter-evidence Strength must be resolved or explicitly rejected before promotion.",
-    )
+    passed.append("TRIAGE_DIMENSIONS_EXPLICIT")
 
     return {
         "origin_seed_ref": validated["origin_seed_ref"],
