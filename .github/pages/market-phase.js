@@ -14,10 +14,6 @@
     const name = symbols[code]?.name;
     return name ? `${name} (${code})` : code;
   };
-  const shortSymbolLabel = code => {
-    const name = symbols[code]?.name || "";
-    return `${code} ${name}`.trim();
-  };
   const correlationDirection = value => value >= 0 ? "同方向" : "逆方向";
   const formatDay = day => String(day).replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, "$1/$2/$3");
   let selectedCodes = new Set();
@@ -44,17 +40,25 @@
     }).filter(Boolean);
   }
 
-  function renderSelectionLegend(series) {
+  function renderSelectionLegend() {
     const legend = document.getElementById("phase-legend");
-    legend.innerHTML = series.map((row, index) =>
-      `<label class="phase-series-choice"><input type="checkbox" data-phase-code="${esc(row.item.code)}" checked>` +
-      `<i style="background:${colors[index % colors.length]}"></i>${esc(row.item.code)} ${esc(row.item.name)}</label>`).join("");
+    const codes = currentGroupCodes();
+    legend.innerHTML = codes.map(code => {
+      const item = symbols[code];
+      const index = data.symbols.findIndex(candidate => candidate.code === code);
+      const checked = selectedCodes.has(code) ? " checked" : "";
+      return `<label class="phase-series-choice"><input type="checkbox" data-phase-code="${esc(code)}"${checked}>` +
+        `<i style="background:${colors[index % colors.length]}"></i>${esc(code)} ${esc(item.name)}</label>`;
+    }).join("");
     legend.querySelectorAll("input[data-phase-code]").forEach(input => {
       input.addEventListener("change", event => {
         const code = event.currentTarget.dataset.phaseCode;
         if (event.currentTarget.checked) selectedCodes.add(code);
         else selectedCodes.delete(code);
-        if (!selectedCodes.size) selectedCodes.add(code);
+        if (!selectedCodes.size) {
+          selectedCodes.add(code);
+          event.currentTarget.checked = true;
+        }
         renderAllSelectionViews();
       });
     });
@@ -71,7 +75,8 @@
     let content = `<line x1="60" y1="${y(100)}" x2="880" y2="${y(100)}" class="chart-baseline"/>`;
 
     series.forEach((row, index) => {
-      const color = colors[index % colors.length];
+      const globalIndex = data.symbols.findIndex(candidate => candidate.code === row.item.code);
+      const color = colors[globalIndex % colors.length];
       const points = row.points.map((point, i) => `${x(i, row.points.length)},${y(point[1])}`).join(" ");
       const last = row.points[row.points.length - 1];
       const labelOffset = ((index % 5) - 2) * 10;
@@ -95,7 +100,7 @@
     }
     content += `<text x="8" y="${y(max) + 5}">${max.toFixed(0)}</text><text x="8" y="${y(min) + 5}">${min.toFixed(0)}</text>`;
     svg.innerHTML = content;
-    renderSelectionLegend(series);
+    renderSelectionLegend();
   }
 
   function correlationValue(left, right) {
