@@ -49,43 +49,28 @@ jobs:
           ISSUE_NUMBER="${ISSUE_NUMBER%%.*}"
           echo "ISSUE_NUMBER=${ISSUE_NUMBER}" >> "$GITHUB_ENV"
           gh api "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" > /tmp/issue.json
-          python - <<'PY'
-          import json
-          import re
-          from pathlib import Path
 
-          issue = json.loads(Path('/tmp/issue.json').read_text())
-          if 'pull_request' in issue:
-              raise SystemExit('BLOCKED: input resolves to a pull request, not an Issue')
+      - name: Validate Contract v1 before worker execution
+        id: contract-preflight
+        shell: bash
+        run: |
+          set +e
+          python -m scripts.work_contract_consumer_preflight \
+            --issue-json /tmp/issue.json \
+            --diagnostic-output /tmp/work-contract-preflight.json \
+            --contract-output /tmp/issue-contract.md \
+            --allowed-paths-output /tmp/issue-allowed-paths.txt \
+            --forbidden-paths-output /tmp/issue-forbidden-paths.txt
+          rc=$?
+          set -e
 
-          body = issue.get('body') or ''
-          title = issue.get('title') or ''
-          state = issue.get('state') or ''
-          text = f"# Issue #{issue['number']}: {title}\n\nState: {state}\n\n{body}\n"
-          Path('/tmp/issue-contract.md').write_text(text)
-
-          if state != 'open':
-              raise SystemExit('BLOCKED: Issue is not open')
-          if 'READY_FOR_IMPLEMENTATION' not in body:
-              raise SystemExit('BLOCKED: Issue body does not declare READY_FOR_IMPLEMENTATION')
-
-          def extract_list(name: str):
-              match = re.search(
-                  rf'(?ms)^\s*{re.escape(name)}:\s*\n(?P<items>(?:\s+-\s+[^\n]+\n?)*)',
-                  body,
-              )
-              if not match:
-                  return []
-              values = []
-              for line in match.group('items').splitlines():
-                  item = re.sub(r'^\s*-\s+', '', line).strip()
-                  if item:
-                      values.append(item.strip('"\''))
-              return values
-
-          Path('/tmp/issue-allowed-paths.txt').write_text('\n'.join(extract_list('allowed_paths')))
-          Path('/tmp/issue-forbidden-paths.txt').write_text('\n'.join(extract_list('forbidden_paths')))
-          PY
+          echo "## Contract Consumer Preflight" >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/work-contract-preflight.json >> "$GITHUB_STEP_SUMMARY"
+          if [[ $rc -ne 0 ]]; then
+            echo "HARNESS_OUTCOME=BLOCKED_CONTRACT_PREFLIGHT" >> "$GITHUB_ENV"
+            exit "$rc"
+          fi
+          echo "CONTRACT_PREFLIGHT_OUTCOME=ELIGIBLE" >> "$GITHUB_ENV"
 
       - name: Install Copilot CLI
         run: npm install -g @github/copilot
