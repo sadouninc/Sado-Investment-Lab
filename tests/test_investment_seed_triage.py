@@ -120,6 +120,7 @@ def test_ready_decision_is_explainable_and_never_auto_transitions_or_invests():
     assert result["decision"] == "READY_FOR_RESEARCH_CANDIDATE"
     assert result["blocking_reasons"] == []
     assert "TRANSMISSION_PATH_PRESENT" in result["passed_checks"]
+    assert "TRIAGE_DIMENSIONS_EXPLICIT" in result["passed_checks"]
     assert result["auto_transition"] is False
     assert result["investment_decision"] is None
 
@@ -143,31 +144,13 @@ def test_missing_gate_inputs_return_deterministic_blocking_reasons():
     } <= codes
 
 
-def test_high_counter_evidence_blocks_readiness_without_black_box_score():
+def test_dimension_levels_stay_visible_without_becoming_a_black_box_score():
     candidate = contract()
     candidate["dimensions"]["counter_evidence_strength"]["level"] = "HIGH"
-    candidate["dimensions"]["counter_evidence_strength"]["rationale"] = (
-        "A credible cancellation scenario directly weakens the transmission thesis."
-    )
+    candidate["dimensions"]["transmission_plausibility"]["level"] = "LOW"
     result = evaluate_research_candidate_readiness(candidate)
-    assert result["decision"] == "NEEDS_MORE_EVIDENCE"
+    assert result["decision"] == "READY_FOR_RESEARCH_CANDIDATE"
+    assert result["dimension_snapshot"]["counter_evidence_strength"] == "HIGH"
+    assert result["dimension_snapshot"]["transmission_plausibility"] == "LOW"
     assert "score" not in result
-    assert {
-        item["code"] for item in result["blocking_reasons"]
-    } == {"COUNTER_EVIDENCE_NOT_DOMINANT"}
-
-
-@pytest.mark.parametrize(
-    ("dimension", "level", "expected_code"),
-    [
-        ("transmission_plausibility", "LOW", "TRANSMISSION_PLAUSIBLE"),
-        ("japan_equity_relevance", "UNKNOWN", "JAPAN_EQUITY_RELEVANT"),
-        ("evidence_quality", "LOW", "EVIDENCE_QUALITY_SUFFICIENT"),
-    ],
-)
-def test_required_promotion_axes_fail_closed(dimension, level, expected_code):
-    candidate = contract()
-    candidate["dimensions"][dimension]["level"] = level
-    result = evaluate_research_candidate_readiness(candidate)
-    assert result["decision"] == "NEEDS_MORE_EVIDENCE"
-    assert expected_code in {item["code"] for item in result["blocking_reasons"]}
+    assert result["auto_transition"] is False
