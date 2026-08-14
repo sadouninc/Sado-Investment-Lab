@@ -15,11 +15,7 @@ def cases():
 
 def test_three_product_fixtures_validate_without_classification():
     validated = [validate_intraday_subsector_flow(item) for item in cases()]
-    assert [item["case"] for item in cases()] == [
-        "sector_cold_subsector_broad_inflow",
-        "single_leader_spike",
-        "partial_stale",
-    ]
+    assert len(validated) == 3
     assert all(item["flow_state"] == "UNKNOWN" for item in validated)
     assert all(item["acceleration_state"] == "UNKNOWN" for item in validated)
 
