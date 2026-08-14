@@ -1,0 +1,1 @@
+See `away-transition-2026-08-14.md`. This transition is proposed by PR and becomes authoritative when merged to main.
