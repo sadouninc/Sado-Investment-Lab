@@ -14,6 +14,11 @@
     const name = symbols[code]?.name;
     return name ? `${name} (${code})` : code;
   };
+  const compactSymbolLabel = item => {
+    const name = item.name || "";
+    const compactName = name.length > 9 ? `${name.slice(0, 9)}…` : name;
+    return `${item.code} ${compactName}`.trim();
+  };
   const correlationDirection = value => value >= 0 ? "同方向" : "逆方向";
   const formatDay = day => String(day).replace(/^(\d{4})-(\d{2})-(\d{2}).*$/, "$1/$2/$3");
   let selectedCodes = new Set();
@@ -64,24 +69,72 @@
     });
   }
 
+  function stackLabelColumn(rows, minY = 48, maxY = 412) {
+    if (!rows.length) return rows;
+    const gap = Math.max(12, Math.min(18, (maxY - minY) / Math.max(1, rows.length - 1)));
+    const placed = rows.map((row, index) => ({
+      ...row,
+      labelY: index === 0 ? Math.max(minY, row.endpointY) : Math.max(row.endpointY, minY + index * gap)
+    }));
+    for (let index = 1; index < placed.length; index += 1) {
+      placed[index].labelY = Math.max(placed[index].labelY, placed[index - 1].labelY + gap);
+    }
+    const overflow = placed[placed.length - 1].labelY - maxY;
+    if (overflow > 0) placed.forEach(row => { row.labelY -= overflow; });
+    for (let index = placed.length - 2; index >= 0; index -= 1) {
+      placed[index].labelY = Math.min(placed[index].labelY, placed[index + 1].labelY - gap);
+    }
+    const underflow = minY - placed[0].labelY;
+    if (underflow > 0) placed.forEach(row => { row.labelY += underflow; });
+    return placed;
+  }
+
+  function layoutEndpointLabels(series, y) {
+    const rows = series.map(row => {
+      const last = row.points[row.points.length - 1];
+      return {...row, endpointY: y(last[1])};
+    }).sort((left, right) => left.endpointY - right.endpointY);
+    const twoColumns = rows.length > 18;
+    if (!twoColumns) {
+      return stackLabelColumn(rows).map(row => ({...row, labelX: 838}));
+    }
+    const left = [];
+    const right = [];
+    rows.forEach((row, index) => (index % 2 === 0 ? left : right).push(row));
+    return [
+      ...stackLabelColumn(left).map(row => ({...row, labelX: 718})),
+      ...stackLabelColumn(right).map(row => ({...row, labelX: 858}))
+    ];
+  }
+
   function renderChart() {
     const svg = document.getElementById("phase-chart");
     const period = Number(document.getElementById("phase-period").value);
     const series = selectedSeries(period);
     const values = series.flatMap(row => row.points.map(point => point[1]));
     const min = Math.min(...values, 90), max = Math.max(...values, 110);
-    const x = (index, length) => 60 + index / Math.max(1, length - 1) * 820;
+    const plotRight = series.length > 18 ? 690 : 820;
+    const x = (index, length) => 60 + index / Math.max(1, length - 1) * (plotRight - 60);
     const y = value => 425 - (value - min) / Math.max(1, max - min) * 380;
-    let content = `<line x1="60" y1="${y(100)}" x2="880" y2="${y(100)}" class="chart-baseline"/>`;
+    let content = `<line x1="60" y1="${y(100)}" x2="${plotRight}" y2="${y(100)}" class="chart-baseline"/>`;
 
-    series.forEach((row, index) => {
+    series.forEach(row => {
       const globalIndex = data.symbols.findIndex(candidate => candidate.code === row.item.code);
       const color = colors[globalIndex % colors.length];
       const points = row.points.map((point, i) => `${x(i, row.points.length)},${y(point[1])}`).join(" ");
-      const last = row.points[row.points.length - 1];
-      const labelOffset = ((index % 5) - 2) * 10;
       content += `<polyline points="${points}" fill="none" stroke="${color}" stroke-width="2" opacity="${series.length > 20 ? .45 : .8}"><title>${esc(row.item.name)}</title></polyline>`;
-      content += `<text x="888" y="${y(last[1]) + labelOffset}" class="phase-line-label" data-phase-code="${esc(row.item.code)}">${esc(row.item.code)} ${esc(row.item.name)}</text>`;
+    });
+
+    layoutEndpointLabels(series, y).forEach(row => {
+      const last = row.points[row.points.length - 1];
+      const globalIndex = data.symbols.findIndex(candidate => candidate.code === row.item.code);
+      const color = colors[globalIndex % colors.length];
+      const endpointX = x(row.points.length - 1, row.points.length);
+      const endpointY = y(last[1]);
+      const leaderEndX = row.labelX - 6;
+      content += `<circle cx="${endpointX}" cy="${endpointY}" r="3" fill="${color}" class="phase-endpoint-marker"><title>${esc(symbolLabel(row.item.code))}</title></circle>`;
+      content += `<line x1="${endpointX + 3}" y1="${endpointY}" x2="${leaderEndX}" y2="${row.labelY}" stroke="${color}" class="phase-label-leader"/>`;
+      content += `<text x="${row.labelX}" y="${row.labelY + 4}" class="phase-line-label" data-phase-code="${esc(row.item.code)}">${esc(compactSymbolLabel(row.item))}</text>`;
     });
 
     if (series.length) {
