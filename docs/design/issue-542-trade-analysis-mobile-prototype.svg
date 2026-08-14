@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" fill="#f7f6f2"/>
+  <g font-family="system-ui, sans-serif" fill="#20211f">
+    <text x="20" y="42" font-size="12" font-weight="700" letter-spacing="1.2">TRADE ANALYSIS</text>
+    <text x="20" y="78" font-size="30" font-weight="700">取引分析</text>
+    <text x="20" y="105" font-size="14">勝率・PF・実現損益を、まず比較する。</text>
+
+    <rect x="20" y="128" width="350" height="88" rx="14" fill="#ffffff" stroke="#d8d7d2"/>
+    <text x="34" y="151" font-size="11" font-weight="700">主要指標</text>
+    <text x="34" y="177" font-size="12">区分</text><text x="92" y="177" font-size="12">件数</text><text x="139" y="177" font-size="12">実現損益</text><text x="222" y="177" font-size="12">勝率</text><text x="280" y="177" font-size="12">PF</text>
+    <text x="34" y="201" font-size="13" font-weight="700">全体</text><text x="92" y="201" font-size="13">42</text><text x="139" y="201" font-size="13" font-weight="700">+¥384k</text><text x="222" y="201" font-size="13">57%</text><text x="280" y="201" font-size="13">1.84</text>
+
+    <text x="20" y="252" font-size="18" font-weight="700">絞り込み</text>
+    <rect x="20" y="268" width="350" height="44" rx="10" fill="#fff" stroke="#c9c8c2"/>
+    <text x="34" y="295" font-size="13">期間　すべて</text><text x="344" y="295" font-size="12">⌄</text>
+    <rect x="20" y="320" width="350" height="44" rx="10" fill="#fff" stroke="#c9c8c2"/>
+    <text x="34" y="347" font-size="13">区分　すべて</text><text x="344" y="347" font-size="12">⌄</text>
+
+    <text x="20" y="405" font-size="18" font-weight="700">取引明細</text>
+    <rect x="20" y="423" width="350" height="126" rx="14" fill="#fff" stroke="#d8d7d2"/>
+    <text x="34" y="451" font-size="15" font-weight="700">6622 ダイヘン</text>
+    <text x="34" y="477" font-size="12">2026-08-04 · 信用 · 返済売り</text>
+    <text x="34" y="515" font-size="11">実現損益</text><text x="112" y="515" font-size="18" font-weight="700">+¥28,400</text>
+    <text x="326" y="515" font-size="12">詳細 ›</text>
+
+    <rect x="20" y="561" width="350" height="126" rx="14" fill="#fff" stroke="#d8d7d2"/>
+    <text x="34" y="589" font-size="15" font-weight="700">3110 日東紡</text>
+    <text x="34" y="615" font-size="12">2026-08-04 · 信用 · 売り</text>
+    <text x="34" y="653" font-size="11">実現損益</text><text x="112" y="653" font-size="18" font-weight="700">−¥12,600</text>
+    <text x="326" y="653" font-size="12">詳細 ›</text>
+
+    <text x="20" y="735" font-size="11">390px contract: table → bounded filters → compact cards</text>
+    <text x="20" y="756" font-size="11">320px: filters remain single-column; no page overflow</text>
+  </g>
+</svg>

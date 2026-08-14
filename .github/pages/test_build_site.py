@@ -83,6 +83,20 @@ class TradeJournalBuildTest(unittest.TestCase):
         ):
             self.assertIn(expected, page)
 
+    def test_2026_08_13_confirmed_trades_are_rendered_exactly_once(self) -> None:
+        page = self.page("2026-08-13")
+        public_page = page.split('<details class="source-journal">', 1)[0]
+
+        for expected in (
+            "テラドローン（278A）",
+            "日東紡（3110）",
+            "オンコリスバイオ（4588）",
+            "古河電工（5801）",
+        ):
+            self.assertEqual(public_page.count(expected), 1)
+
+        self.assertEqual(public_page.count("## Today's Trades"), 1)
+
     def test_2026_08_07_trade_journal_is_published(self) -> None:
         page = self.page("2026-08-07")
 

@@ -5,13 +5,13 @@
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
 Last updated: 2026-08-14  
-Sources: Issue #99 Current Active Board; #338; #354; Owner explicit AWAY transition on 2026-08-14  
+Sources: Issue #99 Current Active Board; #338; #354; Owner explicit ACTIVE return on 2026-08-14; repaired after stale AWAY transition PR #552 overwrote newer ACTIVE state  
 Broadcast head at snapshot: `comment_id=5283976502`
 
 ## User Mode
 
-- Mode: **AWAY**
-- Meaning: 👑サド is away. AWAY delegated autonomous operations are active; Owner-only Authority decisions are recorded in backlog, not decided.
+- Mode: **ACTIVE**
+- Meaning: 👑サド is active. Normal role priority and Owner Authority flow apply. AWAY-only delegated cadence is stopped.
 - Mode contract: #354. `ACTIVE` keeps normal roles. `AWAY` activates delegated autonomous operations.
 
 ## Mode Transition Contract

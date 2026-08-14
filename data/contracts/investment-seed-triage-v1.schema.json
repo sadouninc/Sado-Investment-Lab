@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sadouninc.github.io/Sado-Investment-Lab/contracts/investment-seed-triage-v1.schema.json",
+  "title": "Investment Seed Triage / Promotion Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "origin_seed_ref",
+    "provenance",
+    "dimensions",
+    "evidence",
+    "counter_evidence",
+    "transmission_paths",
+    "japan_equity_links",
+    "next_checkpoint",
+    "beyond_topic_reason"
+  ],
+  "properties": {
+    "origin_seed_ref": {"type": "string", "minLength": 1},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observation_refs", "inference_refs"],
+      "properties": {
+        "observation_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "inference_refs": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "novelty",
+        "magnitude",
+        "transmission_plausibility",
+        "signal_lead",
+        "japan_equity_relevance",
+        "expectation_gap_potential",
+        "evidence_quality",
+        "counter_evidence_strength"
+      ],
+      "properties": {
+        "novelty": {"$ref": "#/$defs/dimension"},
+        "magnitude": {"$ref": "#/$defs/dimension"},
+        "transmission_plausibility": {"$ref": "#/$defs/dimension"},
+        "signal_lead": {"$ref": "#/$defs/dimension"},
+        "japan_equity_relevance": {"$ref": "#/$defs/dimension"},
+        "expectation_gap_potential": {"$ref": "#/$defs/dimension"},
+        "evidence_quality": {"$ref": "#/$defs/dimension"},
+        "counter_evidence_strength": {"$ref": "#/$defs/dimension"}
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/evidenceItem"}
+    },
+    "counter_evidence": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/evidenceItem"}
+    },
+    "transmission_paths": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "japan_equity_links": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "next_checkpoint": {"type": ["string", "null"], "minLength": 1},
+    "beyond_topic_reason": {"type": ["string", "null"], "minLength": 1}
+  },
+  "$defs": {
+    "level": {
+      "type": "string",
+      "enum": ["UNKNOWN", "LOW", "MEDIUM", "HIGH"]
+    },
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "rationale", "evidence_refs"],
+      "properties": {
+        "level": {"$ref": "#/$defs/level"},
+        "rationale": {"type": "string", "minLength": 1},
+        "evidence_refs": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "evidenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id", "statement", "source_refs"],
+      "properties": {
+        "evidence_id": {"type": "string", "minLength": 1},
+        "statement": {"type": "string", "minLength": 1},
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}
