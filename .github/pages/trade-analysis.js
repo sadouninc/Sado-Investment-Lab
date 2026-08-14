@@ -6,6 +6,7 @@
   const allTrades = payload.trades || [];
   let groupMode = "month";
   let sort = { key: "close_date", direction: -1 };
+  const mobileQuery = window.matchMedia("(max-width: 700px)");
   const yen = new Intl.NumberFormat("ja-JP", {
     style: "currency", currency: "JPY", maximumFractionDigits: 0
   });
@@ -160,12 +161,25 @@
       <td>${pct(x.win_rate)}</td><td>${x.profit_factor == null ? "―" : x.profit_factor.toFixed(2)}</td>
       <td>${x.average_holding_days.toFixed(1)}日</td></tr>`).join("") + "</tbody></table>";
   }
-  function renderTrades(rows) {
-    const ordered = [...rows].sort((a, b) => {
+  function orderedTrades(rows) {
+    return [...rows].sort((a, b) => {
       const av = a[sort.key], bv = b[sort.key];
       return (typeof av === "number" ? av - bv :
         String(av ?? "").localeCompare(String(bv ?? ""), "ja", { numeric: true })) * sort.direction;
     });
+  }
+  function renderMobileTrades(rows) {
+    const ordered = orderedTrades(rows);
+    document.getElementById("ta-trades").innerHTML = ordered.map(t => `
+      <article class="content-card" data-trade-mobile-card>
+        <strong>${escapeHtml(t.security_code)} ${escapeHtml(t.security_name)}</strong>
+        <span>${escapeHtml(t.close_date)} ・ ${escapeHtml(t.account_type)} ・ ${escapeHtml(t.position_side)}</span>
+        <strong class="${t.net_pnl < 0 ? "loss" : "gain"}">${money(t.net_pnl)}</strong>
+        <span>利益率 ${pct(t.return_rate)} ・ 保有 ${number.format(t.holding_days)}日</span>
+      </article>`).join("") || "該当する取引はありません。";
+  }
+  function renderDesktopTrades(rows) {
+    const ordered = orderedTrades(rows);
     const columns = [
       ["close_date", "決済日"], ["security_code", "コード"], ["security_name", "銘柄"],
       ["account_type", "区分"], ["position_side", "方向"], ["quantity", "数量"],
@@ -188,6 +202,10 @@
         sort = { key, direction: sort.key === key ? -sort.direction : -1 };
         renderTrades(filteredTrades());
       }));
+  }
+  function renderTrades(rows) {
+    if (mobileQuery.matches) renderMobileTrades(rows);
+    else renderDesktopTrades(rows);
   }
   function renderQuality() {
     const q = payload.data_quality || {};
@@ -216,6 +234,7 @@
         x.classList.toggle("active", x === button));
       renderGroups(filteredTrades());
     }));
+  mobileQuery.addEventListener("change", () => renderTrades(filteredTrades()));
   renderQuality();
   render();
 })();
