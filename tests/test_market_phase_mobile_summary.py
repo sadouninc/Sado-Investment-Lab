@@ -11,11 +11,25 @@ def test_market_phase_exposes_real_date_range_and_ticks() -> None:
     assert "tickIndexes" in JS
 
 
-def test_market_phase_uses_direct_series_labels_not_color_only() -> None:
+def test_market_phase_uses_collision_safe_direct_series_labels() -> None:
+    assert "function stackLabelColumn" in JS
+    assert "function layoutEndpointLabels" in JS
+    assert "const twoColumns = rows.length > 18;" in JS
     assert 'class="phase-line-label"' in JS
+    assert 'class="phase-label-leader"' in JS
+    assert 'class="phase-endpoint-marker"' in JS
     assert 'data-phase-code=' in JS
+    assert "compactSymbolLabel" in JS
     assert "phase-series-choice" in JS
     assert 'input type="checkbox"' in JS
+    assert "index % 5" not in JS
+
+
+def test_many_series_reserve_plot_space_for_labels() -> None:
+    assert "const plotRight = series.length > 18 ? 690 : 820;" in JS
+    assert "labelX: 718" in JS
+    assert "labelX: 858" in JS
+    assert "labelY" in JS
 
 
 def test_selected_correlation_is_primary_and_fail_closed() -> None:
