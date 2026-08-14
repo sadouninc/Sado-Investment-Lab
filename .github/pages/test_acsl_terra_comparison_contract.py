@@ -24,11 +24,21 @@ class AcslTerraComparisonContractTests(unittest.TestCase):
         self.assertNotIn("勝者", self.text)
         self.assertNotIn("winner score", self.text.lower())
 
+    def test_comparison_axes_are_mobile_readable_groups_not_long_table(self):
+        comparison = self.text.split("## 同じ軸で比較", 1)[1].split("### 読み違え防止", 1)[0]
+        self.assertNotIn("| 軸 | ACSL | Terra Drone |", comparison)
+        self.assertEqual(comparison.count('<div class="content-grid">'), 5)
+        for axis in ("Growth Engine", "Capital Engine", "Revenue Quality", "最大Catalyst", "最大Risk"):
+            self.assertIn(f"### {axis}", comparison)
+        self.assertGreaterEqual(comparison.count("<strong>ACSL</strong>"), 5)
+        self.assertGreaterEqual(comparison.count("<strong>Terra Drone</strong>"), 5)
+
     def test_fail_closed_research_semantics_are_explicit(self):
         self.assertIn("UNKNOWN / UNPROVEN", self.text)
         self.assertIn("EARNINGS CONVERSION = UNPROVEN FOR BOTH", self.text)
         self.assertIn("Government funding confirmed ≠ self-funded profitable company confirmed", self.text)
         self.assertIn("数値・classificationをこのPages側で再計算しません", self.text)
+        self.assertIn("比較仮説の状態（Research state）", self.text)
 
     def test_comparison_does_not_become_trade_authority(self):
         self.assertIn("勝敗、BUY / SELL / HOLD、推奨数量を生成しません", self.text)
