@@ -1,4 +1,5 @@
 from scripts.operational_state_guard import (
+    classify_blocker,
     split_away_blockers,
     validate_mode_transition,
 )
@@ -49,3 +50,19 @@ def test_owner_authority_is_separated_from_autonomous_blockers():
     )
     assert [item["ref"] for item in split["owner_authority"]] == ["#550"]
     assert [item["ref"] for item in split["autonomous"]] == ["#584", "#999"]
+
+
+def test_unrecognized_blocker_class_is_not_silently_downgraded():
+    item = classify_blocker("SOME_NEW_UNMAPPED_CLASS", detail="d", ref="#1")
+    assert item["class"] == "UNKNOWN"
+
+
+def test_unrecognized_blocker_class_fails_closed_into_owner_authority():
+    split = split_away_blockers(
+        [
+            {"class": "TOTALLY_UNKNOWN_CLASS", "detail": "unclassified blocker", "ref": "#601"},
+            {"class": "CI_FAILURE", "detail": "tests failed", "ref": "#999"},
+        ]
+    )
+    assert [item["ref"] for item in split["owner_authority"]] == ["#601"]
+    assert [item["ref"] for item in split["autonomous"]] == ["#999"]

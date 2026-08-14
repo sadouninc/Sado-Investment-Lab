@@ -54,22 +54,32 @@ def validate_mode_transition(
 
 
 def classify_blocker(blocker_class: str, *, detail: str, ref: str) -> dict[str, str]:
-    """Normalize one blocker for AWAY routing without deciding Owner Authority."""
+    """Normalize one blocker for AWAY routing without deciding Owner Authority.
+
+    An unrecognized class is never silently reinterpreted as a known
+    autonomous-safe class (e.g. TECHNICAL_INVESTIGATION); it is preserved as
+    ``UNKNOWN`` so routing can fail closed instead of guessing.
+    """
     normalized = blocker_class.strip().upper().replace(" ", "_")
     if normalized not in BLOCKER_CLASSES:
-        normalized = "TECHNICAL_INVESTIGATION"
+        normalized = "UNKNOWN"
     return {"class": normalized, "detail": detail.strip(), "ref": ref.strip()}
 
 
 def split_away_blockers(blockers: Iterable[Mapping[str, str]]) -> dict[str, list[dict[str, str]]]:
-    """Separate true Owner Authority from work that should continue autonomously."""
+    """Separate true Owner Authority from work that should continue autonomously.
+
+    Blockers with an unrecognized class fail closed into ``owner_authority``
+    rather than being guessed into the autonomous bucket, since an unknown
+    class may in fact require Owner Authority.
+    """
     owner: list[dict[str, str]] = []
     autonomous: list[dict[str, str]] = []
     for raw in blockers:
         item = classify_blocker(
             str(raw.get("class", "")), detail=str(raw.get("detail", "")), ref=str(raw.get("ref", ""))
         )
-        if item["class"] == "OWNER_AUTHORITY":
+        if item["class"] in ("OWNER_AUTHORITY", "UNKNOWN"):
             owner.append(item)
         else:
             autonomous.append(item)
