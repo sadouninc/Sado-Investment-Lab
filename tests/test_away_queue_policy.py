@@ -14,34 +14,63 @@ def candidate(issue=600, worker="sora"):
     }
 
 
-def test_awake_worker_with_zero_open_pr_triggers_replenishment():
+def test_idle_worker_with_zero_active_implementation_wip_triggers_replenishment():
     assert should_replenish_away_queue(
-        user_mode="AWAY", open_pr_count=0, worker_state="idle"
+        user_mode="AWAY",
+        active_implementation_wip_count=0,
+        worker_state="idle",
     ) is True
 
 
 def test_active_mode_does_not_use_away_replenishment_policy():
     assert should_replenish_away_queue(
-        user_mode="ACTIVE", open_pr_count=0, worker_state="idle"
+        user_mode="ACTIVE",
+        active_implementation_wip_count=0,
+        worker_state="idle",
     ) is False
 
 
-def test_open_pr_prevents_new_away_queue_fill():
+def test_active_implementation_wip_prevents_new_away_queue_fill():
     result = select_away_work(
         [candidate()],
         user_mode="AWAY",
-        open_pr_count=1,
+        active_implementation_wip_count=1,
         worker="sora",
         worker_states={"sora": "idle"},
     )
     assert result["status"] == "NO_REPLENISH_TRIGGER"
 
 
+def test_open_review_wait_pr_does_not_block_replenishment_when_active_wip_is_zero():
+    result = select_away_work(
+        [candidate()],
+        user_mode="AWAY",
+        active_implementation_wip_count=0,
+        open_pr_count=2,
+        worker="sora",
+        worker_states={"sora": "idle"},
+    )
+    assert result["status"] == "SELECTED"
+    assert result["selected"]["issue_number"] == 600
+
+
+def test_legacy_open_pr_input_fails_safe_until_caller_migrates():
+    assert should_replenish_away_queue(
+        user_mode="AWAY", open_pr_count=1, worker_state="idle"
+    ) is False
+
+
+def test_missing_capacity_signal_fails_closed():
+    assert should_replenish_away_queue(
+        user_mode="AWAY", worker_state="idle"
+    ) is False
+
+
 def test_away_queue_reuses_pure_selector_and_excludes_quota_worker():
     result = select_away_work(
         [candidate(worker="kai")],
         user_mode="AWAY",
-        open_pr_count=0,
+        active_implementation_wip_count=0,
         worker="kai",
         worker_states={"kai": "quota_blocked"},
     )
@@ -52,7 +81,7 @@ def test_away_queue_selects_one_safe_candidate():
     result = select_away_work(
         [candidate(issue=582, worker="copilot")],
         user_mode="AWAY",
-        open_pr_count=0,
+        active_implementation_wip_count=0,
         worker="copilot",
         worker_states={"copilot": "idle"},
     )
