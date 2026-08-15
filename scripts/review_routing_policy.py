@@ -174,7 +174,7 @@ def evaluate_review_wait_sla(
         return {"status": "UNKNOWN", "action": "FAIL_CLOSED", "target_minutes": None}
     if wait_age_minutes is None:
         return {"status": "UNKNOWN", "action": "COLLECT_WAIT_AGE", "target_minutes": target}
-    if wait_age_minutes < target:
+    if wait_age_minutes <= target:
         return {"status": "WITHIN_TARGET", "action": "NONE", "target_minutes": target}
     if alternate_available:
         return {"status": "SLA_EXCEEDED", "action": "REROUTE_REVIEW", "target_minutes": target}
