@@ -134,7 +134,13 @@ def _path_prefix(path: str) -> str:
 
 
 def _paths_overlap(left: str, right: str) -> bool:
+    """Check if two path patterns overlap.
+    
+    Blank or whitespace-only patterns are not considered meaningful paths
+    and will not match anything.
+    """
     a, b = _path_prefix(left), _path_prefix(right)
+    # Empty paths after stripping are not meaningful - no overlap possible
     return bool(a and b and (a.startswith(b) or b.startswith(a)))
 
 
