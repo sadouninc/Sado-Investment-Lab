@@ -60,9 +60,9 @@ def classify_review_surface(raw: Mapping[str, Any]) -> str:
         return "UNKNOWN"
 
     lowered = tuple(path.lower() for path in paths)
-    if any(path.startswith(SECURITY_PREFIXES) for path in paths) or bool(
-        raw.get("security_sensitive", False)
-    ):
+    if any(path.startswith(SECURITY_PREFIXES) for path in paths) or raw.get(
+        "security_sensitive"
+    ) is True:
         return "SECURITY_WORKFLOW"
 
     semantic = str(raw.get("semantic_surface", "")).lower()
@@ -71,7 +71,7 @@ def classify_review_surface(raw: Mapping[str, Any]) -> str:
         return "PRODUCT_SEMANTICS"
     if any(hint in joined for hint in RESEARCH_HINTS):
         return "MARKET_RESEARCH_TRUTH"
-    if bool(raw.get("ui_visual_change", False)):
+    if raw.get("ui_visual_change") is True:
         return "UI_VISUAL"
     if any(hint in joined for hint in PROCESS_HINTS):
         return "PROCESS_FLOW"
@@ -97,13 +97,11 @@ def route_reviews(raw: Mapping[str, Any]) -> dict[str, Any]:
 
     route = ROUTES[category]
     gates = list(route.blocking_gates)
-    # Product semantics that also alter market/research truth require the Research gate.
-    if category == "PRODUCT_SEMANTICS" and bool(raw.get("market_truth_changed", False)):
+    market_truth_changed = raw.get("market_truth_changed") is True
+    if category == "PRODUCT_SEMANTICS" and market_truth_changed:
         gates.append(RESEARCH)
 
-    # Default invariant is <=2. An explicit cross-authority Product+Market change is the
-    # narrow documented exception and is surfaced instead of silently dropping a gate.
-    max_expected = 3 if category == "PRODUCT_SEMANTICS" and raw.get("market_truth_changed") else 2
+    max_expected = 3 if category == "PRODUCT_SEMANTICS" and market_truth_changed else 2
     if len(gates) > max_expected:
         return {
             "status": "BLOCK",
