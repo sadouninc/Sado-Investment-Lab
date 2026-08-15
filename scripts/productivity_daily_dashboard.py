@@ -134,10 +134,10 @@ def render_markdown(metrics: dict[str, object]) -> str:
 
     parts = [
         MARKER,
-        "## 📈 Daily Throughput Dashboard",
+        "## 📈 日次活動量ダッシュボード",
         "",
         f"直近 **{metrics['window_days']}日 / JST** のGitHub activityを自動集計しています。",
-        "これは活動量の観測レイヤであり、**Issue/PR件数の最大化自体を生産性の目的にはしません**。#479のproductive steps / durable outputs / lead timeと組み合わせて評価します。",
+        "これは活動量の観測レイヤであり、**Issue/PR件数の最大化自体を生産性の目的にはしません**。#479の実作業 (productive steps) / 永続成果 (durable outputs) / 完了までの時間 (lead time) と組み合わせて評価します。",
         "",
     ]
     
@@ -148,9 +148,9 @@ def render_markdown(metrics: dict[str, object]) -> str:
             "| 指標 | 直近7日 | 前7日 | 差分 | 変化率 |",
             "| --- | ---: | ---: | ---: | ---: |",
             f"| PR発行 | {comparisons['pr_created']['recent']} | {comparisons['pr_created']['previous']} | {comparisons['pr_created']['delta']:+d} | {comparisons['pr_created']['pct']} |",
-            f"| PR Merge | {comparisons['pr_merged']['recent']} | {comparisons['pr_merged']['previous']} | {comparisons['pr_merged']['delta']:+d} | {comparisons['pr_merged']['pct']} |",
+            f"| PRマージ | {comparisons['pr_merged']['recent']} | {comparisons['pr_merged']['previous']} | {comparisons['pr_merged']['delta']:+d} | {comparisons['pr_merged']['pct']} |",
             f"| Issue発行 | {comparisons['issue_created']['recent']} | {comparisons['issue_created']['previous']} | {comparisons['issue_created']['delta']:+d} | {comparisons['issue_created']['pct']} |",
-            f"| Issue Close | {comparisons['issue_closed']['recent']} | {comparisons['issue_closed']['previous']} | {comparisons['issue_closed']['delta']:+d} | {comparisons['issue_closed']['pct']} |",
+            f"| Issue完了 | {comparisons['issue_closed']['recent']} | {comparisons['issue_closed']['previous']} | {comparisons['issue_closed']['delta']:+d} | {comparisons['issue_closed']['pct']} |",
             f"| Issue純増減 | {comparisons['issue_net_change']['recent']:+d} | {comparisons['issue_net_change']['previous']:+d} | {comparisons['issue_net_change']['delta']:+d} | {comparisons['issue_net_change']['pct']} |",
             "",
         ])
@@ -161,20 +161,20 @@ def render_markdown(metrics: dict[str, object]) -> str:
         "| 指標 | 期間合計 | 1日平均 |",
         "| --- | ---: | ---: |",
         f"| PR発行 | {totals['pr_created']} | {averages['pr_created']:.2f} |",
-        f"| PR Merge | {totals['pr_merged']} | {averages['pr_merged']:.2f} |",
+        f"| PRマージ | {totals['pr_merged']} | {averages['pr_merged']:.2f} |",
         f"| Issue発行 | {totals['issue_created']} | {averages['issue_created']:.2f} |",
-        f"| Issue Close | {totals['issue_closed']} | {averages['issue_closed']:.2f} |",
+        f"| Issue完了 | {totals['issue_closed']} | {averages['issue_closed']:.2f} |",
         f"| Issue純増減 | {totals['issue_net_change']:+d} | {averages['issue_net_change']:+.2f} |",
         "",
         "### 📈 日次推移",
         "",
         _chart("PR発行 / 日", labels, [int(row["pr_created"]) for row in rows]),
-        _chart("PR Merge / 日", labels, [int(row["pr_merged"]) for row in rows]),
+        _chart("PRマージ / 日", labels, [int(row["pr_merged"]) for row in rows]),
         _chart("Issue発行 / 日", labels, [int(row["issue_created"]) for row in rows]),
-        _chart("Issue Close / 日", labels, [int(row["issue_closed"]) for row in rows]),
+        _chart("Issue完了 / 日", labels, [int(row["issue_closed"]) for row in rows]),
         "### 日次データ",
         "",
-        "| JST日付 | PR発行 | PR Merge | Issue発行 | Issue Close | Issue純増減 |",
+        "| JST日付 | PR発行 | PRマージ | Issue発行 | Issue完了 | Issue純増減 |",
         "| --- | ---: | ---: | ---: | ---: | ---: |",
     ]
     for row in rows:
