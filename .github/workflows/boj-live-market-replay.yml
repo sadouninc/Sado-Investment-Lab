@@ -37,14 +37,16 @@ jobs:
         id: replay
         env:
           JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
+          MARKET_DATE: ${{ inputs.market_date }}
+          POLICY_TRANSACTION_ID: ${{ inputs.policy_transaction_id }}
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p artifacts/boj-live-replay
           set +e
           python scripts/run_boj_live_replay.py \
-            --market-date "${{ inputs.market_date }}" \
-            --policy-transaction-id "${{ inputs.policy_transaction_id }}" \
+            --market-date "$MARKET_DATE" \
+            --policy-transaction-id "$POLICY_TRANSACTION_ID" \
             --output "artifacts/boj-live-replay/result.json"
           code=$?
           set -e
