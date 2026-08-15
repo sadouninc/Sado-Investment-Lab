@@ -25,6 +25,19 @@
 
 後続workが同じpathを変更する場合は、capacityとは別にowner/path conflict guardでBLOCKする。
 
+## Durable output signal
+
+Flow stallの時間判定は `last_durable_output_age_minutes` を正とする。
+
+Durable outputには少なくとも以下を含められる。
+- 新規PR
+- 実装・修正commit
+- review blockerを解消するrevision
+- accepted artifact / deterministic test evidence
+- 次担当が即着手可能になる永続化handoff
+
+`last_new_pr_age_minutes` はlegacy/補助signalとしてのみ扱い、PR発行数そのものを生産性KPIにしない。
+
 ## Starvation invariants
 
 SM runでは以下をチェックリストではなく判定として評価する。
@@ -32,9 +45,9 @@ SM runでは以下をチェックリストではなく判定として評価す�
 1. `READY_nonconflicting > 0 && active_implementation_wip == 0`
    - `QUEUE_STARVATION`
    - 同じrunでREADY workをroutingする。
-2. READY workが存在し、新規PRの最終発行から120分以上
+2. READY workが存在し、durable outputが120分以上更新されていない
    - `FLOW_STALL_WARNING`
-3. READY workが存在し、新規PRの最終発行から240分以上
+3. READY workが存在し、durable outputが240分以上更新されていない
    - `FLOW_STALL_CRITICAL`
    - 同じrunでreroute必須。
 4. Agent dispatchが60分以上ACK/進捗Evidenceなし
@@ -43,8 +56,34 @@ SM runでは以下をチェックリストではなく判定として評価す�
 5. 同一blockerが2 run継続
    - `BLOCKED_ESCAPE_OVERDUE`
    - `BLOCKED_ESCAPE`必須。
+6. worker stateがunknown/staleでも、READY + active WIP=0をsilent PASSしない。
+   - explicit quota/unavailable等なら別workerへrerouteする。
 
 PR数最大化が目的ではない。READYな非競合実装workがあるのにdurable implementation outputが止まる状態を検知する。
+
+## Closed-loop decision
+
+`flow_health_guard` は異常を分類し、`flow_control_loop` が必要時に #556 Queue selectorへ同一decision pathで接続する。
+
+- detectorだけ置いて終了しない
+- expired dispatch leaseはowner sliceを解放してreroute候補化
+- selectorはowner/path/dependency/worker stateをfail-closedで確認
+- GitHubへの実assignment/writeはruntime Flow AuthorityがEvidence付きで行う
+
+## Dispatch lease contract
+
+Agent/worker dispatchには最低以下を持たせる。
+
+```text
+work_ref:
+owner_slice:
+assigned_at:
+acknowledged_at:
+lease_expires_at:
+fallback_owner:
+```
+
+ACKまたは進捗Evidenceなしで期限切れなら `DISPATCH_LEASE_EXPIRED` とし、旧dispatchを永続占有扱いしない。
 
 ## SM run output
 
@@ -54,14 +93,28 @@ PR数最大化が目的ではない。READYな非競合実装workがあるのに
 active_implementation_wip:
 waiting_work_count:
 ready_nonconflicting_count:
-last_new_pr_age_minutes:
-dispatch_unacked_age_minutes:
-same_blocker_run_count:
-status: PASS|WARN|CRITICAL
-actions:
+last_durable_output_age_minutes:
+dispatch_orphans:
+blocked_escape_overdue:
+status: PASS|WARN|CRITICAL|ACTIONED
+actions_taken:
+missed_stall:
+false_positive:
 ```
 
 `確認済み`は判定結果として扱わない。
+
+## Validation
+
+Issue #645はコードmergeだけではCloseしない。
+
+- hourly 🌊ナギ SM runで `SM_FLOW_SAMPLE` を#645へ永続化
+- 5〜10 runを観測
+- `missed_stall = 0`
+- 重大なfalse positive = 0
+- Queue starvation時に同runでACTIONEDされること
+
+を確認後に完了判定する。条件未達ならguard/routingを修正して観測を継続する。
 
 ## Safety
 
