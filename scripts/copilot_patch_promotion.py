@@ -47,6 +47,9 @@ def evaluate_promotion(
     # Fail-closed: reject if any element is blank/whitespace before filtering
     if changed_paths and any(not p or not p.strip() for p in changed_paths):
         return PromotionDecision(False, "ISSUE_CONTRACT_INVALID")
+    # Fail-closed: reject if any element is blank/whitespace in allowed_paths
+    if allowed_paths and any(not p or not p.strip() for p in allowed_paths):
+        return PromotionDecision(False, "ISSUE_CONTRACT_INVALID")
     
     changed = [p for p in (changed_paths or []) if p]
     allowed = [p for p in (allowed_paths or []) if p]

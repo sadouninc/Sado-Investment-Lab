@@ -81,6 +81,32 @@ def test_mixed_valid_and_blank_changed_paths_blocks():
     assert base(changed_paths=["scripts/valid.py", "  "]).reason == "ISSUE_CONTRACT_INVALID"
 
 
+def test_empty_allowed_path_blocks():
+    """Fail-closed: empty string in allowed_paths should not pass validation."""
+    assert base(allowed_paths=[""]).reason == "ISSUE_CONTRACT_INVALID"
+
+
+def test_whitespace_only_allowed_path_blocks():
+    """Fail-closed: whitespace-only paths are malformed and must not slip through."""
+    assert base(allowed_paths=[" "]).reason == "ISSUE_CONTRACT_INVALID"
+    assert base(allowed_paths=["  "]).reason == "ISSUE_CONTRACT_INVALID"
+    assert base(allowed_paths=["\t"]).reason == "ISSUE_CONTRACT_INVALID"
+    assert base(allowed_paths=["\n"]).reason == "ISSUE_CONTRACT_INVALID"
+    assert base(allowed_paths=["   \t  \n  "]).reason == "ISSUE_CONTRACT_INVALID"
+
+
+def test_mixed_valid_and_blank_allowed_paths_blocks():
+    """Fail-closed: even one blank path among valid ones must fail."""
+    assert base(allowed_paths=["scripts/*.py", ""]).reason == "ISSUE_CONTRACT_INVALID"
+    assert base(allowed_paths=["scripts/*.py", "  "]).reason == "ISSUE_CONTRACT_INVALID"
+
+
+def test_valid_only_allowed_paths_passes():
+    """Preserve behavior: valid nonblank allowed_paths should pass."""
+    assert base(allowed_paths=["scripts/*.py"]).eligible is True
+    assert base(allowed_paths=["scripts/*.py", "tests/*.py"]).eligible is True
+
+
 def test_acceptance_command_allowlist_accepts_pytest_variants():
     assert acceptance_test_argv("python -m pytest -q tests/test_x.py") == [
         "python",
