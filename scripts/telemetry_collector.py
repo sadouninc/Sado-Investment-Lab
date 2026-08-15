@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Mapping
 
 
 def normalize_blockers(conflicts: List[str]) -> List[str]:
@@ -62,10 +62,46 @@ def first_pass_ci(ci_runs):
     return "UNKNOWN"
 
 
+def collect_flow_health_metrics(event: Mapping[str, Any]) -> Dict[str, Any]:
+    """Project optional #645 SM-flow evidence without changing legacy records."""
+    flow = event.get("flow_health")
+    if not isinstance(flow, Mapping):
+        return {}
+
+    return {
+        "active_implementation_wip": flow.get("active_implementation_wip"),
+        "waiting_work_count": flow.get("waiting_work_count"),
+        "ready_nonconflicting_count": flow.get("ready_nonconflicting_count"),
+        "last_durable_output_age_minutes": flow.get("last_durable_output_age_minutes"),
+        "dispatch_orphan_count": flow.get("dispatch_orphan_count"),
+        "blocked_escape_overdue_count": flow.get("blocked_escape_overdue_count"),
+        "flow_stall_state": flow.get("flow_stall_state"),
+        "queue_replenish_triggered": flow.get("queue_replenish_triggered"),
+        "missed_stall_count": flow.get("missed_stall_count"),
+        "flow_false_positive_count": flow.get("flow_false_positive_count"),
+    }
+
+
 def collect_from_fixture(event: Dict[str, Any]) -> Dict[str, Any]:
     conflicts = event.get("conflicts") or []
     markers = event.get("markers") or []
     ci_runs = event.get("ci_runs") or []
+    metrics = {
+        "clarification_count": len(event.get("clarification_events") or []),
+        "human_confirmation_count": len(event.get("human_confirmation_events") or []),
+        "review_rework_count": count_review_rework(
+            event.get("reviews"),
+            event.get("review_fix_events"),
+        ),
+        "ci_rework_count": count_ci_rework(ci_runs),
+        "conflict_count": len(conflicts),
+        "false_ready_count": sum(
+            1 for marker in markers if marker.get("name") == "FALSE_READY"
+        ),
+        "first_pass_ci": first_pass_ci(ci_runs),
+    }
+    metrics.update(collect_flow_health_metrics(event))
+
     return {
         "schema_version": 1,
         "unit_type": "PR",
@@ -81,20 +117,7 @@ def collect_from_fixture(event: Dict[str, Any]) -> Dict[str, Any]:
             "pr_review_ready_at": first_marker_time(markers, "REVIEW_READY"),
             "pr_merged_at": event.get("merged_at"),
         },
-        "metrics": {
-            "clarification_count": len(event.get("clarification_events") or []),
-            "human_confirmation_count": len(event.get("human_confirmation_events") or []),
-            "review_rework_count": count_review_rework(
-                event.get("reviews"),
-                event.get("review_fix_events"),
-            ),
-            "ci_rework_count": count_ci_rework(ci_runs),
-            "conflict_count": len(conflicts),
-            "false_ready_count": sum(
-                1 for marker in markers if marker.get("name") == "FALSE_READY"
-            ),
-            "first_pass_ci": first_pass_ci(ci_runs),
-        },
+        "metrics": metrics,
         "blockers": normalize_blockers(conflicts),
         "result": (
             "MERGED"
