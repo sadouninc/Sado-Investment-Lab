@@ -1,0 +1,139 @@
+name: AI Production Router v0 — followup
+
+on:
+  workflow_run:
+    workflows: ["Copilot PoC1 — safe implementation lane"]
+    types: [completed]
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+
+jobs:
+  followup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Resolve Issue from Copilot patch artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          names="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/artifacts" --jq '.artifacts[].name' || true)"
+          issue="$(printf '%s\n' "$names" | sed -nE 's/^copilot-poc1-([0-9]+)-patch$/\1/p' | head -1)"
+          if [[ -z "$issue" ]]; then
+            echo "NO_ROUTABLE_ARTIFACT=1" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          test "$issue" != "79" || { echo PROTECTED_ISSUE_79; exit 79; }
+          echo "ISSUE_NUMBER=$issue" >> "$GITHUB_ENV"
+          echo "SOURCE_RUN_ID=$SOURCE_RUN_ID" >> "$GITHUB_ENV"
+
+      - name: Require production router lease
+        if: ${{ env.NO_ROUTABLE_ARTIFACT != '1' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          comments="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" --jq '.[].body')"
+          if ! printf '%s\n' "$comments" | grep -F '<!-- flow-dispatch-lease -->' -A1 | grep -Fq '"engine":"copilot"'; then
+            echo "NO_PRODUCTION_LEASE=1" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+      - name: Promote validated Copilot output
+        if: >-
+          env.NO_ROUTABLE_ARTIFACT != '1' &&
+          env.NO_PRODUCTION_LEASE != '1' &&
+          github.event.workflow_run.conclusion == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run copilot-patch-promotion.yml --ref main \
+            -f "issue_number=${ISSUE_NUMBER}" \
+            -f "source_run_id=${SOURCE_RUN_ID}"
+          completed="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          record="$(jq -nc \
+            --arg work_ref "issue:${ISSUE_NUMBER}" \
+            --arg completed_at "$completed" \
+            --arg source_run_id "$SOURCE_RUN_ID" \
+            '{work_ref:$work_ref,engine:"copilot",status:"VALIDATED_PROMOTION_DISPATCHED",completed_at:$completed_at,source_run_id:$source_run_id}')"
+          gh issue comment "$ISSUE_NUMBER" --body "$(printf '%s\n%s' '<!-- flow-dispatch-lease -->' "$record")"
+          gh issue comment "$ISSUE_NUMBER" --body "担当: 🌊ナギ / 種別: AI Router Follow-up / Copilot Harness GREEN → Patch Promotion自動起動。PR生成はpromotion workflowが担当。"
+
+      - name: Classify failed Copilot run
+        if: >-
+          env.NO_ROUTABLE_ARTIFACT != '1' &&
+          env.NO_PRODUCTION_LEASE != '1' &&
+          github.event.workflow_run.conclusion != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > /tmp/copilot-run.log
+          while read -r job_id; do
+            [[ -n "$job_id" ]] || continue
+            gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" >> /tmp/copilot-run.log 2>/dev/null || true
+          done < <(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/jobs" --jq '.jobs[].id')
+
+          outcome="BLOCKED_BEFORE_HARNESS_COMPLETE"
+          for candidate in \
+            BLOCKED_CONTRACT_PREFLIGHT \
+            BLOCKED_FORBIDDEN_PATH \
+            BLOCKED_ISSUE_PATH_CONTRACT \
+            BLOCKED_NO_REPO_DIFF \
+            BLOCKED_AGENT_NOT_REVIEW_READY \
+            BLOCKED_RESULT_MISSING; do
+            if grep -Fq "$candidate" /tmp/copilot-run.log; then
+              outcome="$candidate"
+              break
+            fi
+          done
+          echo "COPILOT_OUTCOME=$outcome" >> "$GITHUB_ENV"
+
+      - name: Fail closed for contract or safety failures
+        if: >-
+          env.COPILOT_OUTCOME == 'BLOCKED_CONTRACT_PREFLIGHT' ||
+          env.COPILOT_OUTCOME == 'BLOCKED_FORBIDDEN_PATH' ||
+          env.COPILOT_OUTCOME == 'BLOCKED_ISSUE_PATH_CONTRACT' ||
+          env.COPILOT_OUTCOME == 'BLOCKED_NO_REPO_DIFF'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh issue comment "$ISSUE_NUMBER" --body "担当: 🌊ナギ / 種別: AI Router Safety Block / outcome=${COPILOT_OUTCOME}. 別AIへfallbackしても安全条件は解決しないためfail-closed。Work Contract/Scopeを再確認する。"
+
+      - name: Fall back to Amazon Q Free
+        if: >-
+          env.NO_ROUTABLE_ARTIFACT != '1' &&
+          env.NO_PRODUCTION_LEASE != '1' &&
+          github.event.workflow_run.conclusion != 'success' &&
+          env.COPILOT_OUTCOME != 'BLOCKED_CONTRACT_PREFLIGHT' &&
+          env.COPILOT_OUTCOME != 'BLOCKED_FORBIDDEN_PATH' &&
+          env.COPILOT_OUTCOME != 'BLOCKED_ISSUE_PATH_CONTRACT' &&
+          env.COPILOT_OUTCOME != 'BLOCKED_NO_REPO_DIFF'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          assigned="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          expires="$(date -u -d '+60 minutes' +%Y-%m-%dT%H:%M:%SZ)"
+          lease="$(jq -nc \
+            --arg work_ref "issue:${ISSUE_NUMBER}" \
+            --arg owner_slice "issue-${ISSUE_NUMBER}" \
+            --arg assigned_at "$assigned" \
+            --arg lease_expires_at "$expires" \
+            --arg prior_outcome "${COPILOT_OUTCOME:-UNKNOWN}" \
+            '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"amazon_q_free",assigned_at:$assigned_at,acknowledged_at:null,lease_expires_at:$lease_expires_at,fallback_owner:"sora",status:"ASSIGNED_FALLBACK",prior_engine:"copilot",prior_outcome:$prior_outcome}')"
+          gh issue comment "$ISSUE_NUMBER" --body "$(printf '%s\n%s' '<!-- flow-dispatch-lease -->' "$lease")"
+          gh issue comment "$ISSUE_NUMBER" --body "担当: 🌊ナギ / 種別: AI Router Fallback / Copilot outcome=${COPILOT_OUTCOME:-UNKNOWN} → Amazon Q Freeへ自動切替。"
+          gh issue comment "$ISSUE_NUMBER" --body "/q dev Implement this READY Work Contract exactly as written. Respect allowed/forbidden paths, acceptance tests, Single Implementation Owner, and Issue #79 protection. Do not broaden scope. Create a PR when complete."
