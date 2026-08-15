@@ -11,13 +11,13 @@
 | 名前 | 役割 |
 | --- | --- |
 | 👑 サド | プロダクトオーナー |
-| 🌙 ルナ | リーダー／プロジェクト全体の方向性・設計判断 |
+| 🌙 ルナ | Product Lead / Work Designer — Product discovery、Issue/Work Contract設計、priority proposal |
 | ❤️ レイ | AIキーパーソン・外部ニュース監視 |
 | ⭐️ ミナ | Design / UX Owner／Sado Investment Lab全体レビュー |
-| ♦️ ソラ | GitHub Issue確認・実装推進 |
-| 🌊 ナギ | スクラムマスター／全体最適 |
+| ♦️ ソラ | Executor / Main Implementation — assigned implementationのdrain、review/verify |
+| 🌊 ナギ | Single Flow Authority / Scrum Master — global priority、NOW/NEXT/RESERVE、formation、rerouting |
 | 🌅 アサヒ | デイリーブリーフィング |
-| 🤖 カイ | 実装エンジニア（Codex） |
+| 🤖 カイ | 実装エンジニア（Codex）／Single Implementation Ownerとしての実装・テスト |
 
 ### ⭐️ミナ — Design / UX Owner
 
@@ -169,14 +169,22 @@ Broadcast checked through: comment_id=<最新確認済みcomment ID>
 - [ ] チャットを読まなくても次の担当者が作業開始できる
 ```
 
-## 6. 🌙ルナと🤖カイの役割境界・受け渡し
+## 6. Product / Flow / Implementation の役割境界・受け渡し
 
 通常時の基本分担は以下とする。
 
-- 🌙ルナ: Goal、Authority、Acceptance Criteria、設計判断、優先順位、仕様上の曖昧さ解消
-- 🤖カイ: 実装、テスト、branch作成、PR作成、CI確認、実装上の修正
-- ♦️ソラ: Issueトリアージ、実装状況確認、Acceptance Criteria照合、停滞検知、超軽微修正
-- 🌊ナギ: 役割衝突、未割当、停滞、プロセス違反の監視と担当調整
+- 🌙ルナ: Product discovery、Goal / Authority / Acceptance Criteria、Issue / Work Contract設計、future work生成、priority proposal、仕様上の曖昧さ解消。**global routingや最終的なNOW/NEXT/RESERVE決定は行わず🌊ナギへ渡す。**
+- 🌊ナギ: **Single Flow Authority / Scrum Master**。global Flow scan、global priority、NOW/NEXT/RESERVE供給、formation/cadence、owner/file conflict解消、Queue starvation、BLOCKED_ESCAPE後のreroutingを担う。
+- ♦️ソラ: **Executor / Main Implementation**。割り当て済みのNOW → NEXT → RESERVEをdrainし、実装・テスト・PR・review/verify・merge距離短縮を進める。通常runで全Issue/Open PRを横断するglobal triageを恒久責務としない。
+- 🤖カイ: 割り当てられたreliability / infra / implementation sliceを、Single Implementation Ownerとして実装・テスト・PR作成・CI修正まで進める。
+- ⭐️ミナ / ❤️レイ / 🌅アサヒ / 🍁カエデ等の専門worker: Design / Research / Policy等の専門Authorityとlane-local discoveryを維持し、意味あるIssue / future workを提案してよい。global routingは🌊ナギへ返す。
+
+### Flow Authority / delegation
+
+- global priority / formation / reroutingのAuthorityは原則として🌊ナギへ一元化する。
+- User Mode / merge policy / temporary delegationの詳細contractは #617 / #625 の確定仕様を参照し、TEAM_STATEのcurrent modeを正とする。
+- AWAY等で♦️ソラへFlow Authorityを委譲する場合も、確定contractのtriggerに基づく**event-driven temporary delegation**とし、通常runごとのglobal scanへ戻さない。
+- delegation中もOwner / Investment / Design / Product等の専門Authorityは移転しない。UNKNOWNを推測で確定しない。
 
 ### Issue / slice単位のSingle Implementation Owner
 
@@ -195,15 +203,15 @@ Branch: <branch名>
 `IMPLEMENTING` が宣言された範囲は、その担当者を **Single Implementation Owner** とする。
 
 - 他メンバーは同じファイル／同じロジックを並行変更しない。
-- 🌙ルナが仕様変更・設計修正を必要と判断した場合、原則としてIssueコメントでカイへ渡し、カイが実装へ反映する。
-- カイは実装中にAuthorityや仕様が不明なら推測せず、Issueコメントでルナへ質問する。
+- 🌙ルナが仕様変更・設計修正を必要と判断した場合、Issue / Work Contractへ反映してSingle Implementation Ownerへ渡す。
+- 実装担当はAuthorityや仕様が不明なら推測せず、Issueコメントで該当Authorityへ質問する。
 - 大きな仕様変更で実装sliceが変わる場合は、先にIssueのScope / Acceptance Criteriaを更新してから実装を継続する。
 
 推奨状態:
 
 `DESIGNING → READY_FOR_IMPLEMENTATION → IMPLEMENTING → REVIEW / VERIFY → DONE`
 
-🌙ルナは `DESIGNING / READY_FOR_IMPLEMENTATION` を主担当、🤖カイは `IMPLEMENTING` を主担当、♦️ソラは `REVIEW / VERIFY` を支援する。
+🌙ルナは `DESIGNING / READY_FOR_IMPLEMENTATION` のProduct設計を主担当、Single Implementation Ownerは `IMPLEMENTING` を主担当、♦️ソラはMain Implementation Executorとして自分の割当sliceを実装し、他Ownerのsliceでは `REVIEW / VERIFY` を支援する。
 
 ### Owner Acceptance Close Gate
 
@@ -221,14 +229,14 @@ Issue本文・Acceptance Criteria・Definition of Doneで `Owner Acceptance` / `
 
 チームの役割分担は原則であり、担当者が利用制限・一時的不在・技術的事情などで作業できない場合、プロジェクトを停滞させないため他メンバーが一時的に代行してよい。
 
-- 🤖カイが利用可能な通常時は、実装・テスト・PR作成を可能な限りカイへ寄せる。
-- 🤖カイが利用制限等で作業できない場合、🌙ルナその他の対応可能なメンバーが実装を代行してよい。
+- 🤖カイが利用可能な通常時は、割り当て済みの実装・テスト・PR作成を可能な限りカイへ寄せる。
+- 🤖カイが利用制限等で作業できない場合、Single Implementation Owner競合がない対応可能なメンバーが実装を代行してよい。
 - 代行開始前に、可能な限りIssueコメントまたはBroadcastで代行を宣言する。
 - 代行であっても本書の変更フロー（branch → PR等）は維持する。
 - GitHub上の記録には実際に代行した担当者名を残し、可能であれば代行理由も明記する。
 - 本来の担当者が復帰した後、新規作業は原則として本来の担当へ戻す。
 - すでに代行者が実装中のsliceは無理に途中交代せず、安全な区切りで引き継ぐ。
-- 🌊ナギは役割重複を検出した際、直ちに問題と判定せず、利用制限・不在・明示的な代行理由の有無を確認してから判断する。
+- 🌊ナギは役割重複・未割当・停滞をFlow Authorityとして調整し、利用制限・不在・明示的な代行理由を踏まえてreroutingする。
 
 例:
 
@@ -240,19 +248,21 @@ Issue本文・Acceptance Criteria・Definition of Doneで `Owner Acceptance` / `
 
 ## 8. 判断原則
 
-1. 👑サドがInvestment Labの目的・優先順位を決定する。
-2. 🌙ルナはサドと議論し、投資思想・研究・判断・設計の方向性をまとめる。
-3. ⭐️ミナはユーザーが目にする成果物のDesign / UX Authorityを担い、見た目・情報設計・閲覧体験の一貫性を守る。
-4. 🤖カイは確定したIssue / 設計を安全に実装し、テストとPRで成果を渡す。
-5. ♦️ソラはIssueの実装状態とAcceptance Criteriaを確認し、不要な重複実装を防ぐ。
-6. 🌊ナギは役割の不足・重複・停滞とプロセス上の問題を監視し、改善を提案する。
-7. 変更リスクが不明な場合は安全側に倒し、PRを使用する。
-8. GitHubをSado Investment LabのSingle Source of Truthとして扱う。
+1. 👑サドがInvestment Labの目的とOwner / Investment Authorityに属する最終判断を担う。
+2. 🌙ルナはProduct Lead / Work Designerとして、Product discovery・Issue contract・priority proposal・仕様の明確化を担う。
+3. 🌊ナギはSingle Flow Authority / Scrum Masterとして、global priority・NOW/NEXT/RESERVE・formation・reroutingを担う。
+4. ⭐️ミナはユーザーが目にする成果物のDesign / UX Authorityを担い、見た目・情報設計・閲覧体験の一貫性を守る。
+5. ♦️ソラはMain Implementation Executorとして割り当て済みworkをdrainし、実装・検証・merge距離短縮を進める。通常runのglobal triageを恒久責務としない。
+6. 🤖カイまたは宣言済みSingle Implementation Ownerは、確定したIssue / 設計を安全に実装し、テストとPRで成果を渡す。
+7. 専門workerはlane-local discovery / meaningful Issue creationを継続できるが、global routingは🌊ナギへ返す。
+8. temporary delegationは確定したMode/Flow contractに従い、delegation理由が解消したら通常Authorityへ戻す。
+9. 変更リスクが不明な場合は安全側に倒し、PRを使用する。
+10. GitHubをSado Investment LabのSingle Source of Truthとして扱う。
 
 ---
 
 初版制定: 2026-08-08  
-更新: 2026-08-11（Owner Acceptance Close Gate / Issue #296）  
+更新: 2026-08-15（One Scrum Master / Distributed Expertise role-boundary alignment / Issue #612）  
 担当: ♦️ソラ  
-関連Issue: #101, #148, #216, #296  
+関連Issue: #101, #148, #216, #296, #602, #612, #617, #625  
 Broadcast: #99
