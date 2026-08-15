@@ -5,91 +5,142 @@
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
 Last updated: 2026-08-15  
-Sources: Issue #99 Current Active Board; #338; #354; Owner explicit AWAY transition on 2026-08-15; prior stale-transition repair history  
-Broadcast head at snapshot: `comment_id=5283976502`
+Sources: Issue #99 Current Active Board; #602; #617; #625; merged PR #605; merged PR #621; merged PR #627  
 
-## User Mode
+## User Mode v2
 
-- Mode: **AWAY**
-- Meaning: 👑サド is inactive. AWAY delegated autonomy applies within TEAM_RULES and explicit Authority boundaries. Owner-only decisions are queued, not inferred.
-- Mode contract: #354. `ACTIVE` keeps normal roles. `AWAY` activates delegated autonomous operations.
+```yaml
+user_mode: AWAY
+presence: AWAY
+merge_policy: AUTO_GREEN
+flow_authority_primary: NAGI
+flow_authority_fallback: SORA_DELEGATED
+```
 
-## Mode Transition Contract
+- Current operational meaning remains **AWAY**: 👑サド is inactive for routine flow decisions.
+- Owner / Investment Authority is never inferred from AWAY.
+- `AUTO_GREEN` is the merge policy contract, but actual auto-merge execution remains disabled until #625 Activation Gate is completed.
+- Legacy `ACTIVE` is interpreted only as migration alias for `ACTIVE_MANUAL`.
 
-### ACTIVE → AWAY
-The transition owner records one transaction before treating AWAY delegation as active:
-1. Set this file's User Mode to `AWAY`.
-2. Snapshot open implementation WIP, green Merge Gate items, unresolved Authority items, and material blockers in the transition record.
-3. Initialize ♦️ソラ's AWAY cadence at `AWAY_SORA_RUN_MOD3=1` on the first AWAY run. Every third AWAY run (`0`) includes `Delegated Nagi Process Check`.
-4. Verify `docs/handoffs/kaede-policy-intelligence.md` freshness and unresolved Next Checkpoints.
-5. 🌅アサヒ takes Policy Collection/Evidence continuity; ❤️レイ takes Policy Analysis/Hypothesis continuity.
-6. Never resolve Owner Authority merely because the Owner is AWAY; add it to the Authority backlog.
+## User-facing Modes
 
-### AWAY → ACTIVE
-1. Set User Mode to `ACTIVE`.
-2. Stop AWAY-only delegation/cadence and restore normal role priority.
-3. Summarize unresolved Authority items, green Merge Gates, material blockers, and delegated Process Check findings accumulated during AWAY.
-4. Summarize material Policy Intelligence changes from the Kaede handoff state.
-5. Present Owner decisions first; do not bury them behind routine progress.
+| Mode | Presence | Merge policy | Default Flow Authority |
+| --- | --- | --- | --- |
+| `ACTIVE_MANUAL` | ACTIVE | MANUAL | 🌊ナギ |
+| `ACTIVE_AUTO` | ACTIVE | AUTO_GREEN | 🌊ナギ |
+| `AWAY` | AWAY | AUTO_GREEN | 🌊ナギ; event-driven ♦️ソラ fallback |
 
-Transition evidence should be durable in GitHub (Issue #99 or the relevant process Issue). Chat history alone is not sufficient.
+Mode transition uses the fail-closed CAS contract from #617 / PR #621: `expected_current_mode + target_mode + transition_id`.
 
-## Current Operating Model
+## Flow Authority / Role Boundary
 
-| Member | ACTIVE role / capacity | AWAY delegation |
-| --- | --- | --- |
-| ♦️ソラ | **Main Implementation Owner** | Main implementation + every 3rd run Delegated Nagi Process Check |
-| 🌊ナギ | Scrum Master / maintenance; **secondary implementation capacity when an independent READY slice exists** | No periodic dependency required; delegated checks handled by Sora |
-| 🌙ルナ | Product / IA / Issue Design; prioritize queue refinement and dependency clarity | Same role; avoid READY oversupply |
-| ⭐️ミナ | **Design Authority / Product UI Designer**; create visual prototypes, persist them to GitHub, handoff, Design Gate | Same role; unblock implementation flow |
-| ❤️レイ | AI Key Person Watch / #124 Operational Heartbeat | Same + Kaede Policy Analysis/Hypothesis continuity |
-| 🌅アサヒ | Policy Collection / Policy Radar | Same + Kaede Policy Collection/Evidence continuity |
-| 🍁カエデ | Policy Intelligence / Hypothesis Builder | Continuity is delegated to Asahi/Rei using GitHub handoff state |
-| 🤖カイ | Implementation Engineer only when explicitly assigned; do not enter an existing Single Owner scope | Same |
+### 🌊ナギ — Single Flow Authority / Scrum Master
 
-## Continuous Execution / Self-Replenishing Queue
+Global flow work is centralized here to avoid duplicate cross-team scans:
+- global Issue / PR / WIP flow scan
+- NOW / NEXT / RESERVE global routing
+- DIVERGENCE / CONVERGENCE / BALANCED judgment
+- lane / formation / scheduled-run cadence adjustment
+- queue starvation / owner conflict / duplicate-start detection
+- rerouting after `BLOCKED_ESCAPE`
+- productivity telemetry and process improvement
 
-Each member should maximize safe progress per run rather than stop after one item. This applies in ACTIVE and, within delegated Authority, in AWAY.
+### ♦️ソラ — Main Executor
 
-1. Execute `NOW → NEXT → RESERVE` continuously while work is safe, independent, and within the member's Authority.
-2. Completing one item is not a stop condition. Promote NEXT, then RESERVE, then discover the next READY/non-conflicting candidate from GitHub.
-3. Where practical, carry one slice through investigation/design/implementation/test/PR/self-check/handoff in the same run.
-4. A PR creation is not itself a stop condition; reduce merge distance (tests, CI readiness, review handoff, issue/PR updates) before moving on.
-5. If Owner input is needed, record `USER INPUT NEEDED` with the exact decision, then continue all non-dependent work and another safe item if available.
-6. Reversible low-risk choices may use the member's recommended option when consistent with existing SSoT, Issue AC, and TEAM_RULES; preserve rollback/reviewability through PRs.
-7. Stop for explicit Authority/high-risk gates: investment execution or Owner-only investment judgment, secrets/auth/permissions, paid actions, destructive/irreversible changes, material public-scope changes, or other TEAM_RULES gates.
-8. Respect Single Implementation Owner and implementation-lane WIP limits while replenishing the queue.
+Normal run:
 
-### Drain-and-Recheck Rule
+`minimal sync → assigned NOW → assigned NEXT → assigned RESERVE → BLOCKED_ESCAPE`
 
-- Before ending a run, perform one final GitHub recheck for newly actionable work: completed CI, new review feedback, newly READY/non-conflicting Issues, merge-distance reduction, or unblocked dependencies.
-- If actionable work exists, continue in the same run until the safe queue is drained again; do not end merely because the original NOW item finished.
-- If no actionable work exists, end the run cleanly with `NEXT AUTO` describing what the next scheduled/invoked run should check first.
-- Scheduled agents should repeat this drain-and-recheck behavior on every invocation. Between invocations, use the configured task cadence; do not busy-wait or pretend to sleep inside a chat turn.
-- Current ChatGPT scheduled-task minimum cadence is one hour. Therefore a literal five-minute background wake/recheck is not part of this operating contract; use maximum work-per-invocation plus the configured periodic run.
+Do not perform a full global Issue/PR scan every run.
 
-Recommended run-end summary: `DONE / ADVANCED / BLOCKED / USER INPUT NEEDED / NEXT AUTO`.
+During AWAY, ♦️ソラ receives temporary Delegated Flow Authority only when a traffic-control event occurs and 🌊ナギ is not executable:
+- `QUEUE_STARVATION`
+- `OWNER_CONFLICT`
+- `NO_REROUTE_AFTER_BLOCKED_ESCAPE`
+- `PRIORITY_CONFLICT`
+- `STATE_DRIFT`
+- `GLOBAL_BLOCKER`
+
+Ordinary implementation, CI waiting, or routine review checks are not delegation triggers. After routing is restored, Sora returns to Executor mode.
+
+### 🌙ルナ — Product Lead / Work Designer
+
+- Product discovery / future-work divergence
+- Feature / experiment / Work Contract design
+- meaningful Issue creation and READY-quality refinement
+- Product priority proposals
+
+Global routing and final cross-lane priority remain with 🌊ナギ.
+
+### Other specialist members
+
+❤️レイ / 🌅アサヒ / ⭐️ミナ / 🍁カエデ / 🤖カイ retain lane-local expertise, discovery, Issue creation, implementation/review authority as defined by TEAM_RULES. They may propose global priority changes but do not routinely duplicate global routing scans.
+
+## Continuous Execution / Forward Progress
+
+Each scheduled or invoked run should maximize safe **productive progress**, not verification volume.
+
+1. Verification/startup work is a bounded precondition, not the goal of the run.
+2. Execute assigned `NOW → NEXT → RESERVE` continuously when safe.
+3. Completing one item or creating one PR is not a stop condition; reduce merge distance and continue safe work.
+4. If assigned work is blocked, attempt bounded self-resolution; then `BLOCKED_ESCAPE` and continue the next supplied item.
+5. If lane-local work is exhausted, discover a meaningful gap and create/advance a bounded Issue or slice rather than end with zero productive steps.
+6. A new meaningful Issue is not a failure. Capture broadly, execute selectively.
+7. Stop only for explicit Authority/high-risk gates or when no safe productive action can be found after the fallback sequence.
+
+Recommended run-end telemetry:
+
+```text
+productive_steps:
+verification_steps:
+durable_outputs:
+blocked_escape_count:
+self_created_meaningful_work:
+zero_productive_run: yes|no
+NEXT_AUTO:
+```
 
 ## AWAY Authority Backlog Contract
 
 During AWAY, record but do not decide:
-- Owner-only Merge/Acceptance decisions
-- investment philosophy / risk threshold / BUY-SELL-HOLD Authority
-- ambiguous product choices explicitly reserved for 👑サド
+- investment execution or BUY/SELL/HOLD Authority
+- investment philosophy / risk threshold changes
+- explicit Owner Acceptance
+- security / secrets / permissions / paid / destructive decisions
+- other Owner-only decisions defined in TEAM_RULES
 
-Each backlog item should contain: `ref`, `decision_needed`, `why_owner`, `safe_work_completed`, `next_action_on_active`. On ACTIVE return, these items are the first decision queue.
+Each item should contain: `ref`, `decision_needed`, `why_owner`, `safe_work_completed`, `next_action_on_active`.
+
+## AUTO_GREEN Safety
+
+A PR is only an `AUTO_GREEN` candidate when all required facts are known and GREEN:
+- CI / required checks PASS
+- no `REQUEST_CHANGES`
+- no merge conflict
+- required Product / Design / Reliability Gates PASS
+- latest-head review evidence exists
+- no Owner / Investment Authority
+- no sensitive security / secrets / permissions / paid / destructive change
+- no explicit Owner Acceptance requirement
+- Issue #79 untouched
+
+UNKNOWN never becomes PASS.
+
+**Current rollout state:** evaluator + shadow tests are on main via #621/#627. Actual automatic merge execution is still OFF until #625 completes TEAM_STATE/#99/TEAM_RULES alignment and shadow evidence confirms dangerous false-positive = 0.
 
 ## Implementation Capacity / Queue
 
-Default: ♦️ソラ leads implementation. 🌊ナギ joins implementation only when capacity is needed and the candidate is independent in Issue/slice/file/logic.
+- Default main executor: ♦️ソラ.
+- 🤖カイ is used when available and explicitly routed to an independent Single Owner slice.
+- Other members may implement within explicit delegation and Single Implementation Owner boundaries.
+- Current global priorities are maintained by 🌊ナギ through Issue #99 Current Active Board and current Issue/PR state.
+- Do not rely on stale static priority lists when a newer Flow routing record exists.
 
-Current priority order is maintained through Issue #99 Current Active Board and current Issue/PR state. Do not rely on a stale static numbered list when newer lane assignments exist.
-
-## Current Product / Design Guardrails
+## Product / Design Guardrails
 
 - #324 is the Sitemap & Evolution Roadmap / build-order reference.
 - #320 is the Visual Design System v1 authority for shared tokens/primitives/semantic states.
-- Approved or review-critical Visual Prototypes must be persisted to GitHub and linked from their Issue; chat-only artifacts are an incomplete handoff.
+- Approved or review-critical Visual Prototypes must be persisted to GitHub and linked from their Issue.
 - Do not create parallel CSS/component systems when shared primitives can be used.
 
 ## Active Process Guardrails
@@ -97,23 +148,24 @@ Current priority order is maintained through Issue #99 Current Active Board and 
 - Single Implementation Owner per Issue/slice. No parallel implementation of the same file/logic.
 - `TECHNICAL_INVESTIGATION` is normally work, not a reason to wait for the user.
 - Real blockers should classify Authority / Dependency / CI / Missing Artifact / Technical Investigation / External and state next action.
-- CI/external wait should trigger safe work on another non-conflicting READY/review/investigation item when available.
-- Open implementation PR WIP is normally capped at 2 per implementation owner/lane; it is not a team-wide PR cap. When an owner/lane is at cap, reduce merge distance before creating another implementation PR.
+- CI/external wait should trigger another safe non-conflicting item when available.
+- Open implementation PR WIP is normally capped at 2 per implementation owner/lane; reduce merge distance before creating more.
 - Issue #79: do not modify/comment/close/implement unless a later explicit authoritative instruction supersedes this constraint.
 
 ## Startup Sync v2
 
-Normal run fast path:
-1. Check `TEAM_RULES.md` identity. If unchanged since the agent's verified prior read, full semantic reread may be skipped; if changed/unknown, read it fully.
+Normal fast path:
+1. Check `TEAM_RULES.md` identity. If changed/unknown, read it fully.
 2. Read this `TEAM_STATE.md`.
-3. Fetch Issue #99 body and read `broadcast-head`.
-4. If own verified `last_seen_comment_id` equals head, no comment-history fetch is needed.
-5. If behind, fetch/process only the delta needed to reach head, applying `To: ALL` and own addressee instructions.
-6. Update cursor only after actual latest comment read equals authoritative head.
-7. If head cannot be reached/verified, use `BROADCAST_SYNC_UNVERIFIED`; never infer “no new Broadcast”.
+3. Fetch Issue #99 body and authoritative `broadcast-head`.
+4. Process only the Broadcast delta needed for `To: ALL` and own addressee instructions.
+5. If latest head cannot be verified, use `BROADCAST_SYNC_UNVERIFIED`; do not infer “no new Broadcast”.
+6. After minimal sync, move directly to productive work.
 
 Fallback: if this file is missing/stale/inconsistent with #99 or TEAM_RULES, use `TEAM_RULES.md → #99 Current Active Board → verified Broadcast delta` and report drift.
 
 ## Maintenance Ownership
 
-🌊ナギ checks for drift between this file, Issue #99 Current Active Board, active IMPLEMENTING declarations, and current Authority/handoff state while ACTIVE/when invoked. During AWAY, ♦️ソラ performs the delegated cross-team Process Check every third run. State changes that materially affect future runs should update this snapshot through the repository change flow.
+🌊ナギ owns drift detection among TEAM_STATE, TEAM_RULES, Issue #99, current IMPLEMENTING declarations, lane routing, and Authority state.
+
+During AWAY, ♦️ソラ does **not** run a periodic global Process Check. Delegated Flow Authority activates only for the explicit traffic-control triggers above when 🌊ナギ is unavailable.
