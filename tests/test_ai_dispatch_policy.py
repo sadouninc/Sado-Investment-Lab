@@ -18,6 +18,15 @@ def test_create_dispatch_lease_has_60_minute_default_ttl():
     assert lease["fallback_owner"] == "sora"
 
 
+def test_non_positive_issue_number_is_rejected_for_lease():
+    result = create_dispatch_lease(
+        issue_number=0,
+        engine="copilot",
+        assigned_at="2026-08-16T00:00:00Z",
+    )
+    assert result == {"status": "INVALID_ISSUE_NUMBER", "lease": None}
+
+
 def test_issue_79_is_never_dispatched():
     result = create_dispatch_lease(
         issue_number=79,
@@ -25,6 +34,33 @@ def test_issue_79_is_never_dispatched():
         assigned_at="2026-08-16T00:00:00Z",
     )
     assert result == {"status": "PROTECTED_ISSUE_79", "lease": None}
+
+
+def test_missing_issue_number_fails_closed():
+    result = evaluate_dispatch_result(
+        {
+            "engine": "copilot",
+            "run_success": False,
+            "outcome": "COPILOT_SERVICE_FAILURE",
+        }
+    )
+    assert result == {
+        "status": "BLOCK",
+        "action": "NONE",
+        "reason": "INVALID_ISSUE_NUMBER",
+    }
+
+
+def test_non_numeric_issue_number_fails_closed():
+    result = evaluate_dispatch_result(
+        {
+            "issue_number": "bad",
+            "engine": "copilot",
+            "run_success": False,
+            "outcome": "COPILOT_SERVICE_FAILURE",
+        }
+    )
+    assert result["reason"] == "INVALID_ISSUE_NUMBER"
 
 
 def test_validated_copilot_patch_routes_to_promotion():
@@ -84,3 +120,20 @@ def test_acknowledged_lease_does_not_expire():
     )["lease"]
     lease["acknowledged_at"] = "2026-08-16T00:10:00Z"
     assert lease_is_expired(lease, now="2026-08-16T02:00:00Z") is False
+
+
+def test_malformed_lease_without_expiry_fails_safe_as_expired():
+    lease = {
+        "work_ref": "issue:700",
+        "acknowledged_at": None,
+    }
+    assert lease_is_expired(lease, now="2026-08-16T02:00:00Z") is True
+
+
+def test_malformed_lease_with_invalid_expiry_fails_safe_as_expired():
+    lease = {
+        "work_ref": "issue:700",
+        "acknowledged_at": None,
+        "lease_expires_at": "not-a-time",
+    }
+    assert lease_is_expired(lease, now="2026-08-16T02:00:00Z") is True
