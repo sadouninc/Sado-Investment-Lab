@@ -49,6 +49,28 @@ def test_allowed_forbidden_overlap_is_invalid():
     assert "ALLOWED_FORBIDDEN_OVERLAP" in result.errors
 
 
+def test_mid_pattern_wildcard_overlap_is_detected_not_silently_passed():
+    result = validate_issue_body(
+        body(
+            allowed_paths='["scripts/*.py", "tests/*.py"]',
+            forbidden_paths='["scripts/operational_state_guard.py", "tests/test_operational_state_guard.py"]',
+        )
+    )
+    assert "ALLOWED_FORBIDDEN_OVERLAP" in result.errors
+    assert result.valid is False
+
+
+def test_mid_pattern_wildcard_without_real_overlap_stays_valid():
+    result = validate_issue_body(
+        body(
+            allowed_paths='["scripts/*.py"]',
+            forbidden_paths='["docs/private_notes.py"]',
+        )
+    )
+    assert "ALLOWED_FORBIDDEN_OVERLAP" not in result.errors
+    assert result.valid is True
+
+
 def test_green_contract_cannot_allow_protected_path():
     result = validate_issue_body(body(allowed_paths='[".github/workflows/**"]'))
     assert any(error.startswith("GREEN_PROTECTED_PATH") for error in result.errors)
