@@ -50,6 +50,10 @@ def write_outputs(
         json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     if not result["executable"]:
+        # Remove any pre-existing worker input files to prevent stale artifacts
+        contract_output.unlink(missing_ok=True)
+        allowed_paths_output.unlink(missing_ok=True)
+        forbidden_paths_output.unlink(missing_ok=True)
         return
 
     body = issue.get("body") or ""

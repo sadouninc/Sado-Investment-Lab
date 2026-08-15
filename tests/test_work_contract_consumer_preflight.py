@@ -99,6 +99,31 @@ def test_blocked_preflight_writes_diagnostic_but_no_worker_inputs():
         assert not outputs["forbidden_paths_output"].exists()
 
 
+def test_blocked_preflight_removes_stale_worker_input_outputs():
+    """Regression test: blocked run removes pre-existing worker input files."""
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        outputs = {
+            "diagnostic_output": root / "diagnostic.json",
+            "contract_output": root / "contract.md",
+            "allowed_paths_output": root / "allowed.txt",
+            "forbidden_paths_output": root / "forbidden.txt",
+        }
+        # Simulate pre-existing worker input files from previous ELIGIBLE run
+        outputs["contract_output"].write_text("stale contract", encoding="utf-8")
+        outputs["allowed_paths_output"].write_text("stale/paths", encoding="utf-8")
+        outputs["forbidden_paths_output"].write_text("stale/forbidden", encoding="utf-8")
+
+        # Run BLOCKED preflight
+        value = issue("ordinary issue body")
+        write_outputs(value, evaluate_issue(value), **outputs)
+
+        assert outputs["diagnostic_output"].exists()
+        assert not outputs["contract_output"].exists()
+        assert not outputs["allowed_paths_output"].exists()
+        assert not outputs["forbidden_paths_output"].exists()
+
+
 def test_workflow_runs_preflight_before_install_and_worker():
     workflow = WORKFLOW.read_text(encoding="utf-8")
     preflight = workflow.index("Validate Contract v1 before worker execution")
