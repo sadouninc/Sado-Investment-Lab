@@ -102,6 +102,36 @@ def render_markdown(metrics: dict[str, object]) -> str:
     averages = dict(metrics["averages"])
     labels = [str(row["date"])[5:].replace("-", "/") for row in rows]
 
+    # Calculate 7-day comparison
+    days = int(metrics["window_days"])
+    if days >= 14:
+        # Recent 7 days (last 7 rows)
+        recent_7 = rows[-7:]
+        # Previous 7 days (7 rows before that)
+        previous_7 = rows[-14:-7]
+        
+        comparison_metrics = ["pr_created", "pr_merged", "issue_created", "issue_closed", "issue_net_change"]
+        comparisons = {}
+        for metric in comparison_metrics:
+            recent_total = sum(int(row[metric]) for row in recent_7)
+            previous_total = sum(int(row[metric]) for row in previous_7)
+            delta = recent_total - previous_total
+            
+            if previous_total == 0:
+                pct_str = "N/A"
+            else:
+                pct = (delta / previous_total) * 100
+                pct_str = f"{pct:+.1f}%"
+            
+            comparisons[metric] = {
+                "recent": recent_total,
+                "previous": previous_total,
+                "delta": delta,
+                "pct": pct_str,
+            }
+    else:
+        comparisons = None
+
     parts = [
         MARKER,
         "## 📈 Daily Throughput Dashboard",
@@ -109,24 +139,47 @@ def render_markdown(metrics: dict[str, object]) -> str:
         f"直近 **{metrics['window_days']}日 / JST** のGitHub activityを自動集計しています。",
         "これは活動量の観測レイヤであり、**Issue/PR件数の最大化自体を生産性の目的にはしません**。#479のproductive steps / durable outputs / lead timeと組み合わせて評価します。",
         "",
+    ]
+    
+    if comparisons:
+        parts.extend([
+            "### 📊 直近7日 vs 前7日",
+            "",
+            "| 指標 | 直近7日 | 前7日 | 差分 | 変化率 |",
+            "| --- | ---: | ---: | ---: | ---: |",
+            f"| PR発行 | {comparisons['pr_created']['recent']} | {comparisons['pr_created']['previous']} | {comparisons['pr_created']['delta']:+d} | {comparisons['pr_created']['pct']} |",
+            f"| PR Merge | {comparisons['pr_merged']['recent']} | {comparisons['pr_merged']['previous']} | {comparisons['pr_merged']['delta']:+d} | {comparisons['pr_merged']['pct']} |",
+            f"| Issue発行 | {comparisons['issue_created']['recent']} | {comparisons['issue_created']['previous']} | {comparisons['issue_created']['delta']:+d} | {comparisons['issue_created']['pct']} |",
+            f"| Issue Close | {comparisons['issue_closed']['recent']} | {comparisons['issue_closed']['previous']} | {comparisons['issue_closed']['delta']:+d} | {comparisons['issue_closed']['pct']} |",
+            f"| Issue純増減 | {comparisons['issue_net_change']['recent']:+d} | {comparisons['issue_net_change']['previous']:+d} | {comparisons['issue_net_change']['delta']:+d} | {comparisons['issue_net_change']['pct']} |",
+            "",
+        ])
+    
+    parts.extend([
+        "### 📋 全期間集計",
+        "",
         "| 指標 | 期間合計 | 1日平均 |",
         "| --- | ---: | ---: |",
         f"| PR発行 | {totals['pr_created']} | {averages['pr_created']:.2f} |",
+        f"| PR Merge | {totals['pr_merged']} | {averages['pr_merged']:.2f} |",
         f"| Issue発行 | {totals['issue_created']} | {averages['issue_created']:.2f} |",
         f"| Issue Close | {totals['issue_closed']} | {averages['issue_closed']:.2f} |",
         f"| Issue純増減 | {totals['issue_net_change']:+d} | {averages['issue_net_change']:+.2f} |",
         "",
-        _chart("PR発行数 / 日", labels, [int(row["pr_created"]) for row in rows]),
-        _chart("Issue発行数 / 日", labels, [int(row["issue_created"]) for row in rows]),
-        _chart("Issue Close数 / 日", labels, [int(row["issue_closed"]) for row in rows]),
+        "### 📈 日次推移",
+        "",
+        _chart("PR発行 / 日", labels, [int(row["pr_created"]) for row in rows]),
+        _chart("PR Merge / 日", labels, [int(row["pr_merged"]) for row in rows]),
+        _chart("Issue発行 / 日", labels, [int(row["issue_created"]) for row in rows]),
+        _chart("Issue Close / 日", labels, [int(row["issue_closed"]) for row in rows]),
         "### 日次データ",
         "",
-        "| JST日付 | PR発行 | Issue発行 | Issue Close | Issue純増減 |",
-        "| --- | ---: | ---: | ---: | ---: |",
+        "| JST日付 | PR発行 | PR Merge | Issue発行 | Issue Close | Issue純増減 |",
+        "| --- | ---: | ---: | ---: | ---: | ---: |",
     ]
     for row in rows:
         parts.append(
-            f"| {row['date']} | {row['pr_created']} | {row['issue_created']} | "
+            f"| {row['date']} | {row['pr_created']} | {row['pr_merged']} | {row['issue_created']} | "
             f"{row['issue_closed']} | {int(row['issue_net_change']):+d} |"
         )
     parts.extend(
