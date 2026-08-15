@@ -38,8 +38,8 @@ class CanonicalMarketDataRecord:
     adjustment_basis: str
     source: str
     source_observed_at: str
-    provider_status: str = PROVIDER_OK
-    not_market_truth: bool = False
+    provider_status: str
+    not_market_truth: bool
 
 
 @dataclass(frozen=True)
@@ -71,12 +71,12 @@ def canonical_from_daily_record(
     record: MarketDataRecord,
     *,
     security_id: str,
+    provider_status: str,
+    not_market_truth: bool,
     exchange: str = "TSE",
     currency: str = "JPY",
-    provider_status: str = PROVIDER_OK,
-    not_market_truth: bool = False,
 ) -> CanonicalMarketDataRecord:
-    """Normalize one validated provider daily record without promoting it to truth."""
+    """Normalize one daily record with explicit provider/provenance state."""
 
     return CanonicalMarketDataRecord(
         security_id=security_id,
