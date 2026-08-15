@@ -124,6 +124,39 @@ def test_blocked_worker_reroutes_to_another_available_worker():
     assert result["routing"]["selected"]["worker"] == "copilot"
 
 
+def test_unknown_current_worker_state_still_routes_to_known_available_worker():
+    result = evaluate_and_select_flow_action(
+        [candidate(issue=701, worker="copilot", owner_slice="slice-701")],
+        user_mode="AWAY",
+        worker="sora",
+        worker_states={"sora": "unknown", "copilot": "idle"},
+        work_states=["REVIEW_WAIT"],
+        ready_nonconflicting_count=1,
+        last_durable_output_age_minutes=30,
+        now=now(),
+    )
+    assert result["health"]["status"] == "CRITICAL"
+    assert "QUEUE_STARVATION" in result["health"]["reasons"]
+    assert result["routing"]["status"] == "SELECTED"
+    assert result["routing"]["selected"]["worker"] == "copilot"
+
+
+def test_unknown_current_worker_with_no_known_available_candidate_fails_closed():
+    result = evaluate_and_select_flow_action(
+        [candidate(issue=702, worker="sora", owner_slice="slice-702")],
+        user_mode="AWAY",
+        worker="sora",
+        worker_states={"sora": "unknown"},
+        work_states=["REVIEW_WAIT"],
+        ready_nonconflicting_count=1,
+        last_durable_output_age_minutes=30,
+        now=now(),
+    )
+    assert result["health"]["status"] == "CRITICAL"
+    assert result["routing"]["status"] == "WORKER_BLOCKED"
+    assert result["routing"]["selected"] is None
+
+
 def test_no_stall_does_not_invoke_selector():
     result = evaluate_and_select_flow_action(
         [candidate()],
