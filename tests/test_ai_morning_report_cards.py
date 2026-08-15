@@ -48,7 +48,8 @@ class MorningReportCardTests(unittest.TestCase):
         self.assertIn("市場:", detail)
         self.assertIn("戦略:", detail)
         self.assertIn("注目:", detail)
-        self.assertIn("Data quality: PARTIAL", detail)
+        self.assertIn("データ状態: 一部取得できていません", detail)
+        self.assertNotIn("Data quality", detail)
         self.assertNotIn("gpt-5", detail)
         self.assertNotIn("tokens", detail.lower())
 
@@ -96,6 +97,7 @@ class MorningReportCardTests(unittest.TestCase):
             self.assertIn("市場: AI半導体は底堅い", index)
             self.assertIn("戦略: 押し目候補を優先", index)
             self.assertIn("注目: 4063 信越化学", index)
+            self.assertIn("データ状態: 一部取得できていません", index)
             self.assertLess(index.index("今日まず見る"), index.index("このレポートについて"))
             self.assertLess(index.index("市場: AI半導体"), index.index("model / token / execution / cost"))
             self.assertNotIn("GitHub Actions が", index)
