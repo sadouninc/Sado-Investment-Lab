@@ -123,19 +123,19 @@ def card_detail(
     *,
     generated_at: object = None,
 ) -> str:
+    """Preserve the established decision summary while adding freshness metadata."""
     rows: list[str] = []
     updated = generated_at_label(generated_at)
     if updated:
         rows.append(f"更新: {updated}")
     if summary.get("market"):
         rows.append(f"市場: {summary['market']}")
+    if summary.get("strategy"):
+        rows.append(f"戦略: {summary['strategy']}")
     if summary.get("watch"):
         rows.append(f"注目: {summary['watch']}")
-    elif summary.get("strategy"):
-        rows.append(f"戦略: {summary['strategy']}")
     elif summary.get("risk"):
         rows.append(f"リスク: {summary['risk']}")
-    rows = rows[:3]
     rows.append(dataset_status_label(status))
     return "<br>".join(html.escape(row) for row in rows)
 
