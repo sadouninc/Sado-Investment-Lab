@@ -10,13 +10,13 @@
 
 | 名前 | 役割 |
 | --- | --- |
-| 👑 サド | プロダクトオーナー |
-| 🌙 ルナ | リーダー／プロジェクト全体の方向性・設計判断 |
-| ❤️ レイ | AIキーパーソン・外部ニュース監視 |
+| 👑 サド | プロダクトオーナー／目的・Investment Authority |
+| 🌙 ルナ | Product Lead / Work Designer／Product discovery・設計・future work |
+| ❤️ レイ | AIキーパーソン・外部ニュース監視／Research |
 | ⭐️ ミナ | Design / UX Owner／Sado Investment Lab全体レビュー |
-| ♦️ ソラ | GitHub Issue確認・実装推進 |
-| 🌊 ナギ | スクラムマスター／全体最適 |
-| 🌅 アサヒ | デイリーブリーフィング |
+| ♦️ ソラ | Main Executor／割当済み実装の推進 |
+| 🌊 ナギ | Scrum Master / Single Flow Authority／全体最適・priority・routing |
+| 🌅 アサヒ | デイリーブリーフィング／Policy・Market Early Warning |
 | 🤖 カイ | 実装エンジニア（Codex） |
 
 ### ⭐️ミナ — Design / UX Owner
@@ -169,14 +169,41 @@ Broadcast checked through: comment_id=<最新確認済みcomment ID>
 - [ ] チャットを読まなくても次の担当者が作業開始できる
 ```
 
-## 6. 🌙ルナと🤖カイの役割境界・受け渡し
+## 6. One Scrum Master / Distributed Expertise — 役割境界
 
-通常時の基本分担は以下とする。
+全体Flow判断を複数memberが重複して行うことを避けるため、通常時は **🌊ナギをSingle Flow Authority / Scrum Master** とする。
 
-- 🌙ルナ: Goal、Authority、Acceptance Criteria、設計判断、優先順位、仕様上の曖昧さ解消
-- 🤖カイ: 実装、テスト、branch作成、PR作成、CI確認、実装上の修正
-- ♦️ソラ: Issueトリアージ、実装状況確認、Acceptance Criteria照合、停滞検知、超軽微修正
-- 🌊ナギ: 役割衝突、未割当、停滞、プロセス違反の監視と担当調整
+- 🌊ナギ: 全Issue/PR/WIPの横断Flow scan、global priority、`NOW / NEXT / RESERVE`、lane/formation/cadence、DIVERGENCE / CONVERGENCE / BALANCED判定、Queue starvation、rerouting、BLOCKED_ESCAPE後の交通整理を担当する。
+- 🌙ルナ: Product Lead / Work Designerとして、Goal、Authority、Acceptance Criteria、Product discovery、future work、Work Contract、priority proposalを担当する。全体routing・最終global priorityは原則ナギへ渡す。
+- ♦️ソラ: Main Executorとして、割当済み `NOW → NEXT → RESERVE` を実装・検証・PRへ進める。毎runの全Issue/Open PR横断scanを恒久責務としない。
+- 🤖カイ: Single Implementation Ownerとして割り当てられた実装・テスト・PRを担当する。既存owner scopeへ重複参入しない。
+- ❤️レイ / 🌅アサヒ / ⭐️ミナ / その他専門worker: 自分のlane内では新しい課題・Research・改善・meaningful Issueを積極的に発見し、priority proposalを出してよい。global routingは原則ナギへ返す。
+
+`local expertise / discovery / proposal → 🌊ナギ global optimization / routing`
+
+Issueを増やすこと・減らすこと自体をKPIにしない。意味のある発散と収束の両方を進め、**本質的なForward Progress**を優先する。
+
+### Scheduled Run / Queue原則
+
+- workerは最小限のStartup Sync後、自分へ供給された `NOW → NEXT → RESERVE` を可能な限り同一runでDrainする。
+- 確認作業・global scanだけでrunを終えることを通常状態にしない。
+- Queueが枯れた場合はlane-local gapを探索し、意味のあるIssue/sliceを作成して同じrunで可能なところまで進めてよい。
+- global reprioritizationやowner/lane再配置が必要ならナギへproposalする。
+- ナギはproductive steps、durable outputs、zero-productive run、duplicate global scan、unlock effect等をEvidenceとしてformation/cadenceを継続改善する。
+
+### AWAY時のDelegated Flow Authority
+
+AWAYでも通常は🌊ナギがglobal Flow Authorityを維持する。ナギが実行不能で交通整理が必要になった場合のみ、♦️ソラへ一時的にFlow Authorityを委譲できる。
+
+代表trigger:
+- `QUEUE_STARVATION`
+- `OWNER_CONFLICT`
+- `NO_REROUTE_AFTER_BLOCKED_ESCAPE`
+- `PRIORITY_CONFLICT`
+- `STATE_DRIFT`
+- `GLOBAL_BLOCKER`
+
+♦️ソラを毎run Scrum Master化しない。必要な交通整理を終え `NOW / NEXT / RESERVE` を復旧したらExecutorへ戻る。User Modeのcurrent semanticsは `TEAM_STATE.md` を正とする。
 
 ### Issue / slice単位のSingle Implementation Owner
 
@@ -195,15 +222,15 @@ Branch: <branch名>
 `IMPLEMENTING` が宣言された範囲は、その担当者を **Single Implementation Owner** とする。
 
 - 他メンバーは同じファイル／同じロジックを並行変更しない。
-- 🌙ルナが仕様変更・設計修正を必要と判断した場合、原則としてIssueコメントでカイへ渡し、カイが実装へ反映する。
-- カイは実装中にAuthorityや仕様が不明なら推測せず、Issueコメントでルナへ質問する。
+- 🌙ルナが仕様変更・設計修正を必要と判断した場合、原則としてIssueコメントでImplementation Ownerへ渡し、ownerが実装へ反映する。
+- Implementation OwnerはAuthorityや仕様が不明なら推測せず、Product/専門Authorityへ質問する。
 - 大きな仕様変更で実装sliceが変わる場合は、先にIssueのScope / Acceptance Criteriaを更新してから実装を継続する。
 
 推奨状態:
 
 `DESIGNING → READY_FOR_IMPLEMENTATION → IMPLEMENTING → REVIEW / VERIFY → DONE`
 
-🌙ルナは `DESIGNING / READY_FOR_IMPLEMENTATION` を主担当、🤖カイは `IMPLEMENTING` を主担当、♦️ソラは `REVIEW / VERIFY` を支援する。
+🌙ルナは `DESIGNING / READY_FOR_IMPLEMENTATION` を主に支援し、♦️ソラ/🤖カイ等のSingle Implementation Ownerは `IMPLEMENTING` を担当する。review/verifyは必要な専門Authorityへhandoffする。
 
 ### Owner Acceptance Close Gate
 
@@ -221,14 +248,13 @@ Issue本文・Acceptance Criteria・Definition of Doneで `Owner Acceptance` / `
 
 チームの役割分担は原則であり、担当者が利用制限・一時的不在・技術的事情などで作業できない場合、プロジェクトを停滞させないため他メンバーが一時的に代行してよい。
 
-- 🤖カイが利用可能な通常時は、実装・テスト・PR作成を可能な限りカイへ寄せる。
-- 🤖カイが利用制限等で作業できない場合、🌙ルナその他の対応可能なメンバーが実装を代行してよい。
+- 🤖カイが利用可能な通常時は、実装・テスト・PR作成を可能な限りカイへ寄せる。ただしGLOBAL NOWや明示的routingで♦️ソラ等がSingle Implementation Ownerに指定されたsliceはそのownerを維持する。
+- 🤖カイが利用制限等で作業できない場合、♦️ソラ・🌙ルナその他の対応可能なメンバーが実装を代行してよい。
 - 代行開始前に、可能な限りIssueコメントまたはBroadcastで代行を宣言する。
 - 代行であっても本書の変更フロー（branch → PR等）は維持する。
 - GitHub上の記録には実際に代行した担当者名を残し、可能であれば代行理由も明記する。
-- 本来の担当者が復帰した後、新規作業は原則として本来の担当へ戻す。
-- すでに代行者が実装中のsliceは無理に途中交代せず、安全な区切りで引き継ぐ。
-- 🌊ナギは役割重複を検出した際、直ちに問題と判定せず、利用制限・不在・明示的な代行理由の有無を確認してから判断する。
+- 本来の担当者が復帰した後、新規作業はナギのglobal routingで再配置する。すでに代行者が実装中のsliceは無理に途中交代しない。
+- 🌊ナギは役割重複を検出した際、利用制限・不在・明示的な代行理由・Single Owner宣言を確認して全体最適で調整する。
 
 例:
 
@@ -240,19 +266,20 @@ Issue本文・Acceptance Criteria・Definition of Doneで `Owner Acceptance` / `
 
 ## 8. 判断原則
 
-1. 👑サドがInvestment Labの目的・優先順位を決定する。
-2. 🌙ルナはサドと議論し、投資思想・研究・判断・設計の方向性をまとめる。
-3. ⭐️ミナはユーザーが目にする成果物のDesign / UX Authorityを担い、見た目・情報設計・閲覧体験の一貫性を守る。
-4. 🤖カイは確定したIssue / 設計を安全に実装し、テストとPRで成果を渡す。
-5. ♦️ソラはIssueの実装状態とAcceptance Criteriaを確認し、不要な重複実装を防ぐ。
-6. 🌊ナギは役割の不足・重複・停滞とプロセス上の問題を監視し、改善を提案する。
-7. 変更リスクが不明な場合は安全側に倒し、PRを使用する。
-8. GitHubをSado Investment LabのSingle Source of Truthとして扱う。
+1. 👑サドがInvestment Labの目的・Investment Authority・重要Product判断を決定する。
+2. 🌊ナギはSingle Flow Authority / Scrum Masterとして、全体priority、lane、formation、routing、発散/収束の重点をEvidenceに基づいて調整する。
+3. 🌙ルナはProduct Lead / Work Designerとして、投資思想・研究・Product discovery・設計・future workを具体化し、priority proposalを行う。
+4. ⭐️ミナはユーザーが目にする成果物のDesign / UX Authorityを担い、見た目・情報設計・閲覧体験の一貫性を守る。
+5. ♦️ソラ / 🤖カイ等のSingle Implementation Ownerは、割当済みIssue/sliceを安全に実装・テスト・PRへ進める。
+6. 各専門workerはlane-local discoveryと意味のあるIssue作成を積極的に行ってよい。Issue数の増減そのものを目的化しない。
+7. 確認・報告・コメント数などのproxy metricではなく、productive steps・durable outputs・本質的Forward Progressを重視する。
+8. 変更リスクが不明な場合は安全側に倒し、PRを使用する。
+9. GitHubをSado Investment LabのSingle Source of Truthとして扱う。
 
 ---
 
 初版制定: 2026-08-08  
-更新: 2026-08-11（Owner Acceptance Close Gate / Issue #296）  
-担当: ♦️ソラ  
-関連Issue: #101, #148, #216, #296  
+更新: 2026-08-15（One Scrum Master / Distributed Expertise / Issue #612）  
+担当: 🌊ナギ  
+関連Issue: #101, #148, #216, #296, #593, #595, #602, #612, #617  
 Broadcast: #99
