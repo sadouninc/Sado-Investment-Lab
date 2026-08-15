@@ -115,7 +115,22 @@ def extract_work_contract(issue_body: str) -> dict[str, Any]:
 
 
 def _path_prefix(path: str) -> str:
-    return str(path).strip().rstrip("*")
+    """Return the fixed (non-wildcard) prefix of a path or glob pattern.
+
+    A previous implementation only stripped trailing ``*`` characters, so a
+    pattern with a wildcard followed by a literal suffix (for example
+    ``scripts/*.py``) was returned unchanged. That silently defeated overlap
+    detection against forbidden paths such as
+    ``scripts/operational_state_guard.py``: the two strings never share a
+    startswith relationship, so a genuine allowed/forbidden overlap could
+    pass validation undetected. Truncating at the first wildcard character
+    instead keeps the directory-prefix comparison correct for any glob shape.
+    """
+    text = str(path).strip()
+    for index, char in enumerate(text):
+        if char in "*?[":
+            return text[:index]
+    return text
 
 
 def _paths_overlap(left: str, right: str) -> bool:
