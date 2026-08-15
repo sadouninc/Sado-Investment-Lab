@@ -82,6 +82,24 @@ def collect_flow_health_metrics(event: Mapping[str, Any]) -> Dict[str, Any]:
     }
 
 
+def collect_review_routing_metrics(event: Mapping[str, Any]) -> Dict[str, Any]:
+    """Project optional #647 review-flow evidence without changing legacy records."""
+    review = event.get("review_routing")
+    if not isinstance(review, Mapping):
+        return {}
+
+    blocking_gates = review.get("blocking_gates") or []
+    all_reviewers = review.get("reviewers") or []
+    return {
+        "blocking_gate_count": review.get("blocking_gate_count", len(blocking_gates)),
+        "review_fanout_count": review.get("review_fanout_count", len(all_reviewers)),
+        "review_wait_age_minutes": review.get("review_wait_age_minutes"),
+        "unnecessary_gate_wait_count": review.get("unnecessary_gate_wait_count", 0),
+        "review_reroute_count": review.get("review_reroute_count", 0),
+        "carry_forward_gate_count": review.get("carry_forward_gate_count", 0),
+    }
+
+
 def collect_from_fixture(event: Dict[str, Any]) -> Dict[str, Any]:
     conflicts = event.get("conflicts") or []
     markers = event.get("markers") or []
@@ -101,6 +119,7 @@ def collect_from_fixture(event: Dict[str, Any]) -> Dict[str, Any]:
         "first_pass_ci": first_pass_ci(ci_runs),
     }
     metrics.update(collect_flow_health_metrics(event))
+    metrics.update(collect_review_routing_metrics(event))
 
     return {
         "schema_version": 1,
