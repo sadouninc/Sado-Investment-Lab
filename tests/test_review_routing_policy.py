@@ -2,6 +2,7 @@ from scripts.review_routing_policy import (
     classify_blocking_gates,
     evaluate_gate_carry_forward,
     evaluate_review_wait_sla,
+    select_specialist_reviewer,
 )
 
 
@@ -165,3 +166,44 @@ def test_unknown_wait_age_and_reviewer_kind_fail_closed():
     assert missing_age["action"] == "COLLECT_WAIT_AGE"
     assert unknown_kind["status"] == "UNKNOWN"
     assert unknown_kind["action"] == "FAIL_CLOSED"
+
+
+def test_design_uses_mina_when_available():
+    result = select_specialist_reviewer(
+        gate="DESIGN",
+        availability={"MINA": "available", "LUNA": "available"},
+    )
+    assert result["status"] == "SELECTED"
+    assert result["reviewer"] == "MINA"
+    assert result["fallback_used"] is False
+
+
+def test_existing_design_baseline_can_fallback_to_luna_when_mina_unavailable():
+    result = select_specialist_reviewer(
+        gate="DESIGN",
+        availability={"MINA": "unavailable", "LUNA": "available"},
+        authority_surface_new=False,
+    )
+    assert result["status"] == "SELECTED"
+    assert result["reviewer"] == "LUNA"
+    assert result["action"] == "REROUTE_SPECIALIST"
+
+
+def test_new_design_authority_surface_does_not_delegate_to_luna():
+    result = select_specialist_reviewer(
+        gate="DESIGN",
+        availability={"MINA": "unavailable", "LUNA": "available"},
+        authority_surface_new=True,
+    )
+    assert result["status"] == "AUTHORITY_REQUIRED"
+    assert result["reviewer"] is None
+    assert result["action"] == "BLOCKED_ESCAPE_KEEP_REQUIRED_GATE"
+
+
+def test_missing_specialist_fails_closed_without_dropping_gate():
+    result = select_specialist_reviewer(
+        gate="RESEARCH",
+        availability={"ASAHI": "unavailable", "REI": "unavailable"},
+    )
+    assert result["status"] == "UNAVAILABLE"
+    assert result["action"] == "BLOCKED_ESCAPE_KEEP_REQUIRED_GATE"
