@@ -4,8 +4,8 @@
 > Permanent rules remain in `TEAM_RULES.md`. Broadcast history remains in Issue #99.
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
-Last updated: 2026-08-15  
-Sources: Issue #99 Current Active Board; #602; #617; #625; merged PR #605; merged PR #621; merged PR #627  
+Last updated: 2026-08-16  
+Sources: Issue #99 Current Active Board; #602; #617; #625; #645; merged PR #605; merged PR #621; merged PR #627  
 
 ## User Mode v2
 
@@ -136,6 +136,35 @@ UNKNOWN never becomes PASS.
 - Current global priorities are maintained by 🌊ナギ through Issue #99 Current Active Board and current Issue/PR state.
 - Do not rely on stale static priority lists when a newer Flow routing record exists.
 
+### Active implementation WIP semantics — #645
+
+**Open PR count is not active implementation WIP.** WIP capacity follows current work state.
+
+Counts toward implementation WIP:
+- `IMPLEMENTING`
+- `REVISION_REQUIRED`
+- `CONFLICT_RESOLUTION`
+
+Normally releases implementation capacity:
+- `CI_WAIT`
+- `REVIEW_WAIT`
+- `RESEARCH_GATE_WAIT`
+- `DESIGN_GATE_WAIT`
+- `OWNER_WAIT`
+- `EXTERNAL_WAIT`
+- `MERGE_READY`
+
+A waiting PR can still block a new slice through Single Owner or path conflict. That conflict is evaluated separately and fail-closed; it must not be inferred merely from the PR being open.
+
+When non-conflicting READY work exists:
+- `active_implementation_wip == 0` → `QUEUE_STARVATION`, route in the same SM run.
+- durable implementation output age `>=120m` → `FLOW_STALL_WARNING`.
+- durable implementation output age `>=240m` → `FLOW_STALL_CRITICAL`, same-run reroute required.
+- unacknowledged agent dispatch at lease expiry → expire/reroute instead of holding the queue indefinitely.
+- same blocker for 2 consecutive runs → `BLOCKED_ESCAPE` mandatory.
+
+PR count is not a productivity KPI. These guards only detect available safe work that is not moving.
+
 ## Product / Design Guardrails
 
 - #324 is the Sitemap & Evolution Roadmap / build-order reference.
@@ -149,7 +178,7 @@ UNKNOWN never becomes PASS.
 - `TECHNICAL_INVESTIGATION` is normally work, not a reason to wait for the user.
 - Real blockers should classify Authority / Dependency / CI / Missing Artifact / Technical Investigation / External and state next action.
 - CI/external wait should trigger another safe non-conflicting item when available.
-- Open implementation PR WIP is normally capped at 2 per implementation owner/lane; reduce merge distance before creating more.
+- Active implementation WIP is normally capped at 2 per implementation owner/lane; waiting PRs do not consume that capacity unless they still require active code mutation. Reduce merge distance while also continuing safe independent work.
 - Issue #79: do not modify/comment/close/implement unless a later explicit authoritative instruction supersedes this constraint.
 
 ## Startup Sync v2
