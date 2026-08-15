@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from collections import defaultdict
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Iterable
 from urllib.error import HTTPError
