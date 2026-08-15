@@ -138,12 +138,13 @@ def evaluate_and_select_flow_action(
     states = tuple(str(state) for state in work_states)
     active_wip = active_implementation_wip(states)
     lease = evaluate_dispatch_lease(dispatch_lease, now=now)
+    worker_state = str(worker_states.get(worker, "unknown")).lower()
 
     dispatch_age = lease.get("unacked_age_minutes")
     health = evaluate_flow_health(
         {
             "user_mode": user_mode,
-            "worker_state": worker_states.get(worker, "unknown"),
+            "worker_state": worker_state,
             "work_states": states,
             "ready_nonconflicting_count": ready_nonconflicting_count,
             "last_durable_output_age_minutes": last_durable_output_age_minutes,
@@ -180,7 +181,11 @@ def evaluate_and_select_flow_action(
     }
 
     if route_actions.intersection(health["actions"]):
-        if "REROUTE_TO_AVAILABLE_WORKER" in health["actions"]:
+        # select_away_work intentionally requires the current worker to be
+        # explicitly idle/available. If that state is stale/unknown/blocked,
+        # route through the global safe selector instead of detecting a stall
+        # and then silently refusing to select any work.
+        if worker_state not in {"idle", "available"}:
             routing = select_next_work(
                 candidates,
                 worker_states=worker_states,
