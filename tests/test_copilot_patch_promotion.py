@@ -61,6 +61,26 @@ def test_already_applied_blocks():
     assert base(already_applied=True).reason == "ALREADY_APPLIED"
 
 
+def test_empty_changed_path_blocks():
+    """Fail-closed: empty string in changed_paths should not pass validation."""
+    assert base(changed_paths=[""]).reason == "ISSUE_CONTRACT_INVALID"
+
+
+def test_whitespace_only_changed_path_blocks():
+    """Fail-closed: whitespace-only paths are malformed and must not slip through."""
+    assert base(changed_paths=[" "]).reason == "ISSUE_CONTRACT_INVALID"
+    assert base(changed_paths=["  "]).reason == "ISSUE_CONTRACT_INVALID"
+    assert base(changed_paths=["\t"]).reason == "ISSUE_CONTRACT_INVALID"
+    assert base(changed_paths=["\n"]).reason == "ISSUE_CONTRACT_INVALID"
+    assert base(changed_paths=["   \t  \n  "]).reason == "ISSUE_CONTRACT_INVALID"
+
+
+def test_mixed_valid_and_blank_changed_paths_blocks():
+    """Fail-closed: even one blank path among valid ones must fail."""
+    assert base(changed_paths=["scripts/valid.py", ""]).reason == "ISSUE_CONTRACT_INVALID"
+    assert base(changed_paths=["scripts/valid.py", "  "]).reason == "ISSUE_CONTRACT_INVALID"
+
+
 def test_acceptance_command_allowlist_accepts_pytest_variants():
     assert acceptance_test_argv("python -m pytest -q tests/test_x.py") == [
         "python",

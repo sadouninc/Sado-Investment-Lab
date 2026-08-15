@@ -44,7 +44,7 @@ def evaluate_promotion(
     if already_applied:
         return PromotionDecision(False, "ALREADY_APPLIED")
 
-    changed = [p for p in (changed_paths or []) if p]
+    changed = [p for p in (changed_paths or []) if p and p.strip()]
     allowed = [p for p in (allowed_paths or []) if p]
     forbidden = [p for p in (forbidden_paths or []) if p]
     if not changed or not allowed:
