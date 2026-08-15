@@ -62,6 +62,8 @@ def create_dispatch_lease(
     fallback_owner: str = "sora",
     lease_minutes: int = DEFAULT_LEASE_MINUTES,
 ) -> dict[str, Any]:
+    if issue_number <= 0:
+        return {"status": "INVALID_ISSUE_NUMBER", "lease": None}
     if issue_number == 79:
         return {"status": "PROTECTED_ISSUE_79", "lease": None}
     if lease_minutes <= 0:
@@ -83,7 +85,13 @@ def create_dispatch_lease(
 
 
 def evaluate_dispatch_result(raw: Mapping[str, Any]) -> dict[str, Any]:
-    issue_number = int(raw.get("issue_number", 0))
+    try:
+        issue_number = int(raw.get("issue_number", 0))
+    except (TypeError, ValueError):
+        return {"status": "BLOCK", "action": "NONE", "reason": "INVALID_ISSUE_NUMBER"}
+    if issue_number <= 0:
+        return {"status": "BLOCK", "action": "NONE", "reason": "INVALID_ISSUE_NUMBER"}
+
     engine = str(raw.get("engine", ""))
     outcome = str(raw.get("outcome", "UNKNOWN"))
     run_success = bool(raw.get("run_success", False))
@@ -116,5 +124,12 @@ def evaluate_dispatch_result(raw: Mapping[str, Any]) -> dict[str, Any]:
 def lease_is_expired(lease: Mapping[str, Any], *, now: str | datetime) -> bool:
     if lease.get("acknowledged_at"):
         return False
-    expires = _parse_utc(str(lease["lease_expires_at"]))
-    return _parse_utc(now) >= expires
+    expires_raw = lease.get("lease_expires_at")
+    if not expires_raw:
+        return True
+    try:
+        expires = _parse_utc(str(expires_raw))
+        current = _parse_utc(now)
+    except (TypeError, ValueError):
+        return True
+    return current >= expires
