@@ -21,14 +21,29 @@ from scripts.boj_market_data import (
 ACCEPTED = "ACCEPTED"
 NOT_ACCEPTED = "NOT_ACCEPTED"
 EXIT_OK = 0
+EXIT_INPUT_INVALID = 1
 EXIT_CREDENTIAL_MISSING = 2
 EXIT_PROVIDER_UNAVAILABLE = 3
 EXIT_VALIDATION_REJECTED = 4
+EXIT_OUTPUT_WRITE_FAILED = 5
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _input_error_payload(raw_market_date: str, policy_transaction_id: str) -> dict[str, Any]:
+    return {
+        "run_type": "boj-live-market-replay",
+        "market_date": raw_market_date,
+        "policy_transaction_id": policy_transaction_id,
+        "acceptance_status": NOT_ACCEPTED,
+        "provider_status": "NOT_RUN",
+        "provider_reasons": ["invalid_market_date"],
+        "market_truth_promoted": False,
+        "exit_code": EXIT_INPUT_INVALID,
+    }
 
 
 def run_live_replay(
@@ -83,6 +98,17 @@ def run_live_replay(
     return EXIT_OK, envelope
 
 
+def _persist_result(output: Path, payload: dict[str, Any]) -> bool:
+    try:
+        _write_json(output, payload)
+    except OSError:
+        # Keep failure output intentionally generic: exception text can contain
+        # environment/path details and is not needed for the acceptance decision.
+        print(json.dumps({"error": "output_write_failed"}, ensure_ascii=False))
+        return False
+    return True
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run fail-closed BOJ live J-Quants replay")
     parser.add_argument("--market-date", required=True, help="Market date in YYYY-MM-DD")
@@ -90,13 +116,34 @@ def main() -> int:
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
 
-    market_date = date.fromisoformat(args.market_date)
+    try:
+        market_date = date.fromisoformat(args.market_date)
+    except ValueError:
+        payload = _input_error_payload(args.market_date, args.policy_transaction_id)
+        if not _persist_result(args.output, payload):
+            return EXIT_OUTPUT_WRITE_FAILED
+        print(
+            json.dumps(
+                {
+                    "acceptance_status": NOT_ACCEPTED,
+                    "provider_status": "NOT_RUN",
+                    "error": "invalid_market_date",
+                    "expected": "YYYY-MM-DD",
+                    "output": str(args.output),
+                    "exit_code": EXIT_INPUT_INVALID,
+                },
+                ensure_ascii=False,
+            )
+        )
+        return EXIT_INPUT_INVALID
+
     exit_code, payload = run_live_replay(
         provider=JQuantsV2MarketDataProvider(),
         market_date=market_date,
         policy_transaction_id=args.policy_transaction_id,
     )
-    _write_json(args.output, payload)
+    if not _persist_result(args.output, payload):
+        return EXIT_OUTPUT_WRITE_FAILED
 
     print(
         json.dumps(
