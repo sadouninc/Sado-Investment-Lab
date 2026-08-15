@@ -1,0 +1,15 @@
+{
+  "fixture_kind": "DETERMINISTIC_CONTRACT_ONLY",
+  "not_market_truth": true,
+  "market_date": "2026-08-14",
+  "policy_transaction_id": "2026-08-14-policy-step-002",
+  "records": [
+    {"instrument_code":"3778","instrument_kind":"security","source":"fixture-primary","source_timestamp":"2026-08-14T15:31:00+09:00","open":100.0,"high":103.0,"low":99.0,"close":102.0,"volume":100000.0,"adjustment_basis":"raw"},
+    {"instrument_code":"247A","instrument_kind":"security","source":"fixture-primary","source_timestamp":"2026-08-14T15:31:00+09:00","open":200.0,"high":204.0,"low":198.0,"close":201.0,"volume":200000.0,"adjustment_basis":"raw"},
+    {"instrument_code":"9166","instrument_kind":"security","source":"fixture-primary","source_timestamp":"2026-08-14T15:31:00+09:00","open":300.0,"high":306.0,"low":297.0,"close":305.0,"volume":300000.0,"adjustment_basis":"raw"},
+    {"instrument_code":"3110","instrument_kind":"security","source":"fixture-primary","source_timestamp":"2026-08-14T15:31:00+09:00","open":400.0,"high":405.0,"low":396.0,"close":399.0,"volume":400000.0,"adjustment_basis":"raw"},
+    {"instrument_code":"4063","instrument_kind":"security","source":"fixture-primary","source_timestamp":"2026-08-14T15:31:00+09:00","open":500.0,"high":510.0,"low":498.0,"close":508.0,"volume":500000.0,"adjustment_basis":"raw"},
+    {"instrument_code":"TOPIX","instrument_kind":"benchmark","source":"fixture-jpx","source_timestamp":"2026-08-14T15:31:00+09:00","open":3000.0,"high":3020.0,"low":2990.0,"close":3010.0,"volume":null,"adjustment_basis":"index_raw"},
+    {"instrument_code":"TSE_GROWTH_250","instrument_kind":"benchmark","source":"fixture-jpx","source_timestamp":"2026-08-14T15:31:00+09:00","open":800.0,"high":810.0,"low":795.0,"close":805.0,"volume":null,"adjustment_basis":"index_raw"}
+  ]
+}
