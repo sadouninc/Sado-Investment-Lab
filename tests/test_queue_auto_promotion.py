@@ -74,3 +74,106 @@ def test_no_candidates_returns_no_safe_candidate():
     result = select_next_work([], worker_states={"sora": "available"})
     assert result["status"] == "NO_SAFE_CANDIDATE"
     assert result["metrics"]["no_safe_candidate_count"] == 1
+
+
+def test_glob_prefix_conflict_active_glob_vs_concrete_candidate():
+    """Active path scripts/** should conflict with candidate path scripts/shared.py"""
+    result = select_next_work(
+        [candidate(539, allowed_paths=["scripts/shared.py"])],
+        worker_states={"sora": "available"},
+        active_paths={"scripts/**"},
+    )
+    assert result["status"] == "OWNER_CONFLICT"
+    assert result["metrics"]["duplicate_start_prevented_count"] == 1
+
+
+def test_glob_prefix_conflict_concrete_active_vs_glob_candidate():
+    """Active path scripts/shared.py should conflict with candidate path scripts/**"""
+    result = select_next_work(
+        [candidate(539, allowed_paths=["scripts/**"])],
+        worker_states={"sora": "available"},
+        active_paths={"scripts/shared.py"},
+    )
+    assert result["status"] == "OWNER_CONFLICT"
+    assert result["metrics"]["duplicate_start_prevented_count"] == 1
+
+
+def test_unrelated_paths_no_conflict():
+    """Unrelated paths should not conflict"""
+    result = select_next_work(
+        [candidate(539, allowed_paths=["scripts/shared.py"])],
+        worker_states={"sora": "available"},
+        active_paths={"data/**"},
+    )
+    assert result["status"] == "SELECTED"
+    assert result["selected"]["issue_number"] == 539
+
+
+def test_blank_active_paths_no_conflict():
+    """Empty active paths should not cause false conflicts"""
+    result = select_next_work(
+        [candidate(539, allowed_paths=["scripts/shared.py"])],
+        worker_states={"sora": "available"},
+        active_paths=set(),
+    )
+    assert result["status"] == "SELECTED"
+    assert result["selected"]["issue_number"] == 539
+
+
+def test_blank_candidate_paths_no_conflict():
+    """Empty candidate paths should not cause false conflicts"""
+    result = select_next_work(
+        [candidate(539, allowed_paths=[])],
+        worker_states={"sora": "available"},
+        active_paths={"scripts/**"},
+    )
+    assert result["status"] == "SELECTED"
+    assert result["selected"]["issue_number"] == 539
+
+
+def test_empty_string_paths_no_conflict():
+    """Empty string paths should be ignored"""
+    result = select_next_work(
+        [candidate(539, allowed_paths=["scripts/shared.py", ""])],
+        worker_states={"sora": "available"},
+        active_paths={""},
+    )
+    assert result["status"] == "SELECTED"
+    assert result["selected"]["issue_number"] == 539
+
+
+def test_deep_nested_glob_conflict():
+    """Deep nesting: scripts/monitoring/** vs scripts/monitoring/status.py"""
+    result = select_next_work(
+        [candidate(539, allowed_paths=["scripts/monitoring/status.py"])],
+        worker_states={"sora": "available"},
+        active_paths={"scripts/monitoring/**"},
+    )
+    assert result["status"] == "OWNER_CONFLICT"
+    assert result["metrics"]["duplicate_start_prevented_count"] == 1
+
+
+def test_exact_match_still_conflicts():
+    """Exact path match should still be detected as conflict (regression)"""
+    result = select_next_work(
+        [candidate(539, allowed_paths=["scripts/shared.py"])],
+        worker_states={"sora": "available"},
+        active_paths={"scripts/shared.py"},
+    )
+    assert result["status"] == "OWNER_CONFLICT"
+    assert result["metrics"]["duplicate_start_prevented_count"] == 1
+
+
+def test_multiple_candidates_with_partial_conflicts():
+    """When multiple candidates exist with some conflicts, select the safe one"""
+    result = select_next_work(
+        [
+            candidate(444, priority=1, allowed_paths=["scripts/shared.py"]),  # Conflicts
+            candidate(539, priority=2, allowed_paths=["data/config.json"]),  # Safe
+        ],
+        worker_states={"sora": "available"},
+        active_paths={"scripts/**"},
+    )
+    assert result["status"] == "SELECTED"
+    assert result["selected"]["issue_number"] == 539
+    assert result["metrics"]["duplicate_start_prevented_count"] == 1
