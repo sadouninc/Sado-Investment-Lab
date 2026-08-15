@@ -1,4 +1,12 @@
-from scripts.copilot_patch_promotion import evaluate_promotion
+from pathlib import Path
+
+import pytest
+
+from scripts.copilot_patch_promotion import (
+    acceptance_test_argv,
+    evaluate_promotion,
+    run_acceptance_tests,
+)
 
 
 def base(**overrides):
@@ -51,3 +59,26 @@ def test_duplicate_pr_blocks():
 
 def test_already_applied_blocks():
     assert base(already_applied=True).reason == "ALREADY_APPLIED"
+
+
+def test_acceptance_command_allowlist_accepts_pytest_variants():
+    assert acceptance_test_argv("python -m pytest -q tests/test_x.py") == [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_x.py",
+    ]
+    assert acceptance_test_argv("pytest -q") == ["pytest", "-q"]
+
+
+def test_acceptance_command_allowlist_rejects_shell_or_other_commands():
+    with pytest.raises(ValueError, match="UNSUPPORTED_ACCEPTANCE_TEST"):
+        acceptance_test_argv("bash -c 'echo unsafe'")
+
+
+def test_run_acceptance_tests_rejects_missing_contract_tests(tmp_path: Path):
+    diagnostic = tmp_path / "contract.json"
+    diagnostic.write_text('{"contract": {"acceptance_tests": []}}', encoding="utf-8")
+    with pytest.raises(RuntimeError, match="ISSUE_CONTRACT_INVALID"):
+        run_acceptance_tests(diagnostic)
