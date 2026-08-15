@@ -71,7 +71,7 @@ def auto_green(**overrides):
 def test_auto_green_shadow_low_risk_green_is_eligible():
     result = auto_green()
     assert result.allowed is True
-    assert result.status == "AUTO_GREEN_ELIGIBLE"
+    assert result.status == "AUTO_GREEN_ALLOWED"
 
 
 def test_auto_green_shadow_blocks_missing_design_or_product_gate():
