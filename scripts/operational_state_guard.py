@@ -129,7 +129,15 @@ def evaluate_auto_green_merge(
     explicit_owner_acceptance_required: bool,
     protected_issue_79: bool,
 ) -> AutoGreenMergeResult:
-    """Evaluate AUTO_GREEN eligibility. Any unsafe/unknown caller input should be passed as False/True to block."""
+    """Evaluate AUTO_GREEN eligibility with fail-safe defaults.
+    
+    For uncertain/unknown inputs:
+    - Pass False for ci_pass, required_gates_pass, latest_head_reviewed (blocks when False)
+    - Pass True for request_changes, merge_conflict, owner_or_investment_authority, 
+      sensitive_change, explicit_owner_acceptance_required, protected_issue_79 (blocks when True)
+    
+    This ensures unknown states fail closed and block auto-merge.
+    """
     contract = mode_contract(mode)
     reasons: list[str] = []
     if contract["merge_policy"] != "AUTO_GREEN":
