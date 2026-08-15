@@ -47,8 +47,8 @@ def evaluate_dispatch_lease(
 
     try:
         lease = raw if isinstance(raw, DispatchLease) else DispatchLease(
-            work_ref=str(raw["work_ref"]),
-            fallback_owner=str(raw["fallback_owner"]),
+            work_ref=str(raw["work_ref"]).strip(),
+            fallback_owner=str(raw["fallback_owner"]).strip(),
             assigned_at=str(raw["assigned_at"]),
             lease_expires_at=str(raw["lease_expires_at"]),
             acknowledged_at=(
@@ -57,9 +57,11 @@ def evaluate_dispatch_lease(
             ),
             owner_slice=(
                 None if raw.get("owner_slice") in {None, ""}
-                else str(raw["owner_slice"])
+                else str(raw["owner_slice"]).strip()
             ),
         )
+        if not lease.work_ref or not lease.fallback_owner:
+            raise ValueError("dispatch lease requires nonblank work_ref and fallback_owner")
         assigned_at = _parse_aware_timestamp(lease.assigned_at)
         expires_at = _parse_aware_timestamp(lease.lease_expires_at)
         acknowledged_at = (
@@ -89,6 +91,33 @@ def evaluate_dispatch_lease(
 
     age_minutes = max(0, int((now_utc - assigned_at).total_seconds() // 60))
     if acknowledged_at is not None:
+        if acknowledged_at < assigned_at:
+            return {
+                "status": "INVALID",
+                "work_ref": lease.work_ref,
+                "fallback_owner": lease.fallback_owner,
+                "owner_slice": lease.owner_slice,
+                "unacked_age_minutes": None,
+                "error": "acknowledged_at must not be before assigned_at",
+            }
+        if acknowledged_at > now_utc:
+            return {
+                "status": "INVALID",
+                "work_ref": lease.work_ref,
+                "fallback_owner": lease.fallback_owner,
+                "owner_slice": lease.owner_slice,
+                "unacked_age_minutes": None,
+                "error": "acknowledged_at must not be in the future",
+            }
+        if acknowledged_at >= expires_at:
+            return {
+                "status": "EXPIRED",
+                "work_ref": lease.work_ref,
+                "fallback_owner": lease.fallback_owner,
+                "owner_slice": lease.owner_slice,
+                "unacked_age_minutes": age_minutes,
+                "late_acknowledgement": True,
+            }
         return {
             "status": "ACKNOWLEDGED",
             "work_ref": lease.work_ref,
