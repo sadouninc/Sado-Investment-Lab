@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, time, timedelta
 from typing import Iterable, Protocol, Sequence
+from zoneinfo import ZoneInfo
 
 
 FRESHNESS_VERIFIED_SAME_DAY = "VERIFIED_SAME_DAY"
@@ -27,6 +28,7 @@ PRIMARY_BENCHMARK_BY_SECURITY = {
 REPLAY_REQUIRED_CONFOUNDS = {
     date(2026, 8, 14): {"247A": ("EARNINGS_CONFOUND",)},
 }
+TOKYO_TZ = ZoneInfo("Asia/Tokyo")
 
 
 @dataclass(frozen=True)
@@ -100,10 +102,17 @@ def _observation_freshness(record: MarketDataRecord, market_date: date) -> str:
     except ValueError:
         return FRESHNESS_UNKNOWN
 
-    if observed.date() == market_date:
+    if observed.tzinfo is None or observed.utcoffset() is None:
+        return FRESHNESS_UNKNOWN
+
+    observed_tokyo = observed.astimezone(TOKYO_TZ)
+    if observed_tokyo.date() == market_date:
         return FRESHNESS_VERIFIED_SAME_DAY
 
-    if observed.date() == market_date + timedelta(days=1) and observed.timetz().replace(tzinfo=None) <= time(12, 0):
+    if (
+        observed_tokyo.date() == market_date + timedelta(days=1)
+        and observed_tokyo.timetz().replace(tzinfo=None) <= time(12, 0)
+    ):
         return FRESHNESS_VERIFIED_T_PLUS_1
 
     return FRESHNESS_STALE_SOURCE
