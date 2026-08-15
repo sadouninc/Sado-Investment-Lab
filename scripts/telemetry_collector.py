@@ -82,6 +82,25 @@ def collect_flow_health_metrics(event: Mapping[str, Any]) -> Dict[str, Any]:
     }
 
 
+def collect_review_flow_metrics(event: Mapping[str, Any]) -> Dict[str, Any]:
+    """Project optional #647 review-routing evidence into the #479 metric record."""
+    review_flow = event.get("review_flow")
+    if not isinstance(review_flow, Mapping):
+        return {}
+
+    return {
+        "blocking_gate_count": review_flow.get("blocking_gate_count"),
+        "review_fanout_count": review_flow.get("review_fanout_count"),
+        "review_wait_age_minutes": review_flow.get("review_wait_age_minutes"),
+        "unnecessary_gate_wait_count": review_flow.get("unnecessary_gate_wait_count"),
+        "review_reroute_count": review_flow.get("review_reroute_count"),
+        "carry_forward_gate_count": review_flow.get("carry_forward_gate_count"),
+        "specialist_unavailable_count": review_flow.get("specialist_unavailable_count"),
+        "design_fallback_reroute_count": review_flow.get("design_fallback_reroute_count"),
+        "design_authority_wait_count": review_flow.get("design_authority_wait_count"),
+    }
+
+
 def collect_from_fixture(event: Dict[str, Any]) -> Dict[str, Any]:
     conflicts = event.get("conflicts") or []
     markers = event.get("markers") or []
@@ -101,6 +120,7 @@ def collect_from_fixture(event: Dict[str, Any]) -> Dict[str, Any]:
         "first_pass_ci": first_pass_ci(ci_runs),
     }
     metrics.update(collect_flow_health_metrics(event))
+    metrics.update(collect_review_flow_metrics(event))
 
     return {
         "schema_version": 1,
