@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 
 from scripts.boj_market_data import (
     PROVIDER_CREDENTIAL_MISSING,
@@ -13,8 +14,11 @@ from scripts.boj_market_data import (
 from scripts.run_boj_live_replay import (
     ACCEPTED,
     EXIT_CREDENTIAL_MISSING,
+    EXIT_INPUT_INVALID,
     EXIT_OK,
     NOT_ACCEPTED,
+    _input_error_payload,
+    _persist_result,
     run_live_replay,
 )
 
@@ -55,6 +59,25 @@ def _valid_records() -> tuple[MarketDataRecord, ...]:
         _record("TSE_GROWTH_250", "benchmark", 805.0, 800.0, "index_raw"),
     )
     return (*securities, *benchmarks)
+
+
+def test_invalid_market_date_payload_is_fail_closed() -> None:
+    payload = _input_error_payload("not-a-date", "2026-08-14-policy-step-002")
+
+    assert payload["exit_code"] == EXIT_INPUT_INVALID
+    assert payload["acceptance_status"] == NOT_ACCEPTED
+    assert payload["provider_status"] == "NOT_RUN"
+    assert payload["market_truth_promoted"] is False
+    assert payload["provider_reasons"] == ["invalid_market_date"]
+
+
+def test_output_write_failure_is_caught(monkeypatch) -> None:
+    def fail_write(path: Path, payload: dict[str, object]) -> None:
+        raise OSError("synthetic write failure")
+
+    monkeypatch.setattr("scripts.run_boj_live_replay._write_json", fail_write)
+
+    assert _persist_result(Path("result.json"), {"market_truth_promoted": False}) is False
 
 
 def test_credential_missing_is_not_promoted_to_market_truth() -> None:
