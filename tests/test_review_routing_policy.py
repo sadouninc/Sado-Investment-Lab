@@ -115,27 +115,50 @@ def test_affected_or_unknown_gate_must_be_rereviewed():
     assert prior_unknown["decision"] == "RE_REVIEW"
 
 
-def test_primary_review_sla_reroutes_after_60_minutes():
+def test_primary_review_exact_60_minute_target_is_still_within_target():
     result = evaluate_review_wait_sla(
         blocking=True,
         reviewer_kind="PRIMARY",
         wait_age_minutes=60,
         alternate_available=True,
     )
-    assert result["status"] == "SLA_EXCEEDED"
-    assert result["action"] == "REROUTE_REVIEW"
+    assert result["status"] == "WITHIN_TARGET"
+    assert result["action"] == "NONE"
     assert result["target_minutes"] == 60
 
 
-def test_specialist_review_sla_reroutes_after_120_minutes():
+def test_primary_review_reroutes_after_60_minute_target_is_exceeded():
+    result = evaluate_review_wait_sla(
+        blocking=True,
+        reviewer_kind="PRIMARY",
+        wait_age_minutes=61,
+        alternate_available=True,
+    )
+    assert result["status"] == "SLA_EXCEEDED"
+    assert result["action"] == "REROUTE_REVIEW"
+
+
+def test_specialist_exact_120_minute_target_is_still_within_target():
     result = evaluate_review_wait_sla(
         blocking=True,
         reviewer_kind="SPECIALIST",
         wait_age_minutes=120,
         alternate_available=True,
     )
-    assert result["action"] == "REROUTE_REVIEW"
+    assert result["status"] == "WITHIN_TARGET"
+    assert result["action"] == "NONE"
     assert result["target_minutes"] == 120
+
+
+def test_specialist_review_reroutes_after_120_minute_target_is_exceeded():
+    result = evaluate_review_wait_sla(
+        blocking=True,
+        reviewer_kind="SPECIALIST",
+        wait_age_minutes=121,
+        alternate_available=True,
+    )
+    assert result["status"] == "SLA_EXCEEDED"
+    assert result["action"] == "REROUTE_REVIEW"
 
 
 def test_required_gate_without_alternate_blocked_escapes_instead_of_dropping_gate():
