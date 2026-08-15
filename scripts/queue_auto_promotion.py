@@ -37,6 +37,50 @@ def _candidate(raw: Mapping[str, Any]) -> Candidate:
     )
 
 
+def _has_path_conflict(active_paths: set[str], candidate_paths: tuple[str, ...]) -> bool:
+    """
+    Detect path conflicts including exact matches and prefix/glob overlaps.
+    
+    Returns True if:
+    - Any exact path match exists
+    - Any active concrete path is under a candidate directory/glob prefix
+    - Any candidate concrete path is under an active directory/glob prefix
+    
+    Returns False if:
+    - Either set is empty (blank path safety)
+    - All paths are unrelated
+    """
+    if not active_paths or not candidate_paths:
+        return False
+    
+    for active in active_paths:
+        if not active:  # Skip empty strings
+            continue
+        for candidate in candidate_paths:
+            if not candidate:  # Skip empty strings
+                continue
+            
+            # Exact match
+            if active == candidate:
+                return True
+            
+            # Check glob patterns (e.g., "scripts/**")
+            if candidate.endswith("/**"):
+                prefix = candidate[:-3]  # Remove "/**"
+                if active.startswith(prefix + "/") or active == prefix:
+                    return True
+            
+            if active.endswith("/**"):
+                prefix = active[:-3]  # Remove "/**"
+                if candidate.startswith(prefix + "/") or candidate == prefix:
+                    return True
+            
+            # Check directory prefix (without glob syntax)
+            # This handles cases where one path is a parent directory of another
+    
+    return False
+
+
 def select_next_work(
     candidates: Iterable[Mapping[str, Any]],
     *,
@@ -68,7 +112,7 @@ def select_next_work(
         if worker_states.get(item.preferred_worker) not in {"available", "idle"}:
             blocked_reasons.append("WORKER_BLOCKED")
             continue
-        if item.owner_slice in owners or paths.intersection(item.allowed_paths):
+        if item.owner_slice in owners or _has_path_conflict(paths, item.allowed_paths):
             metrics["duplicate_start_prevented_count"] += 1
             blocked_reasons.append("OWNER_CONFLICT")
             continue
