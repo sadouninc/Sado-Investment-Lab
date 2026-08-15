@@ -1,0 +1,65 @@
+name: AI Production Router v0 — dispatch
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+
+jobs:
+  dispatch-copilot:
+    if: >-
+      github.event.issue.pull_request == null &&
+      github.actor == github.repository_owner &&
+      startsWith(github.event.comment.body, '/ai copilot')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: ai-production-dispatch-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      - name: Resolve and validate routed Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$ISSUE_NUMBER" != "79" || { echo PROTECTED_ISSUE_79; exit 79; }
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" > /tmp/issue.json
+          is_ready="$(jq -r '[.labels[].name] | any(. == "READY_FOR_IMPLEMENTATION" or . == "ready-for-implementation")' /tmp/issue.json)"
+          test "$is_ready" = "true" || { echo ROUTE_REJECTED_NOT_READY; exit 82; }
+          echo "ISSUE_NUMBER=$ISSUE_NUMBER" >> "$GITHUB_ENV"
+
+      - name: Record persistent Copilot dispatch lease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          assigned="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          expires="$(date -u -d '+60 minutes' +%Y-%m-%dT%H:%M:%SZ)"
+          lease="$(jq -nc \
+            --arg work_ref "issue:${ISSUE_NUMBER}" \
+            --arg owner_slice "issue-${ISSUE_NUMBER}" \
+            --arg assigned_at "$assigned" \
+            --arg lease_expires_at "$expires" \
+            '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"copilot",assigned_at:$assigned_at,acknowledged_at:null,lease_expires_at:$lease_expires_at,fallback_owner:"amazon_q_free",status:"ASSIGNED"}')"
+          gh issue comment "$ISSUE_NUMBER" --body "$(printf '%s\n%s' '<!-- flow-dispatch-lease -->' "$lease")"
+
+      - name: Dispatch existing Copilot safe implementation lane
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh workflow run copilot-poc1.yml --ref main -f "issue_number=${ISSUE_NUMBER}"; then
+            gh issue comment "$ISSUE_NUMBER" --body "担当: 🌊ナギ / 種別: AI Router Dispatch / engine=Copilot / status=DISPATCHED / fallback=Amazon Q Free / lease=60m"
+          else
+            gh issue comment "$ISSUE_NUMBER" --body "担当: 🌊ナギ / 種別: AI Router Dispatch / Copilot dispatch failed before run creation; falling back to Amazon Q Free."
+            gh issue comment "$ISSUE_NUMBER" --body "/q dev Implement this READY Work Contract exactly as written. Respect allowed/forbidden paths, tests, Single Implementation Owner, and Issue #79 protection. Create a PR when complete."
+            exit 0
+          fi
