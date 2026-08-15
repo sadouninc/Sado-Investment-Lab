@@ -1,0 +1,158 @@
+name: Copilot Patch Promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Issue number"
+        required: true
+        type: number
+      source_run_id:
+        description: "Validated Copilot source run ID"
+        required: true
+        type: number
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  issues: read
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Block protected Issue #79
+        shell: bash
+        run: |
+          set -euo pipefail
+          issue='${{ github.event.inputs.issue_number }}'
+          issue="${issue%%.*}"
+          test "$issue" != "79" || { echo PROTECTED_ISSUE_79; exit 79; }
+          echo "ISSUE_NUMBER=$issue" >> "$GITHUB_ENV"
+          echo "SOURCE_RUN_ID=${{ github.event.inputs.source_run_id }}" >> "$GITHUB_ENV"
+
+      - name: Checkout current main
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Fetch source run and Issue contract
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}" > /tmp/run.json
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" > /tmp/issue.json
+          python -m scripts.work_contract_consumer_preflight \
+            --issue-json /tmp/issue.json \
+            --diagnostic-output /tmp/work-contract-preflight.json \
+            --contract-output /tmp/issue-contract.md \
+            --allowed-paths-output /tmp/issue-allowed-paths.txt \
+            --forbidden-paths-output /tmp/issue-forbidden-paths.txt
+          python - <<'PY'
+          import json, os
+          run = json.load(open('/tmp/run.json'))
+          if run.get('conclusion') != 'success':
+              raise SystemExit('SOURCE_RUN_NOT_SUCCESS')
+          source_sha = run.get('head_sha')
+          if not source_sha:
+              raise SystemExit('MALFORMED_METADATA')
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write(f'SOURCE_BASE_SHA={source_sha}\n')
+          PY
+
+      - name: Require source run summary to be validated
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          jobs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/jobs")"
+          job_id="$(printf '%s' "$jobs" | jq -r '.jobs[0].id')"
+          gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" > /tmp/source.log
+          grep -q 'HARNESS_OUTCOME=REVIEW_READY_VALIDATED' /tmp/source.log || { echo SOURCE_NOT_REVIEW_READY_VALIDATED; exit 89; }
+          echo "HARNESS_OUTCOME=REVIEW_READY_VALIDATED" >> "$GITHUB_ENV"
+
+      - name: Download source patch artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          name="copilot-poc1-${ISSUE_NUMBER}-patch"
+          artifact_id="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/artifacts" --jq ".artifacts[] | select(.name == \"${name}\") | .id" | head -1)"
+          test -n "$artifact_id" || { echo MALFORMED_METADATA; exit 88; }
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}/zip" > /tmp/patch.zip
+          mkdir -p /tmp/patch && unzip -q /tmp/patch.zip -d /tmp/patch
+          patch_file="$(find /tmp/patch -type f | head -1)"
+          test -s "$patch_file" || { echo MALFORMED_METADATA; exit 88; }
+          cp "$patch_file" /tmp/copilot.patch
+
+      - name: Evaluate promotion gate through canonical core
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(git rev-parse HEAD)"
+          branch="copilot/${ISSUE_NUMBER}-run-${SOURCE_RUN_ID}"
+          echo "PROMOTION_BRANCH=$branch" >> "$GITHUB_ENV"
+
+          existing="$(gh pr list --state all --head "$branch" --json number --jq 'length')"
+          duplicate=false
+          [[ "$existing" == "0" ]] || duplicate=true
+
+          already_applied=false
+          if git apply --reverse --check /tmp/copilot.patch >/dev/null 2>&1; then
+            already_applied=true
+          fi
+
+          git apply --numstat /tmp/copilot.patch | awk -F '\t' '{print $3}' > /tmp/changed-paths.txt
+          python -m scripts.copilot_patch_promotion decide \
+            --issue-number "$ISSUE_NUMBER" \
+            --source-run-success true \
+            --harness-outcome "$HARNESS_OUTCOME" \
+            --source-base-sha "$SOURCE_BASE_SHA" \
+            --current-base-sha "$current" \
+            --changed-paths-file /tmp/changed-paths.txt \
+            --allowed-paths-file /tmp/issue-allowed-paths.txt \
+            --forbidden-paths-file /tmp/issue-forbidden-paths.txt \
+            --duplicate-pr-exists "$duplicate" \
+            --already-applied "$already_applied"
+
+      - name: Apply validated patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply --check /tmp/copilot.patch || { echo PATCH_APPLY_CONFLICT; exit 83; }
+          git apply /tmp/copilot.patch
+
+      - name: Replay Issue acceptance tests and full harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pytest==8.4.1
+          python -m scripts.copilot_patch_promotion run-acceptance-tests \
+            --diagnostic /tmp/work-contract-preflight.json || { echo POST_APPLY_TEST_FAILED; exit 82; }
+          python -m pytest -q || { echo POST_APPLY_TEST_FAILED; exit 82; }
+
+      - name: Create branch and PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git checkout -b "$PROMOTION_BRANCH"
+          git add -A
+          git commit -m "fix(#${ISSUE_NUMBER}): promote validated Copilot patch"
+          git push origin "$PROMOTION_BRANCH"
+          gh pr create \
+            --base main \
+            --head "$PROMOTION_BRANCH" \
+            --title "fix(#${ISSUE_NUMBER}): promote validated Copilot patch" \
+            --body "Validated Copilot promotion.\n\nIssue: #${ISSUE_NUMBER}\nSource run: ${SOURCE_RUN_ID}\nSource SHA: ${SOURCE_BASE_SHA}\nHarness: REVIEW_READY_VALIDATED\nAcceptance tests: replayed from validated Work Contract\n\nMerge remains a human gate."
