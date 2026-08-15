@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 import html
 import importlib.util
 import json
@@ -11,6 +12,7 @@ SITE = ROOT / "site-src"
 REPORT_DIR = ROOT / "05_Daily_Reports" / "Morning"
 DIAG_DIR = ROOT / "data" / "generated" / "diagnostics" / "openai"
 DEVELOPING_SIGNALS_BUILDER = Path(__file__).with_name("build_developing_signals.py")
+JST = timezone(timedelta(hours=9))
 
 
 def front_matter(title: str, description: str, permalink: str) -> str:
@@ -88,29 +90,70 @@ def report_card_summary(text: str) -> dict[str, str]:
     }
 
 
-def card_detail(summary: dict[str, str], status: object) -> str:
+def generated_at_label(value: object) -> str:
+    """Format diagnostics generated_at for the owner-facing latest card in JST."""
+    if not isinstance(value, str) or not value.strip():
+        return ""
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return ""
+    if parsed.tzinfo is None:
+        return ""
+    return parsed.astimezone(JST).strftime("%Y-%m-%d %H:%M JST")
+
+
+def dataset_status_label(status: object) -> str:
+    """Keep internal status semantics while making the primary label Japanese-first."""
+    normalized = str(status or "unknown").strip().upper()
+    labels = {
+        "OK": "データ状態: 取得済み",
+        "COMPLETE": "データ状態: 取得済み",
+        "PARTIAL": "データ状態: 一部取得できていません",
+        "STALE": "データ状態: 情報が古いため再確認が必要",
+        "UNAVAILABLE": "データ状態: 現在取得できません",
+        "UNKNOWN": "データ状態: 確認できません",
+    }
+    return labels.get(normalized, f"データ状態: 確認が必要 ({normalized})")
+
+
+def card_detail(
+    summary: dict[str, str],
+    status: object,
+    *,
+    generated_at: object = None,
+) -> str:
     rows: list[str] = []
+    updated = generated_at_label(generated_at)
+    if updated:
+        rows.append(f"更新: {updated}")
     if summary.get("market"):
         rows.append(f"市場: {summary['market']}")
-    if summary.get("strategy"):
-        rows.append(f"戦略: {summary['strategy']}")
     if summary.get("watch"):
         rows.append(f"注目: {summary['watch']}")
+    elif summary.get("strategy"):
+        rows.append(f"戦略: {summary['strategy']}")
     elif summary.get("risk"):
         rows.append(f"リスク: {summary['risk']}")
     rows = rows[:3]
-    rows.append(f"Data quality: {status or 'unknown'}")
+    rows.append(dataset_status_label(status))
     return "<br>".join(html.escape(row) for row in rows)
 
 
-def latest_report_card(day: str, url: str, summary: dict[str, str], status: object) -> str:
+def latest_report_card(
+    day: str,
+    url: str,
+    summary: dict[str, str],
+    status: object,
+    generated_at: object = None,
+) -> str:
     """Render the latest decision-oriented report before any implementation explanation."""
     return (
         '<section aria-labelledby="morning-latest">\n'
         '<h2 id="morning-latest">今日まず見る</h2>\n'
         f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
         f'<strong>最新レポート {html.escape(day)}</strong>'
-        f'<span>{card_detail(summary, status)}</span></a>\n'
+        f'<span>{card_detail(summary, status, generated_at=generated_at)}</span></a>\n'
         '</section>\n'
     )
 
@@ -118,7 +161,7 @@ def latest_report_card(day: str, url: str, summary: dict[str, str], status: obje
 def build() -> None:
     sources = sorted(REPORT_DIR.glob("*.md"), reverse=True) if REPORT_DIR.exists() else []
     cards: list[str] = []
-    latest: tuple[str, str, dict[str, str], object] | None = None
+    latest: tuple[str, str, dict[str, str], object, object] | None = None
     for source in sources:
         day = report_date(source)
         url = f"/reports/morning/{day}/"
@@ -129,10 +172,11 @@ def build() -> None:
         model = diagnostics.get("model", "unknown")
         tokens = diagnostics.get("total_tokens")
         status = diagnostics.get("dataset_status", "unknown")
+        generated_at = diagnostics.get("generated_at")
         report_text = source.read_text(encoding="utf-8")
         summary = report_card_summary(report_text)
         if latest is None:
-            latest = (day, url, summary, status)
+            latest = (day, url, summary, status, generated_at)
         else:
             cards.append(
                 f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
