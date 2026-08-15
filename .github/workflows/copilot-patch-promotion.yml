@@ -74,6 +74,7 @@ jobs:
           job_id="$(printf '%s' "$jobs" | jq -r '.jobs[0].id')"
           gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" > /tmp/source.log
           grep -q 'HARNESS_OUTCOME=REVIEW_READY_VALIDATED' /tmp/source.log || { echo SOURCE_NOT_REVIEW_READY_VALIDATED; exit 89; }
+          echo "HARNESS_OUTCOME=REVIEW_READY_VALIDATED" >> "$GITHUB_ENV"
 
       - name: Download source patch artifact
         env:
@@ -90,46 +91,52 @@ jobs:
           test -s "$patch_file" || { echo MALFORMED_METADATA; exit 88; }
           cp "$patch_file" /tmp/copilot.patch
 
-      - name: Fail closed on base drift or duplicate PR
+      - name: Evaluate promotion gate through canonical core
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           current="$(git rev-parse HEAD)"
-          test "$SOURCE_BASE_SHA" = "$current" || { echo BASE_SHA_MISMATCH; exit 85; }
           branch="copilot/${ISSUE_NUMBER}-run-${SOURCE_RUN_ID}"
           echo "PROMOTION_BRANCH=$branch" >> "$GITHUB_ENV"
-          existing="$(gh pr list --state all --head "$branch" --json number --jq 'length')"
-          test "$existing" = "0" || { echo PR_ALREADY_EXISTS; exit 84; }
 
-      - name: Apply patch and revalidate changed paths
+          existing="$(gh pr list --state all --head "$branch" --json number --jq 'length')"
+          duplicate=false
+          [[ "$existing" == "0" ]] || duplicate=true
+
+          already_applied=false
+          if git apply --reverse --check /tmp/copilot.patch >/dev/null 2>&1; then
+            already_applied=true
+          fi
+
+          git apply --numstat /tmp/copilot.patch | awk -F '\t' '{print $3}' > /tmp/changed-paths.txt
+          python -m scripts.copilot_patch_promotion decide \
+            --issue-number "$ISSUE_NUMBER" \
+            --source-run-success true \
+            --harness-outcome "$HARNESS_OUTCOME" \
+            --source-base-sha "$SOURCE_BASE_SHA" \
+            --current-base-sha "$current" \
+            --changed-paths-file /tmp/changed-paths.txt \
+            --allowed-paths-file /tmp/issue-allowed-paths.txt \
+            --forbidden-paths-file /tmp/issue-forbidden-paths.txt \
+            --duplicate-pr-exists "$duplicate" \
+            --already-applied "$already_applied"
+
+      - name: Apply validated patch
         shell: bash
         run: |
           set -euo pipefail
           git apply --check /tmp/copilot.patch || { echo PATCH_APPLY_CONFLICT; exit 83; }
           git apply /tmp/copilot.patch
-          git diff --name-only > /tmp/changed-paths.txt
-          python - <<'PY'
-          import fnmatch
-          from pathlib import Path
-          changed=[p for p in Path('/tmp/changed-paths.txt').read_text().splitlines() if p]
-          allowed=[p for p in Path('/tmp/issue-allowed-paths.txt').read_text().splitlines() if p]
-          forbidden=[p for p in Path('/tmp/issue-forbidden-paths.txt').read_text().splitlines() if p]
-          if not changed or not allowed:
-              raise SystemExit('ISSUE_CONTRACT_INVALID')
-          for path in changed:
-              if not any(fnmatch.fnmatch(path, pat) for pat in allowed):
-                  raise SystemExit('OUTSIDE_ALLOWED_PATHS')
-              if any(fnmatch.fnmatch(path, pat) for pat in forbidden):
-                  raise SystemExit('FORBIDDEN_PATH')
-          PY
 
-      - name: Post-apply test
+      - name: Replay Issue acceptance tests and full harness
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check pytest==8.4.1
+          python -m scripts.copilot_patch_promotion run-acceptance-tests \
+            --diagnostic /tmp/work-contract-preflight.json || { echo POST_APPLY_TEST_FAILED; exit 82; }
           python -m pytest -q || { echo POST_APPLY_TEST_FAILED; exit 82; }
 
       - name: Create branch and PR
@@ -148,4 +155,4 @@ jobs:
             --base main \
             --head "$PROMOTION_BRANCH" \
             --title "fix(#${ISSUE_NUMBER}): promote validated Copilot patch" \
-            --body "Validated Copilot promotion.\n\nIssue: #${ISSUE_NUMBER}\nSource run: ${SOURCE_RUN_ID}\nSource SHA: ${SOURCE_BASE_SHA}\nHarness: REVIEW_READY_VALIDATED\n\nMerge remains a human gate."
+            --body "Validated Copilot promotion.\n\nIssue: #${ISSUE_NUMBER}\nSource run: ${SOURCE_RUN_ID}\nSource SHA: ${SOURCE_BASE_SHA}\nHarness: REVIEW_READY_VALIDATED\nAcceptance tests: replayed from validated Work Contract\n\nMerge remains a human gate."
