@@ -1,83 +1,102 @@
-# User Mode v2 — ACTIVE / AWAY Autonomous Operations
+# User Mode v2 — Presence / Merge Policy / Flow Authority
 
-Issue: #354
+担当: 🌊ナギ  
+種別: Process / Mode Contract / Productivity
 
-## Purpose
+Refs: #617 #602 #587 #479
 
-Keep project flow moving while 👑サド is away without allowing agents to invent Owner Authority. `AWAY` is an autonomous operating mode, not a reduced-effort mode.
+## Goal
+Ownerの在席状態、merge policy、Flow Authorityを分離し、次の3つの利用者向けModeを安全に運用する。
+
+| User Mode | presence | merge_policy | default Flow Authority |
+| --- | --- | --- | --- |
+| `ACTIVE_MANUAL` | ACTIVE | MANUAL | 🌊ナギ |
+| `ACTIVE_AUTO` | ACTIVE | AUTO_GREEN | 🌊ナギ |
+| `AWAY` | AWAY | AUTO_GREEN | 🌊ナギ / event-driven ♦️ソラ delegation |
+
+旧 `ACTIVE` はmigration時のみ `ACTIVE_MANUAL` と解釈する。
+
+## ACTIVE_MANUAL
+- 👑サドは在席
+- GREEN PRもOwner/manual mergeを待つ
+- 🌊ナギがSingle Flow Authority
+- 各専門workerは#602どおりlocal discovery / executionへ集中
+
+## ACTIVE_AUTO
+- 👑サドは在席
+- 🌊ナギがSingle Flow Authority
+- `AUTO_GREEN` Merge Gateを満たす低リスクPRだけ自動merge候補
+- Owner/Investment Authority、explicit Owner Acceptance、security/secrets/permissions/paid/destructive等は自動mergeしない
+
+## AWAY
+- 👑サドは非在席
+- Owner-only判断はAuthority backlogへ隔離
+- GREEN Merge Gateを満たす範囲は`AUTO_GREEN`候補
+- 🌊ナギが実行可能ならglobal Flow Authorityを維持
+- 🌊ナギが非実行時に交通整理イベントが起きた場合のみ♦️ソラがDelegated Flow Authorityを一時的に担う
+
+### ♦️ソラ Delegated Flow Authority trigger
+- `QUEUE_STARVATION`
+- `OWNER_CONFLICT`
+- `NO_REROUTE_AFTER_BLOCKED_ESCAPE`
+- `PRIORITY_CONFLICT`
+- `STATE_DRIFT`
+- `GLOBAL_BLOCKER`
+
+通常runや単なるCI/review確認はtriggerではない。
+Delegation中も全Issue横断scanを毎run行わない。必要な交通整理だけ実施し、NOW/NEXT/RESERVEを供給したらExecutorへ戻る。
+
+## AUTO_GREEN Gate
+全条件が既知かつGREENの場合のみ許可する。
+
+- CI / required checks PASS
+- REQUEST_CHANGESなし
+- merge conflictなし
+- required Product / Design / Reliability Gate PASS
+- latest headへのreview evidenceあり
+- Owner / Investment Authorityを含まない
+- security / secrets / permissions / paid / destructive等のsensitive changeではない
+- explicit Owner Acceptance必須ではない
+- Issue #79 untouched
+
+UNKNOWNはPASSへ補完しない。
+
+## Transition safety
+`expected_current_mode + target_mode + transition_id` のCAS guardを使う。
+
+- stale expected mode → BLOCK
+- duplicate transition id → BLOCK
+- no-op → BLOCK
+- legacy `ACTIVE` → migration時のみ`ACTIVE_MANUAL`へnormalize
 
 ## Transition record
-
-Each mode change is a durable transaction. A transition record should include:
+各mode changeはdurable transactionとして最低限以下を残す。
 
 ```text
-mode_from: ACTIVE|AWAY
-mode_to: AWAY|ACTIVE
+mode_from: ACTIVE_MANUAL|ACTIVE_AUTO|AWAY
+mode_to: ACTIVE_MANUAL|ACTIVE_AUTO|AWAY
 changed_at: <timestamp>
-implementation_wip: <PR/Issue refs>
-green_merge_gates: <refs or none>
+transition_id: <unique id>
+merge_policy: MANUAL|AUTO_GREEN
+global_flow_authority: NAGI|SORA_DELEGATED
 authority_backlog: <refs or none>
 material_blockers: <refs or none>
-kaede_handoff_checked: yes|no
-sora_away_run_mod3: 1|2|0|n/a
 ```
 
-Issue #99 is an acceptable transition-log surface. TEAM_STATE stores only the current mode/contract, not transition history.
+## Measurement
+#479で最低限以下を観測する。
 
-## ACTIVE → AWAY
+- `mode`
+- `merge_policy`
+- `manual_merge_wait_minutes`
+- `auto_green_merge_count`
+- `auto_green_block_count_by_reason`
+- `delegated_sora_sm_activation_count`
+- `sora_productive_steps_when_delegated`
+- `queue_starvation_recovery_count`
+- `owner_authority_backlog_count`
 
-1. Change `TEAM_STATE.md` to `Mode: AWAY` through repository governance.
-2. Inventory open implementation PRs and IMPLEMENTING scopes; preserve Single Owner.
-3. Snapshot green Merge Gates and unresolved Owner Authority.
-4. Verify `docs/handoffs/kaede-policy-intelligence.md` is current enough to resume without chat history.
-5. Set first Sora AWAY run to `AWAY_SORA_RUN_MOD3=1`.
-6. Activate Asahi Collection/Evidence and Rei Analysis/Hypothesis delegation.
-7. Broadcast the completed transition with the snapshot.
+## Principle
+Modeを増やす目的はルール追加ではなく、Owner不在・merge待ち・交通整理不足による停止時間を減らしつつ、Authorityと安全性を維持すること。
 
-## AWAY steady state
-
-### Sora cadence
-Every AWAY run advances `1 → 2 → 0 → 1`.
-
-At `0`, run `Delegated Nagi Process Check` covering:
-- open implementation PR / WIP cap
-- CI / Pages blocker
-- READY / IMPLEMENTING and Single Owner conflicts
-- stale blockers
-- Design → Implementation handoff
-- green Merge Gate / Authority backlog
-- #124 heartbeat freshness
-- READY oversupply
-
-The check is additive: if no material problem exists, return quickly to implementation.
-
-### Authority backlog
-Agents may investigate, prepare options, run tests, and remove technical blockers. They must not decide Owner-only questions. Each item records:
-
-```text
-ref:
-decision_needed:
-why_owner:
-safe_work_completed:
-next_action_on_active:
-```
-
-### Policy continuity
-Asahi/Rei use `docs/handoffs/kaede-policy-intelligence.md`; detailed evidence remains in the referenced canonical research Issues.
-
-## AWAY → ACTIVE
-
-1. Change TEAM_STATE to ACTIVE.
-2. Stop AWAY-only cadence/delegation.
-3. Collect green Merge Gates and unresolved Authority backlog.
-4. Collect material Process Check findings not yet resolved.
-5. Collect material Policy Intelligence changes from the Kaede handoff/research Issues.
-6. Present the Owner decision queue before routine status.
-7. Broadcast transition completion and resume normal role priority.
-
-## Fail-safe
-
-- If mode is ambiguous, use TEAM_STATE as current operational mode and surface drift.
-- If TEAM_STATE contradicts a later explicit Owner instruction, the Owner instruction wins and TEAM_STATE becomes maintenance work.
-- AWAY never authorizes BUY/SELL/HOLD, investment philosophy, risk threshold, Owner Acceptance, or Owner-only Merge Gate decisions.
-- Issue #79 remains excluded.
+Issue #79 untouched.
