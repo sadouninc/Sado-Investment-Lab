@@ -69,6 +69,7 @@ PR数最大化が目的ではない。READYな非競合実装workがあるのに
 - expired dispatch leaseはowner sliceを解放してreroute候補化
 - selectorはowner/path/dependency/worker stateをfail-closedで確認
 - GitHubへの実assignment/writeはruntime Flow AuthorityがEvidence付きで行う
+- current worker stateがunknown/staleなら、既知のavailable workerをglobal safe selectorから探す。候補が無ければCRITICALを保持する。
 
 ## Dispatch lease contract
 
@@ -83,7 +84,18 @@ lease_expires_at:
 fallback_owner:
 ```
 
-ACKまたは進捗Evidenceなしで期限切れなら `DISPATCH_LEASE_EXPIRED` とし、旧dispatchを永続占有扱いしない。
+leaseはチャット内だけでなく、対象Issue/PRのGitHubコメントへ永続化する。推奨machine-readable形式:
+
+```text
+<!-- flow-dispatch-lease -->
+{"work_ref":"#642","owner_slice":"OPERATIONAL_MODE_TELEMETRY_625","assigned_at":"2026-08-16T08:30:00+09:00","acknowledged_at":null,"lease_expires_at":"2026-08-16T09:30:00+09:00","fallback_owner":"sora"}
+```
+
+- ACK/進捗Evidenceを確認したFlow Authorityは、同じlease recordの`acknowledged_at`を更新するか、更新先comment IDを明示して後続recordを残す。
+- ACK前に期限切れなら `DISPATCH_LEASE_EXPIRED`。owner sliceを解放してreroute候補化する。
+- 期限切れ後のlate ACKでexpired leaseを復活させない。
+- timezoneなしtimestamp、未来ACK、assignmentより前のACK、blank work_ref/fallback_ownerはinvalidとしてfail closedする。
+- leaseがinvalid/ambiguousなら推測補完せず、修復またはrerouteする。
 
 ## SM run output
 
