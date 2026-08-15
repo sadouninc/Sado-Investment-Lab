@@ -91,3 +91,44 @@ def test_malformed_or_missing_contract_does_not_silently_execute():
 def test_green_issue_79_path_is_blocked():
     result = validate_issue_body(body(allowed_paths='["issues/79/**"]'))
     assert any(error.startswith("GREEN_ISSUE_79_PATH") for error in result.errors)
+
+
+def test_blank_allowed_path_does_not_cause_false_overlap():
+    """Blank or whitespace-only path patterns should not be treated as meaningful paths in overlap detection."""
+    result = validate_issue_body(
+        body(
+            allowed_paths='["", "tests/**"]',
+            forbidden_paths='["TEAM_RULES.md", "TEAM_STATE.md"]',
+        )
+    )
+    assert "ALLOWED_FORBIDDEN_OVERLAP" not in result.errors
+
+
+def test_whitespace_only_allowed_path_does_not_cause_false_overlap():
+    """Whitespace-only patterns should be treated as non-meaningful after stripping."""
+    result = validate_issue_body(
+        body(
+            allowed_paths='["   ", "tests/**"]',
+            forbidden_paths='["TEAM_RULES.md", "TEAM_STATE.md"]',
+        )
+    )
+    assert "ALLOWED_FORBIDDEN_OVERLAP" not in result.errors
+
+
+def test_blank_forbidden_path_does_not_cause_false_overlap():
+    """Blank path in forbidden list should not trigger overlap with allowed paths."""
+    result = validate_issue_body(
+        body(
+            allowed_paths='["scripts/**", "tests/**"]',
+            forbidden_paths='["", "data/**"]',
+        )
+    )
+    assert "ALLOWED_FORBIDDEN_OVERLAP" not in result.errors
+
+
+def test_real_overlap_still_detected_with_blank_paths_present():
+    """Sanity check: actual overlaps should still be detected when blank paths are also present."""
+    result = validate_issue_body(
+        body(allowed_paths='["", "scripts/**"]', forbidden_paths='["   ", "scripts/private/**"]')
+    )
+    assert "ALLOWED_FORBIDDEN_OVERLAP" in result.errors
