@@ -33,6 +33,13 @@ SURFACE_GATES = {
 PRIMARY_REVIEW_TARGET_MINUTES = 60
 SPECIALIST_REVIEW_TARGET_MINUTES = 120
 
+SPECIALIST_FALLBACKS = {
+    "DESIGN": ("MINA", "LUNA"),
+    "PRODUCT": ("LUNA",),
+    "RESEARCH": ("ASAHI", "REI"),
+    "SECURITY_FLOW": ("NAGI",),
+}
+
 
 @dataclass(frozen=True)
 class ReviewRoutingInput:
@@ -175,4 +182,45 @@ def evaluate_review_wait_sla(
         "status": "SLA_EXCEEDED",
         "action": "BLOCKED_ESCAPE_KEEP_REQUIRED_GATE",
         "target_minutes": target,
+    }
+
+
+def select_specialist_reviewer(
+    *,
+    gate: str,
+    availability: Mapping[str, str],
+    authority_surface_new: bool = False,
+) -> dict[str, Any]:
+    """Choose a known qualified specialist without weakening a new Authority decision.
+
+    For DESIGN, Luna may review conformance to an existing approved baseline, but
+    may not silently establish a new design system/visual identity. Similar gates
+    fail closed when no declared reviewer is available.
+    """
+    normalized_gate = str(gate).upper()
+    reviewers = SPECIALIST_FALLBACKS.get(normalized_gate)
+    if reviewers is None:
+        return {"status": "UNKNOWN", "reviewer": None, "action": "FAIL_CLOSED"}
+
+    for index, reviewer in enumerate(reviewers):
+        state = str(availability.get(reviewer, "unknown")).lower()
+        if state not in {"available", "idle"}:
+            continue
+        if normalized_gate == "DESIGN" and index > 0 and authority_surface_new:
+            return {
+                "status": "AUTHORITY_REQUIRED",
+                "reviewer": None,
+                "action": "BLOCKED_ESCAPE_KEEP_REQUIRED_GATE",
+            }
+        return {
+            "status": "SELECTED",
+            "reviewer": reviewer,
+            "action": "ASSIGN_PRIMARY" if index == 0 else "REROUTE_SPECIALIST",
+            "fallback_used": index > 0,
+        }
+
+    return {
+        "status": "UNAVAILABLE",
+        "reviewer": None,
+        "action": "BLOCKED_ESCAPE_KEEP_REQUIRED_GATE",
     }
