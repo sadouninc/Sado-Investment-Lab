@@ -76,11 +76,26 @@ class BojMarketDataTest(unittest.TestCase):
         self.assertEqual(FRESHNESS_VERIFIED_T_PLUS_1, result.freshness_status)
         self.assertTrue(result.usable)
 
+    def test_utc_timestamp_normalizes_to_t_plus_1_in_tokyo(self):
+        _, market_date, rows = self.load_replay()
+        rows = [replace(row, source_timestamp="2026-08-14T23:00:00+00:00") for row in rows]
+        result = validate_aligned_market_data(rows, market_date=market_date)
+        self.assertEqual(FRESHNESS_VERIFIED_T_PLUS_1, result.freshness_status)
+        self.assertTrue(result.usable)
+
     def test_after_t_plus_1_morning_is_stale(self):
         _, market_date, rows = self.load_replay()
         rows = [replace(row, source_timestamp="2026-08-15T13:00:00+09:00") for row in rows]
         result = validate_aligned_market_data(rows, market_date=market_date)
         self.assertEqual(FRESHNESS_STALE_SOURCE, result.freshness_status)
+        self.assertEqual((), result.records)
+
+    def test_naive_source_timestamp_fails_closed(self):
+        _, market_date, rows = self.load_replay()
+        rows = [replace(row, source_timestamp="2026-08-15T08:00:00") for row in rows]
+        result = validate_aligned_market_data(rows, market_date=market_date)
+        self.assertEqual(FRESHNESS_UNKNOWN, result.freshness_status)
+        self.assertIn("source_timestamp_unknown", result.reasons)
         self.assertEqual((), result.records)
 
     def test_missing_required_instrument_fails_closed(self):
