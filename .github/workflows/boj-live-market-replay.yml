@@ -37,16 +37,17 @@ jobs:
         id: replay
         env:
           JQUANTS_API_KEY: ${{ secrets.JQUANTS_API_KEY }}
-          JQUANTS_GROWTH250_CODE: ${{ vars.JQUANTS_GROWTH250_CODE }}
         shell: bash
         run: |
+          set -euo pipefail
           mkdir -p artifacts/boj-live-replay
           set +e
           python scripts/run_boj_live_replay.py \
             --market-date "${{ inputs.market_date }}" \
             --policy-transaction-id "${{ inputs.policy_transaction_id }}" \
-            --output "artifacts/boj-live-replay/${{ inputs.market_date }}.json"
+            --output "artifacts/boj-live-replay/result.json"
           code=$?
+          set -e
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
 
@@ -54,8 +55,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: boj-live-replay-${{ inputs.market_date }}
-          path: artifacts/boj-live-replay/${{ inputs.market_date }}.json
+          name: boj-live-replay
+          path: artifacts/boj-live-replay/result.json
           if-no-files-found: error
           retention-days: 30
 
