@@ -79,6 +79,14 @@ def test_product_and_market_truth_cross_authority_is_explicit_exception():
     assert result["blocking_gates"] == (TECHNICAL, PRODUCT, RESEARCH)
 
 
+def test_truthy_string_does_not_enable_cross_authority_exception():
+    result = route_reviews(
+        {"category": "PRODUCT_SEMANTICS", "market_truth_changed": "false"}
+    )
+    assert result["blocking_gates"] == (TECHNICAL, PRODUCT)
+    assert result["blocking_gate_count"] == 2
+
+
 def test_unaffected_previous_gate_can_carry_forward():
     result = carry_forward_gate(
         gate=DESIGN,
