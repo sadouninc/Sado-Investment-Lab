@@ -34,6 +34,19 @@ def test_dispatch_lease_requires_timezone_aware_timestamps():
     assert result["status"] == "INVALID"
 
 
+def test_dispatch_lease_rejects_blank_work_ref_or_fallback_owner():
+    result = evaluate_dispatch_lease(
+        {
+            "work_ref": "  ",
+            "fallback_owner": "sora",
+            "assigned_at": "2026-08-15T22:00:00Z",
+            "lease_expires_at": "2026-08-15T23:00:00Z",
+        },
+        now=now(),
+    )
+    assert result["status"] == "INVALID"
+
+
 def test_acknowledged_dispatch_never_expires_as_unacked():
     result = evaluate_dispatch_lease(
         {
@@ -48,6 +61,48 @@ def test_acknowledged_dispatch_never_expires_as_unacked():
     )
     assert result["status"] == "ACKNOWLEDGED"
     assert result["unacked_age_minutes"] is None
+
+
+def test_late_ack_does_not_resurrect_expired_dispatch_lease():
+    result = evaluate_dispatch_lease(
+        {
+            "work_ref": "#642",
+            "fallback_owner": "sora",
+            "owner_slice": "slice-642",
+            "assigned_at": "2026-08-15T22:00:00Z",
+            "lease_expires_at": "2026-08-15T23:00:00Z",
+            "acknowledged_at": "2026-08-15T23:10:00Z",
+        },
+        now=now(),
+    )
+    assert result["status"] == "EXPIRED"
+    assert result["late_acknowledgement"] is True
+    assert result["unacked_age_minutes"] == 120
+
+
+def test_ack_before_assignment_or_in_future_is_invalid():
+    before = evaluate_dispatch_lease(
+        {
+            "work_ref": "#642",
+            "fallback_owner": "sora",
+            "assigned_at": "2026-08-15T22:00:00Z",
+            "lease_expires_at": "2026-08-15T23:00:00Z",
+            "acknowledged_at": "2026-08-15T21:59:00Z",
+        },
+        now=now(),
+    )
+    future = evaluate_dispatch_lease(
+        {
+            "work_ref": "#642",
+            "fallback_owner": "sora",
+            "assigned_at": "2026-08-15T22:00:00Z",
+            "lease_expires_at": "2026-08-16T01:00:00Z",
+            "acknowledged_at": "2026-08-16T00:10:00Z",
+        },
+        now=now(),
+    )
+    assert before["status"] == "INVALID"
+    assert future["status"] == "INVALID"
 
 
 def test_expired_dispatch_exposes_fallback_and_age():
