@@ -17,6 +17,9 @@ jobs:
       startsWith(github.event.comment.body, '/ai copilot')
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    concurrency:
+      group: ai-production-dispatch-${{ github.event.issue.number }}
+      cancel-in-progress: false
     steps:
       - name: Fail closed and validate READY issue
         id: gate
