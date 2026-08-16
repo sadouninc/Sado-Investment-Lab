@@ -89,7 +89,7 @@ PR ───────────────► Amazon Q Independent Verific
 
 Amazon QとChatGPTはalternative PR routesではない。同じdelivery flowに対して異なる責務を持つplaneである。
 
-## Current AI Capacity State
+## 現在のAIキャパシティ状態
 
 現在の各AIエンジンの接続およびキャパシティ状態の記録:
 
