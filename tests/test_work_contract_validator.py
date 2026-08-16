@@ -132,3 +132,90 @@ def test_real_overlap_still_detected_with_blank_paths_present():
         body(allowed_paths='["", "scripts/**"]', forbidden_paths='["   ", "scripts/private/**"]')
     )
     assert "ALLOWED_FORBIDDEN_OVERLAP" in result.errors
+
+
+def test_non_string_allowed_path_fails_closed():
+    from scripts.work_contract_validator import validate_contract
+
+    contract = {
+        "version": 1,
+        "goal": "g",
+        "status": "READY_FOR_IMPLEMENTATION",
+        "owner_slice": "s",
+        "risk": "GREEN",
+        "authority": "STANDARD",
+        "dependencies": [],
+        "allowed_paths": [None, 123, True, {"path": "scripts/**"}, ["nested"], "scripts/real.py"],
+        "forbidden_paths": ["data/**"],
+        "acceptance_tests": ["pytest"],
+        "expected_outputs": ["PR"],
+        "human_gate": ["merge"],
+        "non_goals": [],
+    }
+    result = validate_contract(contract)
+    assert result.valid is False
+    assert result.executable is False
+    assert "NON_STRING_PATH:allowed_paths:0" in result.errors
+    assert "NON_STRING_PATH:allowed_paths:1" in result.errors
+    assert "NON_STRING_PATH:allowed_paths:2" in result.errors
+    assert "NON_STRING_PATH:allowed_paths:3" in result.errors
+    assert "NON_STRING_PATH:allowed_paths:4" in result.errors
+    assert not any(error.startswith("GREEN_PROTECTED_PATH") for error in result.errors)
+    assert not any(error.startswith("GREEN_ISSUE_79_PATH") for error in result.errors)
+    assert "ALLOWED_FORBIDDEN_OVERLAP" not in result.errors
+
+
+def test_non_string_forbidden_path_fails_closed():
+    from scripts.work_contract_validator import validate_contract
+
+    contract = {
+        "version": 1,
+        "goal": "g",
+        "status": "READY_FOR_IMPLEMENTATION",
+        "owner_slice": "s",
+        "risk": "GREEN",
+        "authority": "STANDARD",
+        "dependencies": [],
+        "allowed_paths": ["scripts/real.py"],
+        "forbidden_paths": [None, 42, False, {"nested": True}],
+        "acceptance_tests": ["pytest"],
+        "expected_outputs": ["PR"],
+        "human_gate": ["merge"],
+        "non_goals": [],
+    }
+    result = validate_contract(contract)
+    assert result.valid is False
+    assert result.executable is False
+    assert "NON_STRING_PATH:forbidden_paths:0" in result.errors
+    assert "NON_STRING_PATH:forbidden_paths:1" in result.errors
+    assert "NON_STRING_PATH:forbidden_paths:2" in result.errors
+    assert "NON_STRING_PATH:forbidden_paths:3" in result.errors
+    assert "ALLOWED_FORBIDDEN_OVERLAP" not in result.errors
+
+
+def test_non_string_path_does_not_raise_and_string_paths_still_validated_normally():
+    """A malformed non-string element must produce a deterministic error, not an
+    unhandled exception, and must not suppress detection of a genuine overlap
+    among the well-formed string entries in the same lists."""
+    from scripts.work_contract_validator import validate_contract
+
+    contract = {
+        "version": 1,
+        "goal": "g",
+        "status": "READY_FOR_IMPLEMENTATION",
+        "owner_slice": "s",
+        "risk": "GREEN",
+        "authority": "STANDARD",
+        "dependencies": [],
+        "allowed_paths": ["scripts/private/**", None],
+        "forbidden_paths": ["scripts/private/**", 1],
+        "acceptance_tests": ["pytest"],
+        "expected_outputs": ["PR"],
+        "human_gate": ["merge"],
+        "non_goals": [],
+    }
+    result = validate_contract(contract)
+    assert result.valid is False
+    assert "ALLOWED_FORBIDDEN_OVERLAP" in result.errors
+    assert "NON_STRING_PATH:allowed_paths:1" in result.errors
+    assert "NON_STRING_PATH:forbidden_paths:1" in result.errors
