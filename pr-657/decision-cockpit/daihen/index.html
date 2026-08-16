@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11100d">
+  <meta name="description" content="ダイヘンについて今日見る理由、利益予想、割安度、仮説、ポートフォリオ、前回判断を1画面で確認する">
+  <title>ダイヘン 投資判断コックピット — Sado Investment Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/assets/book.css">
+  <link rel="stylesheet" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/assets/design-system.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$', '$'], ['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
+  <strong>PR PREVIEW · #657 · NOT PRODUCTION</strong>
+  <span>Head dfa93867c8ab · Built 2026-08-16T05:08:30Z</span>
+</div>
+<style>
+  #sado-pr-preview-banner {
+    box-sizing: border-box; position: relative; z-index: 2147483647;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1rem;
+    width: 100%; padding: .55rem 1rem; color: #fff; background: #8b1e2d;
+    font: 600 .82rem/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-align: center;
+  }
+  #sado-pr-preview-banner span { font-weight: 400; overflow-wrap: anywhere; }
+  @media (max-width: 640px) { #sado-pr-preview-banner { align-items: center; flex-direction: column; gap: .15rem; } }
+</style>
+
+  <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
+  <button class="theme-toggle" id="theme-toggle" type="button" aria-label="表示テーマを切り替える">◐</button>
+  <header class="codex-global-header">
+    <div class="codex-global-header__brand-row">
+      <a class="codex-global-brand" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/">SADO INVESTMENT CODEX</a>
+      <span class="codex-global-context" id="codex-global-context" aria-live="polite">現在地を確認中</span>
+    </div>
+    <nav class="codex-global-nav" aria-label="投資目的ナビゲーション">
+      
+      <a class="codex-nav-item" data-nav-group="home" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/assets/instruments.svg#home"></use></svg>
+        <span class="codex-nav-item__label">Home</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="discover" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/research/market-phase/ai-semiconductor/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/assets/instruments.svg#discover"></use></svg>
+        <span class="codex-nav-item__label">銘柄を探す</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="understand" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/companies/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/assets/instruments.svg#understand"></use></svg>
+        <span class="codex-nav-item__label">企業を理解する</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="decide" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/decision-cockpit/daihen/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/assets/instruments.svg#decide"></use></svg>
+        <span class="codex-nav-item__label">判断する</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="record" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/trade-journal/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/assets/instruments.svg#record"></use></svg>
+        <span class="codex-nav-item__label">記録する</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="review" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/trade-analysis/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/assets/instruments.svg#review"></use></svg>
+        <span class="codex-nav-item__label">振り返る</span>
+      </a>
+      
+    </nav>
+  </header>
+  <nav class="breadcrumb codex-global-breadcrumb" id="codex-global-breadcrumb" aria-label="現在地" hidden></nav>
+  <script>
+    (() => {
+      const navigation = {"schema_version":"1.0","model_note_ja":"9-stageは投資プロセスの意味モデル、6-purposeは日常移動のNavigation group。NavigationはOS Mapを置換しない。","navigation_groups":[{"id":"home","label_ja":"Home","primary_destination":"/","icon_ja":"羅"},{"id":"discover","label_ja":"銘柄を探す","primary_destination":"/research/market-phase/ai-semiconductor/","icon_ja":"望"},{"id":"understand","label_ja":"企業を理解する","primary_destination":"/companies/","icon_ja":"顕"},{"id":"decide","label_ja":"判断する","primary_destination":"/decision-cockpit/daihen/","icon_ja":"衡"},{"id":"record","label_ja":"記録する","primary_destination":"/trade-journal/","icon_ja":"帳"},{"id":"review","label_ja":"振り返る","primary_destination":"/trade-analysis/","icon_ja":"筆"}],"os_stage_to_navigation":{"observe":{"primary":"home","secondary":[]},"discover":{"primary":"discover","secondary":[]},"understand":{"primary":"understand","secondary":[]},"hypothesize":{"primary":"understand","secondary":["decide"]},"decide":{"primary":"decide","secondary":[]},"pretrade":{"primary":"decide","secondary":["record"]},"record":{"primary":"record","secondary":[]},"learn":{"primary":"review","secondary":[]},"observe_next":{"primary":"home","secondary":[]}},"routes":[{"route":"/","primary_journey_stage":"home","secondary_journey_stages":[],"user_facing_label_ja":"Home","parent_route":null,"canonical_destination":"/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/reports/morning/","primary_journey_stage":"home","secondary_journey_stages":["discover"],"user_facing_label_ja":"朝の市場レポート","parent_route":"/","canonical_destination":"/reports/morning/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/market/intraday/","primary_journey_stage":"home","secondary_journey_stages":["discover"],"user_facing_label_ja":"場中の市場変化","parent_route":"/","canonical_destination":"/market/intraday/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/research/market-phase/ai-semiconductor/","primary_journey_stage":"discover","secondary_journey_stages":[],"user_facing_label_ja":"市場フェーズ","parent_route":"/","canonical_destination":"/research/market-phase/ai-semiconductor/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/companies/","primary_journey_stage":"understand","secondary_journey_stages":[],"user_facing_label_ja":"企業研究","parent_route":"/","canonical_destination":"/companies/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/framework/","primary_journey_stage":"understand","secondary_journey_stages":["decide"],"user_facing_label_ja":"投資Framework","parent_route":"/","canonical_destination":"/framework/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/decision-cockpit/daihen/","primary_journey_stage":"decide","secondary_journey_stages":[],"user_facing_label_ja":"投資判断コックピット / ダイヘン","breadcrumb_segments_ja":["投資判断コックピット","ダイヘン"],"parent_route":"/","canonical_destination":"/decision-cockpit/daihen/","legacy_aliases":[],"concept_route":"/concepts/investment-decision-cockpit/","availability":"AVAILABLE"},{"route":"/risk-preflight/","primary_journey_stage":"decide","secondary_journey_stages":["record"],"user_facing_label_ja":"売買前のポートフォリオ確認","parent_route":"/","canonical_destination":"/risk-preflight/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":null,"feature_id":"portfolio-current","primary_journey_stage":"record","secondary_journey_stages":[],"user_facing_label_ja":"現在の保有","parent_route":"/","canonical_destination":null,"legacy_aliases":[],"concept_route":null,"availability":"UNMAPPED"},{"route":"/trade-journal/","primary_journey_stage":"record","secondary_journey_stages":["review"],"user_facing_label_ja":"売買・判断の記録","parent_route":"/","canonical_destination":"/trade-journal/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/trade-analysis/","primary_journey_stage":"review","secondary_journey_stages":[],"user_facing_label_ja":"取引分析","parent_route":"/","canonical_destination":"/trade-analysis/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/research/investor-dna/","primary_journey_stage":"review","secondary_journey_stages":["discover"],"user_facing_label_ja":"Investor DNA","parent_route":"/","canonical_destination":"/research/investor-dna/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/market-analysis/","primary_journey_stage":"home","secondary_journey_stages":["review"],"user_facing_label_ja":"市場分析","parent_route":"/","canonical_destination":"/market-analysis/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/concepts/investment-decision-cockpit/","primary_journey_stage":"decide","secondary_journey_stages":[],"user_facing_label_ja":"投資判断コックピットの使い方","parent_route":"/decision-cockpit/daihen/","canonical_destination":"/concepts/investment-decision-cockpit/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"}]};
+      const baseUrl = "/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/pages-previews/pr-657" || '';
+      let currentPath = window.location.pathname;
+      if (baseUrl && currentPath.startsWith(baseUrl)) currentPath = currentPath.slice(baseUrl.length) || '/';
+      if (!currentPath.startsWith('/')) currentPath = '/' + currentPath;
+      if (!currentPath.endsWith('/')) currentPath += '/';
+
+      const candidates = (navigation.routes || [])
+        .filter((route) => route.availability === 'AVAILABLE' && route.route)
+        .filter((route) => route.route === '/' ? currentPath === '/' : currentPath.startsWith(route.route))
+        .sort((left, right) => right.route.length - left.route.length);
+      const matchedRoute = candidates[0] || null;
+      const currentGroup = matchedRoute?.primary_journey_stage || null;
+      const group = (navigation.navigation_groups || []).find((item) => item.id === currentGroup);
+      const context = document.getElementById('codex-global-context');
+      if (context) context.textContent = group ? `現在地: ${group.label_ja}` : '現在地: 未分類';
+
+      document.querySelectorAll('.codex-nav-item').forEach((item) => {
+        const active = currentGroup && item.dataset.navGroup === currentGroup;
+        item.toggleAttribute('data-current', Boolean(active));
+        if (active) item.setAttribute('aria-current', 'location');
+        else item.removeAttribute('aria-current');
+      });
+
+      const breadcrumb = document.getElementById('codex-global-breadcrumb');
+      if (!breadcrumb || currentPath === '/') return;
+      const pageTitle = document.querySelector('main.book-shell h1')?.textContent?.trim()
+        || document.title.replace(/\s+[—-]\s+Sado Investment Lab$/, '').trim();
+      const items = [{ label: 'Home', route: '/' }];
+      if (group && group.id !== 'home') {
+        items.push({ label: group.label_ja, route: group.primary_destination });
+      } else if (!group) {
+        items.push({ label: '未分類', route: null });
+      }
+
+      if (matchedRoute) {
+        const routeSegments = Array.isArray(matchedRoute.breadcrumb_segments_ja)
+          ? matchedRoute.breadcrumb_segments_ja
+          : [matchedRoute.user_facing_label_ja];
+        for (const label of routeSegments.filter(Boolean)) {
+          if (items.some((item) => item.label === label)) continue;
+          items.push({ label, route: matchedRoute.route });
+        }
+        if (currentPath !== matchedRoute.route && pageTitle && !items.some((item) => item.label === pageTitle)) {
+          items.push({ label: pageTitle, route: null });
+        }
+      } else if (pageTitle) {
+        items.push({ label: pageTitle, route: null });
+      }
+
+      const fragment = document.createDocumentFragment();
+      items.forEach((item, index) => {
+        if (index) fragment.append(' / ');
+        const isLast = index === items.length - 1;
+        if (item.route && !isLast) {
+          const link = document.createElement('a');
+          link.href = `${baseUrl}${item.route}`.replace(/\/+/g, '/');
+          link.textContent = item.label;
+          fragment.append(link);
+        } else {
+          const span = document.createElement('span');
+          span.textContent = item.label;
+          if (isLast) span.setAttribute('aria-current', 'page');
+          fragment.append(span);
+        }
+      });
+      breadcrumb.replaceChildren(fragment);
+      breadcrumb.hidden = false;
+    })();
+  </script>
+  <main class="book-shell">
+    <p class="breadcrumb"><a href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/">Home</a> / ダイヘン 投資判断コックピット</p>
+
+<h1 id="-ダイヘン-投資判断コックピット">🎯 ダイヘン 投資判断コックピット</h1>
+
+<p><strong>なぜ今日見る？</strong> FY2027 Q1決算後の利益ドライバーとForward PERを再確認する <span class="muted">最終重要変化: 2026-08-04T15:00:00+09:00</span></p>
+<div class="notice-card"><strong>この画面は売買指示を生成しません。</strong><br />既存Canonical outputを読み取り専用でまとめ、判断に必要な不足・古さ・要確認事項を隠さず表示します。</div>
+<div class="content-grid cockpit-first-view">
+  <div class="content-card cockpit-identity-summary"><strong>ダイヘン / 6622</strong><span>情報鮮度: 情報が古いため再確認が必要 <code>STALE</code></span><span class="muted">株価基準日: 2026-07-29</span></div>
+  
+<div class="content-card scenario-delta-summary">
+  <strong>前回から何が変わった？</strong>
+  <span class="status-chip">Scenario: UNKNOWN</span>
+  <span>前回との差分を確定するための情報が不足しています。</span>
+  <div class="content-grid scenario-delta-directions">
+    <div><strong>業績見通し</strong><span class="delta-indicator">比較情報不足 <code>UNKNOWN</code></span></div>
+    <div><strong>Valuation余地</strong><span class="delta-indicator">比較情報不足 <code>UNKNOWN</code></span></div>
+  </div>
+  <details class="progressive-disclosure"><summary>Previous / Current の詳細値</summary><div class="table-scroll"><table>
+    <thead><tr><th>指標</th><th>Previous</th><th>Current</th></tr></thead><tbody>
+      <tr><th>Scenario</th><td>UNKNOWN</td><td>Base</td></tr>
+      <tr><th>EPS</th><td>取得できません</td><td>720.10円</td></tr>
+      <tr><th>Forward PER</th><td>取得できません</td><td>16.53倍</td></tr>
+    </tbody></table></div></details>
+  <span class="muted">Previous snapshot値はCanonical sourceに存在する場合だけ表示します。現在値から過去値を逆算しません。比較ref: <code>decision-comparison:6622:current-vs-latest</code></span>
+</div>
+
+  <div class="content-card cockpit-expectation-summary"><strong>市場期待との差は？</strong><span class="status-chip">現在取得できません <code>UNAVAILABLE</code></span><span>市場期待データは現在取得できません。差なし・0として扱いません。</span></div>
+  <div class="content-card cockpit-thesis-summary"><strong>今の投資仮説は？ / Warning / Thesis Health</strong><span>Health: <code>INTACT</code></span><span>仮説状態: 一部情報不足 <code>PARTIAL</code></span><span>確認すべきwarning: 3件</span></div>
+</div>
+<div class="content-card cockpit-decision-loop">
+  <strong>判断ループ — 次にどこを見る？</strong>
+  <p>意味を確認 → 根拠を掘る → 売買前のPF影響を確認 → 判断・取引を記録、の順に既存Canonical画面へ進みます。</p>
+  <div class="codex-action-row">
+    <a class="codex-action codex-action--secondary" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/concepts/investment-decision-cockpit/index.html">Cockpitの見方を確認</a>
+    <a class="codex-action codex-action--secondary" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/companies/index.html">企業研究・Evidenceを見る</a>
+    <a class="codex-action codex-action--primary" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/risk-preflight/index.html">売買前のPF影響を確認</a>
+    <a class="codex-action codex-action--secondary" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/trade-journal/index.html">判断・取引の記録を見る</a>
+  </div>
+  <span class="muted">Decision Snapshotのbackend contractは既存ですが、専用Pages routeはまだ接続されていません。存在しない画面を生成済みとは扱いません。</span>
+</div>
+
+<h2 id="-先に確認する注意点">⚠ 先に確認する注意点</h2>
+<ul>
+  <li>全体状態: 一部情報不足 <code>PARTIAL</code></li>
+  <li>情報鮮度: 情報が古いため再確認が必要 <code>STALE</code></li>
+  <li>古いcomponent: valuation</li>
+  <li>鮮度不明component: expectations, portfolio_preflight</li>
+</ul>
+<ul><li>earnings_driver: DRIVER_COVERAGE_PARTIAL</li><li>valuation: PRICE_STALE_FOR_E2E</li><li>expectations: CONSENSUS_UNAVAILABLE</li></ul>
+
+<h2 id="1-利益予想--なぜこのbase">1. 利益予想 — なぜこのBase？</h2>
+<div class="content-grid"><div class="content-card"><strong>Base純利益</strong><span>17,000百万円</span><span>一部情報不足 <code>PARTIAL</code></span></div><div class="content-card"><strong>Base EPS</strong><span>720.10円</span><span>対象: FY2027</span></div><div class="content-card"><strong>会社予想 純利益</strong><span>16,500百万円</span><span>説明coverage: <code>PARTIAL</code></span></div></div>
+<p>根拠driver: <code>company-research:6622:earnings-engine</code><br />
+Source: <code>company-research:6622:2026-08-09</code> / <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/issues/214">issue:214</a></p>
+<blockquote>
+  <p><code class="language-plaintext highlighter-rouge">PARTIAL</code> は完全導出を意味しません。説明できない部分をAIが補完していません。</p>
+</blockquote>
+
+<h2 id="2-bear--base--bull-とforward-per">2. Bear / Base / Bull とForward PER</h2>
+<div class="content-grid scenario-grid"><div class="content-card scenario-card"><strong>Bear</strong><span>EPS: 571.84円</span><span>Forward PER: 20.81倍</span></div><div class="content-card scenario-card"><strong>Base</strong><span>EPS: 720.10円</span><span>Forward PER: 16.53倍</span></div><div class="content-card scenario-card"><strong>Bull</strong><span>EPS: 847.17円</span><span>Forward PER: 14.05倍</span></div></div>
+<ul>
+  <li>株価基準日: <strong>2026-07-29</strong></li>
+  <li>対象年度: <strong>FY2027</strong></li>
+  <li>状態: 一部情報不足 <code>PARTIAL</code> / 鮮度: 情報が古いため再確認が必要 <code>STALE</code></li>
+  <li>Source: <code>company-research:6622:2026-08-09</code> / <code>forward-per:6622:FY2027:2026-07-29</code>
+<strong>株価情報が古い場合、現在の割安度として無警告では使用しません。</strong></li>
+</ul>
+
+<h2 id="3-市場期待との差">3. 市場期待との差</h2>
+<p>状態: 現在取得できません <code>UNAVAILABLE</code></p>
+<ul>
+  <li>Company Guidance: <code>company-research:6622:guidance:FY2027</code></li>
+  <li>External Consensus: <span class="muted">参照なし</span></li>
+  <li>Sado Base: <code>company-research:6622:scenario:base:FY2027</code></li>
+  <li>Latest Actual: <code>company-research:6622:FY2027-Q1</code>
+<strong>Consensusを取得できない場合、gap=0や「差なし」とは表示しません。</strong></li>
+</ul>
+
+<h2 id="4-投資仮説は生きているか">4. 投資仮説は生きているか</h2>
+<h3 id="must-happen">Must happen</h3>
+<ul><li>Material Processingの高水準受注が売上・利益へ継続転換する</li><li>Energy Managementの受注増が後続四半期の売上・利益へ転換する</li></ul>
+<h3 id="反証無効化条件">反証・無効化条件</h3>
+<ul><li>Material Processing受注が急減しAI/DC投資の失速が確認される</li><li>Energy Management受注が長期間売上・利益へ転換しない</li></ul>
+<p>Supporting evidence: <code>company-research:6622:FY2027-Q1</code><br />
+Challenging evidence: <span class="muted">参照なし</span></p>
+
+<h2 id="5-売買前のポートフォリオ影響">5. 売買前のポートフォリオ影響</h2>
+<p>状態: まだ確認を実行していません <code>NOT_RUN</code></p>
+<ul><li>trade_intent_not_supplied</li></ul>
+<p><a href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/risk-preflight/index.html">売買前のポートフォリオ確認を開く</a>
+未設定ルールや未実行preflightから安全/危険を推測しません。</p>
+
+<h2 id="6-前回判断と現在を分けて確認">6. 前回判断と現在を分けて確認</h2>
+<ul>
+  <li>最新Decision: <code>decision:6622:latest</code></li>
+  <li>Investment Episode: <code>episode:6622:current</code></li>
+  <li>Current comparison: <code>decision-comparison:6622:current-vs-latest</code></li>
+  <li><strong>Historical immutable snapshot</strong>: <code>decision-snapshot:6622:latest:immutable</code>
+過去snapshotを現在のResearch / Valuationで書き換えません。</li>
+</ul>
+
+<h2 id="7-次に確認する場所">7. 次に確認する場所</h2>
+<ul>
+  <li>利益予想の根拠: <code>company-research:6622:earnings-engine</code></li>
+  <li>次checkpoint: <code>company-research:6622:FY2027-Q2</code></li>
+  <li>仮説source: <code>hypothesis:6622:FY2027</code></li>
+  <li>全source refs: <code>company-research:6622:2026-08-09</code> / <code>decision-snapshot:6622:latest:immutable</code> / <code>decision:6622:latest</code> / <code>forward-per:6622:FY2027:2026-07-29</code> / <code>hypothesis:6622:FY2027</code> / <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/issues/214">issue:214</a></li>
+</ul>
+
+<!-- cockpit-drilldown:start -->
+<h2 id="-根拠へ降りる">🔎 根拠へ降りる</h2>
+
+<p>疑問が生じた箇所から、存在が確認できるCanonical詳細だけへ移動します。未生成routeは推測しません。</p>
+
+<ul>
+  <li>画面の見方: <a href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/concepts/investment-decision-cockpit/index.html">この画面の見方・判断コックピットの読み方</a></li>
+  <li>利益予想の根拠: <a href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/companies/infrastructure/6622-daihen/index.html">ダイヘン企業研究を開く</a></li>
+  <li>Valuationの根拠: <span class="muted">Forward PER専用ページはまだありません。Canonical refは画面内に保持しています</span></li>
+  <li>投資仮説: <span class="muted">仮説専用ページはまだありません。Canonical refは画面内に保持しています</span></li>
+  <li>過去判断: <span class="muted">Decision History専用ページはまだありません。historical snapshot refは画面内に保持しています</span></li>
+</ul>
+
+<!-- cockpit-drilldown:end -->
+<hr />
+<h2 id="30秒チェック">30秒チェック</h2>
+<p>この画面の最初のviewportと警告を見て、次を確認します。</p>
+<ol>
+  <li>なぜ今日ダイヘンを見るのか</li>
+  <li>前回から何が変わったか</li>
+  <li>Base EPSの主な根拠は何か</li>
+  <li>Bear / Base / BullのForward PERはどうか</li>
+  <li>市場期待データは利用可能か</li>
+  <li>何が起きたら仮説が崩れるか</li>
+  <li>次にどこを確認するか</li>
+</ol>
+<p class="muted">Generated from #257 PR-A read model. Presentation layer only / no upstream write-back.</p>
+
+  </main>
+  <a class="back-to-top" href="#" aria-label="ページ上部へ戻る">↑</a>
+  <script>
+    const root = document.documentElement;
+    const savedTheme = localStorage.getItem('book-theme');
+    if (savedTheme) root.dataset.theme = savedTheme;
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      localStorage.setItem('book-theme', next);
+    });
+    const progress = document.getElementById('progress');
+    const updateProgress = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      progress.style.width = (max > 0 ? window.scrollY / max * 100 : 0) + '%';
+    };
+    addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+
+    (() => {
+      const normalizedPath = window.location.pathname.replace(/\/+$/, '');
+      if (!normalizedPath.endsWith('/research/ai-key-person-watch')) return;
+      const main = document.querySelector('main.book-shell');
+      const title = main?.querySelector('h1');
+      if (!main || !title) return;
+
+      const panel = document.createElement('section');
+      panel.className = 'notice-card';
+      panel.setAttribute('aria-live', 'polite');
+      panel.innerHTML = '<strong>Monitoring status</strong><p>Heartbeatを確認中...</p>';
+      title.insertAdjacentElement('afterend', panel);
+
+      const issueCommentsBaseUrl = 'https://api.github.com/repos/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/issues/124/comments?per_page=100';
+      const trustedAuditAuthors = new Set(['sadouninc']);
+      const statusUrl = 'https://raw.githubusercontent.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-657/main/Ops/Monitoring/AI_Key_Person_Watch/status.json';
+      const staleAfterMinutes = 150;
+      const maxFutureSkewMinutes = 5;
+      const escapeHtml = (value) => String(value ?? '')
+        .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+      const renderTime = (value) => value
+        ? new Date(value).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }) + ' JST'
+        : '未記録';
+      const parseJst = (value) => {
+        if (!value) return null;
+        const normalized = value.trim().replace(/\s*JST$/i, '').replace(' ', 'T');
+        const withOffset = /(?:Z|[+-]\d{2}:?\d{2})$/.test(normalized) ? normalized : `${normalized}+09:00`;
+        const parsed = new Date(withOffset);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      };
+      const isTooFarFuture = (date) => date && date.getTime() > Date.now() + maxFutureSkewMinutes * 60000;
+      const parseAuditComment = (comment) => {
+        const author = String(comment?.user?.login || '').toLowerCase();
+        if (!trustedAuditAuthors.has(author)) return null;
+        const body = comment?.body;
+        if (!body || !body.includes('Operational Heartbeat / Run Audit')) return null;
+        const field = (name) => {
+          const match = body.match(new RegExp(`^${name}:\\s*(.+)$`, 'mi'));
+          return match ? match[1].trim() : null;
+        };
+        const runAt = parseJst(field('run_at_jst'));
+        const status = field('status');
+        if (!runAt || !status) return null;
+        return {
+          runAt,
+          status: status.toUpperCase(),
+          newsDelta: Number(field('news_delta') || 0),
+          newsPersisted: String(field('news_persisted') || '').toLowerCase() === 'true',
+          persistenceStatus: (field('persistence_status') || 'NOT_REQUIRED').toUpperCase()
+        };
+      };
+      const classifyAudit = (audit) => {
+        if (isTooFarFuture(audit.runAt)) {
+          return { state: 'DEGRADED', reason: `直近run時刻が現在より${maxFutureSkewMinutes}分超先です。時計・timezone・入力を確認してください。` };
+        }
+        const ageMinutes = (Date.now() - audit.runAt.getTime()) / 60000;
+        if (ageMinutes > staleAfterMinutes) {
+          return { state: 'STALE', reason: `最終runから約${Math.floor(ageMinutes)}分経過しています。` };
+        }
+        if (audit.status === 'ERROR') return { state: 'DEGRADED', reason: '直近runがERRORです。' };
+        if (audit.persistenceStatus === 'PENDING_PERSIST') return { state: 'DEGRADED', reason: 'ニュース保存がPENDING_PERSISTです。' };
+        return { state: 'HEALTHY', reason: 'Issue #124の直近Run Auditは監視閾値内です。' };
+      };
+      const renderAudit = (audit, sourceLabel) => {
+        const health = classifyAudit(audit);
+        panel.innerHTML = `<strong>Monitoring status: ${escapeHtml(health.state)}</strong><dl>`
+          + `<dt>直近run</dt><dd>${escapeHtml(renderTime(audit.runAt.toISOString()))}</dd>`
+          + `<dt>ニュース差分</dt><dd>${escapeHtml(audit.newsDelta)}</dd>`
+          + `<dt>Persistence</dt><dd>${escapeHtml(audit.persistenceStatus)}</dd>`
+          + `<dt>監視ソース</dt><dd>${escapeHtml(sourceLabel)}</dd>`
+          + `<dt>状態理由</dt><dd>${escapeHtml(health.reason)}</dd></dl>`;
+      };
+      const classifyStatusFile = (payload) => {
+        const lastRun = payload.last_run_at ? new Date(payload.last_run_at) : null;
+        const lastSuccess = payload.last_success_at ? new Date(payload.last_success_at) : null;
+        const lastNewsDelta = payload.last_news_delta_at ? new Date(payload.last_news_delta_at) : null;
+        if (!lastSuccess || Number.isNaN(lastSuccess.getTime())) {
+          return { state: 'UNKNOWN', reason: 'Run Audit APIとstatus.jsonのどちらからも成功runを確認できません。' };
+        }
+        if (isTooFarFuture(lastRun) || isTooFarFuture(lastSuccess) || isTooFarFuture(lastNewsDelta)) {
+          return { state: 'DEGRADED', reason: `Heartbeat timestampが現在より${maxFutureSkewMinutes}分超先です。` };
+        }
+        if (lastRun && !Number.isNaN(lastRun.getTime()) && lastSuccess.getTime() > lastRun.getTime()) {
+          return { state: 'DEGRADED', reason: 'last_success_atがlast_run_atより後です。' };
+        }
+        if (lastRun && lastNewsDelta && !Number.isNaN(lastNewsDelta.getTime()) && lastNewsDelta.getTime() > lastRun.getTime()) {
+          return { state: 'DEGRADED', reason: 'last_news_delta_atがlast_run_atより後です。' };
+        }
+        const ageMinutes = (Date.now() - lastSuccess.getTime()) / 60000;
+        const staleAfter = Number(payload.stale_after_minutes || staleAfterMinutes);
+        if (ageMinutes > staleAfter) return { state: 'STALE', reason: `最終成功runから約${Math.floor(ageMinutes)}分経過しています。` };
+        if (payload.last_status === 'ERROR') return { state: 'DEGRADED', reason: '直近runがERRORです。' };
+        if (payload.persistence_status === 'PENDING_PERSIST') return { state: 'DEGRADED', reason: 'ニュース保存がPENDING_PERSISTです。' };
+        return { state: 'HEALTHY', reason: 'status.jsonの直近成功runは監視閾値内です。' };
+      };
+      const renderStatusFile = (payload) => {
+        const health = classifyStatusFile(payload);
+        panel.innerHTML = `<strong>Monitoring status: ${escapeHtml(health.state)}</strong><dl>`
+          + `<dt>最終監視成功</dt><dd>${escapeHtml(renderTime(payload.last_success_at))}</dd>`
+          + `<dt>最終ニュース差分</dt><dd>${escapeHtml(renderTime(payload.last_news_delta_at))}</dd>`
+          + `<dt>直近run</dt><dd>${escapeHtml(renderTime(payload.last_run_at))}</dd>`
+          + `<dt>監視ソース</dt><dd>status.json fallback</dd>`
+          + `<dt>状態理由</dt><dd>${escapeHtml(health.reason)}</dd></dl>`;
+      };
+      const loadStatusFallback = (issueError) => fetch(`${statusUrl}?t=${Date.now()}`, { cache: 'no-store' })
+        .then((response) => {
+          if (!response.ok) throw new Error(`status.json HTTP ${response.status}`);
+          return response.json();
+        })
+        .then(renderStatusFile)
+        .catch((statusError) => {
+          panel.innerHTML = `<strong>Monitoring status: UNKNOWN</strong><p>Heartbeat取得に失敗しました: ${escapeHtml(issueError.message)} / ${escapeHtml(statusError.message)}</p>`;
+        });
+
+      const linkedPage = (header, rel) => {
+        for (const part of String(header || '').split(',')) {
+          if (!part.includes(`rel="${rel}"`)) continue;
+          const url = part.match(/<([^>]+)>/)?.[1];
+          if (!url) continue;
+          const page = new URL(url).searchParams.get('page');
+          if (page && /^\d+$/.test(page)) return Number(page);
+        }
+        return null;
+      };
+      const fetchIssuePage = (page) => fetch(`${issueCommentsBaseUrl}&page=${page}`, {
+        cache: 'no-store',
+        headers: { Accept: 'application/vnd.github+json' }
+      }).then((response) => {
+        if (!response.ok) throw new Error(`Issue #124 API HTTP ${response.status}`);
+        const link = response.headers.get('Link');
+        return response.json().then((comments) => ({ comments, link }));
+      });
+      const latestTrustedAudit = (comments) => {
+        const audits = comments.map(parseAuditComment).filter(Boolean);
+        audits.sort((a, b) => b.runAt.getTime() - a.runAt.getTime());
+        return audits[0] || null;
+      };
+      const findLatestTrustedAudit = (page) => fetchIssuePage(page).then(({ comments }) => {
+        const audit = latestTrustedAudit(comments);
+        if (audit) return audit;
+        if (page <= 1) throw new Error('Issue #124に信頼済みRun Auditがありません');
+        return findLatestTrustedAudit(page - 1);
+      });
+      const loadLatestIssueAudit = () => fetchIssuePage(1)
+        .then(({ comments, link }) => {
+          const lastPage = linkedPage(link, 'last') || linkedPage(link, 'next') || 1;
+          if (lastPage === 1) {
+            const audit = latestTrustedAudit(comments);
+            if (!audit) throw new Error('Issue #124に信頼済みRun Auditがありません');
+            return audit;
+          }
+          return findLatestTrustedAudit(lastPage);
+        })
+        .then((audit) => renderAudit(audit, 'Issue #124 Run Audit (trusted/latest page)'));
+
+      loadLatestIssueAudit().catch(loadStatusFallback);
+    })();
+  </script>
+</body>
+</html>
