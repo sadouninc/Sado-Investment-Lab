@@ -16,7 +16,7 @@ jobs:
       github.event.comment.user.login == github.repository_owner &&
       startsWith(github.event.comment.body, '/ai copilot')
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 30
     concurrency:
       group: ai-production-dispatch-${{ github.event.issue.number }}
       cancel-in-progress: false
@@ -41,9 +41,6 @@ jobs:
             exit 78
           }
 
-          # Only the latest lease record is authoritative for duplicate prevention.
-          # Build one valid JSON array across pagination instead of concatenating
-          # multiple JSON pages, which is not parseable by json.load().
           : > /tmp/comment-pages.jsonl
           page=1
           while :; do
@@ -82,8 +79,6 @@ jobs:
             --arg expires_at "$expires_at" \
             '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"copilot",assigned_at:$assigned_at,acknowledged_at:null,lease_expires_at:$expires_at,fallback_owner:"amazon_q_free",status:"ASSIGNED"}')"
 
-          # This workflow intentionally has no checkout. Always address the repository
-          # explicitly so issue writes do not depend on a local .git directory.
           gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments" \
             -f body="<!-- flow-dispatch-lease -->
           ${lease}
@@ -95,11 +90,42 @@ jobs:
 
           echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
 
-      - name: Dispatch existing Copilot safe lane
+      - name: Dispatch Copilot and explicitly hand off completion
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
         shell: bash
         run: |
           set -euo pipefail
+          request_started="$(date -u -d '-2 seconds' +%Y-%m-%dT%H:%M:%SZ)"
+          source_title="Copilot PoC1 — issue ${ISSUE_NUMBER}"
+
           gh workflow run copilot-poc1.yml --repo "$GITHUB_REPOSITORY" --ref main -f issue_number="$ISSUE_NUMBER"
+
+          source_run_id=""
+          for _ in {1..60}; do
+            gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/copilot-poc1.yml/runs?event=workflow_dispatch&per_page=30" > /tmp/copilot-runs.json
+            source_run_id="$(jq -r \
+              --arg title "$source_title" \
+              --arg started "$request_started" \
+              '[.workflow_runs[] | select(.display_title == $title and .created_at >= $started)] | sort_by(.created_at) | last | .id // empty' \
+              /tmp/copilot-runs.json)"
+            [[ -n "$source_run_id" ]] && break
+            sleep 2
+          done
+          if [[ -z "$source_run_id" ]]; then
+            echo COPILOT_SOURCE_RUN_NOT_FOUND
+            exit 76
+          fi
+
+          set +e
+          gh run watch "$source_run_id" --repo "$GITHUB_REPOSITORY" --exit-status
+          watch_rc=$?
+          set -e
+          source_conclusion="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${source_run_id}" --jq '.conclusion // "unknown"')"
+          echo "Copilot source run ${source_run_id} completed: ${source_conclusion} (watch_rc=${watch_rc})"
+
+          gh workflow run ai-production-followup.yml --repo "$GITHUB_REPOSITORY" --ref main \
+            -f issue_number="$ISSUE_NUMBER" \
+            -f source_run_id="$source_run_id" \
+            -f source_conclusion="$source_conclusion"
