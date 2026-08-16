@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #660 · NOT PRODUCTION</strong>
-  <span>Head fda1052d506d · Built 2026-08-16T05:45:37Z</span>
+  <span>Head 6a16fe4a5487 · Built 2026-08-16T05:56:59Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -268,6 +268,25 @@
       </ul>
 
       <p>These values are not equivalent to FY2026 diluted weighted-average shares and therefore must not be silently used as the EPS denominator.</p>
+
+      <h3 id="canonical-current-valuation-consumer--633-pr2">Canonical Current Valuation Consumer — #633 PR2</h3>
+
+      <p>Current-price valuation must consume <code class="language-plaintext highlighter-rouge">scripts/sony_canonical_valuation.py</code>, which in turn accepts only the Canonical Market Data record and the shared Price Identity Gate from #633 PR1. The Decision Board (#403) and Fair PER consumer (#626) receive the same immutable valuation result from one calculation run; neither consumer may fetch or substitute a Web/legacy price independently.</p>
+
+      <p>Current price / current PER / fair-value gap are available only when all of the following are true:</p>
+
+      <ul>
+        <li><code class="language-plaintext highlighter-rouge">usable_for_current_valuation == true</code></li>
+        <li><code class="language-plaintext highlighter-rouge">identity_status == VERIFIED</code></li>
+        <li><code class="language-plaintext highlighter-rouge">freshness_status == FRESH</code></li>
+        <li><code class="language-plaintext highlighter-rouge">provider_status == OK</code></li>
+        <li><code class="language-plaintext highlighter-rouge">not_market_truth == false</code></li>
+        <li>Sony identity, exact trading date, close/intraday type and adjustment basis match the consumer expectation</li>
+      </ul>
+
+      <p>If the canonical gate fails or is UNKNOWN, current price / current PER / fair-value gap remain <code class="language-plaintext highlighter-rouge">UNKNOWN</code>; stale, previous-year, other-ticker, fixture or provider-failure values are never used as fallback. Research-derived Fair Value Range may still exist independently of current market-price usability.</p>
+
+      <p><code class="language-plaintext highlighter-rouge">price_as_of</code> and <code class="language-plaintext highlighter-rouge">scenario_as_of</code> remain separate authorities. A fresh price does not upgrade a missing or stale Research scenario. <code class="language-plaintext highlighter-rouge">Fair Value Range != Entry Zone</code>; this consumer never generates Entry Zone or BUY/SELL/HOLD.</p>
 
       <h2 id="scenario-contract">Scenario Contract</h2>
 
