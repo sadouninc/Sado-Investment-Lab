@@ -79,6 +79,23 @@ Share-count reference only:
 
 These values are not equivalent to FY2026 diluted weighted-average shares and therefore must not be silently used as the EPS denominator.
 
+### Canonical Current Valuation Consumer — #633 PR2
+
+Current-price valuation must consume `scripts/sony_canonical_valuation.py`, which in turn accepts only the Canonical Market Data record and the shared Price Identity Gate from #633 PR1. The Decision Board (#403) and Fair PER consumer (#626) receive the same immutable valuation result from one calculation run; neither consumer may fetch or substitute a Web/legacy price independently.
+
+Current price / current PER / fair-value gap are available only when all of the following are true:
+
+- `usable_for_current_valuation == true`
+- `identity_status == VERIFIED`
+- `freshness_status == FRESH`
+- `provider_status == OK`
+- `not_market_truth == false`
+- Sony identity, exact trading date, close/intraday type and adjustment basis match the consumer expectation
+
+If the canonical gate fails or is UNKNOWN, current price / current PER / fair-value gap remain `UNKNOWN`; stale, previous-year, other-ticker, fixture or provider-failure values are never used as fallback. Research-derived Fair Value Range may still exist independently of current market-price usability.
+
+`price_as_of` and `scenario_as_of` remain separate authorities. A fresh price does not upgrade a missing or stale Research scenario. `Fair Value Range != Entry Zone`; this consumer never generates Entry Zone or BUY/SELL/HOLD.
+
 ## Scenario Contract
 
 Until a canonical forward-EPS model is approved:
