@@ -389,7 +389,7 @@ def compute_implied_expectation(
     if known_scenarios:
         best_name = min(
             known_scenarios,
-            key=lambda name: abs(price / known_scenarios[name] - (current_per or price)),
+            key=lambda name: abs(price / known_scenarios[name] - current_per) if current_per else float('inf'),
         )
         implied_scenario = best_name
 

@@ -280,6 +280,19 @@ def test_compute_implied_expectation_is_pure_and_fail_closed():
 
 
 # ---------------------------------------------------------------------------
+def test_implied_scenario_none_when_base_eps_invalid():
+    fair_range = FairPERRange(fair_per_low=15.0, fair_per_high=20.0, confidence="MEDIUM")
+    scenario = EPSScenario(bear_eps=180.0, base_eps=None, bull_eps=270.0, scenario_as_of="2026-07-31")
+
+    implied = compute_implied_expectation(_fresh_canonical_price(price=4400.0), scenario, fair_range)
+    assert implied.current_per is None
+    assert implied.implied_scenario is None
+
+    scenario_zero = EPSScenario(bear_eps=180.0, base_eps=0.0, bull_eps=270.0, scenario_as_of="2026-07-31")
+    implied_zero = compute_implied_expectation(_fresh_canonical_price(price=4400.0), scenario_zero, fair_range)
+    assert implied_zero.current_per is None
+    assert implied_zero.implied_scenario is None
+
 # Historical valuation anchor guardrails
 # ---------------------------------------------------------------------------
 
