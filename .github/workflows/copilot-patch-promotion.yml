@@ -72,7 +72,7 @@ jobs:
           set -euo pipefail
           jobs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}/jobs")"
           job_id="$(printf '%s' "$jobs" | jq -r '.jobs[0].id')"
-          gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" > /tmp/source.log
+          gh api --allow-escape-sequences "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" > /tmp/source.log
           grep -q 'HARNESS_OUTCOME=REVIEW_READY_VALIDATED' /tmp/source.log || { echo SOURCE_NOT_REVIEW_READY_VALIDATED; exit 89; }
           echo "HARNESS_OUTCOME=REVIEW_READY_VALIDATED" >> "$GITHUB_ENV"
 
