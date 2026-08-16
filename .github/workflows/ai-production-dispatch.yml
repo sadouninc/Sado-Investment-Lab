@@ -82,13 +82,16 @@ jobs:
             --arg expires_at "$expires_at" \
             '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"copilot",assigned_at:$assigned_at,acknowledged_at:null,lease_expires_at:$expires_at,fallback_owner:"amazon_q_free",status:"ASSIGNED"}')"
 
-          gh issue comment "$issue" --body "<!-- flow-dispatch-lease -->
+          # This workflow intentionally has no checkout. Always address the repository
+          # explicitly so issue writes do not depend on a local .git directory.
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments" \
+            -f body="<!-- flow-dispatch-lease -->
           ${lease}
 
           担当: ♦️ソラ
           種別: AI Production Dispatch / Copilot Lease
 
-          Owner-authenticated /ai copilot accepted. Copilot safe lane dispatched with 60m lease. Contract/safety failure remains fail-closed."
+          Owner-authenticated /ai copilot accepted. Copilot safe lane dispatched with 60m lease. Contract/safety failure remains fail-closed." >/dev/null
 
           echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
 
@@ -99,4 +102,4 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gh workflow run copilot-poc1.yml --ref main -f issue_number="$ISSUE_NUMBER"
+          gh workflow run copilot-poc1.yml --repo "$GITHUB_REPOSITORY" --ref main -f issue_number="$ISSUE_NUMBER"
