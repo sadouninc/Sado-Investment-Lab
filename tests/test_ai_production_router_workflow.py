@@ -25,6 +25,16 @@ def test_dispatch_is_owner_authenticated_ready_only_and_protects_79():
     assert "gh workflow run copilot-poc1.yml" in text
 
 
+def test_dispatch_and_followup_build_valid_json_across_comment_pagination():
+    dispatch = _read(DISPATCH)
+    followup = _read(FOLLOWUP)
+    for text in (dispatch, followup):
+        assert "/comments?per_page=100&page=${page}" in text
+        assert "jq -c '.' /tmp/comment-page.json" in text
+        assert "jq -s 'add // []'" in text
+        assert "gh api --paginate" not in text
+
+
 def test_followup_reuses_promotion_and_policy_core_with_fail_closed_split():
     text = _read(FOLLOWUP)
     assert "workflow_run:" in text
@@ -39,6 +49,14 @@ def test_followup_reuses_promotion_and_policy_core_with_fail_closed_split():
     assert "BLOCKED_CONTRACT_PREFLIGHT" in text
     assert "BLOCKED_FORBIDDEN_PATH" in text
     assert "BLOCKED_ISSUE_PATH_CONTRACT" in text
+    assert "BLOCKED_NO_REPO_DIFF" in text
+
+
+def test_followup_fails_closed_when_source_logs_are_unavailable():
+    text = _read(FOLLOWUP)
+    assert '[[ ! -s /tmp/run.log ]]' in text
+    assert "FAILED_TO_RETRIEVE_LOGS" in text
+    assert 'echo "action=NONE" >> "$GITHUB_OUTPUT"' in text
 
 
 def test_manual_poc_identity_is_explicit_and_auto_green_is_not_enabled():
