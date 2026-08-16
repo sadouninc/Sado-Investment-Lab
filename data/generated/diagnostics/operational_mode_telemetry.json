@@ -1,0 +1,20 @@
+{
+  "evidence": {
+    "delegation_fixture_mismatches": [],
+    "shadow_fixture_mismatches": [],
+    "unknown_policy": "missing evidence remains null; it is never coerced to zero"
+  },
+  "metrics": {
+    "dangerous_false_positive_count": 0,
+    "delegated_flow_activation_count": 3,
+    "delegated_flow_steps": null,
+    "global_scan_steps": null,
+    "merge_policy": "AUTO_GREEN",
+    "shadow_auto_green_blocked_count": 5,
+    "shadow_auto_green_eligible_count": 1,
+    "shadow_auto_green_evaluated_count": 6,
+    "user_mode": "AWAY"
+  },
+  "schema_version": 1,
+  "source": "#625/#627 User Mode v2 shadow evidence"
+}
