@@ -25,6 +25,13 @@ def test_dispatch_is_owner_authenticated_ready_only_and_protects_79():
     assert "gh workflow run copilot-poc1.yml" in text
 
 
+def test_dispatch_serializes_same_issue_before_lease_check_and_creation():
+    text = _read(DISPATCH)
+    assert "concurrency:" in text
+    assert "group: ai-production-dispatch-${{ github.event.issue.number }}" in text
+    assert "cancel-in-progress: false" in text
+
+
 def test_dispatch_and_followup_build_valid_json_across_comment_pagination():
     dispatch = _read(DISPATCH)
     followup = _read(FOLLOWUP)
@@ -57,6 +64,22 @@ def test_followup_fails_closed_when_source_logs_are_unavailable():
     assert '[[ ! -s /tmp/run.log ]]' in text
     assert "FAILED_TO_RETRIEVE_LOGS" in text
     assert 'echo "action=NONE" >> "$GITHUB_OUTPUT"' in text
+
+
+def test_followup_passes_classifier_data_through_environment():
+    text = _read(FOLLOWUP)
+    assert 'ISSUE_NUMBER="$issue" OUTCOME="$outcome" RETRYABLE="$retryable"' in text
+    assert 'RUN_CONCLUSION_VALUE="$RUN_CONCLUSION" python' in text
+    assert "int(os.environ['ISSUE_NUMBER'])" in text
+    assert "os.environ['OUTCOME']" in text
+    assert "int('$issue')" not in text
+
+
+def test_terminal_copilot_results_close_active_lease_lifecycle():
+    text = _read(FOLLOWUP)
+    assert 'status:"PROMOTION_DISPATCHED"' in text
+    assert 'status:"FAIL_CLOSED"' in text
+    assert "source_run_id" in text
 
 
 def test_manual_poc_identity_is_explicit_and_auto_green_is_not_enabled():
