@@ -93,10 +93,10 @@ Amazon QとChatGPTはalternative PR routesではない。同じdelivery flowに�
 
 現在の各AIエンジンの接続およびキャパシティ状態の記録:
 
-1. Amazon Q Developer GitHub App was registered to an AWS account through the usage-limit boost registration flow.
-2. Google Jules GitHub App is connected only to `sadouninc/Sado-Investment-Lab`.
-3. Remaining quota/capacity numbers for Amazon Q, Jules, or Copilot remain UNKNOWN (no invented numbers; UNKNOWN stays UNKNOWN).
-4. Jules remains an experimental implementation lane until this production acceptance completes.
+1. Amazon Q Developer GitHub App は、利用上限枠拡大の登録フローを経て AWS アカウントに登録された。
+2. Google Jules GitHub App は `sadouninc/Sado-Investment-Lab` にのみ接続されている。
+3. Amazon Q、Jules、Copilot の残りのクォータ/キャパシティ数値は UNKNOWN のままである（数値を創作せず、UNKNOWN を維持する）。
+4. Jules は、本プロダクション受入が完了するまで実験的な実装レーンにとどまる。
 
 ## 2026-08-16 — Productivity inflection hypothesis
 
