@@ -39,7 +39,17 @@ jobs:
             exit 79
           fi
 
-          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments?per_page=100" > /tmp/comments.json
+          : > /tmp/comment-pages.jsonl
+          page=1
+          while :; do
+            gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments?per_page=100&page=${page}" > /tmp/comment-page.json
+            jq -c '.' /tmp/comment-page.json >> /tmp/comment-pages.jsonl
+            count="$(jq 'length' /tmp/comment-page.json)"
+            [[ "$count" == "100" ]] || break
+            page=$((page + 1))
+          done
+          jq -s 'add // []' /tmp/comment-pages.jsonl > /tmp/comments.json
+
           ISSUE_NUMBER="$issue" python - <<'PY'
           import json, os, re
           issue = int(os.environ['ISSUE_NUMBER'])
@@ -58,7 +68,14 @@ jobs:
               raise SystemExit('NO_ACTIVE_PRODUCTION_COPILOT_LEASE')
           PY
 
-          gh run view "$RUN_ID" --log > /tmp/run.log || true
+          if ! gh run view "$RUN_ID" --log > /tmp/run.log 2>&1 || [[ ! -s /tmp/run.log ]]; then
+            echo "Failed to retrieve non-empty source run logs; fail closed."
+            echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
+            echo "action=NONE" >> "$GITHUB_OUTPUT"
+            echo "reason=FAILED_TO_RETRIEVE_LOGS" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           outcome=UNKNOWN
           retryable=false
           if grep -q 'HARNESS_OUTCOME=REVIEW_READY_VALIDATED' /tmp/run.log && [[ "$RUN_CONCLUSION" == "success" ]]; then
@@ -69,6 +86,8 @@ jobs:
             outcome=BLOCKED_ISSUE_PATH_CONTRACT
           elif grep -q 'BLOCKED_FORBIDDEN_PATH' /tmp/run.log; then
             outcome=BLOCKED_FORBIDDEN_PATH
+          elif grep -q 'BLOCKED_NO_REPO_DIFF' /tmp/run.log; then
+            outcome=BLOCKED_NO_REPO_DIFF
           elif grep -q 'PROTECTED_ISSUE_79' /tmp/run.log; then
             outcome=PROTECTED_ISSUE_79
           elif grep -q 'BLOCKED_AGENT_NOT_REVIEW_READY' /tmp/run.log; then
@@ -153,4 +172,4 @@ jobs:
           gh issue comment "$ISSUE_NUMBER" --body "担当: ♦️ソラ
           種別: AI Production Follow-up / FAIL_CLOSED
 
-          Production routing stopped without fallback. Reason: `${REASON}`. Contract/safety failure is not eligible for Amazon Q fallback."
+          Production routing stopped without fallback. Reason: `${REASON}`. Contract/safety failure or missing validation evidence is not eligible for Amazon Q fallback."
