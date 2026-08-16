@@ -1,6 +1,7 @@
 occurred_at_jst,evidence_type,ref,category,claim_status,summary
-2026-08-16T16:30:02+09:00,MERGE,PR#662,BLOCKER_REPAIR_MERGED,OBSERVED,"Patch Promotion source-log ANSI tolerance repair merged; exact attribution to productivity change not yet claimed"
-2026-08-16T17:52:00+09:00,MERGE,PR#671,MERGED_PR,OBSERVED,"#550 PR1 Contract/Taxonomy hardening merged; timestamp to be revalidated from PR metadata before final chart"
+2026-08-16T16:30:02+09:00,MERGE,PR#662,BLOCKER_REPAIR_MERGED,OBSERVED,"Patch Promotion source-log ANSI tolerance repair merged; GitHub merged_at=2026-08-16T07:30:02Z; exact attribution to productivity change not claimed"
+2026-08-16T17:40:34+09:00,MERGE,PR#670,RELIABILITY_MERGED,OBSERVED,"#668 duplicate AI Production redispatch suppression merged; GitHub merged_at=2026-08-16T08:40:34Z"
+2026-08-16T17:52:10+09:00,MERGE,PR#671,MERGED_PR,OBSERVED,"#550 PR1 Contract/Taxonomy hardening merged; GitHub merged_at=2026-08-16T08:52:10Z"
 2026-08-16T19:55:57+09:00,MERGE,PR#674,BLOCKER_REPAIR_MERGED,OBSERVED,"#672 declarative acceptance replay hardening merged; GitHub merged_at=2026-08-16T10:55:57Z"
-2026-08-16T20:28:45+09:00,ISSUE,ISSUE#675,DOCUMENTATION,OBSERVED,"Engineering Evolution Record issue created"
-2026-08-16T20:31:00+09:00,USER_OBSERVATION,ISSUE#675,PRODUCTIVITY_HYPOTHESIS,USER_OBSERVATION,"User observed that productivity appeared clearly higher in the latter half of 2026-08-16; exact comment timestamp to be revalidated if used quantitatively"
+2026-08-16T20:28:45+09:00,ISSUE,ISSUE#675,DOCUMENTATION,OBSERVED,"Engineering Evolution Record issue created; GitHub created_at=2026-08-16T11:28:45Z"
+2026-08-16T20:31:00+09:00,USER_OBSERVATION,ISSUE#675,PRODUCTIVITY_HYPOTHESIS,USER_OBSERVATION,"User observed that productivity appeared clearly higher in the latter half of 2026-08-16; exact observation timestamp remains provisional and must not be used for quantitative boundary selection"
