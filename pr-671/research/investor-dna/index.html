@@ -1,0 +1,1547 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11100d">
+  <meta name="description" content="自分の勝ち方と現在の実行環境を分離し、再現可能な投資エッジを説明可能に分析する">
+  <title>Investor DNA — Sado Investment Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/assets/book.css">
+  <link rel="stylesheet" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/assets/design-system.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$', '$'], ['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
+  <strong>PR PREVIEW · #671 · NOT PRODUCTION</strong>
+  <span>Head 982b859a2bf0 · Built 2026-08-16T08:48:57Z</span>
+</div>
+<style>
+  #sado-pr-preview-banner {
+    box-sizing: border-box; position: relative; z-index: 2147483647;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1rem;
+    width: 100%; padding: .55rem 1rem; color: #fff; background: #8b1e2d;
+    font: 600 .82rem/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-align: center;
+  }
+  #sado-pr-preview-banner span { font-weight: 400; overflow-wrap: anywhere; }
+  @media (max-width: 640px) { #sado-pr-preview-banner { align-items: center; flex-direction: column; gap: .15rem; } }
+</style>
+
+  <div class="reading-progress" aria-hidden="true"><span id="progress"></span></div>
+  <button class="theme-toggle" id="theme-toggle" type="button" aria-label="表示テーマを切り替える">◐</button>
+  <header class="codex-global-header">
+    <div class="codex-global-header__brand-row">
+      <a class="codex-global-brand" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/">SADO INVESTMENT CODEX</a>
+      <span class="codex-global-context" id="codex-global-context" aria-live="polite">現在地を確認中</span>
+    </div>
+    <nav class="codex-global-nav" aria-label="投資目的ナビゲーション">
+      
+      <a class="codex-nav-item" data-nav-group="home" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/assets/instruments.svg#home"></use></svg>
+        <span class="codex-nav-item__label">Home</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="discover" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/research/market-phase/ai-semiconductor/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/assets/instruments.svg#discover"></use></svg>
+        <span class="codex-nav-item__label">銘柄を探す</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="understand" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/companies/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/assets/instruments.svg#understand"></use></svg>
+        <span class="codex-nav-item__label">企業を理解する</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="decide" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/decision-cockpit/daihen/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/assets/instruments.svg#decide"></use></svg>
+        <span class="codex-nav-item__label">判断する</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="record" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/trade-journal/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/assets/instruments.svg#record"></use></svg>
+        <span class="codex-nav-item__label">記録する</span>
+      </a>
+      
+      <a class="codex-nav-item" data-nav-group="review" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/trade-analysis/index.html">
+        <svg class="codex-instrument-icon codex-nav-item__icon" aria-hidden="true" viewBox="0 0 24 24"><use href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/assets/instruments.svg#review"></use></svg>
+        <span class="codex-nav-item__label">振り返る</span>
+      </a>
+      
+    </nav>
+  </header>
+  <nav class="breadcrumb codex-global-breadcrumb" id="codex-global-breadcrumb" aria-label="現在地" hidden></nav>
+  <script>
+    (() => {
+      const navigation = {"schema_version":"1.0","model_note_ja":"9-stageは投資プロセスの意味モデル、6-purposeは日常移動のNavigation group。NavigationはOS Mapを置換しない。","navigation_groups":[{"id":"home","label_ja":"Home","primary_destination":"/","icon_ja":"羅"},{"id":"discover","label_ja":"銘柄を探す","primary_destination":"/research/market-phase/ai-semiconductor/","icon_ja":"望"},{"id":"understand","label_ja":"企業を理解する","primary_destination":"/companies/","icon_ja":"顕"},{"id":"decide","label_ja":"判断する","primary_destination":"/decision-cockpit/daihen/","icon_ja":"衡"},{"id":"record","label_ja":"記録する","primary_destination":"/trade-journal/","icon_ja":"帳"},{"id":"review","label_ja":"振り返る","primary_destination":"/trade-analysis/","icon_ja":"筆"}],"os_stage_to_navigation":{"observe":{"primary":"home","secondary":[]},"discover":{"primary":"discover","secondary":[]},"understand":{"primary":"understand","secondary":[]},"hypothesize":{"primary":"understand","secondary":["decide"]},"decide":{"primary":"decide","secondary":[]},"pretrade":{"primary":"decide","secondary":["record"]},"record":{"primary":"record","secondary":[]},"learn":{"primary":"review","secondary":[]},"observe_next":{"primary":"home","secondary":[]}},"routes":[{"route":"/","primary_journey_stage":"home","secondary_journey_stages":[],"user_facing_label_ja":"Home","parent_route":null,"canonical_destination":"/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/reports/morning/","primary_journey_stage":"home","secondary_journey_stages":["discover"],"user_facing_label_ja":"朝の市場レポート","parent_route":"/","canonical_destination":"/reports/morning/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/market/intraday/","primary_journey_stage":"home","secondary_journey_stages":["discover"],"user_facing_label_ja":"場中の市場変化","parent_route":"/","canonical_destination":"/market/intraday/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/research/market-phase/ai-semiconductor/","primary_journey_stage":"discover","secondary_journey_stages":[],"user_facing_label_ja":"市場フェーズ","parent_route":"/","canonical_destination":"/research/market-phase/ai-semiconductor/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/companies/","primary_journey_stage":"understand","secondary_journey_stages":[],"user_facing_label_ja":"企業研究","parent_route":"/","canonical_destination":"/companies/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/framework/","primary_journey_stage":"understand","secondary_journey_stages":["decide"],"user_facing_label_ja":"投資Framework","parent_route":"/","canonical_destination":"/framework/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/decision-cockpit/daihen/","primary_journey_stage":"decide","secondary_journey_stages":[],"user_facing_label_ja":"投資判断コックピット / ダイヘン","breadcrumb_segments_ja":["投資判断コックピット","ダイヘン"],"parent_route":"/","canonical_destination":"/decision-cockpit/daihen/","legacy_aliases":[],"concept_route":"/concepts/investment-decision-cockpit/","availability":"AVAILABLE"},{"route":"/risk-preflight/","primary_journey_stage":"decide","secondary_journey_stages":["record"],"user_facing_label_ja":"売買前のポートフォリオ確認","parent_route":"/","canonical_destination":"/risk-preflight/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":null,"feature_id":"portfolio-current","primary_journey_stage":"record","secondary_journey_stages":[],"user_facing_label_ja":"現在の保有","parent_route":"/","canonical_destination":null,"legacy_aliases":[],"concept_route":null,"availability":"UNMAPPED"},{"route":"/trade-journal/","primary_journey_stage":"record","secondary_journey_stages":["review"],"user_facing_label_ja":"売買・判断の記録","parent_route":"/","canonical_destination":"/trade-journal/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/trade-analysis/","primary_journey_stage":"review","secondary_journey_stages":[],"user_facing_label_ja":"取引分析","parent_route":"/","canonical_destination":"/trade-analysis/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/research/investor-dna/","primary_journey_stage":"review","secondary_journey_stages":["discover"],"user_facing_label_ja":"Investor DNA","parent_route":"/","canonical_destination":"/research/investor-dna/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/market-analysis/","primary_journey_stage":"home","secondary_journey_stages":["review"],"user_facing_label_ja":"市場分析","parent_route":"/","canonical_destination":"/market-analysis/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"},{"route":"/concepts/investment-decision-cockpit/","primary_journey_stage":"decide","secondary_journey_stages":[],"user_facing_label_ja":"投資判断コックピットの使い方","parent_route":"/decision-cockpit/daihen/","canonical_destination":"/concepts/investment-decision-cockpit/","legacy_aliases":[],"concept_route":null,"availability":"AVAILABLE"}]};
+      const baseUrl = "/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/pages-previews/pr-671" || '';
+      let currentPath = window.location.pathname;
+      if (baseUrl && currentPath.startsWith(baseUrl)) currentPath = currentPath.slice(baseUrl.length) || '/';
+      if (!currentPath.startsWith('/')) currentPath = '/' + currentPath;
+      if (!currentPath.endsWith('/')) currentPath += '/';
+
+      const candidates = (navigation.routes || [])
+        .filter((route) => route.availability === 'AVAILABLE' && route.route)
+        .filter((route) => route.route === '/' ? currentPath === '/' : currentPath.startsWith(route.route))
+        .sort((left, right) => right.route.length - left.route.length);
+      const matchedRoute = candidates[0] || null;
+      const currentGroup = matchedRoute?.primary_journey_stage || null;
+      const group = (navigation.navigation_groups || []).find((item) => item.id === currentGroup);
+      const context = document.getElementById('codex-global-context');
+      if (context) context.textContent = group ? `現在地: ${group.label_ja}` : '現在地: 未分類';
+
+      document.querySelectorAll('.codex-nav-item').forEach((item) => {
+        const active = currentGroup && item.dataset.navGroup === currentGroup;
+        item.toggleAttribute('data-current', Boolean(active));
+        if (active) item.setAttribute('aria-current', 'location');
+        else item.removeAttribute('aria-current');
+      });
+
+      const breadcrumb = document.getElementById('codex-global-breadcrumb');
+      if (!breadcrumb || currentPath === '/') return;
+      const pageTitle = document.querySelector('main.book-shell h1')?.textContent?.trim()
+        || document.title.replace(/\s+[—-]\s+Sado Investment Lab$/, '').trim();
+      const items = [{ label: 'Home', route: '/' }];
+      if (group && group.id !== 'home') {
+        items.push({ label: group.label_ja, route: group.primary_destination });
+      } else if (!group) {
+        items.push({ label: '未分類', route: null });
+      }
+
+      if (matchedRoute) {
+        const routeSegments = Array.isArray(matchedRoute.breadcrumb_segments_ja)
+          ? matchedRoute.breadcrumb_segments_ja
+          : [matchedRoute.user_facing_label_ja];
+        for (const label of routeSegments.filter(Boolean)) {
+          if (items.some((item) => item.label === label)) continue;
+          items.push({ label, route: matchedRoute.route });
+        }
+        if (currentPath !== matchedRoute.route && pageTitle && !items.some((item) => item.label === pageTitle)) {
+          items.push({ label: pageTitle, route: null });
+        }
+      } else if (pageTitle) {
+        items.push({ label: pageTitle, route: null });
+      }
+
+      const fragment = document.createDocumentFragment();
+      items.forEach((item, index) => {
+        if (index) fragment.append(' / ');
+        const isLast = index === items.length - 1;
+        if (item.route && !isLast) {
+          const link = document.createElement('a');
+          link.href = `${baseUrl}${item.route}`.replace(/\/+/g, '/');
+          link.textContent = item.label;
+          fragment.append(link);
+        } else {
+          const span = document.createElement('span');
+          span.textContent = item.label;
+          if (isLast) span.setAttribute('aria-current', 'page');
+          fragment.append(span);
+        }
+      });
+      breadcrumb.replaceChildren(fragment);
+      breadcrumb.hidden = false;
+    })();
+  </script>
+  <main class="book-shell">
+    <p class="breadcrumb"><a href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/">Home</a> / Research / Investor DNA</p>
+
+<h1 id="investor-dna-engine">Investor DNA Engine</h1>
+
+<p>「相性が悪い」を固定ラベルにせず、<strong>まだ解明できていない勝ちパターン</strong>として原因を分解します。</p>
+
+<blockquote>
+  <p>Market opportunity × Native Investor DNA × Current Environment × Capital feasibility</p>
+</blockquote>
+
+<div class="metric-grid"><div class="metric-card"><span>Trade Episodes</span><strong>394</strong></div><div class="metric-card"><span>Win Rate</span><strong>80.2%</strong></div><div class="metric-card"><span>PF</span><strong>1.82</strong></div><div class="metric-card"><span>Median Hold</span><strong>7.0日</strong></div></div>
+
+<h2 id="native-dna--本来の強み">Native DNA — 本来の強み</h2>
+
+<p>現在の仕事・通信環境とは分離して、実取引で再現した能力だけを表示します。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>特性</th>
+      <th style="text-align: right">Score</th>
+      <th style="text-align: right">Sample</th>
+      <th>根拠</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>short_horizon_repeatability</td>
+      <td style="text-align: right">92.8</td>
+      <td style="text-align: right">168</td>
+      <td>win_rate=0.869048, profit_factor=7.837046966049794</td>
+    </tr>
+    <tr>
+      <td>repeated_security_execution</td>
+      <td style="text-align: right">77.9</td>
+      <td style="text-align: right">394</td>
+      <td>share_of_trades_in_repeated_securities=0.779188</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>High-volatility and trend-following fit require aligned market-price features; they are not inferred from P/L alone.</li>
+  <li>Native DNA measures historical repeatability separately from current execution constraints.</li>
+</ul>
+
+<h2 id="current-environment-fit--今実行できる強み">Current Environment Fit — 今、実行できる強み</h2>
+
+<div class="metric-grid"><div class="metric-card"><span>Environment Fit</span><strong>33.6 / 100</strong></div><div class="metric-card"><span>Confidence</span><strong>1.00</strong></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Factor</th>
+      <th style="text-align: right">Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>market_open_monitoring</td>
+      <td style="text-align: right">25.0</td>
+    </tr>
+    <tr>
+      <td>morning_execution_availability</td>
+      <td style="text-align: right">25.0</td>
+    </tr>
+    <tr>
+      <td>network_reliability</td>
+      <td style="text-align: right">25.0</td>
+    </tr>
+    <tr>
+      <td>fast_reaction_capability</td>
+      <td style="text-align: right">25.0</td>
+    </tr>
+    <tr>
+      <td>premarket_analysis_availability</td>
+      <td style="text-align: right">90.0</td>
+    </tr>
+    <tr>
+      <td>check_interval_fit</td>
+      <td style="text-align: right">46.0</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Operational fit is a transparent heuristic based on monitoring, execution, network, reaction and check-frequency constraints; it is not a skill score.</p>
+
+<h2 id="style-drift--スタイル変化と環境変化">Style Drift — スタイル変化と環境変化</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Period</th>
+      <th style="text-align: right">Sample</th>
+      <th style="text-align: right">Win Rate</th>
+      <th style="text-align: right">PF</th>
+      <th style="text-align: right">Median Hold</th>
+      <th style="text-align: right">LONG P/L</th>
+      <th style="text-align: right">SHORT P/L</th>
+      <th>Drift Reason</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2024-07-18 → 2026-03-31</td>
+      <td style="text-align: right">372</td>
+      <td style="text-align: right">79.6%</td>
+      <td style="text-align: right">1.94</td>
+      <td style="text-align: right">7.0日</td>
+      <td style="text-align: right">8,000,783円</td>
+      <td style="text-align: right">213,687円</td>
+      <td>BASELINE</td>
+    </tr>
+    <tr>
+      <td>2026-04-01 → current</td>
+      <td style="text-align: right">22</td>
+      <td style="text-align: right">90.9%</td>
+      <td style="text-align: right">0.77</td>
+      <td style="text-align: right">6.0日</td>
+      <td style="text-align: right">631,447円</td>
+      <td style="text-align: right">-868,271円</td>
+      <td>WORK_ENVIRONMENT_CHANGE</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="lifetime-profit-contribution--資産形成への寄与">Lifetime Profit Contribution — 資産形成への寄与</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Class</th>
+      <th>銘柄</th>
+      <th style="text-align: right">実現損益</th>
+      <th style="text-align: right">Positive Contribution</th>
+      <th style="text-align: right">Trades</th>
+      <th style="text-align: right">勝率</th>
+      <th style="text-align: right">PF</th>
+      <th style="text-align: right">最大損失</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>HERO</strong></td>
+      <td>アドバンテスト (6857)</td>
+      <td style="text-align: right">2,629,665円</td>
+      <td style="text-align: right">21.1%</td>
+      <td style="text-align: right">17</td>
+      <td style="text-align: right">82.4%</td>
+      <td style="text-align: right">3.94</td>
+      <td style="text-align: right">-640,271円</td>
+    </tr>
+    <tr>
+      <td><strong>HERO</strong></td>
+      <td>キオクシアホールディングス (285A)</td>
+      <td style="text-align: right">2,221,878円</td>
+      <td style="text-align: right">17.8%</td>
+      <td style="text-align: right">12</td>
+      <td style="text-align: right">83.3%</td>
+      <td style="text-align: right">21.27</td>
+      <td style="text-align: right">-59,535円</td>
+    </tr>
+    <tr>
+      <td><strong>HERO</strong></td>
+      <td>Ｔｅｒｒａ Ｄｒｏｎｅ (278A)</td>
+      <td style="text-align: right">1,682,166円</td>
+      <td style="text-align: right">13.5%</td>
+      <td style="text-align: right">10</td>
+      <td style="text-align: right">80.0%</td>
+      <td style="text-align: right">5.60</td>
+      <td style="text-align: right">-304,638円</td>
+    </tr>
+    <tr>
+      <td><strong>HERO</strong></td>
+      <td>川崎重工業 (7012)</td>
+      <td style="text-align: right">1,127,917円</td>
+      <td style="text-align: right">9.1%</td>
+      <td style="text-align: right">5</td>
+      <td style="text-align: right">80.0%</td>
+      <td style="text-align: right">17.09</td>
+      <td style="text-align: right">-70,097円</td>
+    </tr>
+    <tr>
+      <td><strong>HERO</strong></td>
+      <td>ダイヘン (6622)</td>
+      <td style="text-align: right">787,249円</td>
+      <td style="text-align: right">6.3%</td>
+      <td style="text-align: right">5</td>
+      <td style="text-align: right">80.0%</td>
+      <td style="text-align: right">22.16</td>
+      <td style="text-align: right">-37,207円</td>
+    </tr>
+    <tr>
+      <td><strong>RESEARCH</strong></td>
+      <td>ＩＨＩ (7013)</td>
+      <td style="text-align: right">695,713円</td>
+      <td style="text-align: right">5.6%</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td style="text-align: right">-0円</td>
+    </tr>
+    <tr>
+      <td><strong>HERO</strong></td>
+      <td>オンコリスバイオファーマ (4588)</td>
+      <td style="text-align: right">626,060円</td>
+      <td style="text-align: right">5.0%</td>
+      <td style="text-align: right">9</td>
+      <td style="text-align: right">88.9%</td>
+      <td style="text-align: right">8.83</td>
+      <td style="text-align: right">-80,000円</td>
+    </tr>
+    <tr>
+      <td><strong>COMPATIBLE</strong></td>
+      <td>三菱重工業 (7011)</td>
+      <td style="text-align: right">265,406円</td>
+      <td style="text-align: right">2.1%</td>
+      <td style="text-align: right">4</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td style="text-align: right">-0円</td>
+    </tr>
+    <tr>
+      <td><strong>COMPATIBLE</strong></td>
+      <td>Ａｉロボティクス (247A)</td>
+      <td style="text-align: right">219,680円</td>
+      <td style="text-align: right">1.8%</td>
+      <td style="text-align: right">10</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td style="text-align: right">-0円</td>
+    </tr>
+    <tr>
+      <td><strong>RESEARCH</strong></td>
+      <td>日東紡績 (3110)</td>
+      <td style="text-align: right">214,783円</td>
+      <td style="text-align: right">1.7%</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td style="text-align: right">-0円</td>
+    </tr>
+    <tr>
+      <td><strong>COMPATIBLE</strong></td>
+      <td>ジーエヌアイグループ (2160)</td>
+      <td style="text-align: right">187,207円</td>
+      <td style="text-align: right">1.5%</td>
+      <td style="text-align: right">4</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td style="text-align: right">-0円</td>
+    </tr>
+    <tr>
+      <td><strong>COMPATIBLE</strong></td>
+      <td>フジ・メディア・ホールディングス (4676)</td>
+      <td style="text-align: right">175,479円</td>
+      <td style="text-align: right">1.4%</td>
+      <td style="text-align: right">5</td>
+      <td style="text-align: right">80.0%</td>
+      <td style="text-align: right">287.73</td>
+      <td style="text-align: right">-612円</td>
+    </tr>
+    <tr>
+      <td><strong>COMPATIBLE</strong></td>
+      <td>サンバイオ (4592)</td>
+      <td style="text-align: right">132,711円</td>
+      <td style="text-align: right">1.1%</td>
+      <td style="text-align: right">10</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td style="text-align: right">-0円</td>
+    </tr>
+    <tr>
+      <td><strong>RESEARCH</strong></td>
+      <td>信越化学工業 (4063)</td>
+      <td style="text-align: right">125,915円</td>
+      <td style="text-align: right">1.0%</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td style="text-align: right">-0円</td>
+    </tr>
+    <tr>
+      <td><strong>COMPATIBLE</strong></td>
+      <td>資生堂 (4911)</td>
+      <td style="text-align: right">108,461円</td>
+      <td style="text-align: right">0.9%</td>
+      <td style="text-align: right">20</td>
+      <td style="text-align: right">80.0%</td>
+      <td style="text-align: right">3.90</td>
+      <td style="text-align: right">-18,899円</td>
+    </tr>
+    <tr>
+      <td><strong>RESEARCH</strong></td>
+      <td>ＳＣＳＫ (9719)</td>
+      <td style="text-align: right">105,553円</td>
+      <td style="text-align: right">0.8%</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td style="text-align: right">-0円</td>
+    </tr>
+    <tr>
+      <td><strong>COMPATIBLE</strong></td>
+      <td>三井住友フィナンシャルグループ (8316)</td>
+      <td style="text-align: right">79,624円</td>
+      <td style="text-align: right">0.6%</td>
+      <td style="text-align: right">6</td>
+      <td style="text-align: right">83.3%</td>
+      <td style="text-align: right">2.99</td>
+      <td style="text-align: right">-40,042円</td>
+    </tr>
+    <tr>
+      <td><strong>RESEARCH</strong></td>
+      <td>住友ベークライト (4203)</td>
+      <td style="text-align: right">72,487円</td>
+      <td style="text-align: right">0.6%</td>
+      <td style="text-align: right">2</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td style="text-align: right">-0円</td>
+    </tr>
+    <tr>
+      <td><strong>RESEARCH</strong></td>
+      <td>浜松ホトニクス (6965)</td>
+      <td style="text-align: right">64,000円</td>
+      <td style="text-align: right">0.5%</td>
+      <td style="text-align: right">1</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td style="text-align: right">-0円</td>
+    </tr>
+    <tr>
+      <td><strong>CHALLENGE</strong></td>
+      <td>良品計画 (7453)</td>
+      <td style="text-align: right">50,466円</td>
+      <td style="text-align: right">0.4%</td>
+      <td style="text-align: right">8</td>
+      <td style="text-align: right">87.5%</td>
+      <td style="text-align: right">1.12</td>
+      <td style="text-align: right">-410,266円</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">HERO</code> は資産形成への寄与と再現性、<code class="language-plaintext highlighter-rouge">CHALLENGE</code> は改善余地またはテールリスクを表す研究ラベルです。売買許可ではありません。</p>
+
+<h2 id="danger-patterns--勝率では見えない大損パターン">Danger Patterns — 勝率では見えない大損パターン</h2>
+
+<h3 id="良品計画--critical">良品計画 — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>87.5%</strong> / PF: <strong>1.12</strong></li>
+  <li>Largest Loss: <strong>-410,266円</strong> / Gross Profit: <strong>460,732円</strong></li>
+  <li>LONG P/L: <strong>50,466円</strong> / SHORT P/L: <strong>0円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="フジクラ--critical">フジクラ — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>90.0%</strong> / PF: <strong>1.17</strong></li>
+  <li>Largest Loss: <strong>-293,558円</strong> / Gross Profit: <strong>343,715円</strong></li>
+  <li>LONG P/L: <strong>50,157円</strong> / SHORT P/L: <strong>0円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="ソフトバンクグループ--critical">ソフトバンクグループ — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>77.8%</strong> / PF: <strong>1.04</strong></li>
+  <li>Largest Loss: <strong>-419,314円</strong> / Gross Profit: <strong>439,817円</strong></li>
+  <li>LONG P/L: <strong>-22,634円</strong> / SHORT P/L: <strong>39,811円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="積水化学工業--warning">積水化学工業 — WARNING</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>75.0%</strong> / PF: <strong>1.69</strong></li>
+  <li>Largest Loss: <strong>-12,695円</strong> / Gross Profit: <strong>21,494円</strong></li>
+  <li>LONG P/L: <strong>8,799円</strong> / SHORT P/L: <strong>0円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="ｕｎｅｘｔ-ｈｏｌｄｉｎｇｓ--warning">Ｕ－ＮＥＸＴ ＨＯＬＤＩＮＧＳ — WARNING</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>75.0%</strong> / PF: <strong>1.34</strong></li>
+  <li>Largest Loss: <strong>-13,141円</strong> / Gross Profit: <strong>17,655円</strong></li>
+  <li>LONG P/L: <strong>3,519円</strong> / SHORT P/L: <strong>995円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="ａｂｅｊａ--critical">ＡＢＥＪＡ — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>75.0%</strong> / PF: <strong>0.93</strong></li>
+  <li>Largest Loss: <strong>-111,501円</strong> / Gross Profit: <strong>104,092円</strong></li>
+  <li>LONG P/L: <strong>-7,432円</strong> / SHORT P/L: <strong>0円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="ａｃｓｌ--critical">ＡＣＳＬ — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>83.3%</strong> / PF: <strong>0.74</strong></li>
+  <li>Largest Loss: <strong>-83,059円</strong> / Gross Profit: <strong>61,187円</strong></li>
+  <li>LONG P/L: <strong>-21,872円</strong> / SHORT P/L: <strong>0円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="中外製薬--critical">中外製薬 — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>66.7%</strong> / PF: <strong>0.62</strong></li>
+  <li>Largest Loss: <strong>-84,775円</strong> / Gross Profit: <strong>52,576円</strong></li>
+  <li>LONG P/L: <strong>-32,199円</strong> / SHORT P/L: <strong>0円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="明治ホールディングス--warning">明治ホールディングス — WARNING</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>72.2%</strong> / PF: <strong>0.77</strong></li>
+  <li>Largest Loss: <strong>-114,563円</strong> / Gross Profit: <strong>144,334円</strong></li>
+  <li>LONG P/L: <strong>0円</strong> / SHORT P/L: <strong>-42,627円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="ｐｋｓｈａ-ｔｅｃｈｎｏｌｏｇｙ--critical">ＰＫＳＨＡ Ｔｅｃｈｎｏｌｏｇｙ — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>75.0%</strong> / PF: <strong>0.63</strong></li>
+  <li>Largest Loss: <strong>-80,678円</strong> / Gross Profit: <strong>75,821円</strong></li>
+  <li>LONG P/L: <strong>-44,280円</strong> / SHORT P/L: <strong>0円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="ｍｔｇ--critical">ＭＴＧ — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>50.0%</strong> / PF: <strong>0.52</strong></li>
+  <li>Largest Loss: <strong>-64,188円</strong> / Gross Profit: <strong>55,390円</strong></li>
+  <li>LONG P/L: <strong>-51,367円</strong> / SHORT P/L: <strong>0円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="さくらインターネット--critical">さくらインターネット — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>54.5%</strong> / PF: <strong>0.64</strong></li>
+  <li>Largest Loss: <strong>-158,000円</strong> / Gross Profit: <strong>165,387円</strong></li>
+  <li>LONG P/L: <strong>-162,964円</strong> / SHORT P/L: <strong>69,148円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="ｙｕｔｏｒｉ--critical">ｙｕｔｏｒｉ — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>85.7%</strong> / PF: <strong>0.34</strong></li>
+  <li>Largest Loss: <strong>-267,384円</strong> / Gross Profit: <strong>92,139円</strong></li>
+  <li>LONG P/L: <strong>-175,245円</strong> / SHORT P/L: <strong>0円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="古河電気工業--warning">古河電気工業 — WARNING</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>76.5%</strong> / PF: <strong>0.85</strong></li>
+  <li>Largest Loss: <strong>-962,128円</strong> / Gross Profit: <strong>1,374,033円</strong></li>
+  <li>LONG P/L: <strong>772,896円</strong> / SHORT P/L: <strong>-1,018,058円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="ニデック--critical">ニデック — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>60.0%</strong> / PF: <strong>0.13</strong></li>
+  <li>Largest Loss: <strong>-300,163円</strong> / Gross Profit: <strong>45,998円</strong></li>
+  <li>LONG P/L: <strong>-274,916円</strong> / SHORT P/L: <strong>-27,435円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="京成電鉄--critical">京成電鉄 — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>25.0%</strong> / PF: <strong>0.06</strong></li>
+  <li>Largest Loss: <strong>-308,498円</strong> / Gross Profit: <strong>23,233円</strong></li>
+  <li>LONG P/L: <strong>-308,498円</strong> / SHORT P/L: <strong>-27,875円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="任天堂--critical">任天堂 — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>50.0%</strong> / PF: <strong>0.09</strong></li>
+  <li>Largest Loss: <strong>-254,841円</strong> / Gross Profit: <strong>47,826円</strong></li>
+  <li>LONG P/L: <strong>-477,230円</strong> / SHORT P/L: <strong>0円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h3 id="サンリオ--critical">サンリオ — CRITICAL</h3>
+
+<ul>
+  <li>Pattern: <code class="language-plaintext highlighter-rouge">TAIL_LOSS_DESTROYS_SMALL_WINS</code></li>
+  <li>Win Rate: <strong>66.7%</strong> / PF: <strong>0.01</strong></li>
+  <li>Largest Loss: <strong>-2,192,107円</strong> / Gross Profit: <strong>27,387円</strong></li>
+  <li>LONG P/L: <strong>-2,164,720円</strong> / SHORT P/L: <strong>0円</strong></li>
+  <li>High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge.</li>
+</ul>
+
+<h2 id="相性が高い銘柄実績ベース">相性が高い銘柄（実績ベース）</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>銘柄</th>
+      <th style="text-align: right">取引数</th>
+      <th style="text-align: right">Score</th>
+      <th style="text-align: right">Confidence</th>
+      <th style="text-align: right">勝率</th>
+      <th style="text-align: right">PF</th>
+      <th>主な診断</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>アドバンテスト (6857)</td>
+      <td style="text-align: right">17</td>
+      <td style="text-align: right">92.9</td>
+      <td style="text-align: right">0.92</td>
+      <td style="text-align: right">82.4%</td>
+      <td style="text-align: right">3.94</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>資生堂 (4911)</td>
+      <td style="text-align: right">20</td>
+      <td style="text-align: right">85.4</td>
+      <td style="text-align: right">1.00</td>
+      <td style="text-align: right">80.0%</td>
+      <td style="text-align: right">3.90</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>キオクシアホールディングス (285A)</td>
+      <td style="text-align: right">12</td>
+      <td style="text-align: right">93.3</td>
+      <td style="text-align: right">0.77</td>
+      <td style="text-align: right">83.3%</td>
+      <td style="text-align: right">21.27</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>サンバイオ (4592)</td>
+      <td style="text-align: right">10</td>
+      <td style="text-align: right">100.0</td>
+      <td style="text-align: right">0.71</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>Ａｉロボティクス (247A)</td>
+      <td style="text-align: right">10</td>
+      <td style="text-align: right">98.8</td>
+      <td style="text-align: right">0.71</td>
+      <td style="text-align: right">100.0%</td>
+      <td style="text-align: right">99.00</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>Ｔｅｒｒａ Ｄｒｏｎｅ (278A)</td>
+      <td style="text-align: right">10</td>
+      <td style="text-align: right">91.8</td>
+      <td style="text-align: right">0.71</td>
+      <td style="text-align: right">80.0%</td>
+      <td style="text-align: right">5.60</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>オンコリスバイオファーマ (4588)</td>
+      <td style="text-align: right">9</td>
+      <td style="text-align: right">95.6</td>
+      <td style="text-align: right">0.67</td>
+      <td style="text-align: right">88.9%</td>
+      <td style="text-align: right">8.83</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>コシダカホールディングス (2157)</td>
+      <td style="text-align: right">8</td>
+      <td style="text-align: right">95.0</td>
+      <td style="text-align: right">0.63</td>
+      <td style="text-align: right">87.5%</td>
+      <td style="text-align: right">3.19</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>古河電気工業 (5801)</td>
+      <td style="text-align: right">17</td>
+      <td style="text-align: right">59.9</td>
+      <td style="text-align: right">0.92</td>
+      <td style="text-align: right">76.5%</td>
+      <td style="text-align: right">0.85</td>
+      <td>LATE_STOP</td>
+    </tr>
+    <tr>
+      <td>ソニーグループ (6758)</td>
+      <td style="text-align: right">11</td>
+      <td style="text-align: right">70.5</td>
+      <td style="text-align: right">0.74</td>
+      <td style="text-align: right">81.8%</td>
+      <td style="text-align: right">1.28</td>
+      <td>UNKNOWN</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="利益化が難しい銘柄候補">利益化が難しい銘柄候補</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>銘柄</th>
+      <th style="text-align: right">取引数</th>
+      <th style="text-align: right">Score</th>
+      <th style="text-align: right">Confidence</th>
+      <th style="text-align: right">保有中央値</th>
+      <th>原因</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>京成電鉄 (9009)</td>
+      <td style="text-align: right">4</td>
+      <td style="text-align: right">11.3</td>
+      <td style="text-align: right">0.45</td>
+      <td style="text-align: right">21.0日</td>
+      <td>HOLDING_PERIOD_TOO_LONG</td>
+    </tr>
+    <tr>
+      <td>サンリオ (8136)</td>
+      <td style="text-align: right">3</td>
+      <td style="text-align: right">28.2</td>
+      <td style="text-align: right">0.39</td>
+      <td style="text-align: right">65.0日</td>
+      <td>LATE_STOP</td>
+    </tr>
+    <tr>
+      <td>任天堂 (7974)</td>
+      <td style="text-align: right">6</td>
+      <td style="text-align: right">30.3</td>
+      <td style="text-align: right">0.55</td>
+      <td style="text-align: right">8.0日</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>中外製薬 (4519)</td>
+      <td style="text-align: right">3</td>
+      <td style="text-align: right">44.4</td>
+      <td style="text-align: right">0.39</td>
+      <td style="text-align: right">11.0日</td>
+      <td>LATE_STOP</td>
+    </tr>
+    <tr>
+      <td>ニデック (6594)</td>
+      <td style="text-align: right">10</td>
+      <td style="text-align: right">26.7</td>
+      <td style="text-align: right">0.71</td>
+      <td style="text-align: right">3.0日</td>
+      <td>LATE_STOP</td>
+    </tr>
+    <tr>
+      <td>ＭＴＧ (7806)</td>
+      <td style="text-align: right">6</td>
+      <td style="text-align: right">36.4</td>
+      <td style="text-align: right">0.55</td>
+      <td style="text-align: right">2.5日</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>太陽ホールディングス (4626)</td>
+      <td style="text-align: right">3</td>
+      <td style="text-align: right">77.4</td>
+      <td style="text-align: right">0.39</td>
+      <td style="text-align: right">3.0日</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>さくらインターネット (3778)</td>
+      <td style="text-align: right">11</td>
+      <td style="text-align: right">41.6</td>
+      <td style="text-align: right">0.74</td>
+      <td style="text-align: right">1.0日</td>
+      <td>UNKNOWN</td>
+    </tr>
+    <tr>
+      <td>ｙｕｔｏｒｉ (5892)</td>
+      <td style="text-align: right">7</td>
+      <td style="text-align: right">52.3</td>
+      <td style="text-align: right">0.59</td>
+      <td style="text-align: right">3.0日</td>
+      <td>LATE_STOP</td>
+    </tr>
+    <tr>
+      <td>ＡＣＳＬ (6232)</td>
+      <td style="text-align: right">6</td>
+      <td style="text-align: right">56.9</td>
+      <td style="text-align: right">0.55</td>
+      <td style="text-align: right">4.5日</td>
+      <td>LATE_STOP</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="銘柄別診断">銘柄別診断</h2>
+
+<h3 id="アドバンテスト-6857">アドバンテスト (6857)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>92.9 / 100</strong></li>
+  <li>Confidence: <strong>0.92</strong> / Sample: <strong>17</strong></li>
+  <li>Holding: median <strong>10.0日</strong> / average <strong>24.2日</strong></li>
+  <li>Win Rate: <strong>82.4%</strong> / PF: <strong>3.94</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="資生堂-4911">資生堂 (4911)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>85.4 / 100</strong></li>
+  <li>Confidence: <strong>1.00</strong> / Sample: <strong>20</strong></li>
+  <li>Holding: median <strong>6.0日</strong> / average <strong>9.6日</strong></li>
+  <li>Win Rate: <strong>80.0%</strong> / PF: <strong>3.90</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="キオクシアホールディングス-285a">キオクシアホールディングス (285A)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>93.3 / 100</strong></li>
+  <li>Confidence: <strong>0.77</strong> / Sample: <strong>12</strong></li>
+  <li>Holding: median <strong>3.0日</strong> / average <strong>7.7日</strong></li>
+  <li>Win Rate: <strong>83.3%</strong> / PF: <strong>21.27</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="サンバイオ-4592">サンバイオ (4592)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>100.0 / 100</strong></li>
+  <li>Confidence: <strong>0.71</strong> / Sample: <strong>10</strong></li>
+  <li>Holding: median <strong>9.0日</strong> / average <strong>27.7日</strong></li>
+  <li>Win Rate: <strong>100.0%</strong> / PF: <strong>99.00</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="ａｉロボティクス-247a">Ａｉロボティクス (247A)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>98.8 / 100</strong></li>
+  <li>Confidence: <strong>0.71</strong> / Sample: <strong>10</strong></li>
+  <li>Holding: median <strong>3.0日</strong> / average <strong>6.9日</strong></li>
+  <li>Win Rate: <strong>100.0%</strong> / PF: <strong>99.00</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="ｔｅｒｒａ-ｄｒｏｎｅ-278a">Ｔｅｒｒａ Ｄｒｏｎｅ (278A)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>91.8 / 100</strong></li>
+  <li>Confidence: <strong>0.71</strong> / Sample: <strong>10</strong></li>
+  <li>Holding: median <strong>10.5日</strong> / average <strong>25.6日</strong></li>
+  <li>Win Rate: <strong>80.0%</strong> / PF: <strong>5.60</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="オンコリスバイオファーマ-4588">オンコリスバイオファーマ (4588)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>95.6 / 100</strong></li>
+  <li>Confidence: <strong>0.67</strong> / Sample: <strong>9</strong></li>
+  <li>Holding: median <strong>20.0日</strong> / average <strong>103.8日</strong></li>
+  <li>Win Rate: <strong>88.9%</strong> / PF: <strong>8.83</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="コシダカホールディングス-2157">コシダカホールディングス (2157)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>95.0 / 100</strong></li>
+  <li>Confidence: <strong>0.63</strong> / Sample: <strong>8</strong></li>
+  <li>Holding: median <strong>15.0日</strong> / average <strong>47.1日</strong></li>
+  <li>Win Rate: <strong>87.5%</strong> / PF: <strong>3.19</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="古河電気工業-5801">古河電気工業 (5801)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>59.9 / 100</strong></li>
+  <li>Confidence: <strong>0.92</strong> / Sample: <strong>17</strong></li>
+  <li>Holding: median <strong>16.0日</strong> / average <strong>24.4日</strong></li>
+  <li>Win Rate: <strong>76.5%</strong> / PF: <strong>0.85</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">LATE_STOP</code></li>
+  <li>Diagnosis: 勝率は高い一方でPFが1未満です。少数の大きな損失が利益を相殺している可能性があります。</li>
+  <li>Strategy experiment: <strong>RESEARCH / —</strong></li>
+</ul>
+
+<h3 id="ソニーグループ-6758">ソニーグループ (6758)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>70.5 / 100</strong></li>
+  <li>Confidence: <strong>0.74</strong> / Sample: <strong>11</strong></li>
+  <li>Holding: median <strong>10.0日</strong> / average <strong>24.2日</strong></li>
+  <li>Win Rate: <strong>81.8%</strong> / PF: <strong>1.28</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="フジクラ-5803">フジクラ (5803)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>72.0 / 100</strong></li>
+  <li>Confidence: <strong>0.71</strong> / Sample: <strong>10</strong></li>
+  <li>Holding: median <strong>2.5日</strong> / average <strong>9.3日</strong></li>
+  <li>Win Rate: <strong>90.0%</strong> / PF: <strong>1.17</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="明治ホールディングス-2269">明治ホールディングス (2269)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>53.5 / 100</strong></li>
+  <li>Confidence: <strong>0.95</strong> / Sample: <strong>18</strong></li>
+  <li>Holding: median <strong>13.5日</strong> / average <strong>21.6日</strong></li>
+  <li>Win Rate: <strong>72.2%</strong> / PF: <strong>0.77</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">LATE_STOP</code></li>
+  <li>Diagnosis: 勝率は高い一方でPFが1未満です。少数の大きな損失が利益を相殺している可能性があります。</li>
+  <li>Strategy experiment: <strong>RESEARCH / —</strong></li>
+</ul>
+
+<h3 id="三井住友フィナンシャルグループ-8316">三井住友フィナンシャルグループ (8316)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>88.7 / 100</strong></li>
+  <li>Confidence: <strong>0.55</strong> / Sample: <strong>6</strong></li>
+  <li>Holding: median <strong>11.0日</strong> / average <strong>26.5日</strong></li>
+  <li>Win Rate: <strong>83.3%</strong> / PF: <strong>2.99</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="リアルゲイト-5532">リアルゲイト (5532)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>97.1 / 100</strong></li>
+  <li>Confidence: <strong>0.50</strong> / Sample: <strong>5</strong></li>
+  <li>Holding: median <strong>5.0日</strong> / average <strong>10.8日</strong></li>
+  <li>Win Rate: <strong>100.0%</strong> / PF: <strong>99.00</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="ダイヘン-6622">ダイヘン (6622)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>92.0 / 100</strong></li>
+  <li>Confidence: <strong>0.50</strong> / Sample: <strong>5</strong></li>
+  <li>Holding: median <strong>22.0日</strong> / average <strong>99.0日</strong></li>
+  <li>Win Rate: <strong>80.0%</strong> / PF: <strong>22.16</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="フジメディアホールディングス-4676">フジ・メディア・ホールディングス (4676)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>92.0 / 100</strong></li>
+  <li>Confidence: <strong>0.50</strong> / Sample: <strong>5</strong></li>
+  <li>Holding: median <strong>8.0日</strong> / average <strong>13.4日</strong></li>
+  <li>Win Rate: <strong>80.0%</strong> / PF: <strong>287.73</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="川崎重工業-7012">川崎重工業 (7012)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>92.0 / 100</strong></li>
+  <li>Confidence: <strong>0.50</strong> / Sample: <strong>5</strong></li>
+  <li>Holding: median <strong>28.0日</strong> / average <strong>63.8日</strong></li>
+  <li>Win Rate: <strong>80.0%</strong> / PF: <strong>17.09</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="良品計画-7453">良品計画 (7453)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>70.9 / 100</strong></li>
+  <li>Confidence: <strong>0.63</strong> / Sample: <strong>8</strong></li>
+  <li>Holding: median <strong>24.5日</strong> / average <strong>26.6日</strong></li>
+  <li>Win Rate: <strong>87.5%</strong> / PF: <strong>1.12</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">HOLDING_PERIOD_TOO_LONG</code></li>
+  <li>Diagnosis: この銘柄の実際の保有期間が通常より大幅に長く、資金拘束に対して成績が弱い傾向です。</li>
+  <li>Strategy experiment: <strong>CORE_REVIEW / LONGER_TERM</strong></li>
+</ul>
+
+<h3 id="ジーエヌアイグループ-2160">ジーエヌアイグループ (2160)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>100.0 / 100</strong></li>
+  <li>Confidence: <strong>0.45</strong> / Sample: <strong>4</strong></li>
+  <li>Holding: median <strong>115.0日</strong> / average <strong>199.0日</strong></li>
+  <li>Win Rate: <strong>100.0%</strong> / PF: <strong>99.00</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="三菱重工業-7011">三菱重工業 (7011)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>100.0 / 100</strong></li>
+  <li>Confidence: <strong>0.45</strong> / Sample: <strong>4</strong></li>
+  <li>Holding: median <strong>42.5日</strong> / average <strong>88.0日</strong></li>
+  <li>Win Rate: <strong>100.0%</strong> / PF: <strong>99.00</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="ソフトバンクグループ-9984">ソフトバンクグループ (9984)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>65.6 / 100</strong></li>
+  <li>Confidence: <strong>0.67</strong> / Sample: <strong>9</strong></li>
+  <li>Holding: median <strong>1.0日</strong> / average <strong>27.9日</strong></li>
+  <li>Win Rate: <strong>77.8%</strong> / PF: <strong>1.04</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="ギフトホールディングス-9279">ギフトホールディングス (9279)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>97.5 / 100</strong></li>
+  <li>Confidence: <strong>0.45</strong> / Sample: <strong>4</strong></li>
+  <li>Holding: median <strong>10.0日</strong> / average <strong>16.0日</strong></li>
+  <li>Win Rate: <strong>100.0%</strong> / PF: <strong>99.00</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="ブルーイノベーション-5597">ブルーイノベーション (5597)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>100.0 / 100</strong></li>
+  <li>Confidence: <strong>0.39</strong> / Sample: <strong>3</strong></li>
+  <li>Holding: median <strong>4.0日</strong> / average <strong>5.0日</strong></li>
+  <li>Win Rate: <strong>100.0%</strong> / PF: <strong>99.00</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="メルカリ-4385">メルカリ (4385)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>99.6 / 100</strong></li>
+  <li>Confidence: <strong>0.39</strong> / Sample: <strong>3</strong></li>
+  <li>Holding: median <strong>7.0日</strong> / average <strong>85.0日</strong></li>
+  <li>Win Rate: <strong>100.0%</strong> / PF: <strong>99.00</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="ａｂｅｊａ-5574">ＡＢＥＪＡ (5574)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>60.1 / 100</strong></li>
+  <li>Confidence: <strong>0.63</strong> / Sample: <strong>8</strong></li>
+  <li>Holding: median <strong>3.0日</strong> / average <strong>28.1日</strong></li>
+  <li>Win Rate: <strong>75.0%</strong> / PF: <strong>0.93</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">LATE_STOP</code></li>
+  <li>Diagnosis: 勝率は高い一方でPFが1未満です。少数の大きな損失が利益を相殺している可能性があります。</li>
+  <li>Strategy experiment: <strong>RESEARCH / —</strong></li>
+</ul>
+
+<h3 id="日本電気-6701">日本電気 (6701)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>97.2 / 100</strong></li>
+  <li>Confidence: <strong>0.39</strong> / Sample: <strong>3</strong></li>
+  <li>Holding: median <strong>19.0日</strong> / average <strong>23.7日</strong></li>
+  <li>Win Rate: <strong>100.0%</strong> / PF: <strong>99.00</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="応用地質-9755">応用地質 (9755)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>72.9 / 100</strong></li>
+  <li>Confidence: <strong>0.50</strong> / Sample: <strong>5</strong></li>
+  <li>Holding: median <strong>14.0日</strong> / average <strong>65.6日</strong></li>
+  <li>Win Rate: <strong>60.0%</strong> / PF: <strong>1.88</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="オムロン-6645">オムロン (6645)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>93.8 / 100</strong></li>
+  <li>Confidence: <strong>0.39</strong> / Sample: <strong>3</strong></li>
+  <li>Holding: median <strong>22.0日</strong> / average <strong>18.0日</strong></li>
+  <li>Win Rate: <strong>100.0%</strong> / PF: <strong>99.00</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="積水化学工業-4204">積水化学工業 (4204)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>76.1 / 100</strong></li>
+  <li>Confidence: <strong>0.45</strong> / Sample: <strong>4</strong></li>
+  <li>Holding: median <strong>28.0日</strong> / average <strong>46.0日</strong></li>
+  <li>Win Rate: <strong>75.0%</strong> / PF: <strong>1.69</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="ｕｎｅｘｔ-ｈｏｌｄｉｎｇｓ-9418">Ｕ－ＮＥＸＴ ＨＯＬＤＩＮＧＳ (9418)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>71.0 / 100</strong></li>
+  <li>Confidence: <strong>0.45</strong> / Sample: <strong>4</strong></li>
+  <li>Holding: median <strong>3.0日</strong> / average <strong>3.0日</strong></li>
+  <li>Win Rate: <strong>75.0%</strong> / PF: <strong>1.34</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="ｐｋｓｈａ-ｔｅｃｈｎｏｌｏｇｙ-3993">ＰＫＳＨＡ Ｔｅｃｈｎｏｌｏｇｙ (3993)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>50.0 / 100</strong></li>
+  <li>Confidence: <strong>0.63</strong> / Sample: <strong>8</strong></li>
+  <li>Holding: median <strong>6.5日</strong> / average <strong>33.0日</strong></li>
+  <li>Win Rate: <strong>75.0%</strong> / PF: <strong>0.63</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">LATE_STOP</code></li>
+  <li>Diagnosis: 勝率は高い一方でPFが1未満です。少数の大きな損失が利益を相殺している可能性があります。</li>
+  <li>Strategy experiment: <strong>RESEARCH / —</strong></li>
+</ul>
+
+<h3 id="ａｃｓｌ-6232">ＡＣＳＬ (6232)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>56.9 / 100</strong></li>
+  <li>Confidence: <strong>0.55</strong> / Sample: <strong>6</strong></li>
+  <li>Holding: median <strong>4.5日</strong> / average <strong>35.5日</strong></li>
+  <li>Win Rate: <strong>83.3%</strong> / PF: <strong>0.74</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">LATE_STOP</code></li>
+  <li>Diagnosis: 勝率は高い一方でPFが1未満です。少数の大きな損失が利益を相殺している可能性があります。</li>
+  <li>Strategy experiment: <strong>RESEARCH / —</strong></li>
+</ul>
+
+<h3 id="ｙｕｔｏｒｉ-5892">ｙｕｔｏｒｉ (5892)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>52.3 / 100</strong></li>
+  <li>Confidence: <strong>0.59</strong> / Sample: <strong>7</strong></li>
+  <li>Holding: median <strong>3.0日</strong> / average <strong>10.7日</strong></li>
+  <li>Win Rate: <strong>85.7%</strong> / PF: <strong>0.34</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">LATE_STOP</code></li>
+  <li>Diagnosis: 勝率は高い一方でPFが1未満です。少数の大きな損失が利益を相殺している可能性があります。</li>
+  <li>Strategy experiment: <strong>RESEARCH / —</strong></li>
+</ul>
+
+<h3 id="さくらインターネット-3778">さくらインターネット (3778)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>41.6 / 100</strong></li>
+  <li>Confidence: <strong>0.74</strong> / Sample: <strong>11</strong></li>
+  <li>Holding: median <strong>1.0日</strong> / average <strong>31.7日</strong></li>
+  <li>Win Rate: <strong>54.5%</strong> / PF: <strong>0.64</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="太陽ホールディングス-4626">太陽ホールディングス (4626)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>77.4 / 100</strong></li>
+  <li>Confidence: <strong>0.39</strong> / Sample: <strong>3</strong></li>
+  <li>Holding: median <strong>3.0日</strong> / average <strong>10.0日</strong></li>
+  <li>Win Rate: <strong>66.7%</strong> / PF: <strong>5.20</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="ｍｔｇ-7806">ＭＴＧ (7806)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>36.4 / 100</strong></li>
+  <li>Confidence: <strong>0.55</strong> / Sample: <strong>6</strong></li>
+  <li>Holding: median <strong>2.5日</strong> / average <strong>13.0日</strong></li>
+  <li>Win Rate: <strong>50.0%</strong> / PF: <strong>0.52</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="ニデック-6594">ニデック (6594)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>26.7 / 100</strong></li>
+  <li>Confidence: <strong>0.71</strong> / Sample: <strong>10</strong></li>
+  <li>Holding: median <strong>3.0日</strong> / average <strong>7.6日</strong></li>
+  <li>Win Rate: <strong>60.0%</strong> / PF: <strong>0.13</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">LATE_STOP</code></li>
+  <li>Diagnosis: 勝率は高い一方でPFが1未満です。少数の大きな損失が利益を相殺している可能性があります。</li>
+  <li>Strategy experiment: <strong>RESEARCH / —</strong></li>
+</ul>
+
+<h3 id="中外製薬-4519">中外製薬 (4519)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>44.4 / 100</strong></li>
+  <li>Confidence: <strong>0.39</strong> / Sample: <strong>3</strong></li>
+  <li>Holding: median <strong>11.0日</strong> / average <strong>14.0日</strong></li>
+  <li>Win Rate: <strong>66.7%</strong> / PF: <strong>0.62</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">LATE_STOP</code></li>
+  <li>Diagnosis: 勝率は高い一方でPFが1未満です。少数の大きな損失が利益を相殺している可能性があります。</li>
+  <li>Strategy experiment: <strong>RESEARCH / —</strong></li>
+</ul>
+
+<h3 id="任天堂-7974">任天堂 (7974)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>30.3 / 100</strong></li>
+  <li>Confidence: <strong>0.55</strong> / Sample: <strong>6</strong></li>
+  <li>Holding: median <strong>8.0日</strong> / average <strong>36.7日</strong></li>
+  <li>Win Rate: <strong>50.0%</strong> / PF: <strong>0.09</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">UNKNOWN</code></li>
+  <li>Diagnosis: 現時点の実取引だけでは再現可能な原因を特定できません。市場価格履歴を追加して周期・売却後推移を検証します。</li>
+</ul>
+
+<h3 id="サンリオ-8136">サンリオ (8136)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>28.2 / 100</strong></li>
+  <li>Confidence: <strong>0.39</strong> / Sample: <strong>3</strong></li>
+  <li>Holding: median <strong>65.0日</strong> / average <strong>150.3日</strong></li>
+  <li>Win Rate: <strong>66.7%</strong> / PF: <strong>0.01</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">LATE_STOP</code></li>
+  <li>Diagnosis: 勝率は高い一方でPFが1未満です。少数の大きな損失が利益を相殺している可能性があります。</li>
+  <li>Strategy experiment: <strong>RESEARCH / —</strong></li>
+</ul>
+
+<h3 id="京成電鉄-9009">京成電鉄 (9009)</h3>
+
+<ul>
+  <li>Compatibility Score: <strong>11.3 / 100</strong></li>
+  <li>Confidence: <strong>0.45</strong> / Sample: <strong>4</strong></li>
+  <li>Holding: median <strong>21.0日</strong> / average <strong>52.2日</strong></li>
+  <li>Win Rate: <strong>25.0%</strong> / PF: <strong>0.06</strong></li>
+  <li>Primary cause: <code class="language-plaintext highlighter-rouge">HOLDING_PERIOD_TOO_LONG</code></li>
+  <li>Diagnosis: この銘柄の実際の保有期間が通常より大幅に長く、資金拘束に対して成績が弱い傾向です。</li>
+  <li>Strategy experiment: <strong>CORE_REVIEW / LONGER_TERM</strong></li>
+</ul>
+
+<h2 id="データ品質と限界">データ品質と限界</h2>
+
+<ul>
+  <li>Market price follow-up: <strong>not yet available</strong></li>
+  <li>MFE/MAE and price-cycle mismatch require security price history in analysis.db or –prices-json.</li>
+  <li>UNKNOWN means evidence is insufficient; the engine does not invent a cause.</li>
+  <li>Compatibility changes the suggested strategy/horizon and is not an automatic buy/sell veto.</li>
+</ul>
+
+<p>低サンプルや価格履歴不足では <code class="language-plaintext highlighter-rouge">UNKNOWN</code> を返し、原因を推測で埋めません。環境スコアは能力評価ではなく、現在その能力を実行できる条件の評価です。</p>
+
+  </main>
+  <a class="back-to-top" href="#" aria-label="ページ上部へ戻る">↑</a>
+  <script>
+    const root = document.documentElement;
+    const savedTheme = localStorage.getItem('book-theme');
+    if (savedTheme) root.dataset.theme = savedTheme;
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      localStorage.setItem('book-theme', next);
+    });
+    const progress = document.getElementById('progress');
+    const updateProgress = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      progress.style.width = (max > 0 ? window.scrollY / max * 100 : 0) + '%';
+    };
+    addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+
+    (() => {
+      const normalizedPath = window.location.pathname.replace(/\/+$/, '');
+      if (!normalizedPath.endsWith('/research/ai-key-person-watch')) return;
+      const main = document.querySelector('main.book-shell');
+      const title = main?.querySelector('h1');
+      if (!main || !title) return;
+
+      const panel = document.createElement('section');
+      panel.className = 'notice-card';
+      panel.setAttribute('aria-live', 'polite');
+      panel.innerHTML = '<strong>Monitoring status</strong><p>Heartbeatを確認中...</p>';
+      title.insertAdjacentElement('afterend', panel);
+
+      const issueCommentsBaseUrl = 'https://api.github.com/repos/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/issues/124/comments?per_page=100';
+      const trustedAuditAuthors = new Set(['sadouninc']);
+      const statusUrl = 'https://raw.githubusercontent.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-671/main/Ops/Monitoring/AI_Key_Person_Watch/status.json';
+      const staleAfterMinutes = 150;
+      const maxFutureSkewMinutes = 5;
+      const escapeHtml = (value) => String(value ?? '')
+        .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+      const renderTime = (value) => value
+        ? new Date(value).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }) + ' JST'
+        : '未記録';
+      const parseJst = (value) => {
+        if (!value) return null;
+        const normalized = value.trim().replace(/\s*JST$/i, '').replace(' ', 'T');
+        const withOffset = /(?:Z|[+-]\d{2}:?\d{2})$/.test(normalized) ? normalized : `${normalized}+09:00`;
+        const parsed = new Date(withOffset);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      };
+      const isTooFarFuture = (date) => date && date.getTime() > Date.now() + maxFutureSkewMinutes * 60000;
+      const parseAuditComment = (comment) => {
+        const author = String(comment?.user?.login || '').toLowerCase();
+        if (!trustedAuditAuthors.has(author)) return null;
+        const body = comment?.body;
+        if (!body || !body.includes('Operational Heartbeat / Run Audit')) return null;
+        const field = (name) => {
+          const match = body.match(new RegExp(`^${name}:\\s*(.+)$`, 'mi'));
+          return match ? match[1].trim() : null;
+        };
+        const runAt = parseJst(field('run_at_jst'));
+        const status = field('status');
+        if (!runAt || !status) return null;
+        return {
+          runAt,
+          status: status.toUpperCase(),
+          newsDelta: Number(field('news_delta') || 0),
+          newsPersisted: String(field('news_persisted') || '').toLowerCase() === 'true',
+          persistenceStatus: (field('persistence_status') || 'NOT_REQUIRED').toUpperCase()
+        };
+      };
+      const classifyAudit = (audit) => {
+        if (isTooFarFuture(audit.runAt)) {
+          return { state: 'DEGRADED', reason: `直近run時刻が現在より${maxFutureSkewMinutes}分超先です。時計・timezone・入力を確認してください。` };
+        }
+        const ageMinutes = (Date.now() - audit.runAt.getTime()) / 60000;
+        if (ageMinutes > staleAfterMinutes) {
+          return { state: 'STALE', reason: `最終runから約${Math.floor(ageMinutes)}分経過しています。` };
+        }
+        if (audit.status === 'ERROR') return { state: 'DEGRADED', reason: '直近runがERRORです。' };
+        if (audit.persistenceStatus === 'PENDING_PERSIST') return { state: 'DEGRADED', reason: 'ニュース保存がPENDING_PERSISTです。' };
+        return { state: 'HEALTHY', reason: 'Issue #124の直近Run Auditは監視閾値内です。' };
+      };
+      const renderAudit = (audit, sourceLabel) => {
+        const health = classifyAudit(audit);
+        panel.innerHTML = `<strong>Monitoring status: ${escapeHtml(health.state)}</strong><dl>`
+          + `<dt>直近run</dt><dd>${escapeHtml(renderTime(audit.runAt.toISOString()))}</dd>`
+          + `<dt>ニュース差分</dt><dd>${escapeHtml(audit.newsDelta)}</dd>`
+          + `<dt>Persistence</dt><dd>${escapeHtml(audit.persistenceStatus)}</dd>`
+          + `<dt>監視ソース</dt><dd>${escapeHtml(sourceLabel)}</dd>`
+          + `<dt>状態理由</dt><dd>${escapeHtml(health.reason)}</dd></dl>`;
+      };
+      const classifyStatusFile = (payload) => {
+        const lastRun = payload.last_run_at ? new Date(payload.last_run_at) : null;
+        const lastSuccess = payload.last_success_at ? new Date(payload.last_success_at) : null;
+        const lastNewsDelta = payload.last_news_delta_at ? new Date(payload.last_news_delta_at) : null;
+        if (!lastSuccess || Number.isNaN(lastSuccess.getTime())) {
+          return { state: 'UNKNOWN', reason: 'Run Audit APIとstatus.jsonのどちらからも成功runを確認できません。' };
+        }
+        if (isTooFarFuture(lastRun) || isTooFarFuture(lastSuccess) || isTooFarFuture(lastNewsDelta)) {
+          return { state: 'DEGRADED', reason: `Heartbeat timestampが現在より${maxFutureSkewMinutes}分超先です。` };
+        }
+        if (lastRun && !Number.isNaN(lastRun.getTime()) && lastSuccess.getTime() > lastRun.getTime()) {
+          return { state: 'DEGRADED', reason: 'last_success_atがlast_run_atより後です。' };
+        }
+        if (lastRun && lastNewsDelta && !Number.isNaN(lastNewsDelta.getTime()) && lastNewsDelta.getTime() > lastRun.getTime()) {
+          return { state: 'DEGRADED', reason: 'last_news_delta_atがlast_run_atより後です。' };
+        }
+        const ageMinutes = (Date.now() - lastSuccess.getTime()) / 60000;
+        const staleAfter = Number(payload.stale_after_minutes || staleAfterMinutes);
+        if (ageMinutes > staleAfter) return { state: 'STALE', reason: `最終成功runから約${Math.floor(ageMinutes)}分経過しています。` };
+        if (payload.last_status === 'ERROR') return { state: 'DEGRADED', reason: '直近runがERRORです。' };
+        if (payload.persistence_status === 'PENDING_PERSIST') return { state: 'DEGRADED', reason: 'ニュース保存がPENDING_PERSISTです。' };
+        return { state: 'HEALTHY', reason: 'status.jsonの直近成功runは監視閾値内です。' };
+      };
+      const renderStatusFile = (payload) => {
+        const health = classifyStatusFile(payload);
+        panel.innerHTML = `<strong>Monitoring status: ${escapeHtml(health.state)}</strong><dl>`
+          + `<dt>最終監視成功</dt><dd>${escapeHtml(renderTime(payload.last_success_at))}</dd>`
+          + `<dt>最終ニュース差分</dt><dd>${escapeHtml(renderTime(payload.last_news_delta_at))}</dd>`
+          + `<dt>直近run</dt><dd>${escapeHtml(renderTime(payload.last_run_at))}</dd>`
+          + `<dt>監視ソース</dt><dd>status.json fallback</dd>`
+          + `<dt>状態理由</dt><dd>${escapeHtml(health.reason)}</dd></dl>`;
+      };
+      const loadStatusFallback = (issueError) => fetch(`${statusUrl}?t=${Date.now()}`, { cache: 'no-store' })
+        .then((response) => {
+          if (!response.ok) throw new Error(`status.json HTTP ${response.status}`);
+          return response.json();
+        })
+        .then(renderStatusFile)
+        .catch((statusError) => {
+          panel.innerHTML = `<strong>Monitoring status: UNKNOWN</strong><p>Heartbeat取得に失敗しました: ${escapeHtml(issueError.message)} / ${escapeHtml(statusError.message)}</p>`;
+        });
+
+      const linkedPage = (header, rel) => {
+        for (const part of String(header || '').split(',')) {
+          if (!part.includes(`rel="${rel}"`)) continue;
+          const url = part.match(/<([^>]+)>/)?.[1];
+          if (!url) continue;
+          const page = new URL(url).searchParams.get('page');
+          if (page && /^\d+$/.test(page)) return Number(page);
+        }
+        return null;
+      };
+      const fetchIssuePage = (page) => fetch(`${issueCommentsBaseUrl}&page=${page}`, {
+        cache: 'no-store',
+        headers: { Accept: 'application/vnd.github+json' }
+      }).then((response) => {
+        if (!response.ok) throw new Error(`Issue #124 API HTTP ${response.status}`);
+        const link = response.headers.get('Link');
+        return response.json().then((comments) => ({ comments, link }));
+      });
+      const latestTrustedAudit = (comments) => {
+        const audits = comments.map(parseAuditComment).filter(Boolean);
+        audits.sort((a, b) => b.runAt.getTime() - a.runAt.getTime());
+        return audits[0] || null;
+      };
+      const findLatestTrustedAudit = (page) => fetchIssuePage(page).then(({ comments }) => {
+        const audit = latestTrustedAudit(comments);
+        if (audit) return audit;
+        if (page <= 1) throw new Error('Issue #124に信頼済みRun Auditがありません');
+        return findLatestTrustedAudit(page - 1);
+      });
+      const loadLatestIssueAudit = () => fetchIssuePage(1)
+        .then(({ comments, link }) => {
+          const lastPage = linkedPage(link, 'last') || linkedPage(link, 'next') || 1;
+          if (lastPage === 1) {
+            const audit = latestTrustedAudit(comments);
+            if (!audit) throw new Error('Issue #124に信頼済みRun Auditがありません');
+            return audit;
+          }
+          return findLatestTrustedAudit(lastPage);
+        })
+        .then((audit) => renderAudit(audit, 'Issue #124 Run Audit (trusted/latest page)'));
+
+      loadLatestIssueAudit().catch(loadStatusFallback);
+    })();
+  </script>
+</body>
+</html>
