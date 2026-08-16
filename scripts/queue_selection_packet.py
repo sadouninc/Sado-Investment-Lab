@@ -60,7 +60,9 @@ def load_optional_list(path: Path | None) -> list[str]:
 
 
 def _issue_number(issue: Mapping[str, Any]) -> int:
-    return int(issue.get("number", 0))
+    if "number" not in issue:
+        raise ValueError("Issue payload missing required 'number' field")
+    return int(issue["number"])
 
 
 def build_candidates(
@@ -108,6 +110,9 @@ def build_selection_packet(
         active_owner_slices=active_owner_slices,
         active_paths=active_paths,
     )
+    required_keys = {"status", "selected", "metrics"}
+    if not isinstance(result, dict) or not required_keys.issubset(result):
+        raise ValueError(f"select_next_work returned invalid structure: {result!r}")
     return {
         "schema_version": 1,
         "status": result["status"],
