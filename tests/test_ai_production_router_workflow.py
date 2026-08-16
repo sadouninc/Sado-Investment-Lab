@@ -41,8 +41,17 @@ def test_dispatch_explicitly_waits_for_source_and_dispatches_followup():
     assert "gh workflow run ai-production-followup.yml" in text
     assert '-f source_run_id="$source_run_id"' in text
     assert '-f source_conclusion="$source_conclusion"' in text
-    assert "Do not rely on a" in text
-    assert "workflow_run chain" in text
+
+
+def test_source_run_resolution_uses_jq_args_and_tolerates_api_delay():
+    text = _read(DISPATCH)
+    assert "for _ in {1..60}; do" in text
+    assert '> /tmp/copilot-runs.json' in text
+    assert '--arg title "$source_title"' in text
+    assert '--arg started "$request_started"' in text
+    assert '.display_title == $title' in text
+    assert '.created_at >= $started' in text
+    assert '.display_title == \\"${source_title}\\"' not in text
 
 
 def test_dispatch_and_followup_build_valid_json_across_comment_pagination():
