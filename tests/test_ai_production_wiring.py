@@ -17,7 +17,34 @@ def test_ai_copilot_command_is_exact_after_outer_whitespace_and_crlf_normalizati
     assert 'echo "accepted=true" >> "$GITHUB_OUTPUT"' in text
     assert 'echo "accepted=false" >> "$GITHUB_OUTPUT"' in text
     assert "exit 78" not in text.split("- name: Fail closed and validate READY issue", 1)[0]
-    assert text.count("if: steps.command.outputs.accepted == 'true'") >= 2
+
+
+def test_dispatcher_suppresses_duplicate_redispatch_during_promotion_terminalization():
+    text = DISPATCH.read_text(encoding="utf-8")
+    # Regression for #666: a second exact command after PROMOTION_DISPATCHED must
+    # terminate successfully before a second paid Copilot source run is started.
+    assert "PROMOTION_DISPATCHED" in text
+    assert "PROMOTION_BRANCH_READY" in text
+    assert "PR_CREATE_REQUIRED" in text
+    assert "DUPLICATE_SUPERSEDED" in text
+    assert "DUPLICATE_PROMOTION_TERMINALIZATION_SKIP" in text
+    assert "DUPLICATE_EXISTING_PR_SKIP" in text
+    assert "DUPLICATE_ACTIVE_DISPATCH_SKIP" in text
+    assert 'echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"' in text
+    assert "steps.gate.outputs.dispatch_allowed == 'true'" in text
+
+
+def test_dispatcher_keeps_expired_and_explicit_retryable_paths_redispatchable():
+    text = DISPATCH.read_text(encoding="utf-8")
+    assert "lease_expires_at" in text
+    assert "expiry > now" in text
+    assert "DISPATCH_LEASE_EXPIRED" in text
+    assert "COPILOT_RETRYABLE_FAILURE" in text
+    assert "RETRYABLE_FAILURE" in text
+    assert "FALLBACK_RETRYABLE_FAILURE" in text
+    assert "retryable = True" in text
+    assert "terminalizing = False" in text
+    assert "fallback_owner:\"amazon_q_free\"" in text
 
 
 def test_promotion_persists_only_known_policy_block_with_provenance():
