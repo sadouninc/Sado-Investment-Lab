@@ -175,18 +175,36 @@ def validate_contract(contract: dict[str, Any]) -> ValidationResult:
     if isinstance(tests, list) and not tests:
         errors.append("EMPTY_ACCEPTANCE_TESTS")
 
+    # allowed_paths / forbidden_paths must be plain strings. A non-string
+    # element (null, number, boolean, object, array, ...) must never be
+    # silently coerced via str() into overlap/protected-path comparisons -
+    # that would mask malformed metadata behind an implicit conversion.
+    # Fail closed instead: flag it and exclude it from the string-based
+    # comparisons below.
+    path_list_fields = ("allowed_paths", "forbidden_paths")
+    for field in path_list_fields:
+        values = contract.get(field)
+        if isinstance(values, list):
+            for index, item in enumerate(values):
+                if not isinstance(item, str):
+                    errors.append(f"NON_STRING_PATH:{field}:{index}")
+
     allowed = contract.get("allowed_paths", [])
     forbidden = contract.get("forbidden_paths", [])
     if isinstance(allowed, list) and isinstance(forbidden, list):
-        for left in allowed:
-            for right in forbidden:
-                if _paths_overlap(str(left), str(right)):
+        allowed_strs = [item for item in allowed if isinstance(item, str)]
+        forbidden_strs = [item for item in forbidden if isinstance(item, str)]
+        for left in allowed_strs:
+            for right in forbidden_strs:
+                if _paths_overlap(left, right):
                     errors.append("ALLOWED_FORBIDDEN_OVERLAP")
                     break
 
     if contract.get("risk") == "GREEN" and isinstance(allowed, list):
         for path in allowed:
-            normalized = _path_prefix(str(path))
+            if not isinstance(path, str):
+                continue
+            normalized = _path_prefix(path)
             if any(_paths_overlap(normalized, protected) for protected in PROTECTED_GREEN_PATHS):
                 errors.append(f"GREEN_PROTECTED_PATH:{path}")
             if re.search(r"(^|[/_.-])79([/_.-]|$)", normalized, flags=re.IGNORECASE):
