@@ -47,8 +47,6 @@ def test_ai_copilot_command_is_exact_after_outer_whitespace_and_crlf_normalizati
 
 def test_dispatcher_suppresses_duplicate_redispatch_during_promotion_terminalization():
     text = DISPATCH.read_text(encoding="utf-8")
-    # Regression for #666: a second exact command after PROMOTION_DISPATCHED must
-    # terminate successfully before a second paid Copilot source run is started.
     assert "PROMOTION_DISPATCHED" in text
     assert "PROMOTION_BRANCH_READY" in text
     assert "PR_CREATE_REQUIRED" in text
@@ -69,7 +67,6 @@ def test_dispatcher_ignores_unrelated_json_when_reconstructing_state():
     assert evidence_pattern.findall(unrelated) == []
     assert r"re.findall(r'\{[^\n]*\}', body)" not in text
     assert '(?:\"work_ref\"|\"issue_number\"|\"status\"|\"action\"|\"owner_slice\")' in text
-    # With no recognized evidence record, state remains fresh/default and dispatch is allowed.
     state = {
         "active_lease": False,
         "terminalizing": False,
@@ -92,6 +89,14 @@ def test_base_drift_reopens_prior_promotion_for_fresh_dispatch():
     assert terminalizing is False
 
 
+def test_contract_replay_terminal_reopens_prior_promotion_for_fresh_dispatch():
+    terminalizing, retryable = _replay_dispatch_state(
+        ["PROMOTION_DISPATCHED", "BLOCKED_CONTRACT_REPLAY"]
+    )
+    assert retryable is True
+    assert terminalizing is False
+
+
 def test_pr_handoff_after_promotion_remains_non_redispatchable():
     terminalizing, retryable = _replay_dispatch_state(
         ["PROMOTION_DISPATCHED", "PR_CREATE_REQUIRED"]
@@ -101,7 +106,6 @@ def test_pr_handoff_after_promotion_remains_non_redispatchable():
 
 
 def test_retryable_reset_is_ordered_before_later_terminal_evidence():
-    # A fresh terminal state after a retry reset must close the lane again.
     terminalizing, retryable = _replay_dispatch_state(
         ["PROMOTION_DISPATCHED", "BLOCKED_BASE_DRIFT", "PROMOTION_DISPATCHED"]
     )
@@ -120,6 +124,7 @@ def test_dispatcher_keeps_expired_and_explicit_retryable_paths_redispatchable():
         "RETRYABLE_FAILURE",
         "FALLBACK_RETRYABLE_FAILURE",
         "BLOCKED_BASE_DRIFT",
+        "BLOCKED_CONTRACT_REPLAY",
     } <= retryable_statuses
     assert "retryable = True" in text
     assert "terminalizing = False" in text
