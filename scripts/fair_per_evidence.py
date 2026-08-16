@@ -448,6 +448,11 @@ class FairPEREvidenceRecord:
                 "optionality evidence cannot be blended into EPS scenarios unless "
                 "its stage is FINANCIAL_REALIZATION"
             )
+        if self.eps_scenario.optionality_included and optionality_evidence.realized_profit is None:
+            raise FairPEREvidenceError(
+                "EPS optionality inclusion demands realized_profit; "
+                "revenue-only realization insufficient"
+            )
 
     @property
     def current_valuation_status(self) -> str:

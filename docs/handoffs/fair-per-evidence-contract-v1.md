@@ -66,7 +66,8 @@ INTENT → OPERATING_EVIDENCE → FINANCIAL_REALIZATION
 
 - `FactorEvidence` は `stage == FINANCIAL_REALIZATION` の場合のみ `realized_revenue` / `realized_profit` を保持できる。それ以外のstageでこれらを設定するとfail-closedする。
 - `FINANCIAL_REALIZATION` を宣言するには `realized_revenue` または `realized_profit` のいずれかが必須。**Intentの宣言だけでFinancial Realizationへ昇格することはできない。**
-- `promote_evidence_stage()` はladderを1段ずつしか進められない。`INTENT → FINANCIAL_REALIZATION` のような一足飛びの昇格は、たとえ realized metric を渡しても拒否する。
+- `EPSScenario.optionality_included=True` を宣言する場合、Optionality factorのstageが `FINANCIAL_REALIZATION` であり、かつ `realized_profit` が存在しなければ `FairPEREvidenceRecord` の構築時にfail-closedする。これにより「Physical AI等のoptionalityを未実現のままEPSへ加算しない」ガードレールおよび「売上計上のみでは利益寄与が未確認のため不可」ガードレールを機械的に強制する。
+- `FINANCIAL_REALIZATION` stage自体は `realized_revenue` または `realized_profit` のいずれかで成立するが、`optionality_included=True` は追加で `realized_profit` を要求する。Revenue-onlyのFINANCIAL_REALIZATIONはstage保持可だがEPS混入は不可。
 - `EPSScenario.optionality_included=True` を宣言する場合、Optionality factorのstageが `FINANCIAL_REALIZATION` でなければ `FairPEREvidenceRecord` の構築時にfail-closedする。これにより「Physical AI等のoptionalityを未実現のままEPSへ加算しない」ガードレールを機械的に強制する。
 
 ## Range + Confidence Contract
@@ -86,9 +87,10 @@ INTENT → OPERATING_EVIDENCE → FINANCIAL_REALIZATION
 
 `compute_implied_expectation(canonical_price, eps_scenario, fair_per_range)` が次を計算する。
 
-- `current_per` = 現在価格 / Base EPS（Base EPSが正の場合のみ）
 - `implied_scenario` = 現在価格が最も近いBear/Base/Bullシナリオ
 - `expectation_gap_to_low` / `expectation_gap_to_high` = `current_per` とFair PER Rangeとの乖離
+**v1では `implied_scenario` は常に `None` (UNKNOWN) を返す。** `current_per = price/base_eps` と `price/scenario_eps` の比較はBASEを常に選択する（距離ゼロ）ため、独立した市場織込み判定軸を持たない。将来、別authorityでFair PER範囲が確定した場合のみ、別sliceで逆算設計を行う。
+
 
 **Canonical priceが利用不可の場合、この関数は全フィールドを `None`（UNKNOWN相当）で返す。** stale価格や前期価格からcurrent PERを生成することはない。
 

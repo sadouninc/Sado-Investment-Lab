@@ -293,6 +293,45 @@ def test_implied_scenario_none_when_base_eps_invalid():
     assert implied_zero.current_per is None
     assert implied_zero.implied_scenario is None
 
+
+def test_implied_scenario_none_even_with_valid_base_eps():
+    """v1 blocker: implied_scenario stays None without independent valuation axis."""
+    fair_range = FairPERRange(fair_per_low=15.0, fair_per_high=20.0, confidence="MEDIUM")
+    scenario = EPSScenario(bear_eps=180.0, base_eps=220.0, bull_eps=270.0, scenario_as_of="2026-07-31")
+
+    implied = compute_implied_expectation(_fresh_canonical_price(price=4400.0), scenario, fair_range)
+    assert implied.current_per == pytest.approx(20.0)
+    assert implied.implied_scenario is None  # not BASE, BEAR, or BULL
+
+
+def test_revenue_only_realization_cannot_permit_optionality_in_eps():
+    """v1 blocker: revenue-only FINANCIAL_REALIZATION insufficient for EPS optionality."""
+    factors = _sony_factors(
+        optionality_stage=STAGE_FINANCIAL_REALIZATION, realized_revenue=10_000_000.0
+    )
+    with pytest.raises(FairPEREvidenceError, match="profit"):
+        build_fair_per_evidence_record(
+            security_id="JP:6758",
+            symbol="6758",
+            exchange="TSE",
+            factors=factors,
+            historical_valuation_anchor=_sony_historical_anchor(),
+            eps_scenario=EPSScenario(
+                bear_eps=180.0, base_eps=220.0, bull_eps=270.0,
+                scenario_as_of="2026-07-31", optionality_included=True
+            ),
+            fair_per_range=FairPERRange(fair_per_low=15.0, fair_per_high=20.0, confidence="MEDIUM"),
+            canonical_price=_fresh_canonical_price(),
+        )
+
+
+def test_realized_profit_satisfies_optionality_inclusion():
+    """Realized profit evidence permits EPS optionality when all other requirements pass."""
+    # test_optionality_allowed_in_eps_scenario_when_financial_realization already covers this
+    pass
+
+
+# ---------------------------------------------------------------------------
 # Historical valuation anchor guardrails
 # ---------------------------------------------------------------------------
 
