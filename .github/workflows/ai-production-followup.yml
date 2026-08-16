@@ -101,15 +101,15 @@ jobs:
             retryable=true
           fi
 
-          decision="$(python - <<PY
-          import json
+          decision="$(ISSUE_NUMBER="$issue" OUTCOME="$outcome" RETRYABLE="$retryable" RUN_CONCLUSION_VALUE="$RUN_CONCLUSION" python - <<'PY'
+          import json, os
           from scripts.ai_dispatch_policy import evaluate_dispatch_result
           print(json.dumps(evaluate_dispatch_result({
-              'issue_number': int('$issue'),
+              'issue_number': int(os.environ['ISSUE_NUMBER']),
               'engine': 'copilot',
-              'outcome': '$outcome',
-              'run_success': '$RUN_CONCLUSION' == 'success',
-              'retryable_execution_failure': '$retryable' == 'true',
+              'outcome': os.environ['OUTCOME'],
+              'run_success': os.environ['RUN_CONCLUSION_VALUE'] == 'success',
+              'retryable_execution_failure': os.environ['RETRYABLE'] == 'true',
           })))
           PY
           )"
