@@ -41,9 +41,6 @@ jobs:
             exit 78
           }
 
-          # Only the latest lease record is authoritative for duplicate prevention.
-          # Build one valid JSON array across pagination instead of concatenating
-          # multiple JSON pages, which is not parseable by json.load().
           : > /tmp/comment-pages.jsonl
           page=1
           while :; do
@@ -82,8 +79,6 @@ jobs:
             --arg expires_at "$expires_at" \
             '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"copilot",assigned_at:$assigned_at,acknowledged_at:null,lease_expires_at:$expires_at,fallback_owner:"amazon_q_free",status:"ASSIGNED"}')"
 
-          # This workflow intentionally has no checkout. Always address the repository
-          # explicitly so issue writes do not depend on a local .git directory.
           gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments" \
             -f body="<!-- flow-dispatch-lease -->
           ${lease}
@@ -108,9 +103,13 @@ jobs:
           gh workflow run copilot-poc1.yml --repo "$GITHUB_REPOSITORY" --ref main -f issue_number="$ISSUE_NUMBER"
 
           source_run_id=""
-          for _ in {1..30}; do
-            source_run_id="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/copilot-poc1.yml/runs?event=workflow_dispatch&per_page=30" \
-              --jq "[.workflow_runs[] | select(.display_title == \"${source_title}\" and .created_at >= \"${request_started}\")] | sort_by(.created_at) | last | .id // empty")"
+          for _ in {1..60}; do
+            gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/copilot-poc1.yml/runs?event=workflow_dispatch&per_page=30" > /tmp/copilot-runs.json
+            source_run_id="$(jq -r \
+              --arg title "$source_title" \
+              --arg started "$request_started" \
+              '[.workflow_runs[] | select(.display_title == $title and .created_at >= $started)] | sort_by(.created_at) | last | .id // empty' \
+              /tmp/copilot-runs.json)"
             [[ -n "$source_run_id" ]] && break
             sleep 2
           done
@@ -119,8 +118,6 @@ jobs:
             exit 76
           fi
 
-          # Wait for the source run regardless of success/failure. The follow-up policy
-          # must see the real conclusion so retryable failures can reach Amazon Q Free.
           set +e
           gh run watch "$source_run_id" --repo "$GITHUB_REPOSITORY" --exit-status
           watch_rc=$?
@@ -128,8 +125,6 @@ jobs:
           source_conclusion="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${source_run_id}" --jq '.conclusion // "unknown"')"
           echo "Copilot source run ${source_run_id} completed: ${source_conclusion} (watch_rc=${watch_rc})"
 
-          # Explicit workflow_dispatch is the production handoff. Do not rely on a
-          # workflow_run chain generated from a GITHUB_TOKEN-originated dispatch.
           gh workflow run ai-production-followup.yml --repo "$GITHUB_REPOSITORY" --ref main \
             -f issue_number="$ISSUE_NUMBER" \
             -f source_run_id="$source_run_id" \
