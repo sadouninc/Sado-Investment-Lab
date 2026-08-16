@@ -7,6 +7,34 @@ from typing import Any
 FRESHNESS = {"FRESH", "STALE", "UNKNOWN"}
 COMPLETENESS = {"COMPLETE", "PARTIAL", "UNKNOWN"}
 BENCHMARKS = {"TOPIX", "NIKKEI225", "OTHER", "UNKNOWN"}
+TOP_LEVEL_FIELDS = {
+    "schema_version",
+    "observed_at",
+    "source",
+    "freshness",
+    "data_completeness",
+    "benchmark",
+    "sector",
+    "subsector",
+    "observations",
+    "leaders",
+    "flow_state",
+    "acceleration_state",
+}
+SECTOR_FIELDS = {"id", "label", "medium_term_regime"}
+SUBSECTOR_FIELDS = {"id", "label", "taxonomy_version", "as_of", "source_or_authority"}
+OBSERVATION_FIELDS = {
+    "intraday_return",
+    "benchmark_return",
+    "relative_return",
+    "rising_count",
+    "constituent_count",
+    "breadth",
+    "median_constituent_return",
+    "turnover_ratio",
+    "concentration_top1",
+}
+LEADER_FIELDS = {"security_code", "name", "intraday_return"}
 
 
 def _text(value: Any, field: str) -> str:
@@ -31,10 +59,26 @@ def _nullable_count(value: Any, field: str) -> int | None:
     return value
 
 
+def _require_exact_fields(value: dict[str, Any], expected: set[str], field: str) -> None:
+    """Keep the Python validator aligned with JSON Schema additionalProperties=false.
+
+    Canonical nullable fields must be present explicitly as null when unavailable.
+    Silently inventing missing nulls or dropping unknown fields would hide producer drift.
+    """
+    actual = set(value)
+    missing = sorted(expected - actual)
+    extra = sorted(actual - expected)
+    if missing:
+        raise ValueError(f"{field} missing required fields: {', '.join(missing)}")
+    if extra:
+        raise ValueError(f"{field} contains unsupported fields: {', '.join(extra)}")
+
+
 def validate_intraday_subsector_flow(payload: dict[str, Any]) -> dict[str, Any]:
     """Validate PR1 observation shape without classifying flow or making a trade decision."""
     if not isinstance(payload, dict):
         raise ValueError("payload must be an object")
+    _require_exact_fields(payload, TOP_LEVEL_FIELDS, "payload")
     out = deepcopy(payload)
     if out.get("schema_version") != 1:
         raise ValueError("schema_version must be 1")
@@ -54,6 +98,7 @@ def validate_intraday_subsector_flow(payload: dict[str, Any]) -> dict[str, Any]:
     sector = out.get("sector")
     if not isinstance(sector, dict):
         raise ValueError("sector must be an object")
+    _require_exact_fields(sector, SECTOR_FIELDS, "sector")
     out["sector"] = {
         "id": _text(sector.get("id"), "sector.id"),
         "label": _text(sector.get("label"), "sector.label"),
@@ -63,6 +108,7 @@ def validate_intraday_subsector_flow(payload: dict[str, Any]) -> dict[str, Any]:
     subsector = out.get("subsector")
     if not isinstance(subsector, dict):
         raise ValueError("subsector must be an object")
+    _require_exact_fields(subsector, SUBSECTOR_FIELDS, "subsector")
     out["subsector"] = {
         "id": _text(subsector.get("id"), "subsector.id"),
         "label": _text(subsector.get("label"), "subsector.label"),
@@ -74,6 +120,7 @@ def validate_intraday_subsector_flow(payload: dict[str, Any]) -> dict[str, Any]:
     obs = out.get("observations")
     if not isinstance(obs, dict):
         raise ValueError("observations must be an object")
+    _require_exact_fields(obs, OBSERVATION_FIELDS, "observations")
     out["observations"] = {
         "intraday_return": _nullable_number(obs.get("intraday_return"), "observations.intraday_return"),
         "benchmark_return": _nullable_number(obs.get("benchmark_return"), "observations.benchmark_return"),
@@ -109,23 +156,20 @@ def validate_intraday_subsector_flow(payload: dict[str, Any]) -> dict[str, Any]:
     leaders = out.get("leaders")
     if not isinstance(leaders, list):
         raise ValueError("leaders must be a list")
-    out["leaders"] = [
-        {
-            "security_code": _text(item.get("security_code"), f"leaders[{i}].security_code"),
-            "name": _text(item.get("name"), f"leaders[{i}].name"),
-            "intraday_return": _nullable_number(item.get("intraday_return"), f"leaders[{i}].intraday_return"),
-        }
-        for i, item in enumerate(leaders)
-        if isinstance(item, dict)
-    ]
-    if len(out["leaders"]) != len(leaders):
-        raise ValueError("each leader must be an object")
+    validated_leaders = []
+    for i, item in enumerate(leaders):
+        if not isinstance(item, dict):
+            raise ValueError("each leader must be an object")
+        _require_exact_fields(item, LEADER_FIELDS, f"leaders[{i}]")
+        validated_leaders.append(
+            {
+                "security_code": _text(item.get("security_code"), f"leaders[{i}].security_code"),
+                "name": _text(item.get("name"), f"leaders[{i}].name"),
+                "intraday_return": _nullable_number(item.get("intraday_return"), f"leaders[{i}].intraday_return"),
+            }
+        )
+    out["leaders"] = validated_leaders
 
     if out.get("flow_state") != "UNKNOWN" or out.get("acceleration_state") != "UNKNOWN":
         raise ValueError("PR1 flow_state and acceleration_state must remain UNKNOWN")
-    if out["freshness"] != "FRESH" or out["data_completeness"] != "COMPLETE":
-        # Fail closed: no missing observation is converted into a synthetic normal/zero value.
-        for key in ("breadth", "turnover_ratio"):
-            if key not in obs:
-                out["observations"][key] = None
     return out
