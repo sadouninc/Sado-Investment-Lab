@@ -39,7 +39,19 @@ jobs:
           }
 
           # Only the latest lease record is authoritative for duplicate prevention.
-          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments?per_page=100" > /tmp/comments.json
+          # Build one valid JSON array across pagination instead of concatenating
+          # multiple JSON pages, which is not parseable by json.load().
+          : > /tmp/comment-pages.jsonl
+          page=1
+          while :; do
+            gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments?per_page=100&page=${page}" > /tmp/comment-page.json
+            jq -c '.' /tmp/comment-page.json >> /tmp/comment-pages.jsonl
+            count="$(jq 'length' /tmp/comment-page.json)"
+            [[ "$count" == "100" ]] || break
+            page=$((page + 1))
+          done
+          jq -s 'add // []' /tmp/comment-pages.jsonl > /tmp/comments.json
+
           python - <<'PY'
           import json, os, re
           issue = int(os.environ['ISSUE_NUMBER'])
