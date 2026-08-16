@@ -1,4 +1,5 @@
 name: Copilot PoC1 — safe implementation lane
+run-name: Copilot PoC1 — issue ${{ inputs.issue_number }}
 
 on:
   workflow_dispatch:
@@ -184,8 +185,6 @@ jobs:
             exit 88
           fi
 
-          # Be tolerant of accidental Markdown decoration such as **outcome:**,
-          # while keeping REVIEW_READY as an explicit agent declaration.
           if ! grep -Eq '^\*{0,2}outcome:\*{0,2}[[:space:]]*REVIEW_READY[[:space:]]*$' /tmp/copilot-result.md; then
             echo "HARNESS_OUTCOME=BLOCKED_AGENT_NOT_REVIEW_READY" >> "$GITHUB_ENV"
             exit 89

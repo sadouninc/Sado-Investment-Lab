@@ -1,0 +1,102 @@
+name: AI Production Dispatch
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  actions: write
+
+jobs:
+  dispatch:
+    if: >-
+      github.event.issue.pull_request == null &&
+      github.event.comment.user.login == github.repository_owner &&
+      startsWith(github.event.comment.body, '/ai copilot')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: ai-production-dispatch-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    steps:
+      - name: Fail closed and validate READY issue
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          issue="${ISSUE_NUMBER%%.*}"
+          if [[ "$issue" == "79" ]]; then
+            echo PROTECTED_ISSUE_79
+            exit 79
+          fi
+
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}" > /tmp/issue.json
+          jq -e '.labels | map(.name) | index("READY_FOR_IMPLEMENTATION") != null' /tmp/issue.json >/dev/null || {
+            echo ISSUE_NOT_READY
+            exit 78
+          }
+
+          # Only the latest lease record is authoritative for duplicate prevention.
+          # Build one valid JSON array across pagination instead of concatenating
+          # multiple JSON pages, which is not parseable by json.load().
+          : > /tmp/comment-pages.jsonl
+          page=1
+          while :; do
+            gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments?per_page=100&page=${page}" > /tmp/comment-page.json
+            jq -c '.' /tmp/comment-page.json >> /tmp/comment-pages.jsonl
+            count="$(jq 'length' /tmp/comment-page.json)"
+            [[ "$count" == "100" ]] || break
+            page=$((page + 1))
+          done
+          jq -s 'add // []' /tmp/comment-pages.jsonl > /tmp/comments.json
+
+          python - <<'PY'
+          import json, os, re
+          issue = int(os.environ['ISSUE_NUMBER'])
+          comments = json.load(open('/tmp/comments.json'))
+          leases = []
+          for comment in comments:
+              body = comment.get('body') or ''
+              for raw in re.findall(r'\{[^\n]*"work_ref"\s*:\s*"issue:%d"[^\n]*\}' % issue, body):
+                  try:
+                      lease = json.loads(raw)
+                  except json.JSONDecodeError:
+                      continue
+                  if lease.get('owner_slice') == f'issue-{issue}':
+                      leases.append(lease)
+          if leases and leases[-1].get('status') in {'ASSIGNED','ACKNOWLEDGED','FALLBACK_ASSIGNED'}:
+              raise SystemExit('DUPLICATE_ACTIVE_DISPATCH')
+          PY
+
+          assigned_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          expires_at="$(date -u -d '+60 minutes' +%Y-%m-%dT%H:%M:%SZ)"
+          lease="$(jq -nc \
+            --arg work_ref "issue:${issue}" \
+            --arg owner_slice "issue-${issue}" \
+            --arg assigned_at "$assigned_at" \
+            --arg expires_at "$expires_at" \
+            '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"copilot",assigned_at:$assigned_at,acknowledged_at:null,lease_expires_at:$expires_at,fallback_owner:"amazon_q_free",status:"ASSIGNED"}')"
+
+          gh issue comment "$issue" --body "<!-- flow-dispatch-lease -->
+          ${lease}
+
+          担当: ♦️ソラ
+          種別: AI Production Dispatch / Copilot Lease
+
+          Owner-authenticated /ai copilot accepted. Copilot safe lane dispatched with 60m lease. Contract/safety failure remains fail-closed."
+
+          echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch existing Copilot safe lane
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run copilot-poc1.yml --ref main -f issue_number="$ISSUE_NUMBER"
