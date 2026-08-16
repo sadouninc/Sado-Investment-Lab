@@ -20,6 +20,9 @@ def test_dispatch_is_owner_authenticated_ready_only_and_protects_79():
     assert "tr -d '\\r'" in text
     assert "[[ \"$normalized\" == '/ai copilot' ]]" in text
     assert "startsWith(github.event.comment.body, '/ai copilot')" not in text
+    assert "COMMAND_NOT_EXACT_SKIP" in text
+    assert 'echo "accepted=false" >> "$GITHUB_OUTPUT"' in text
+    assert text.count("if: steps.command.outputs.accepted == 'true'") >= 2
     assert "READY_FOR_IMPLEMENTATION" in text
     assert '[[ "$issue" == "79" ]]' in text
     assert "DUPLICATE_ACTIVE_DISPATCH" in text
