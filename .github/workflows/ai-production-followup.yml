@@ -132,7 +132,17 @@ jobs:
           gh workflow run copilot-patch-promotion.yml --ref main \
             -f issue_number="$ISSUE_NUMBER" \
             -f source_run_id="$RUN_ID"
-          gh issue comment "$ISSUE_NUMBER" --body "担当: ♦️ソラ
+          completed_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          terminal="$(jq -nc \
+            --arg work_ref "issue:${ISSUE_NUMBER}" \
+            --arg owner_slice "issue-${ISSUE_NUMBER}" \
+            --arg completed_at "$completed_at" \
+            --arg source_run_id "$RUN_ID" \
+            '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"copilot",status:"PROMOTION_DISPATCHED",completed_at:$completed_at,source_run_id:$source_run_id}')"
+          gh issue comment "$ISSUE_NUMBER" --body "<!-- flow-dispatch-lease -->
+          ${terminal}
+
+          担当: ♦️ソラ
           種別: AI Production Follow-up / Promotion
 
           Copilot production run ${RUN_ID} passed Harness (`REVIEW_READY_VALIDATED`). Existing Patch Promotion workflow dispatched."
@@ -166,10 +176,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.classify.outputs.issue_number }}
           REASON: ${{ steps.classify.outputs.reason }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
         shell: bash
         run: |
           set -euo pipefail
-          gh issue comment "$ISSUE_NUMBER" --body "担当: ♦️ソラ
+          completed_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          terminal="$(jq -nc \
+            --arg work_ref "issue:${ISSUE_NUMBER}" \
+            --arg owner_slice "issue-${ISSUE_NUMBER}" \
+            --arg completed_at "$completed_at" \
+            --arg source_run_id "$RUN_ID" \
+            --arg reason "$REASON" \
+            '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"copilot",status:"FAIL_CLOSED",completed_at:$completed_at,source_run_id:$source_run_id,reason:$reason}')"
+          gh issue comment "$ISSUE_NUMBER" --body "<!-- flow-dispatch-lease -->
+          ${terminal}
+
+          担当: ♦️ソラ
           種別: AI Production Follow-up / FAIL_CLOSED
 
           Production routing stopped without fallback. Reason: `${REASON}`. Contract/safety failure or missing validation evidence is not eligible for Amazon Q fallback."
