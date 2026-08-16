@@ -16,7 +16,7 @@ jobs:
       github.event.comment.user.login == github.repository_owner &&
       startsWith(github.event.comment.body, '/ai copilot')
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 30
     concurrency:
       group: ai-production-dispatch-${{ github.event.issue.number }}
       cancel-in-progress: false
@@ -95,11 +95,42 @@ jobs:
 
           echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
 
-      - name: Dispatch existing Copilot safe lane
+      - name: Dispatch Copilot and explicitly hand off completion
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
         shell: bash
         run: |
           set -euo pipefail
+          request_started="$(date -u -d '-2 seconds' +%Y-%m-%dT%H:%M:%SZ)"
+          source_title="Copilot PoC1 — issue ${ISSUE_NUMBER}"
+
           gh workflow run copilot-poc1.yml --repo "$GITHUB_REPOSITORY" --ref main -f issue_number="$ISSUE_NUMBER"
+
+          source_run_id=""
+          for _ in {1..30}; do
+            source_run_id="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/copilot-poc1.yml/runs?event=workflow_dispatch&per_page=30" \
+              --jq "[.workflow_runs[] | select(.display_title == \"${source_title}\" and .created_at >= \"${request_started}\")] | sort_by(.created_at) | last | .id // empty")"
+            [[ -n "$source_run_id" ]] && break
+            sleep 2
+          done
+          if [[ -z "$source_run_id" ]]; then
+            echo COPILOT_SOURCE_RUN_NOT_FOUND
+            exit 76
+          fi
+
+          # Wait for the source run regardless of success/failure. The follow-up policy
+          # must see the real conclusion so retryable failures can reach Amazon Q Free.
+          set +e
+          gh run watch "$source_run_id" --repo "$GITHUB_REPOSITORY" --exit-status
+          watch_rc=$?
+          set -e
+          source_conclusion="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${source_run_id}" --jq '.conclusion // "unknown"')"
+          echo "Copilot source run ${source_run_id} completed: ${source_conclusion} (watch_rc=${watch_rc})"
+
+          # Explicit workflow_dispatch is the production handoff. Do not rely on a
+          # workflow_run chain generated from a GITHUB_TOKEN-originated dispatch.
+          gh workflow run ai-production-followup.yml --repo "$GITHUB_REPOSITORY" --ref main \
+            -f issue_number="$ISSUE_NUMBER" \
+            -f source_run_id="$source_run_id" \
+            -f source_conclusion="$source_conclusion"
