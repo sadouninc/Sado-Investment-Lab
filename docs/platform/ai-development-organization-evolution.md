@@ -89,6 +89,15 @@ PR ───────────────► Amazon Q Independent Verific
 
 Amazon QとChatGPTはalternative PR routesではない。同じdelivery flowに対して異なる責務を持つplaneである。
 
+## Current AI Capacity State
+
+現在の各AIエンジンの接続およびキャパシティ状態の記録:
+
+1. Amazon Q Developer GitHub App was registered to an AWS account through the usage-limit boost registration flow.
+2. Google Jules GitHub App is connected only to `sadouninc/Sado-Investment-Lab`.
+3. Remaining quota/capacity numbers for Amazon Q, Jules, or Copilot remain UNKNOWN (no invented numbers; UNKNOWN stays UNKNOWN).
+4. Jules remains an experimental implementation lane until this production acceptance completes.
+
 ## 2026-08-16 — Productivity inflection hypothesis
 
 ### contemporaneous user observation
