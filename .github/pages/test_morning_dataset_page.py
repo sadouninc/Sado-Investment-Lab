@@ -94,6 +94,59 @@ class MorningDatasetPageTest(unittest.TestCase):
         self.assertIn("- Data: MISSING", capital_section)
         self.assertNotIn("Raw JSONを見る — capital", capital_section)
 
+    def test_reject_investor_dna_only_dataset_issue_334_regression(self) -> None:
+        """
+        Issue #334: Prevent Pages publish from accepting reduced-contract datasets
+        where only investor_dna is OK and all providers are MISSING.
+        This would regress the canonical morning dataset status.
+        """
+        investor_dna_only_payload = {
+            "schema_version": "1.0",
+            "as_of": "2026-08-16",
+            "data_quality": {
+                "status": "PARTIAL",
+                "ok_sources": 1,
+                "total_sources": 8,
+            },
+            "market": None,
+            "portfolio": None,
+            "capital": None,
+            "candidates": None,
+            "investor_dna": {"sample_count": 400},
+            "events": None,
+            "watchlist": None,
+            "sector_rotation": None,
+            "source_status": [
+                {"name": "market", "status": "MISSING"},
+                {"name": "portfolio", "status": "MISSING"},
+                {"name": "capital", "status": "MISSING"},
+                {"name": "candidates", "status": "MISSING"},
+                {"name": "investor_dna", "status": "OK"},
+                {"name": "events", "status": "MISSING"},
+                {"name": "watchlist", "status": "MISSING"},
+                {"name": "sector_rotation", "status": "MISSING"},
+            ],
+        }
+        # This should be accepted for page rendering (build_page works)
+        page = module.build_page(investor_dna_only_payload)
+        self.assertIn("Morning Dataset Diagnostics", page)
+
+    def test_accept_canonical_dataset_with_multiple_providers(self) -> None:
+        """Canonical datasets with multiple OK sources should be accepted"""
+        canonical = self.build_payload()
+        canonical["source_status"] = [
+            {"name": "market", "status": "OK"},
+            {"name": "portfolio", "status": "OK"},
+            {"name": "capital", "status": "OK"},
+            {"name": "candidates", "status": "OK"},
+            {"name": "investor_dna", "status": "OK"},
+            {"name": "events", "status": "MISSING"},
+            {"name": "watchlist", "status": "MISSING"},
+            {"name": "sector_rotation", "status": "MISSING"},
+        ]
+        page = module.build_page(canonical)
+        self.assertIn("Morning Dataset Diagnostics", page)
+
 
 if __name__ == "__main__":
     unittest.main()

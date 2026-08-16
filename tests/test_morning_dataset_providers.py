@@ -84,6 +84,37 @@ class MorningDatasetProviderTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             ProviderResult(name="market", status="OK", data=None)
 
+    def test_issue_334_investor_dna_only_contract_is_detectable(self) -> None:
+        """
+        Issue #334 Pages regression: Ensure we can detect when a dataset
+        has only investor_dna as OK and all other providers are MISSING.
+        This indicates a reduced-contract generation that would regress Pages.
+        """
+        providers = [
+            StaticProvider(
+                ProviderResult.ok(
+                    "investor_dna",
+                    {"sample_count": 400, "win_rate": 0.75},
+                    as_of="2026-08-16",
+                    source_reference="data/generated/public/investor-dna.json",
+                )
+            )
+        ]
+        payload = build_dataset_from_providers(providers, as_of=date(2026, 8, 16))
+
+        # Verify the dataset structure shows the reduced contract
+        status_map = {row["name"]: row["status"] for row in payload["source_status"]}
+        self.assertEqual("OK", status_map.get("investor_dna"))
+        self.assertEqual("MISSING", status_map.get("market"))
+        self.assertEqual("MISSING", status_map.get("portfolio"))
+        self.assertEqual("MISSING", status_map.get("capital"))
+        self.assertEqual("MISSING", status_map.get("candidates"))
+        self.assertEqual("MISSING", status_map.get("events"))
+        self.assertEqual("MISSING", status_map.get("watchlist"))
+
+        # build_morning_dataset.py should reject this pattern
+        self.assertEqual(1, payload["data_quality"]["ok_sources"])
+
 
 if __name__ == "__main__":
     unittest.main()

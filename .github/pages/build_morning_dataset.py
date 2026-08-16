@@ -195,8 +195,37 @@ permalink: /research/morning-dataset/
 
 def main() -> None:
     if not REPORT.is_file():
-        raise FileNotFoundError(f"Morning Dataset not found: {REPORT}")
+        print(f"WARNING: Morning Dataset not found at {REPORT}")
+        print("Skipping Morning Dataset page generation - file will be created by ai-morning-analyst workflow")
+        return
+    
     payload = json.loads(REPORT.read_text(encoding="utf-8"))
+    
+    # Guard against Issue #334 regression: reject investor-DNA-only datasets
+    source_status = payload.get("source_status") or []
+    source_map = {s.get("name"): s.get("status") for s in source_status}
+    
+    provider_names = ["market", "portfolio", "capital", "candidates", "events", "watchlist", "sector_rotation"]
+    ok_providers = [n for n in provider_names if source_map.get(n) in ("OK", "PARTIAL")]
+    dna_ok = source_map.get("investor_dna") in ("OK", "PARTIAL")
+    
+    if dna_ok and not ok_providers:
+        msg = (
+            "Refusing to publish investor-DNA-only Morning Dataset.\n"
+            "This would regress all provider sources to MISSING on Pages.\n"
+            "Expected: canonical dataset from ai-morning-analyst.yml with multiple providers.\n"
+            f"Found: investor_dna={source_map.get('investor_dna')}, providers with OK/PARTIAL={len(ok_providers)}\n"
+            "Fix: Do not regenerate morning-dataset.json in publish-site.yml - use existing canonical file.\n"
+            "See Issue #334."
+        )
+        raise ValueError(msg)
+    
+    quality = payload.get("data_quality", {})
+    print(f"Morning Dataset OK: {quality.get('ok_sources', 0)}/{quality.get('total_sources', 8)} sources, "
+          f"status={quality.get('status')}")
+    if not ok_providers and not dna_ok:
+        print("WARNING: All sources are MISSING or STALE")
+    
     SITE.mkdir(parents=True, exist_ok=True)
     (SITE / "index.md").write_text(build_page(payload), encoding="utf-8")
     shutil.copyfile(REPORT, SITE / "morning-dataset.json")
