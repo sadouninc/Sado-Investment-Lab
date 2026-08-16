@@ -93,7 +93,7 @@ jobs:
 
           for comment in comments:
               body = comment.get('body') or ''
-              for raw in re.findall(r'\{[^\n]*\}', body):
+              for raw in re.findall(r'\{[^\n]*(?:"work_ref"|"issue_number"|"status"|"action"|"owner_slice")[^\n]*\}', body):
                   try:
                       evidence = json.loads(raw)
                   except json.JSONDecodeError:
@@ -116,7 +116,7 @@ jobs:
                       recorded_branch = ''
                       continue
 
-                  if status in terminalizing_statuses or evidence.get('action') == 'PR_CREATE_REQUIRED':
+                  if status in terminalizing_statuses:
                       terminalizing = True
                       retryable = False
                       recorded_branch = evidence.get('branch') or recorded_branch
