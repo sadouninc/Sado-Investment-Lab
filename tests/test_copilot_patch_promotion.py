@@ -66,12 +66,10 @@ def test_already_applied_blocks():
 
 
 def test_empty_changed_path_blocks():
-    """Fail-closed: empty string in changed_paths should not pass validation."""
     assert base(changed_paths=[""]).reason == "ISSUE_CONTRACT_INVALID"
 
 
 def test_whitespace_only_changed_path_blocks():
-    """Fail-closed: whitespace-only paths are malformed and must not slip through."""
     assert base(changed_paths=[" "]).reason == "ISSUE_CONTRACT_INVALID"
     assert base(changed_paths=["  "]).reason == "ISSUE_CONTRACT_INVALID"
     assert base(changed_paths=["\t"]).reason == "ISSUE_CONTRACT_INVALID"
@@ -80,18 +78,15 @@ def test_whitespace_only_changed_path_blocks():
 
 
 def test_mixed_valid_and_blank_changed_paths_blocks():
-    """Fail-closed: even one blank path among valid ones must fail."""
     assert base(changed_paths=["scripts/valid.py", ""]).reason == "ISSUE_CONTRACT_INVALID"
     assert base(changed_paths=["scripts/valid.py", "  "]).reason == "ISSUE_CONTRACT_INVALID"
 
 
 def test_empty_allowed_path_blocks():
-    """Fail-closed: empty string in allowed_paths should not pass validation."""
     assert base(allowed_paths=[""]).reason == "ISSUE_CONTRACT_INVALID"
 
 
 def test_whitespace_only_allowed_path_blocks():
-    """Fail-closed: whitespace-only paths are malformed and must not slip through."""
     assert base(allowed_paths=[" "]).reason == "ISSUE_CONTRACT_INVALID"
     assert base(allowed_paths=["  "]).reason == "ISSUE_CONTRACT_INVALID"
     assert base(allowed_paths=["\t"]).reason == "ISSUE_CONTRACT_INVALID"
@@ -100,13 +95,11 @@ def test_whitespace_only_allowed_path_blocks():
 
 
 def test_mixed_valid_and_blank_allowed_paths_blocks():
-    """Fail-closed: even one blank path among valid ones must fail."""
     assert base(allowed_paths=["scripts/*.py", ""]).reason == "ISSUE_CONTRACT_INVALID"
     assert base(allowed_paths=["scripts/*.py", "  "]).reason == "ISSUE_CONTRACT_INVALID"
 
 
 def test_valid_only_allowed_paths_passes():
-    """Preserve behavior: valid nonblank allowed_paths should pass."""
     assert base(allowed_paths=["scripts/*.py"]).eligible is True
     assert base(allowed_paths=["scripts/*.py", "tests/*.py"]).eligible is True
 
@@ -142,3 +135,15 @@ def test_promotion_workflow_allows_terminal_escape_sequences_but_keeps_harness_g
     )
     assert "grep -q 'HARNESS_OUTCOME=REVIEW_READY_VALIDATED' /tmp/source.log" in workflow
     assert "SOURCE_NOT_REVIEW_READY_VALIDATED" in workflow
+
+
+def test_promotion_policy_fallback_requires_validated_branch_and_known_error_only():
+    workflow = PROMOTION_WORKFLOW.read_text(encoding="utf-8")
+    assert "issues: write" in workflow
+    assert 'promotion_commit="$(git rev-parse HEAD)"' in workflow
+    assert 'git push origin "$PROMOTION_BRANCH"' in workflow
+    assert "GitHub Actions is not permitted to create or approve pull requests" in workflow
+    assert "PROMOTION_BRANCH_READY" in workflow
+    assert "PR_CREATE_REQUIRED" in workflow
+    assert "UNEXPECTED_PR_CREATE_FAILURE" in workflow
+    assert 'exit "$pr_rc"' in workflow

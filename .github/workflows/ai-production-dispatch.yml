@@ -13,16 +13,32 @@ jobs:
   dispatch:
     if: >-
       github.event.issue.pull_request == null &&
-      github.event.comment.user.login == github.repository_owner &&
-      startsWith(github.event.comment.body, '/ai copilot')
+      github.event.comment.user.login == github.repository_owner
     runs-on: ubuntu-latest
     timeout-minutes: 30
     concurrency:
       group: ai-production-dispatch-${{ github.event.issue.number }}
       cancel-in-progress: false
     steps:
+      - name: Require exact normalized owner command
+        id: command
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          normalized="$(printf '%s' "$COMMENT_BODY" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+          if [[ "$normalized" == '/ai copilot' ]]; then
+            echo "accepted=true" >> "$GITHUB_OUTPUT"
+            echo COMMAND_EXACT_ACCEPTED
+          else
+            echo "accepted=false" >> "$GITHUB_OUTPUT"
+            echo COMMAND_NOT_EXACT_SKIP
+          fi
+
       - name: Fail closed and validate READY issue
         id: gate
+        if: steps.command.outputs.accepted == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -91,6 +107,7 @@ jobs:
           echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
 
       - name: Dispatch Copilot and explicitly hand off completion
+        if: steps.command.outputs.accepted == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}

@@ -16,7 +16,11 @@ permissions:
   contents: write
   pull-requests: write
   actions: read
-  issues: read
+  issues: write
+
+concurrency:
+  group: copilot-patch-promotion-${{ inputs.issue_number }}-${{ inputs.source_run_id }}
+  cancel-in-progress: false
 
 jobs:
   promote:
@@ -139,7 +143,7 @@ jobs:
             --diagnostic /tmp/work-contract-preflight.json || { echo POST_APPLY_TEST_FAILED; exit 82; }
           python -m pytest -q || { echo POST_APPLY_TEST_FAILED; exit 82; }
 
-      - name: Create branch and PR
+      - name: Create branch and PR or persist policy handoff
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -151,8 +155,55 @@ jobs:
           git add -A
           git commit -m "fix(#${ISSUE_NUMBER}): promote validated Copilot patch"
           git push origin "$PROMOTION_BRANCH"
+          promotion_commit="$(git rev-parse HEAD)"
+
+          if gh pr list --state all --head "$PROMOTION_BRANCH" --json number --jq 'length' | grep -qxv '0'; then
+            echo PR_ALREADY_EXISTS
+            exit 0
+          fi
+
+          set +e
           gh pr create \
             --base main \
             --head "$PROMOTION_BRANCH" \
             --title "fix(#${ISSUE_NUMBER}): promote validated Copilot patch" \
-            --body "Validated Copilot promotion.\n\nIssue: #${ISSUE_NUMBER}\nSource run: ${SOURCE_RUN_ID}\nSource SHA: ${SOURCE_BASE_SHA}\nHarness: REVIEW_READY_VALIDATED\nAcceptance tests: replayed from validated Work Contract\n\nMerge remains a human gate."
+            --body "Validated Copilot promotion.\n\nIssue: #${ISSUE_NUMBER}\nSource run: ${SOURCE_RUN_ID}\nSource SHA: ${SOURCE_BASE_SHA}\nHarness: REVIEW_READY_VALIDATED\nAcceptance tests: replayed from validated Work Contract\n\nMerge remains a human gate." \
+            > /tmp/pr-create.out 2> /tmp/pr-create.err
+          pr_rc=$?
+          set -e
+
+          if [[ $pr_rc -eq 0 ]]; then
+            cat /tmp/pr-create.out
+            exit 0
+          fi
+
+          race_pr_count="$(gh pr list --state all --head "$PROMOTION_BRANCH" --json number --jq 'length')"
+          if [[ "$race_pr_count" != "0" ]]; then
+            echo PR_ALREADY_EXISTS_RACE_RESOLVED
+            exit 0
+          fi
+
+          if grep -Fq 'GitHub Actions is not permitted to create or approve pull requests' /tmp/pr-create.err; then
+            handoff="$(jq -nc \
+              --arg status 'PROMOTION_BRANCH_READY' \
+              --arg action 'PR_CREATE_REQUIRED' \
+              --argjson issue_number "$ISSUE_NUMBER" \
+              --arg source_run_id "$SOURCE_RUN_ID" \
+              --arg branch "$PROMOTION_BRANCH" \
+              --arg commit "$promotion_commit" \
+              --arg harness "$HARNESS_OUTCOME" \
+              '{status:$status,action:$action,issue_number:$issue_number,source_run_id:$source_run_id,branch:$branch,commit:$commit,harness:$harness}')"
+            gh issue comment "$ISSUE_NUMBER" --body "<!-- ai-production-promotion-handoff -->
+          ${handoff}
+
+          担当: ♦️ソラ
+          種別: AI Production / Promotion Branch Ready
+
+          Validated promotion branch was pushed, but repository policy blocked GitHub Actions PR creation. Connector fallback may create the PR from the recorded branch. Duplicate PR creation must remain idempotent."
+            echo PR_CREATE_REQUIRED
+            exit 0
+          fi
+
+          cat /tmp/pr-create.err >&2
+          echo UNEXPECTED_PR_CREATE_FAILURE >&2
+          exit "$pr_rc"
