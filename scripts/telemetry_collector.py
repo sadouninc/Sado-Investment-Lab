@@ -100,6 +100,26 @@ def collect_review_routing_metrics(event: Mapping[str, Any]) -> Dict[str, Any]:
     }
 
 
+def collect_operational_mode_metrics(event: Mapping[str, Any]) -> Dict[str, Any]:
+    """Project optional #642 User Mode telemetry without inferring absent evidence."""
+    operational = event.get("operational_mode")
+    if not isinstance(operational, Mapping):
+        return {}
+
+    keys = (
+        "user_mode",
+        "merge_policy",
+        "delegated_flow_activation_count",
+        "delegated_flow_steps",
+        "global_scan_steps",
+        "shadow_auto_green_evaluated_count",
+        "shadow_auto_green_eligible_count",
+        "shadow_auto_green_blocked_count",
+        "dangerous_false_positive_count",
+    )
+    return {key: operational.get(key) for key in keys}
+
+
 def collect_from_fixture(event: Dict[str, Any]) -> Dict[str, Any]:
     conflicts = event.get("conflicts") or []
     markers = event.get("markers") or []
@@ -120,6 +140,7 @@ def collect_from_fixture(event: Dict[str, Any]) -> Dict[str, Any]:
     }
     metrics.update(collect_flow_health_metrics(event))
     metrics.update(collect_review_routing_metrics(event))
+    metrics.update(collect_operational_mode_metrics(event))
 
     return {
         "schema_version": 1,
