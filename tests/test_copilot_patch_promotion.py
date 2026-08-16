@@ -9,6 +9,10 @@ from scripts.copilot_patch_promotion import (
 )
 
 
+ROOT = Path(__file__).resolve().parents[1]
+PROMOTION_WORKFLOW = ROOT / ".github" / "workflows" / "copilot-patch-promotion.yml"
+
+
 def base(**overrides):
     values = dict(
         issue_number=603,
@@ -128,3 +132,13 @@ def test_run_acceptance_tests_rejects_missing_contract_tests(tmp_path: Path):
     diagnostic.write_text('{"contract": {"acceptance_tests": []}}', encoding="utf-8")
     with pytest.raises(RuntimeError, match="ISSUE_CONTRACT_INVALID"):
         run_acceptance_tests(diagnostic)
+
+
+def test_promotion_workflow_allows_terminal_escape_sequences_but_keeps_harness_gate():
+    workflow = PROMOTION_WORKFLOW.read_text(encoding="utf-8")
+    assert (
+        'gh api --allow-escape-sequences "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs"'
+        in workflow
+    )
+    assert "grep -q 'HARNESS_OUTCOME=REVIEW_READY_VALIDATED' /tmp/source.log" in workflow
+    assert "SOURCE_NOT_REVIEW_READY_VALIDATED" in workflow
