@@ -18,6 +18,10 @@ permissions:
   actions: read
   issues: write
 
+concurrency:
+  group: copilot-patch-promotion-${{ inputs.issue_number }}-${{ inputs.source_run_id }}
+  cancel-in-progress: false
+
 jobs:
   promote:
     runs-on: ubuntu-latest
@@ -150,8 +154,8 @@ jobs:
           git checkout -b "$PROMOTION_BRANCH"
           git add -A
           git commit -m "fix(#${ISSUE_NUMBER}): promote validated Copilot patch"
-          promotion_commit="$(git rev-parse HEAD)"
           git push origin "$PROMOTION_BRANCH"
+          promotion_commit="$(git rev-parse HEAD)"
 
           if gh pr list --state all --head "$PROMOTION_BRANCH" --json number --jq 'length' | grep -qxv '0'; then
             echo PR_ALREADY_EXISTS
@@ -170,6 +174,12 @@ jobs:
 
           if [[ $pr_rc -eq 0 ]]; then
             cat /tmp/pr-create.out
+            exit 0
+          fi
+
+          race_pr_count="$(gh pr list --state all --head "$PROMOTION_BRANCH" --json number --jq 'length')"
+          if [[ "$race_pr_count" != "0" ]]; then
+            echo PR_ALREADY_EXISTS_RACE_RESOLVED
             exit 0
           fi
 
