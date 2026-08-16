@@ -1,4 +1,24 @@
-from scripts.work_contract_validator import validate_issue_body
+from scripts.work_contract_validator import validate_contract, validate_issue_body
+
+
+def valid_contract(**overrides):
+    values = {
+        "version": 1,
+        "goal": "deterministic work",
+        "status": "READY_FOR_IMPLEMENTATION",
+        "owner_slice": "contract-v1",
+        "risk": "GREEN",
+        "authority": "STANDARD",
+        "dependencies": ["#479"],
+        "allowed_paths": ["scripts/**", "tests/**"],
+        "forbidden_paths": ["TEAM_RULES.md", "TEAM_STATE.md", ".github/**"],
+        "acceptance_tests": ["pytest tests/test_work_contract_validator.py"],
+        "expected_outputs": ["PR"],
+        "human_gate": ["merge"],
+        "non_goals": ["automatic dispatch"],
+    }
+    values.update(overrides)
+    return values
 
 
 def body(**overrides):
@@ -132,3 +152,53 @@ def test_real_overlap_still_detected_with_blank_paths_present():
         body(allowed_paths='["", "scripts/**"]', forbidden_paths='["   ", "scripts/private/**"]')
     )
     assert "ALLOWED_FORBIDDEN_OVERLAP" in result.errors
+
+
+def test_null_allowed_path_fails_closed_not_silently():
+    """A null entry in allowed_paths must be rejected explicitly, not stringified."""
+    result = validate_contract(valid_contract(allowed_paths=["scripts/**", None]))
+    assert result.valid is False
+    assert result.executable is False
+    assert "NON_STRING_PATH:allowed_paths[1]" in result.errors
+
+
+def test_numeric_forbidden_path_fails_closed_not_silently():
+    """A numeric entry in forbidden_paths must be rejected explicitly, not stringified."""
+    result = validate_contract(valid_contract(forbidden_paths=["TEAM_RULES.md", 123]))
+    assert result.valid is False
+    assert "NON_STRING_PATH:forbidden_paths[1]" in result.errors
+
+
+def test_boolean_allowed_path_fails_closed_not_silently():
+    """A boolean entry in allowed_paths must be rejected explicitly, not stringified."""
+    result = validate_contract(valid_contract(allowed_paths=[True, "tests/**"]))
+    assert result.valid is False
+    assert "NON_STRING_PATH:allowed_paths[0]" in result.errors
+
+
+def test_object_and_array_forbidden_path_fails_closed_not_silently():
+    """dict/list entries in forbidden_paths must be rejected explicitly, not stringified."""
+    result = validate_contract(
+        valid_contract(forbidden_paths=["TEAM_RULES.md", {"path": "x"}, ["nested"]])
+    )
+    assert result.valid is False
+    assert "NON_STRING_PATH:forbidden_paths[1]" in result.errors
+    assert "NON_STRING_PATH:forbidden_paths[2]" in result.errors
+
+
+def test_non_string_path_does_not_trigger_spurious_overlap_or_crash():
+    """Non-string entries must not raise and must not be silently compared via str()."""
+    result = validate_contract(
+        valid_contract(allowed_paths=["scripts/**", None], forbidden_paths=["TEAM_RULES.md", 123])
+    )
+    assert "ALLOWED_FORBIDDEN_OVERLAP" not in result.errors
+    assert "NON_STRING_PATH:allowed_paths[1]" in result.errors
+    assert "NON_STRING_PATH:forbidden_paths[1]" in result.errors
+
+
+def test_valid_string_only_contract_unaffected_by_non_string_guard():
+    """Baseline: an all-string contract remains valid and unchanged in behavior."""
+    result = validate_contract(valid_contract())
+    assert result.valid is True
+    assert result.executable is True
+    assert result.errors == ()

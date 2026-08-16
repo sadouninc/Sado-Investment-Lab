@@ -177,16 +177,38 @@ def validate_contract(contract: dict[str, Any]) -> ValidationResult:
 
     allowed = contract.get("allowed_paths", [])
     forbidden = contract.get("forbidden_paths", [])
-    if isinstance(allowed, list) and isinstance(forbidden, list):
-        for left in allowed:
-            for right in forbidden:
-                if _paths_overlap(str(left), str(right)):
-                    errors.append("ALLOWED_FORBIDDEN_OVERLAP")
-                    break
 
-    if contract.get("risk") == "GREEN" and isinstance(allowed, list):
-        for path in allowed:
-            normalized = _path_prefix(str(path))
+    # Path metadata must be plain strings. Silently coercing non-string
+    # elements (via str()) would let null/number/boolean/object entries
+    # slip through overlap and protected-path checks with unpredictable
+    # results. Reject them explicitly and exclude them from further
+    # string-based path comparisons so a malformed entry can never be
+    # implicitly treated as safe.
+    allowed_strings: list[str] = []
+    if isinstance(allowed, list):
+        for index, item in enumerate(allowed):
+            if isinstance(item, str):
+                allowed_strings.append(item)
+            else:
+                errors.append(f"NON_STRING_PATH:allowed_paths[{index}]")
+
+    forbidden_strings: list[str] = []
+    if isinstance(forbidden, list):
+        for index, item in enumerate(forbidden):
+            if isinstance(item, str):
+                forbidden_strings.append(item)
+            else:
+                errors.append(f"NON_STRING_PATH:forbidden_paths[{index}]")
+
+    for left in allowed_strings:
+        for right in forbidden_strings:
+            if _paths_overlap(left, right):
+                errors.append("ALLOWED_FORBIDDEN_OVERLAP")
+                break
+
+    if contract.get("risk") == "GREEN":
+        for path in allowed_strings:
+            normalized = _path_prefix(path)
             if any(_paths_overlap(normalized, protected) for protected in PROTECTED_GREEN_PATHS):
                 errors.append(f"GREEN_PROTECTED_PATH:{path}")
             if re.search(r"(^|[/_.-])79([/_.-]|$)", normalized, flags=re.IGNORECASE):
