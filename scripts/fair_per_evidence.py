@@ -386,10 +386,10 @@ def compute_implied_expectation(
     current_per = price / base_eps if base_eps and base_eps > 0 else None
 
     implied_scenario = None
-    if known_scenarios:
+    if current_per is not None and known_scenarios:
         best_name = min(
             known_scenarios,
-            key=lambda name: abs(price / known_scenarios[name] - current_per) if current_per else float('inf'),
+            key=lambda name: abs(price / known_scenarios[name] - current_per),
         )
         implied_scenario = best_name
 
