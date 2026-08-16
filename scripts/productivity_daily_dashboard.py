@@ -114,20 +114,20 @@ def render_markdown(metrics: dict[str, object]) -> str:
         recent_7 = rows[-7:]
         # Previous 7 days (7 rows before that)
         previous_7 = rows[-14:-7]
-        
+
         comparison_metrics = ["pr_created", "pr_merged", "issue_created", "issue_closed", "issue_net_change"]
         comparisons = {}
         for metric in comparison_metrics:
             recent_total = sum(int(row[metric]) for row in recent_7)
             previous_total = sum(int(row[metric]) for row in previous_7)
             delta = recent_total - previous_total
-            
+
             if previous_total == 0:
                 pct_str = "N/A"
             else:
                 pct = (delta / previous_total) * 100
                 pct_str = f"{pct:+.1f}%"
-            
+
             comparisons[metric] = {
                 "recent": recent_total,
                 "previous": previous_total,
@@ -145,7 +145,7 @@ def render_markdown(metrics: dict[str, object]) -> str:
         "これは活動量の観測レイヤであり、**Issue/PR件数の最大化自体を生産性の目的にはしません**。#479の実作業 (productive steps) / 永続成果 (durable outputs) / 完了までの時間 (lead time) と組み合わせて評価します。",
         "",
     ]
-    
+
     if comparisons:
         parts.extend([
             "### 📊 直近7日 vs 前7日",
@@ -159,7 +159,7 @@ def render_markdown(metrics: dict[str, object]) -> str:
             f"| Issue純増減 | {comparisons['issue_net_change']['recent']:+d} | {comparisons['issue_net_change']['previous']:+d} | {comparisons['issue_net_change']['delta']:+d} | {comparisons['issue_net_change']['pct']} |",
             "",
         ])
-    
+
     parts.extend([
         "### 📋 全期間集計",
         "",
@@ -181,7 +181,7 @@ def render_markdown(metrics: dict[str, object]) -> str:
         "",
         "| JST日付 | PR発行 | PRマージ | Issue発行 | Issue完了 | Issue純増減 |",
         "| --- | ---: | ---: | ---: | ---: | ---: |",
-    ]
+    ])
     for row in rows:
         parts.append(
             f"| {row['date']} | {row['pr_created']} | {row['pr_merged']} | {row['issue_created']} | "
