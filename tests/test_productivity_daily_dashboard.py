@@ -49,15 +49,18 @@ class ProductivityDailyDashboardTest(unittest.TestCase):
         self.assertEqual(0, row["issue_closed"])
 
         self.assertEqual(1, row["pr_merged"])
+
     def test_markdown_contains_graph_table_and_marker(self):
         now = datetime(2026, 8, 15, 12, 0, tzinfo=timezone.utc)
         result = summarize([], now=now, days=2)
         markdown = render_markdown(result)
         self.assertIn(MARKER, markdown)
         self.assertIn("xychart-beta", markdown)
+        self.assertIn("日次活動量ダッシュボード", markdown)
         self.assertIn("PR発行 / 日", markdown)
         self.assertIn("PRマージ / 日", markdown)
         self.assertIn("Issue完了 / 日", markdown)
+        self.assertIn("実作業 (productive steps)", markdown)
         self.assertIn("2026-08-15", markdown)
         self.assertIn("件数の最大化自体を生産性の目的にはしません", markdown)
         # Deterministic rendering assertion: same input should produce same output
@@ -80,7 +83,7 @@ class ProductivityDailyDashboardTest(unittest.TestCase):
         ]
         result = summarize(items, now=now, days=2)
         by_date = {row["date"]: row for row in result["rows"]}
-        
+
         self.assertEqual(1, by_date["2026-08-15"]["pr_merged"])
         self.assertEqual(1, by_date["2026-08-16"]["pr_merged"])
 
@@ -101,7 +104,7 @@ class ProductivityDailyDashboardTest(unittest.TestCase):
         ]
         result = summarize(items, now=now, days=1)
         row = result["rows"][0]
-        
+
         self.assertEqual(1, row["pr_merged"])
         self.assertEqual(1, row["issue_closed"])
         self.assertEqual(1, row["issue_created"])
@@ -117,7 +120,7 @@ class ProductivityDailyDashboardTest(unittest.TestCase):
             if day == 10:
                 items.append({"created_at": f"2026-08-{day:02d}T02:00:00Z", "pull_request": {}})
         items.append({"created_at": "2026-08-10T03:00:00Z", "merged_at": "2026-08-10T04:00:00Z", "pull_request": {}})
-        
+
         # Recent 7 days (8/14-8/20): 4 PRs created, 2 merged
         for day in range(14, 21):
             items.append({"created_at": f"2026-08-{day:02d}T01:00:00Z", "pull_request": {}})
@@ -125,10 +128,10 @@ class ProductivityDailyDashboardTest(unittest.TestCase):
                 items.append({"created_at": f"2026-08-{day:02d}T02:00:00Z", "pull_request": {}})
         for day in range(15, 17):
             items.append({"created_at": f"2026-08-{day:02d}T03:00:00Z", "merged_at": f"2026-08-{day:02d}T04:00:00Z", "pull_request": {}})
-        
+
         result = summarize(items, now=now, days=14)
         markdown = render_markdown(result)
-        
+
         self.assertIn("直近7日 vs 前7日", markdown)
         # Check that the comparison table exists
         self.assertIn("直近7日", markdown)
@@ -142,8 +145,9 @@ class ProductivityDailyDashboardTest(unittest.TestCase):
         items = [{"created_at": "2026-08-15T01:00:00Z", "pull_request": {}}]
         result = summarize(items, now=now, days=14)
         markdown = render_markdown(result)
-        
+
         self.assertIn("N/A", markdown)
+
 
 if __name__ == "__main__":
     unittest.main()
