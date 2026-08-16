@@ -69,22 +69,100 @@ jobs:
           jq -s 'add // []' /tmp/comment-pages.jsonl > /tmp/comments.json
 
           python - <<'PY'
+          import datetime as dt
           import json, os, re
+
           issue = int(os.environ['ISSUE_NUMBER'])
           comments = json.load(open('/tmp/comments.json'))
-          leases = []
+          now = dt.datetime.now(dt.timezone.utc)
+          active_lease = False
+          terminalizing = False
+          recorded_branch = ''
+          retryable = False
+
+          retryable_statuses = {
+              'DISPATCH_LEASE_EXPIRED', 'COPILOT_RETRYABLE_FAILURE',
+              'RETRYABLE_FAILURE', 'FALLBACK_RETRYABLE_FAILURE',
+              'BLOCKED_BASE_DRIFT'
+          }
+          terminalizing_statuses = {
+              'PROMOTION_DISPATCHED', 'PROMOTION_BRANCH_READY',
+              'PR_CREATE_REQUIRED', 'DUPLICATE_SUPERSEDED',
+              'PR_ALREADY_EXISTS', 'PR_ALREADY_EXISTS_RACE_RESOLVED'
+          }
+
           for comment in comments:
               body = comment.get('body') or ''
-              for raw in re.findall(r'\{[^\n]*"work_ref"\s*:\s*"issue:%d"[^\n]*\}' % issue, body):
+              for raw in re.findall(r'\{[^\n]*(?:"work_ref"|"issue_number"|"status"|"action"|"owner_slice")[^\n]*\}', body):
                   try:
-                      lease = json.loads(raw)
+                      evidence = json.loads(raw)
                   except json.JSONDecodeError:
                       continue
-                  if lease.get('owner_slice') == f'issue-{issue}':
-                      leases.append(lease)
-          if leases and leases[-1].get('status') in {'ASSIGNED','ACKNOWLEDGED','FALLBACK_ASSIGNED'}:
-              raise SystemExit('DUPLICATE_ACTIVE_DISPATCH')
+                  work_ref = evidence.get('work_ref')
+                  evidence_issue = evidence.get('issue_number')
+                  if work_ref not in (None, f'issue:{issue}'):
+                      continue
+                  if evidence_issue not in (None, issue):
+                      continue
+
+                  status = evidence.get('status') or evidence.get('action')
+                  # Retryable terminal evidence is an explicit state reset. This
+                  # intentionally runs before terminalizing evidence so a later
+                  # BLOCKED_BASE_DRIFT can reopen a prior PROMOTION_DISPATCHED.
+                  if status in retryable_statuses:
+                      retryable = True
+                      terminalizing = False
+                      active_lease = False
+                      recorded_branch = ''
+                      continue
+
+                  if status in terminalizing_statuses:
+                      terminalizing = True
+                      retryable = False
+                      recorded_branch = evidence.get('branch') or recorded_branch
+
+                  if evidence.get('owner_slice') == f'issue-{issue}' and status in {'ASSIGNED','ACKNOWLEDGED','FALLBACK_ASSIGNED'}:
+                      expires = evidence.get('lease_expires_at')
+                      try:
+                          expiry = dt.datetime.fromisoformat(expires.replace('Z', '+00:00')) if expires else None
+                      except (TypeError, ValueError):
+                          expiry = None
+                      if expiry and expiry > now:
+                          active_lease = True
+                      else:
+                          active_lease = False
+
+          state = {
+              'active_lease': active_lease,
+              'terminalizing': terminalizing and not retryable,
+              'recorded_branch': recorded_branch,
+              'retryable': retryable,
+          }
+          with open('/tmp/dispatch-state.json', 'w') as f:
+              json.dump(state, f)
           PY
+
+          if jq -e '.active_lease == true' /tmp/dispatch-state.json >/dev/null; then
+            echo DUPLICATE_ACTIVE_DISPATCH_SKIP
+            echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          recorded_branch="$(jq -r '.recorded_branch // empty' /tmp/dispatch-state.json)"
+          if [[ -n "$recorded_branch" ]]; then
+            existing_pr="$(gh pr list --repo "$GITHUB_REPOSITORY" --state all --head "$recorded_branch" --json number --jq '.[0].number // empty')"
+            if [[ -n "$existing_pr" ]]; then
+              echo "DUPLICATE_EXISTING_PR_SKIP pr=${existing_pr}"
+              echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          if jq -e '.terminalizing == true' /tmp/dispatch-state.json >/dev/null; then
+            echo DUPLICATE_PROMOTION_TERMINALIZATION_SKIP
+            echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           assigned_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           expires_at="$(date -u -d '+60 minutes' +%Y-%m-%dT%H:%M:%SZ)"
@@ -105,9 +183,10 @@ jobs:
           Owner-authenticated /ai copilot accepted. Copilot safe lane dispatched with 60m lease. Contract/safety failure remains fail-closed." >/dev/null
 
           echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
+          echo "dispatch_allowed=true" >> "$GITHUB_OUTPUT"
 
       - name: Dispatch Copilot and explicitly hand off completion
-        if: steps.command.outputs.accepted == 'true'
+        if: steps.command.outputs.accepted == 'true' && steps.gate.outputs.dispatch_allowed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
