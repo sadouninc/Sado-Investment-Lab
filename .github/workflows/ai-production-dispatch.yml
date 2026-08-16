@@ -82,7 +82,8 @@ jobs:
 
           retryable_statuses = {
               'DISPATCH_LEASE_EXPIRED', 'COPILOT_RETRYABLE_FAILURE',
-              'RETRYABLE_FAILURE', 'FALLBACK_RETRYABLE_FAILURE'
+              'RETRYABLE_FAILURE', 'FALLBACK_RETRYABLE_FAILURE',
+              'BLOCKED_BASE_DRIFT'
           }
           terminalizing_statuses = {
               'PROMOTION_DISPATCHED', 'PROMOTION_BRANCH_READY',
@@ -105,10 +106,14 @@ jobs:
                       continue
 
                   status = evidence.get('status') or evidence.get('action')
+                  # Retryable terminal evidence is an explicit state reset. This
+                  # intentionally runs before terminalizing evidence so a later
+                  # BLOCKED_BASE_DRIFT can reopen a prior PROMOTION_DISPATCHED.
                   if status in retryable_statuses:
                       retryable = True
                       terminalizing = False
                       active_lease = False
+                      recorded_branch = ''
                       continue
 
                   if status in terminalizing_statuses or evidence.get('action') == 'PR_CREATE_REQUIRED':
