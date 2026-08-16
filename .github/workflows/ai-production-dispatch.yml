@@ -38,13 +38,13 @@ jobs:
             exit 78
           }
 
-          # Do not create a second active production dispatch for the same owner slice.
+          # Only the latest lease record is authoritative for duplicate prevention.
           gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments?per_page=100" > /tmp/comments.json
           python - <<'PY'
           import json, os, re
           issue = int(os.environ['ISSUE_NUMBER'])
           comments = json.load(open('/tmp/comments.json'))
-          active = False
+          leases = []
           for comment in comments:
               body = comment.get('body') or ''
               for raw in re.findall(r'\{[^\n]*"work_ref"\s*:\s*"issue:%d"[^\n]*\}' % issue, body):
@@ -52,9 +52,9 @@ jobs:
                       lease = json.loads(raw)
                   except json.JSONDecodeError:
                       continue
-                  if lease.get('owner_slice') == f'issue-{issue}' and lease.get('status') in {'ASSIGNED','ACKNOWLEDGED','FALLBACK_ASSIGNED'}:
-                      active = True
-          if active:
+                  if lease.get('owner_slice') == f'issue-{issue}':
+                      leases.append(lease)
+          if leases and leases[-1].get('status') in {'ASSIGNED','ACKNOWLEDGED','FALLBACK_ASSIGNED'}:
               raise SystemExit('DUPLICATE_ACTIVE_DISPATCH')
           PY
 
