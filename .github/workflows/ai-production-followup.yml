@@ -1,0 +1,156 @@
+name: AI Production Follow-up
+
+on:
+  workflow_run:
+    workflows: ["Copilot PoC1 — safe implementation lane"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
+jobs:
+  follow-up:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout policy core
+        uses: actions/checkout@v6
+
+      - name: Resolve production lease and classify Copilot result
+        id: classify
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_TITLE: ${{ github.event.workflow_run.display_title }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$RUN_TITLE" =~ ^Copilot\ PoC1\ —\ issue\ ([0-9]+)$ ]]; then
+            echo "Manual/non-production run: no parseable production issue identity."
+            echo "action=NONE" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          issue="${BASH_REMATCH[1]}"
+          if [[ "$issue" == "79" ]]; then
+            echo PROTECTED_ISSUE_79
+            exit 79
+          fi
+
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments?per_page=100" > /tmp/comments.json
+          ISSUE_NUMBER="$issue" python - <<'PY'
+          import json, os, re
+          issue = int(os.environ['ISSUE_NUMBER'])
+          comments = json.load(open('/tmp/comments.json'))
+          leases = []
+          for comment in comments:
+              body = comment.get('body') or ''
+              for raw in re.findall(r'\{[^\n]*"work_ref"\s*:\s*"issue:%d"[^\n]*\}' % issue, body):
+                  try:
+                      lease = json.loads(raw)
+                  except json.JSONDecodeError:
+                      continue
+                  if lease.get('owner_slice') == f'issue-{issue}':
+                      leases.append(lease)
+          if not leases or leases[-1].get('engine') != 'copilot' or leases[-1].get('status') not in {'ASSIGNED','ACKNOWLEDGED'}:
+              raise SystemExit('NO_ACTIVE_PRODUCTION_COPILOT_LEASE')
+          PY
+
+          gh run view "$RUN_ID" --log > /tmp/run.log || true
+          outcome=UNKNOWN
+          retryable=false
+          if grep -q 'HARNESS_OUTCOME=REVIEW_READY_VALIDATED' /tmp/run.log && [[ "$RUN_CONCLUSION" == "success" ]]; then
+            outcome=REVIEW_READY_VALIDATED
+          elif grep -q 'BLOCKED_CONTRACT_PREFLIGHT' /tmp/run.log; then
+            outcome=BLOCKED_CONTRACT_PREFLIGHT
+          elif grep -q 'BLOCKED_ISSUE_PATH_CONTRACT' /tmp/run.log; then
+            outcome=BLOCKED_ISSUE_PATH_CONTRACT
+          elif grep -q 'BLOCKED_FORBIDDEN_PATH' /tmp/run.log; then
+            outcome=BLOCKED_FORBIDDEN_PATH
+          elif grep -q 'PROTECTED_ISSUE_79' /tmp/run.log; then
+            outcome=PROTECTED_ISSUE_79
+          elif grep -q 'BLOCKED_AGENT_NOT_REVIEW_READY' /tmp/run.log; then
+            outcome=BLOCKED_AGENT_NOT_REVIEW_READY
+            retryable=true
+          elif grep -q 'BLOCKED_RESULT_MISSING' /tmp/run.log; then
+            outcome=BLOCKED_RESULT_MISSING
+            retryable=true
+          else
+            outcome=COPILOT_SERVICE_FAILURE
+            retryable=true
+          fi
+
+          decision="$(python - <<PY
+          import json
+          from scripts.ai_dispatch_policy import evaluate_dispatch_result
+          print(json.dumps(evaluate_dispatch_result({
+              'issue_number': int('$issue'),
+              'engine': 'copilot',
+              'outcome': '$outcome',
+              'run_success': '$RUN_CONCLUSION' == 'success',
+              'retryable_execution_failure': '$retryable' == 'true',
+          })))
+          PY
+          )"
+          action="$(jq -r '.action' <<<"$decision")"
+          reason="$(jq -r '.reason' <<<"$decision")"
+          echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
+          echo "action=$action" >> "$GITHUB_OUTPUT"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+          echo "Decision: $decision"
+
+      - name: Promote validated Copilot patch through existing workflow
+        if: steps.classify.outputs.action == 'PROMOTE_PATCH'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ steps.classify.outputs.issue_number }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run copilot-patch-promotion.yml --ref main \
+            -f issue_number="$ISSUE_NUMBER" \
+            -f source_run_id="$RUN_ID"
+          gh issue comment "$ISSUE_NUMBER" --body "担当: ♦️ソラ
+          種別: AI Production Follow-up / Promotion
+
+          Copilot production run ${RUN_ID} passed Harness (`REVIEW_READY_VALIDATED`). Existing Patch Promotion workflow dispatched."
+
+      - name: Route retryable Copilot failure to Amazon Q Free
+        if: steps.classify.outputs.action == 'FALLBACK_AMAZON_Q_FREE'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ steps.classify.outputs.issue_number }}
+          REASON: ${{ steps.classify.outputs.reason }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          assigned_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          expires_at="$(date -u -d '+60 minutes' +%Y-%m-%dT%H:%M:%SZ)"
+          lease="$(jq -nc \
+            --arg work_ref "issue:${ISSUE_NUMBER}" \
+            --arg owner_slice "issue-${ISSUE_NUMBER}" \
+            --arg assigned_at "$assigned_at" \
+            --arg expires_at "$expires_at" \
+            --arg reason "$REASON" \
+            '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"amazon_q_free",assigned_at:$assigned_at,acknowledged_at:null,lease_expires_at:$expires_at,fallback_owner:"nagi",status:"FALLBACK_ASSIGNED",reason:$reason}')"
+          gh issue comment "$ISSUE_NUMBER" --body "<!-- flow-dispatch-lease -->
+          ${lease}
+
+          /q dev Implement Issue #${ISSUE_NUMBER} exactly as written. Copilot production execution failed with retryable reason: ${REASON}. Reuse the existing Issue contract and allowed paths. Do not broaden scope. Contract/safety failures remain fail-closed. Do not touch Issue #79 and do not enable actual AUTO_GREEN."
+
+      - name: Record fail-closed result
+        if: steps.classify.outputs.action == 'NONE' && steps.classify.outputs.issue_number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ steps.classify.outputs.issue_number }}
+          REASON: ${{ steps.classify.outputs.reason }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh issue comment "$ISSUE_NUMBER" --body "担当: ♦️ソラ
+          種別: AI Production Follow-up / FAIL_CLOSED
+
+          Production routing stopped without fallback. Reason: `${REASON}`. Contract/safety failure is not eligible for Amazon Q fallback."
