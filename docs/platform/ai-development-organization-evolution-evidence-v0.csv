@@ -1,0 +1,6 @@
+occurred_at_jst,evidence_type,ref,category,claim_status,summary
+2026-08-16T16:30:02+09:00,MERGE,PR#662,BLOCKER_REPAIR_MERGED,OBSERVED,"Patch Promotion source-log ANSI tolerance repair merged; exact attribution to productivity change not yet claimed"
+2026-08-16T17:52:00+09:00,MERGE,PR#671,MERGED_PR,OBSERVED,"#550 PR1 Contract/Taxonomy hardening merged; timestamp to be revalidated from PR metadata before final chart"
+2026-08-16T19:55:57+09:00,MERGE,PR#674,BLOCKER_REPAIR_MERGED,OBSERVED,"#672 declarative acceptance replay hardening merged; GitHub merged_at=2026-08-16T10:55:57Z"
+2026-08-16T20:28:45+09:00,ISSUE,ISSUE#675,DOCUMENTATION,OBSERVED,"Engineering Evolution Record issue created"
+2026-08-16T20:31:00+09:00,USER_OBSERVATION,ISSUE#675,PRODUCTIVITY_HYPOTHESIS,USER_OBSERVATION,"User observed that productivity appeared clearly higher in the latter half of 2026-08-16; exact comment timestamp to be revalidated if used quantitatively"
