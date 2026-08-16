@@ -60,6 +60,30 @@ def test_dispatcher_suppresses_duplicate_redispatch_during_promotion_terminaliza
     assert "steps.gate.outputs.dispatch_allowed == 'true'" in text
 
 
+def test_dispatcher_ignores_unrelated_json_when_reconstructing_state():
+    text = DISPATCH.read_text(encoding="utf-8")
+    evidence_pattern = re.compile(
+        r'\{[^\n]*(?:"work_ref"|"issue_number"|"status"|"action"|"owner_slice")[^\n]*\}'
+    )
+    unrelated = '{"foo":"PROMOTION_DISPATCHED","branch":"fake","lease_expires_at":"2999-01-01T00:00:00Z"}'
+    assert evidence_pattern.findall(unrelated) == []
+    assert r"re.findall(r'\{[^\n]*\}', body)" not in text
+    assert '(?:\"work_ref\"|\"issue_number\"|\"status\"|\"action\"|\"owner_slice\")' in text
+    # With no recognized evidence record, state remains fresh/default and dispatch is allowed.
+    state = {
+        "active_lease": False,
+        "terminalizing": False,
+        "recorded_branch": "",
+        "retryable": False,
+    }
+    assert state == {
+        "active_lease": False,
+        "terminalizing": False,
+        "recorded_branch": "",
+        "retryable": False,
+    }
+
+
 def test_base_drift_reopens_prior_promotion_for_fresh_dispatch():
     terminalizing, retryable = _replay_dispatch_state(
         ["PROMOTION_DISPATCHED", "BLOCKED_BASE_DRIFT"]
