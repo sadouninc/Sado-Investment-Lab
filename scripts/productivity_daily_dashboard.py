@@ -41,7 +41,7 @@ def summarize(items: Iterable[dict[str, object]], *, now: datetime, days: int = 
     dates = day_window(now, days)
     allowed = set(dates)
     counts = {
-        day: {"pr_created": 0, "issue_created": 0, "issue_closed": 0}
+        day: {"pr_created": 0, "pr_merged": 0, "issue_created": 0, "issue_closed": 0}
         for day in dates
     }
 
@@ -51,6 +51,11 @@ def summarize(items: Iterable[dict[str, object]], *, now: datetime, days: int = 
         if created in allowed:
             key = "pr_created" if is_pr else "issue_created"
             counts[created][key] += 1
+
+        if is_pr:
+            merged = jst_date(str(item.get("merged_at")) if item.get("merged_at") else None)
+            if merged in allowed:
+                counts[merged]["pr_merged"] += 1
 
         if not is_pr:
             closed = jst_date(str(item.get("closed_at")) if item.get("closed_at") else None)
@@ -65,7 +70,7 @@ def summarize(items: Iterable[dict[str, object]], *, now: datetime, days: int = 
 
     totals = {
         key: sum(int(row[key]) for row in rows)
-        for key in ("pr_created", "issue_created", "issue_closed")
+        for key in ("pr_created", "pr_merged", "issue_created", "issue_closed")
     }
     totals["issue_net_change"] = totals["issue_created"] - totals["issue_closed"]
     averages = {key: round(value / days, 2) for key, value in totals.items()}

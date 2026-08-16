@@ -56,10 +56,12 @@ class ProductivityDailyDashboardTest(unittest.TestCase):
         self.assertIn(MARKER, markdown)
         self.assertIn("xychart-beta", markdown)
         self.assertIn("PR発行 / 日", markdown)
-        self.assertIn("PR Merge / 日", markdown)
-        self.assertIn("Issue Close / 日", markdown)
+        self.assertIn("PRマージ / 日", markdown)
+        self.assertIn("Issue完了 / 日", markdown)
         self.assertIn("2026-08-15", markdown)
         self.assertIn("件数の最大化自体を生産性の目的にはしません", markdown)
+        # Deterministic rendering assertion: same input should produce same output
+        self.assertEqual(markdown, render_markdown(result))
 
     def test_merged_at_jst_boundary(self):
         """Test that PR merged_at is correctly bucketed to JST date."""
