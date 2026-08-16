@@ -97,6 +97,23 @@ Amazon QとChatGPTはalternative PR routesではない。同じdelivery flowに�
 
 これは重要な一次観測として保存するが、**測定結果や因果結論とは分離する**。
 
+### First verified evidence window
+
+GitHub Authority timestampで確認済みのdurable mergeを、まず以下のように固定した。
+
+| JST | Evidence | Durable meaning |
+|---|---|---|
+| 16:30:02 | PR #662 merged | production Patch Promotion blocker repair |
+| 17:40:34 | PR #670 merged | duplicate AI Production redispatch suppression |
+| 17:52:10 | PR #671 merged | #550 PR1 Contract/Taxonomy hardening |
+| 19:55:57 | PR #674 merged | declarative acceptance replay infrastructure repair |
+
+16:30:02→19:55:57の約3時間26分で、少なくとも4件のverified durable mergeが発生している。この4件は単なる同種PRではなく、production blocker repair、duplicate-cost suppression、domain contract hardening、promotion infrastructure repairを含む。
+
+**ただし、これだけでは「後半に生産性が上がった」という仮説の証明にはならない。** 比較対象となる前半windowの同一定義metricをまだ確定していないため、現時点の判定は `EARLY_SIGNAL / CAUSALITY_UNPROVEN` とする。
+
+注目すべき観測として、PR #671は作成17:48:05 JST→merge17:52:10 JSTで約4分05秒、PR #674は作成19:01:37 JST→merge19:55:57 JSTで約54分20秒だった。scope/riskが異なるため単純平均はせず、今後は同category比較または分布で扱う。
+
 ### Hypothesis
 
 2026-08-16後半にdelivery throughputまたはdurable-output cadenceが改善している可能性がある。その変化が確認できた場合、Copilot / Amazon Qというworker追加だけでなく、Single Flow Authority、lease、Harness、Promotion、duplicate suppression、BLOCKED_ESCAPE、Risk/Scope-driven reviewなどの運用成熟と時間的に対応しているかを検証する。
@@ -174,6 +191,14 @@ original workへresume
 
 このloopは「失敗しなかった」ことではなく、**失敗を検出した後の回復経路が短く、別workへcapacityを解放し、再発防止をdurable outputにできたか**を評価する。
 
+## Selective Formation / Kick UX transition
+
+BeforeではOwnerが複数ChatGPT memberを個別にkickする比重が高かった。Targetは、Ownerが原則🌊ナギだけをkickし、🌊ナギがglobal Flow scanから必要なexpertise/workerだけを選ぶSelective Formationである。
+
+ただし、現時点で「ナギだけkickすれば完全自動」とは扱わない。ChatGPT memberの実dispatch経路、missed blocker、zero-productive activation、Owner escalationを5〜10 run程度で検証してから切替案内する。
+
+切替時はOwnerへ、その時点の正確なkick方法を明示する。
+
 ## Pagesで作る可視化
 
 1. **Evolution Timeline** — process adaptation eventとdurable outputを同一時間軸に置く。
@@ -209,7 +234,7 @@ UNKNOWNは0やPASSへ変換しない。
 
 ## Next evidence work
 
-- 2026-08-16 JSTのPR / Issue / workflow timestampsを収集する。
+- 2026-08-16 JST前半の同一定義PR / Issue / workflow timestampsを収集し、後半と比較する。
 - 前半/後半の境界は結果に合わせて恣意的に決めず、主要process adaptation時刻を併記する。
 - #645 ledgerから取得可能なFlow telemetryを抽出する。
 - cumulative durable outputsとBefore/After tableを生成する。
