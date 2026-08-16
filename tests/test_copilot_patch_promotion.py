@@ -120,9 +120,47 @@ def test_acceptance_command_allowlist_rejects_shell_or_other_commands():
         acceptance_test_argv("bash -c 'echo unsafe'")
 
 
-def test_run_acceptance_tests_rejects_missing_contract_tests(tmp_path: Path):
+def test_declarative_acceptance_is_not_executed(tmp_path: Path):
     diagnostic = tmp_path / "contract.json"
-    diagnostic.write_text('{"contract": {"acceptance_tests": []}}', encoding="utf-8")
+    diagnostic.write_text(
+        '{"contract": {"acceptance_tests": ["Sony #403 fixtureを10-factor schemaへlosslessに表現できる"]}}',
+        encoding="utf-8",
+    )
+    run_acceptance_tests(diagnostic)
+
+
+def test_explicit_executable_acceptance_uses_pytest_allowlist(tmp_path: Path, monkeypatch):
+    diagnostic = tmp_path / "contract.json"
+    diagnostic.write_text(
+        '{"contract": {"acceptance_tests": ["declarative"], "executable_acceptance_tests": ["python -m pytest -q tests/test_x.py"]}}',
+        encoding="utf-8",
+    )
+    seen = []
+
+    class Completed:
+        returncode = 0
+
+    monkeypatch.setattr("scripts.copilot_patch_promotion.subprocess.run", lambda argv, check=False: seen.append(argv) or Completed())
+    run_acceptance_tests(diagnostic)
+    assert seen == [["python", "-m", "pytest", "-q", "tests/test_x.py"]]
+
+
+def test_executable_acceptance_rejects_arbitrary_command(tmp_path: Path):
+    diagnostic = tmp_path / "contract.json"
+    diagnostic.write_text(
+        '{"contract": {"acceptance_tests": ["declarative"], "executable_acceptance_tests": ["bash -c \\\"echo unsafe\\\""]}}',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="UNSUPPORTED_ACCEPTANCE_TEST"):
+        run_acceptance_tests(diagnostic)
+
+
+def test_malformed_executable_acceptance_fails_closed(tmp_path: Path):
+    diagnostic = tmp_path / "contract.json"
+    diagnostic.write_text(
+        '{"contract": {"acceptance_tests": ["declarative"], "executable_acceptance_tests": "pytest -q"}}',
+        encoding="utf-8",
+    )
     with pytest.raises(RuntimeError, match="ISSUE_CONTRACT_INVALID"):
         run_acceptance_tests(diagnostic)
 
