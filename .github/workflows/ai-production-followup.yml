@@ -1,9 +1,20 @@
 name: AI Production Follow-up
 
 on:
-  workflow_run:
-    workflows: ["Copilot PoC1 — safe implementation lane"]
-    types: [completed]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "Production Issue number"
+        required: true
+        type: number
+      source_run_id:
+        description: "Completed Copilot source run id"
+        required: true
+        type: string
+      source_conclusion:
+        description: "Completed Copilot source job conclusion"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -14,6 +25,9 @@ jobs:
   follow-up:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency:
+      group: ai-production-followup-${{ inputs.source_run_id }}
+      cancel-in-progress: false
     steps:
       - name: Checkout policy core
         uses: actions/checkout@v6
@@ -22,21 +36,29 @@ jobs:
         id: classify
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-          RUN_TITLE: ${{ github.event.workflow_run.display_title }}
-          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_ID: ${{ inputs.source_run_id }}
+          ISSUE_HINT: ${{ inputs.issue_number }}
+          RUN_CONCLUSION: ${{ inputs.source_conclusion }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! "$RUN_TITLE" =~ ^Copilot\ PoC1\ —\ issue\ ([0-9]+)$ ]]; then
-            echo "Manual/non-production run: no parseable production issue identity."
+          issue="${ISSUE_HINT%%.*}"
+          if [[ -z "$issue" || ! "$issue" =~ ^[0-9]+$ ]]; then
+            echo "Invalid explicit production issue identity."
             echo "action=NONE" >> "$GITHUB_OUTPUT"
+            echo "reason=INVALID_ISSUE_IDENTITY" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          issue="${BASH_REMATCH[1]}"
           if [[ "$issue" == "79" ]]; then
             echo PROTECTED_ISSUE_79
             exit 79
+          fi
+          if [[ -z "$RUN_ID" || ! "$RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "Invalid explicit source run identity."
+            echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
+            echo "action=NONE" >> "$GITHUB_OUTPUT"
+            echo "reason=INVALID_SOURCE_RUN_ID" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           : > /tmp/comment-pages.jsonl
@@ -50,7 +72,7 @@ jobs:
           done
           jq -s 'add // []' /tmp/comment-pages.jsonl > /tmp/comments.json
 
-          ISSUE_NUMBER="$issue" python - <<'PY'
+          if ! ISSUE_NUMBER="$issue" python - <<'PY'
           import json, os, re
           issue = int(os.environ['ISSUE_NUMBER'])
           comments = json.load(open('/tmp/comments.json'))
@@ -65,12 +87,21 @@ jobs:
                   if lease.get('owner_slice') == f'issue-{issue}':
                       leases.append(lease)
           if not leases or leases[-1].get('engine') != 'copilot' or leases[-1].get('status') not in {'ASSIGNED','ACKNOWLEDGED'}:
-              raise SystemExit('NO_ACTIVE_PRODUCTION_COPILOT_LEASE')
+              raise SystemExit(1)
           PY
+          then
+            echo "No active production Copilot lease; ignore manual/duplicate source run."
+            echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
+            echo "source_run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "action=NONE" >> "$GITHUB_OUTPUT"
+            echo "reason=NO_ACTIVE_PRODUCTION_COPILOT_LEASE" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           if ! gh run view "$RUN_ID" --log > /tmp/run.log 2>&1 || [[ ! -s /tmp/run.log ]]; then
             echo "Failed to retrieve non-empty source run logs; fail closed."
             echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
+            echo "source_run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
             echo "action=NONE" >> "$GITHUB_OUTPUT"
             echo "reason=FAILED_TO_RETRIEVE_LOGS" >> "$GITHUB_OUTPUT"
             exit 0
@@ -116,6 +147,7 @@ jobs:
           action="$(jq -r '.action' <<<"$decision")"
           reason="$(jq -r '.reason' <<<"$decision")"
           echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
+          echo "source_run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
           echo "action=$action" >> "$GITHUB_OUTPUT"
           echo "reason=$reason" >> "$GITHUB_OUTPUT"
           echo "Decision: $decision"
@@ -125,7 +157,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.classify.outputs.issue_number }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ID: ${{ steps.classify.outputs.source_run_id }}
         shell: bash
         run: |
           set -euo pipefail
@@ -171,12 +203,12 @@ jobs:
           /q dev Implement Issue #${ISSUE_NUMBER} exactly as written. Copilot production execution failed with retryable reason: ${REASON}. Reuse the existing Issue contract and allowed paths. Do not broaden scope. Contract/safety failures remain fail-closed. Do not touch Issue #79 and do not enable actual AUTO_GREEN."
 
       - name: Record fail-closed result
-        if: steps.classify.outputs.action == 'NONE' && steps.classify.outputs.issue_number != ''
+        if: steps.classify.outputs.action == 'NONE' && steps.classify.outputs.issue_number != '' && steps.classify.outputs.reason != 'NO_ACTIVE_PRODUCTION_COPILOT_LEASE'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.classify.outputs.issue_number }}
           REASON: ${{ steps.classify.outputs.reason }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ID: ${{ steps.classify.outputs.source_run_id }}
         shell: bash
         run: |
           set -euo pipefail
