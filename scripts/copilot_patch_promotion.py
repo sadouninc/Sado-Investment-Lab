@@ -44,13 +44,11 @@ def evaluate_promotion(
     if already_applied:
         return PromotionDecision(False, "ALREADY_APPLIED")
 
-    # Fail-closed: reject if any element is blank/whitespace before filtering
     if changed_paths and any(not p or not p.strip() for p in changed_paths):
         return PromotionDecision(False, "ISSUE_CONTRACT_INVALID")
-    # Fail-closed: reject if any element is blank/whitespace in allowed_paths
     if allowed_paths and any(not p or not p.strip() for p in allowed_paths):
         return PromotionDecision(False, "ISSUE_CONTRACT_INVALID")
-    
+
     changed = [p for p in (changed_paths or []) if p]
     allowed = [p for p in (allowed_paths or []) if p]
     forbidden = [p for p in (forbidden_paths or []) if p]
@@ -67,12 +65,7 @@ def evaluate_promotion(
 
 
 def acceptance_test_argv(command: str) -> list[str]:
-    """Parse a validated Work Contract test without invoking a shell.
-
-    Promotion currently supports only pytest-style acceptance commands. Keeping
-    this allowlist narrow prevents Issue text from becoming a shell-execution
-    surface while still replaying the same acceptance tests used by Gate C.
-    """
+    """Parse explicitly executable acceptance metadata without invoking a shell."""
     argv = shlex.split(command)
     allowed_prefixes = (
         ["python", "-m", "pytest"],
@@ -85,13 +78,32 @@ def acceptance_test_argv(command: str) -> list[str]:
 
 
 def run_acceptance_tests(diagnostic_path: Path) -> None:
+    """Replay only explicitly executable tests.
+
+    `acceptance_tests` is declarative Work Contract evidence and must never be
+    interpreted as a command surface. Optional `executable_acceptance_tests`
+    is the only command-bearing field and remains restricted to pytest-style
+    argv through `acceptance_test_argv`.
+    """
     payload = json.loads(diagnostic_path.read_text(encoding="utf-8"))
-    contract = payload.get("contract") or {}
-    tests = contract.get("acceptance_tests")
+    contract = payload.get("contract")
+    if not isinstance(contract, dict):
+        raise RuntimeError("ISSUE_CONTRACT_INVALID")
+
+    declarative = contract.get("acceptance_tests")
+    if declarative is not None and not isinstance(declarative, list):
+        raise RuntimeError("ISSUE_CONTRACT_INVALID")
+
+    tests = contract.get("executable_acceptance_tests")
+    if tests is None:
+        return
     if not isinstance(tests, list) or not tests:
         raise RuntimeError("ISSUE_CONTRACT_INVALID")
+
     for command in tests:
-        argv = acceptance_test_argv(str(command))
+        if not isinstance(command, str) or not command.strip():
+            raise RuntimeError("ISSUE_CONTRACT_INVALID")
+        argv = acceptance_test_argv(command)
         completed = subprocess.run(argv, check=False)
         if completed.returncode != 0:
             raise RuntimeError("POST_APPLY_TEST_FAILED")
