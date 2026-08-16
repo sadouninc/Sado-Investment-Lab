@@ -325,12 +325,6 @@ def test_revenue_only_realization_cannot_permit_optionality_in_eps():
         )
 
 
-def test_realized_profit_satisfies_optionality_inclusion():
-    """Realized profit evidence permits EPS optionality when all other requirements pass."""
-    # test_optionality_allowed_in_eps_scenario_when_financial_realization already covers this
-    pass
-
-
 # ---------------------------------------------------------------------------
 # Historical valuation anchor guardrails
 # ---------------------------------------------------------------------------

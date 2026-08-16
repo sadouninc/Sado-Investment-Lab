@@ -375,30 +375,15 @@ def compute_implied_expectation(
     price = canonical_price.price
     assert price is not None  # narrowed by usable_for_current_valuation
 
-    scenarios = {
-        "BEAR": eps_scenario.bear_eps,
-        "BASE": eps_scenario.base_eps,
-        "BULL": eps_scenario.bull_eps,
-    }
-    known_scenarios = {name: eps for name, eps in scenarios.items() if eps and eps > 0}
-
     base_eps = eps_scenario.base_eps
     current_per = price / base_eps if base_eps and base_eps > 0 else None
-
-    implied_scenario = None
-    if current_per is not None and known_scenarios:
-        best_name = min(
-            known_scenarios,
-            key=lambda name: abs(price / known_scenarios[name] - current_per),
-        )
-        implied_scenario = best_name
 
     gap_to_low = current_per - fair_per_range.fair_per_low if current_per is not None else None
     gap_to_high = current_per - fair_per_range.fair_per_high if current_per is not None else None
 
     return ImpliedExpectation(
         current_per=current_per,
-        implied_scenario=implied_scenario,
+        implied_scenario=None,
         expectation_gap_to_low=gap_to_low,
         expectation_gap_to_high=gap_to_high,
     )

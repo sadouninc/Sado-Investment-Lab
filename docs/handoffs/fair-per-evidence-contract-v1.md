@@ -87,8 +87,8 @@ INTENT → OPERATING_EVIDENCE → FINANCIAL_REALIZATION
 
 `compute_implied_expectation(canonical_price, eps_scenario, fair_per_range)` が次を計算する。
 
-- `implied_scenario` = 現在価格が最も近いBear/Base/Bullシナリオ
 - `expectation_gap_to_low` / `expectation_gap_to_high` = `current_per` とFair PER Rangeとの乖離
+
 **v1では `implied_scenario` は常に `None` (UNKNOWN) を返す。** `current_per = price/base_eps` と `price/scenario_eps` の比較はBASEを常に選択する（距離ゼロ）ため、独立した市場織込み判定軸を持たない。将来、別authorityでFair PER範囲が確定した場合のみ、別sliceで逆算設計を行う。
 
 
