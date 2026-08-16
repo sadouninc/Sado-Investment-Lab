@@ -83,7 +83,7 @@ jobs:
           retryable_statuses = {
               'DISPATCH_LEASE_EXPIRED', 'COPILOT_RETRYABLE_FAILURE',
               'RETRYABLE_FAILURE', 'FALLBACK_RETRYABLE_FAILURE',
-              'BLOCKED_BASE_DRIFT'
+              'BLOCKED_BASE_DRIFT', 'BLOCKED_CONTRACT_REPLAY'
           }
           terminalizing_statuses = {
               'PROMOTION_DISPATCHED', 'PROMOTION_BRANCH_READY',

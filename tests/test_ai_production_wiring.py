@@ -92,6 +92,14 @@ def test_base_drift_reopens_prior_promotion_for_fresh_dispatch():
     assert terminalizing is False
 
 
+def test_contract_replay_terminal_reopens_prior_promotion_for_fresh_dispatch():
+    terminalizing, retryable = _replay_dispatch_state(
+        ["PROMOTION_DISPATCHED", "BLOCKED_CONTRACT_REPLAY"]
+    )
+    assert retryable is True
+    assert terminalizing is False
+
+
 def test_pr_handoff_after_promotion_remains_non_redispatchable():
     terminalizing, retryable = _replay_dispatch_state(
         ["PROMOTION_DISPATCHED", "PR_CREATE_REQUIRED"]
@@ -120,6 +128,7 @@ def test_dispatcher_keeps_expired_and_explicit_retryable_paths_redispatchable():
         "RETRYABLE_FAILURE",
         "FALLBACK_RETRYABLE_FAILURE",
         "BLOCKED_BASE_DRIFT",
+        "BLOCKED_CONTRACT_REPLAY",
     } <= retryable_statuses
     assert "retryable = True" in text
     assert "terminalizing = False" in text
