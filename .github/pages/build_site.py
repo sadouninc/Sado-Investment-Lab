@@ -4,6 +4,7 @@ import base64
 import html
 import json
 import re
+import csv
 import shutil
 from dataclasses import dataclass
 from datetime import date
@@ -25,6 +26,9 @@ KEY_PERSON_SOURCE_DIRS = (
     ROOT / "06_Research" / "News" / "AI_Key_Person_Watch",
     ROOT / "06_Research" / "News" / "AI_Key_Person",
 )
+
+ENGINEERING_EVOLUTION_MD = ROOT / "docs" / "platform" / "ai-development-organization-evolution.md"
+ENGINEERING_EVOLUTION_CSV = ROOT / "docs" / "platform" / "ai-development-organization-evolution-evidence-v0.csv"
 
 FRAMEWORK_CHAPTERS = [
     ("philosophy", ROOT / "00_Framework" / "01_Investment_Philosophy.md"),
@@ -960,6 +964,104 @@ def build_trade_analysis_v2() -> None:
     write(SITE / "trade-analysis" / "index.md", page)
 
 
+def build_engineering_evolution() -> None:
+    """Build the Engineering Evolution evidence page for issue #675."""
+    url = "/platform/engineering-evolution/"
+    
+    if not ENGINEERING_EVOLUTION_MD.exists():
+        # If source doesn't exist, create a placeholder
+        page = front_matter(
+            "AI開発組織の進化",
+            "Engineering Evolution Evidence Record",
+            url,
+        )
+        page += (
+            '<p class="breadcrumb"><a href="{{ \'/\' | relative_url }}">Home</a>'
+            ' / Platform / Engineering Evolution</p>\n\n'
+            '# AI開発組織の進化\n\n'
+            '<div class="notice-card">Evidence collection in progress.</div>\n'
+        )
+        write(SITE / "platform" / "engineering-evolution" / "index.md", page)
+        return
+    
+    # Read the markdown source
+    content = ENGINEERING_EVOLUTION_MD.read_text(encoding="utf-8")
+    
+    # Parse CSV evidence if available
+    evidence_entries = []
+    if ENGINEERING_EVOLUTION_CSV.exists():
+        with open(ENGINEERING_EVOLUTION_CSV, encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            evidence_entries = list(reader)
+    
+    # Build the page
+    page = front_matter(
+        "AI開発組織の進化 — Evidence Record",
+        "GitHub evidenceから再現可能に記録するEngineering Evolution",
+        url,
+    )
+    
+    page += (
+        '<p class="breadcrumb"><a href="{{ \'/\' | relative_url }}">Home</a>'
+        ' / Platform / Engineering Evolution</p>\n\n'
+        '# AI開発組織の進化 — Evidence Record
+        '## 導入前 → 現在
+        '<div class="content-grid">
+    )
+    
+    before = section_content(content, "Before: ChatGPTチーム中心の直接作業", level=3)
+    if before:
+        page += '<div class="content-card">
+    
+    current = section_content(content, "Current: 複数AIを組み込んだ5-plane model", level=3)
+    if current:
+        page += '<div class="content-card">
+    
+    page += '</div>\n\n'
+    
+    page += '## 何が変わったか
+    
+    inflection = section_content(content, "2026-08-16 — Productivity inflection hypothesis", level=2)
+    if inflection:
+        page += '<div class="insight-panel" markdown="1">
+    
+    page += (
+        '<div class="notice-card">
+        '<p><strong>⚠️ EARLY_SIGNAL / CAUSALITY_UNPROVEN</strong></p>
+        '<p>2026-08-16後半のデータは1日分のsampleです。因果関係は主張しません。'
+        'Productivity変化の仮説は、長期観測と追加evidenceで初めて検証可能になります。</p>
+        '</div>
+    )
+    
+    purpose = section_content(content, "この記録の目的", level=2)
+    if purpose:
+        page += '<details class="source-journal">
+        page += '## この記録の目的
+    
+    if evidence_entries:
+        page += '<details class="source-journal">
+        page += '## 2026-08-16 Verified Timeline
+        page += "| 時刻 (JST) | Evidence | Category | Summary |\n"
+        page += "|---|---|---|---|\n"
+        for entry in evidence_entries:
+            timestamp = entry.get("occurred_at_jst", "")[:16].replace("T", " ")
+            ref = html.escape(entry.get("ref", ""))
+            category = html.escape(entry.get("category", ""))
+            summary = html.escape(entry.get("summary", ""))
+            claim_status = html.escape(entry.get("claim_status", ""))
+            if claim_status == "USER_OBSERVATION":
+                page += f"| {timestamp} | {ref} | **{category}** | *{summary}* |\n"
+            else:
+                page += f"| {timestamp} | {ref} | {category} | {summary} |\n"
+        page += '
+        page += '</details>
+    
+    page += '<details class="source-journal">
+    page += content + '
+    
+    write(SITE / "platform" / "engineering-evolution" / "index.md", page)
+
+
 def main() -> None:
     if SITE.exists():
         shutil.rmtree(SITE)
@@ -985,6 +1087,7 @@ def main() -> None:
     build_key_person_watch()
     build_trade_journal()
     build_trade_analysis_v2()
+    build_engineering_evolution()
 
 
 if __name__ == "__main__":
