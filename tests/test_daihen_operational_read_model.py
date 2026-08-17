@@ -212,6 +212,28 @@ class DaihenOperationalReadModelTests(unittest.TestCase):
         self.assertIsNone(fair_per["implied_expectation"]["expectation_gap_to_high"])
         self.assertIsNone(fair_per["implied_expectation"]["implied_scenario"])
 
+    def test_unknown_and_failed_price_gates_also_fail_closed(self):
+        cases = (
+            {"identity_status": "VERIFIED", "freshness_status": "UNKNOWN", "provider_status": "OK"},
+            {"identity_status": "FAILED", "freshness_status": "FRESH", "provider_status": "OK"},
+            {"identity_status": "VERIFIED", "freshness_status": "FRESH", "provider_status": "FAILED"},
+        )
+        for case in cases:
+            with self.subTest(case=case):
+                record = _fair_per_record(**case)
+                result = build_daihen_operational_read_model(
+                    self.fixture,
+                    generated_at=GENERATED_AT,
+                    fair_per_evidence=record,
+                )
+                fair_per = result["valuation"]["fair_per_evidence"]
+                self.assertFalse(fair_per["canonical_price"]["usable_for_current_valuation"])
+                self.assertEqual(fair_per["current_valuation_status"], "UNKNOWN")
+                self.assertIsNone(fair_per["implied_expectation"]["current_per"])
+                self.assertIsNone(fair_per["implied_expectation"]["expectation_gap_to_low"])
+                self.assertIsNone(fair_per["implied_expectation"]["expectation_gap_to_high"])
+                self.assertIsNone(fair_per["implied_expectation"]["implied_scenario"])
+
     def test_fair_per_projection_rejects_wrong_security(self):
         record = _fair_per_record(symbol="6758")
         with self.assertRaises(DaihenOperationalReadModelError):
