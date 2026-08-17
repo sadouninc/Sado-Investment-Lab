@@ -1,7 +1,7 @@
 # Current Status
 
 > Codexは毎回このファイルを最初に読みます。
-> 最終更新: 2026-08-11
+> 最終更新: 2026-08-17
 
 ## Portfolio
 
@@ -28,6 +28,15 @@
 - ＧＥＮＤＡ（現物100株）
 - ｉｓｐａｃｅ（現物100株）
 - ＮＴＴ（現物300株）
+
+### Verified transaction delta after portfolio snapshot
+
+> authority: SBI order inquiry screenshot
+> transaction_date: 2026-08-17
+> note: このdeltaは上記2026-08-08 Portfolio snapshot全体を再認証するものではない。
+
+- 日機装（6376）：信用新規買い 100株 @ 3,840円、全約定
+- テラドローン（278A）：信用返済売り 100株 @ 13,500円、全約定
 
 ## Current Strategy
 
@@ -65,3 +74,4 @@
 - 2026-08-03: 住友電工を信用新規買い。安川電機を同日売買。出光興産は未約定
 - 2026-08-04: 住友電工を返済売りし、富士通を信用新規買い。日東紡は信用買い800株・信用売り100株を確認
 - 2026-08-11: ACSL（6232）をOwner Pick / Watchlist / Defense Drone Themeの重点監視対象として追加
+- 2026-08-17: SBI注文照会で日機装100株 @3,840円の信用新規買い、テラドローン100株 @13,500円の信用返済売りを全約定確認。詳細は `05_Decision_Log/2026-08-17_Trade_Journal.md`。
