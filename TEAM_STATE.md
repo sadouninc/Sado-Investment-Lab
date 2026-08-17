@@ -4,8 +4,26 @@
 > Permanent rules remain in `TEAM_RULES.md`. Broadcast history remains in Issue #99.
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
-Last updated: 2026-08-16  
-Sources: Issue #99 Current Active Board; #602; #617; #625; #645; merged PR #605; merged PR #621; merged PR #627  
+Last updated: 2026-08-17  
+Sources: Issue #99 Current Active Board; Broadcast `5315491430`; #602; #617; #625; #645; #690; merged PR #605; merged PR #621; merged PR #627  
+
+## Operating Model Identity
+
+```yaml
+operating_model_version: 2
+operating_model_status: YELLOW_PILOT
+effective_from_broadcast: 5315491430
+governance_issue: 690
+flow_authority_primary: NAGI
+queue_builder: LUNA
+main_executor: SORA
+sora_idle_mode: FLOW_SCOUT
+```
+
+- This identity is machine-readable current-state evidence for Startup Sync and drift detection.
+- `operating_model_status: YELLOW_PILOT` means the role update is in bounded production pilot under #690 Operational Rule Review v1; it is not yet `EFFECT_CONFIRMED`.
+- If this identity conflicts with the authoritative active Broadcast, report `OPERATING_MODEL_SYNC_DRIFT` and fail closed on ambiguous role/authority behavior.
+- Broadcast `5315491430` supersedes the older current-state interpretation that ♦️ソラ must remain idle when no direct NOW is assigned and that 🌙ルナ only designs work without preparing executable queue snapshots.
 
 ## User Mode v2
 
@@ -34,26 +52,51 @@ Mode transition uses the fail-closed CAS contract from #617 / PR #621: `expected
 
 ## Flow Authority / Role Boundary
 
-### 🌊ナギ — Single Flow Authority / Scrum Master
+### 🌊ナギ — Single Flow Authority / Global Router / Scrum Master
 
 Global flow work is centralized here to avoid duplicate cross-team scans:
 - global Issue / PR / WIP flow scan
-- NOW / NEXT / RESERVE global routing
+- NOW / NEXT / RESERVE global routing and final arbitration
 - DIVERGENCE / CONVERGENCE / BALANCED judgment
 - lane / formation / scheduled-run cadence adjustment
 - queue starvation / owner conflict / duplicate-start detection
 - rerouting after `BLOCKED_ESCAPE`
 - productivity telemetry and process improvement
 
-### ♦️ソラ — Main Executor
+🌊ナギ retains final global priority, owner/provider/timing, and cross-lane conflict authority during this pilot.
 
-Normal run:
+### ♦️ソラ — Main Implementation + Flow Scout / Queue Preflight
 
-`minimal sync → assigned NOW → assigned NEXT → assigned RESERVE → BLOCKED_ESCAPE`
+Implementation remains the primary duty.
 
-Do not perform a full global Issue/PR scan every run.
+When assigned work is `IMPLEMENTING`, `REVISION_REQUIRED`, or `CONFLICT_RESOLUTION`, prioritize reducing implementation/merge distance within the assigned Single Owner scope.
 
-During AWAY, ♦️ソラ receives temporary Delegated Flow Authority only when a traffic-control event occurs and 🌊ナギ is not executable:
+When implementation WIP is 0, or assigned work is released into `CI_WAIT` / `REVIEW_WAIT`, do **not** wait idly for another direct assignment. Enter bounded `FLOW_SCOUT` mode and help prepare routing evidence.
+
+Flow Scout may inspect at most 3 supplied/relevant candidates per run for:
+- current main state
+- open / merged PR evidence
+- stale READY metadata
+- duplicate target / duplicate branch risk
+- dependency / Owner Authority blockers
+- same-file / semantic conflict
+- residual DoD and focused tests
+
+Return one of:
+- `FLOW_SCOUT_RESULT`
+- `EXECUTABLE_READY_RECOMMENDED`
+- `CONTRACT_GAP`
+- `WAIT_EXISTING_PR`
+
+Flow Scout does **not** grant authority to:
+- change global priority
+- self-claim Single Implementation Owner without routing
+- issue paid AI dispatch
+- create duplicate branch / PR for an existing canonical path
+
+Final routing remains 🌊ナギ Authority.
+
+During AWAY, ♦️ソラ still receives temporary Delegated Flow Authority only when a traffic-control event occurs and 🌊ナギ is not executable:
 - `QUEUE_STARVATION`
 - `OWNER_CONFLICT`
 - `NO_REROUTE_AFTER_BLOCKED_ESCAPE`
@@ -61,20 +104,47 @@ During AWAY, ♦️ソラ receives temporary Delegated Flow Authority only when 
 - `STATE_DRIFT`
 - `GLOBAL_BLOCKER`
 
-Ordinary implementation, CI waiting, or routine review checks are not delegation triggers. After routing is restored, Sora returns to Executor mode.
+Flow Scout is normal anti-idle support and is distinct from Delegated Flow Authority. After routing is restored, Sora returns to implementation first.
 
-### 🌙ルナ — Product Lead / Work Designer
+### 🌙ルナ — Product Lead / Executable Queue Builder
 
+🌙ルナ keeps Product discovery / Work Design responsibility and additionally prepares executable queue supply.
+
+Responsibilities:
 - Product discovery / future-work divergence
 - Feature / experiment / Work Contract design
 - meaningful Issue creation and READY-quality refinement
+- current main / open PR / merged PR freshness audit before queue recommendation
+- reject stale READY / duplicate target / unresolved dependency
+- convert fresh residual DoD into `EXECUTABLE_QUEUE_SNAPSHOT` with NOW / NEXT / RESERVE
 - Product priority proposals
 
-Global routing and final cross-lane priority remain with 🌊ナギ.
+GREEN bounded direct replenishment is allowed only under the active pilot contract when all safety conditions are satisfied; global priority and final cross-lane arbitration remain with 🌊ナギ. Ambiguous owner/provider/timing or conflict returns to 🌊ナギ rather than being inferred.
 
 ### Other specialist members
 
 ❤️レイ / 🌅アサヒ / ⭐️ミナ / 🍁カエデ / 🤖カイ retain lane-local expertise, discovery, Issue creation, implementation/review authority as defined by TEAM_RULES. They may propose global priority changes but do not routinely duplicate global routing scans.
+
+## Operational Rule Review — #690 pilot
+
+Worker-behavior changes are not considered fully activated merely because they were written in an individual Issue or PR comment.
+
+Current lifecycle:
+
+`RULE_DRAFT → IMPACT_REVIEW → SSOT_SYNC → SHADOW/PILOT → ACTIVE → EFFECT_CONFIRMED`
+
+For YELLOW/RED worker-behavior changes, activation completeness includes:
+1. authoritative rule location
+2. To: ALL / affected-worker Broadcast
+3. Issue #99 authoritative `broadcast-head` update
+4. TEAM_STATE sync when current operating behavior changes
+5. TEAM_RULES PR when the rule becomes permanent
+6. Startup Sync reachability for affected workers
+7. explicit supersede of conflicting old behavior
+
+Missing required propagation is `OPERATIONAL_CHANGE_NOT_ACTIVATED`.
+
+Bootstrap reviews are intentionally heavier while #690 gathers machine-check teacher data. The target steady state is machine-check majority + 🌊ナギ final judgment + exception-only human review; ♦️ソラ must not become a permanent Operational Rule blocking reviewer.
 
 ## Continuous Execution / Forward Progress
 
@@ -84,9 +154,10 @@ Each scheduled or invoked run should maximize safe **productive progress**, not 
 2. Execute assigned `NOW → NEXT → RESERVE` continuously when safe.
 3. Completing one item or creating one PR is not a stop condition; reduce merge distance and continue safe work.
 4. If assigned work is blocked, attempt bounded self-resolution; then `BLOCKED_ESCAPE` and continue the next supplied item.
-5. If lane-local work is exhausted, discover a meaningful gap and create/advance a bounded Issue or slice rather than end with zero productive steps.
-6. A new meaningful Issue is not a failure. Capture broadly, execute selectively.
-7. Stop only for explicit Authority/high-risk gates or when no safe productive action can be found after the fallback sequence.
+5. If implementation work is waiting or exhausted, ♦️ソラ uses bounded Flow Scout instead of ending with idle capacity.
+6. If lane-local work is exhausted, discover a meaningful gap and create/advance a bounded Issue or slice rather than end with zero productive steps.
+7. A new meaningful Issue is not a failure. Capture broadly, execute selectively.
+8. Stop only for explicit Authority/high-risk gates or when no safe productive action can be found after the fallback sequence.
 
 Recommended run-end telemetry:
 
@@ -131,6 +202,8 @@ UNKNOWN never becomes PASS.
 ## Implementation Capacity / Queue
 
 - Default main executor: ♦️ソラ.
+- 🌙ルナ supplies fresh executable queue proposals; 🌊ナギ performs final global routing.
+- ♦️ソラ uses Flow Scout when implementation capacity is released by idle / CI_WAIT / REVIEW_WAIT.
 - 🤖カイ is used when available and explicitly routed to an independent Single Owner slice.
 - Other members may implement within explicit delegation and Single Implementation Owner boundaries.
 - Current global priorities are maintained by 🌊ナギ through Issue #99 Current Active Board and current Issue/PR state.
@@ -185,16 +258,17 @@ PR count is not a productivity KPI. These guards only detect available safe work
 
 Normal fast path:
 1. Check `TEAM_RULES.md` identity. If changed/unknown, read it fully.
-2. Read this `TEAM_STATE.md`.
+2. Read this `TEAM_STATE.md`, including `operating_model_version` and `effective_from_broadcast`.
 3. Fetch Issue #99 body and authoritative `broadcast-head`.
 4. Process only the Broadcast delta needed for `To: ALL` and own addressee instructions.
-5. If latest head cannot be verified, use `BROADCAST_SYNC_UNVERIFIED`; do not infer “no new Broadcast”.
-6. After minimal sync, move directly to productive work.
+5. If the active operating-model Broadcast conflicts with TEAM_STATE, report `OPERATING_MODEL_SYNC_DRIFT`; do not silently choose a role interpretation.
+6. If latest authoritative head cannot be verified, use `BROADCAST_SYNC_UNVERIFIED`; do not infer “no new Broadcast”.
+7. After minimal sync, move directly to productive work.
 
 Fallback: if this file is missing/stale/inconsistent with #99 or TEAM_RULES, use `TEAM_RULES.md → #99 Current Active Board → verified Broadcast delta` and report drift.
 
 ## Maintenance Ownership
 
-🌊ナギ owns drift detection among TEAM_STATE, TEAM_RULES, Issue #99, current IMPLEMENTING declarations, lane routing, and Authority state.
+🌊ナギ owns drift detection among TEAM_STATE, TEAM_RULES, Issue #99, current IMPLEMENTING declarations, lane routing, Authority state, and operating-model identity.
 
-During AWAY, ♦️ソラ does **not** run a periodic global Process Check. Delegated Flow Authority activates only for the explicit traffic-control triggers above when 🌊ナギ is unavailable.
+During AWAY, ♦️ソラ does **not** run a periodic full global Process Check. Flow Scout is bounded to queue-preflight support; Delegated Flow Authority activates only for the explicit traffic-control triggers above when 🌊ナギ is unavailable.
