@@ -4,8 +4,8 @@
 > Permanent rules remain in `TEAM_RULES.md`. Broadcast history remains in Issue #99.
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
-Last updated: 2026-08-16  
-Sources: Issue #99 Current Active Board; #602; #617; #625; #645; merged PR #605; merged PR #621; merged PR #627  
+Last updated: 2026-08-18  
+Sources: Issue #99 Current Active Board; #602; #617; #625; #645; #556; #690; merged PR #605; merged PR #621; merged PR #627  
 
 ## User Mode v2
 
@@ -141,11 +141,14 @@ UNKNOWN never becomes PASS.
 **Open PR count is not active implementation WIP.** WIP capacity follows current work state.
 
 Counts toward implementation WIP:
+- `EXECUTION_EVIDENCE`
 - `IMPLEMENTING`
 - `REVISION_REQUIRED`
 - `CONFLICT_RESOLUTION`
 
 Normally releases implementation capacity:
+- `DISPATCHED`
+- `ACKED`
 - `CI_WAIT`
 - `REVIEW_WAIT`
 - `RESEARCH_GATE_WAIT`
@@ -160,10 +163,31 @@ When non-conflicting READY work exists:
 - `active_implementation_wip == 0` → `QUEUE_STARVATION`, route in the same SM run.
 - durable implementation output age `>=120m` → `FLOW_STALL_WARNING`.
 - durable implementation output age `>=240m` → `FLOW_STALL_CRITICAL`, same-run reroute required.
-- unacknowledged agent dispatch at lease expiry → expire/reroute instead of holding the queue indefinitely.
 - same blocker for 2 consecutive runs → `BLOCKED_ESCAPE` mandatory.
 
 PR count is not a productivity KPI. These guards only detect available safe work that is not moving.
+
+### Dispatch Activation Lease — #556 PR2 / #690 YELLOW pilot
+
+Canonical execution state machine:
+
+`READY → DISPATCHED → ACKED → EXECUTION_EVIDENCE → PR_OPEN → CI_WAIT/REVISION_REQUIRED → MERGE_READY → MERGED`
+
+- `DISPATCHED` is an offer/lease only and does **not** count as active implementation WIP.
+- `ACKED` reserves the slice briefly but is not implementation evidence and does **not** count as active implementation WIP.
+- Active implementation WIP starts only after `EXECUTION_EVIDENCE` exists.
+- Execution evidence means a slice-linked branch, non-empty commit, implementation workflow evidence, or equivalent durable mutation evidence. A comment, ACK, or verification-only action is insufficient.
+- Default ACK deadline is 10 minutes after dispatch.
+- Default execution-evidence deadline is 20 minutes after ACK.
+- No ACK by deadline → `DISPATCH_ACK_EXPIRED`; release the reservation and reroute after fresh duplicate/conflict preflight.
+- ACK but no execution evidence by deadline → `ACK_STALLED → BLOCKED_ESCAPE`; release the reservation and reroute after fresh duplicate/conflict preflight.
+- Late ACK must never revive an expired lease. A fresh `lease_id` is required.
+- If provider evidence makes ACK and execution evidence observable atomically, intermediate states may be traversed immediately.
+- FREE_FIRST remains the default routing policy; paid duplicate dispatch is prohibited.
+
+Operational telemetry should distinguish reservation from real work, including `dispatch_to_ack_minutes`, `ack_to_execution_minutes`, `dispatch_ack_expired_count`, `ack_stalled_count`, `execution_activation_rate`, `reroute_success_rate`, and `false_active_wip_minutes`.
+
+This is a #690 YELLOW operational-change pilot. It must be validated with production evidence before `EFFECT_CONFIRMED`; permanent-rule promotion to TEAM_RULES requires the normal PR/review path.
 
 ## Product / Design Guardrails
 
