@@ -10,8 +10,9 @@ SONY_VALUATION_CONSUMER = ROOT / "scripts" / "sony_canonical_valuation.py"
 
 class SonyInvestmentReviewPublicationContractTest(unittest.TestCase):
     def test_company_source_reuses_canonical_handoff_without_copying_research(self):
-        self.assertTrue(SONY_COMPANY_LINK.is_symlink())
-        self.assertEqual(SONY_COMPANY_LINK.resolve(), SONY_HANDOFF.resolve())
+        self.assertTrue(SONY_COMPANY_LINK.is_file())
+        self.assertFalse(SONY_COMPANY_LINK.is_symlink())
+        self.assertEqual(SONY_COMPANY_LINK.read_bytes(), SONY_HANDOFF.read_bytes())
         self.assertIn(SONY_COMPANY_LINK, list((ROOT / "03_Companies").glob("*/*.md")))
 
     def test_entry_review_and_fail_closed_valuation_survive_company_projection(self):
