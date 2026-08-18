@@ -2,12 +2,18 @@ name: PR Preflight
 
 on:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      target_pr:
+        description: "PR number to validate through its synthetic merge ref"
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: pr-preflight-${{ github.event.pull_request.number }}
+  group: pr-preflight-${{ github.event.pull_request.number || inputs.target_pr || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -16,8 +22,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Validate manual target
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        env:
+          TARGET_PR: ${{ inputs.target_pr }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$TARGET_PR" =~ ^[0-9]+$ ]]; then
+            echo "target_pr must be a numeric PR number" >&2
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/pull/{0}/merge', inputs.target_pr) || github.ref }}
 
       - name: Validate GitHub Actions workflows
         shell: bash
