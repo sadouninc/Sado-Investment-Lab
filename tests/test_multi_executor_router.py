@@ -48,8 +48,14 @@ def test_provider_with_two_activation_failures_is_skipped():
     providers = healthy_providers(
         AMAZON_Q={"state": "HEALTHY", "consecutive_activation_failures": 2}
     )
-    result = select_route([candidate()], provider_health=providers)
-    assert result["executor"] == "JULES"
+    assert select_route([candidate()], provider_health=providers)["executor"] == "JULES"
+
+
+def test_malformed_provider_health_fails_closed_and_falls_back():
+    providers = healthy_providers(
+        AMAZON_Q={"state": "HEALTHY", "consecutive_activation_failures": "two"}
+    )
+    assert select_route([candidate()], provider_health=providers)["executor"] == "JULES"
 
 
 def test_provider_unavailable_falls_back_to_sora():
@@ -57,21 +63,23 @@ def test_provider_unavailable_falls_back_to_sora():
         AMAZON_Q={"state": "BLOCKED", "consecutive_activation_failures": 0},
         JULES={"state": "BLOCKED", "consecutive_activation_failures": 0},
     )
-    result = select_route([candidate()], provider_health=providers)
-    assert result["executor"] == "SORA"
+    assert select_route([candidate()], provider_health=providers)["executor"] == "SORA"
 
 
 def test_conflict_fails_closed():
-    result = select_route(
-        [candidate(owner_conflict=True)], provider_health=healthy_providers()
-    )
+    result = select_route([candidate(owner_conflict=True)], provider_health=healthy_providers())
     assert result == {"status": "ROUTING_CONFLICT", "selected": None}
 
 
 def test_invalid_preflight_fails_closed():
-    result = select_route(
-        [candidate(preflight_valid=False)], provider_health=healthy_providers()
-    )
+    result = select_route([candidate(preflight_valid=False)], provider_health=healthy_providers())
+    assert result == {"status": "PREFLIGHT_INVALID", "selected": None}
+
+
+def test_missing_work_ref_fails_closed_not_crash():
+    raw = candidate()
+    raw.pop("work_ref")
+    result = select_route([raw], provider_health=healthy_providers())
     assert result == {"status": "PREFLIGHT_INVALID", "selected": None}
 
 
@@ -92,28 +100,28 @@ def test_issue_lease_has_canonical_deadlines_and_stable_id():
     assert first["execution_evidence_deadline"] is None
 
 
+def test_issue_lease_rejects_incomplete_selected_structure():
+    with pytest.raises(ValueError, match="invalid selection structure"):
+        issue_lease({"status": "SELECTED", "work_ref": "#900"}, assigned_at=NOW)
+
+
 def test_no_ack_expires_at_ten_minutes():
-    selection = select_route([candidate()], provider_health=healthy_providers())
-    lease = issue_lease(selection, assigned_at=NOW)
+    lease = issue_lease(select_route([candidate()], provider_health=healthy_providers()), assigned_at=NOW)
     result = evaluate_lease(lease, now=NOW + timedelta(minutes=10))
     assert result["status"] == "DISPATCH_ACK_EXPIRED"
     assert result["terminal"] is True
 
 
 def test_ack_without_evidence_stalls_after_twenty_minutes():
-    selection = select_route([candidate()], provider_health=healthy_providers())
-    lease = issue_lease(selection, assigned_at=NOW)
+    lease = issue_lease(select_route([candidate()], provider_health=healthy_providers()), assigned_at=NOW)
     ack = NOW + timedelta(minutes=5)
-    result = evaluate_lease(
-        lease, now=ack + timedelta(minutes=20), acknowledged_at=ack
-    )
+    result = evaluate_lease(lease, now=ack + timedelta(minutes=20), acknowledged_at=ack)
     assert result["status"] == "ACK_STALLED"
     assert result["terminal"] is True
 
 
 def test_execution_evidence_wins_before_expiry():
-    selection = select_route([candidate()], provider_health=healthy_providers())
-    lease = issue_lease(selection, assigned_at=NOW)
+    lease = issue_lease(select_route([candidate()], provider_health=healthy_providers()), assigned_at=NOW)
     result = evaluate_lease(
         lease,
         now=NOW + timedelta(minutes=7),
@@ -124,11 +132,11 @@ def test_execution_evidence_wins_before_expiry():
 
 
 def test_late_ack_never_revives_expired_lease():
-    selection = select_route([candidate()], provider_health=healthy_providers())
-    lease = issue_lease(selection, assigned_at=NOW)
-    late_ack = NOW + timedelta(minutes=11)
+    lease = issue_lease(select_route([candidate()], provider_health=healthy_providers()), assigned_at=NOW)
     result = evaluate_lease(
-        lease, now=NOW + timedelta(minutes=12), acknowledged_at=late_ack
+        lease,
+        now=NOW + timedelta(minutes=12),
+        acknowledged_at=NOW + timedelta(minutes=11),
     )
     assert result["status"] == "DISPATCH_ACK_EXPIRED"
     assert result["late_ack"] is True
@@ -138,3 +146,10 @@ def test_naive_assigned_at_rejected():
     selection = select_route([candidate()], provider_health=healthy_providers())
     with pytest.raises(ValueError):
         issue_lease(selection, assigned_at=datetime(2026, 8, 19, 0, 0))
+
+
+def test_naive_stored_lease_timestamp_rejected():
+    lease = issue_lease(select_route([candidate()], provider_health=healthy_providers()), assigned_at=NOW)
+    lease["assigned_at"] = "2026-08-19T00:00:00"
+    with pytest.raises(ValueError, match="assigned_at must be timezone-aware"):
+        evaluate_lease(lease, now=NOW + timedelta(minutes=1))
