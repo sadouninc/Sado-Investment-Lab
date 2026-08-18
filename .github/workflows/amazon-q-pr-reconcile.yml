@@ -1,0 +1,57 @@
+name: Amazon Q PR Reconcile
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: write
+
+concurrency:
+  group: amazon-q-pr-reconcile
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Discover Amazon Q PRs and dispatch missing preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Scheduled reconciliation is the deterministic fallback for bot-created
+          # PR events that do not start pull_request/pull_request_target workflows.
+          # It never checks out or executes PR code in this privileged job.
+          gh api --paginate "repos/$REPO/pulls?state=open&per_page=100" \
+            --jq '.[] | select(.user.login == "amazon-q-developer[bot]") | select(.head.repo.full_name == .base.repo.full_name) | [.number, .head.sha] | @tsv' \
+            | while IFS=$'\t' read -r pr head_sha; do
+                [ -n "$pr" ] || continue
+
+                # Idempotency: PR Preflight posts no status for workflow_dispatch,
+                # so use an immutable issue comment marker keyed by PR head SHA.
+                marker="AMAZON_Q_PREFLIGHT_DISPATCHED head=$head_sha"
+                if gh api --paginate "repos/$REPO/issues/$pr/comments?per_page=100" \
+                    --jq '.[].body' | grep -Fqx "$marker"; then
+                  echo "PR #$pr head $head_sha already dispatched"
+                  continue
+                fi
+
+                payload=$(jq -nc --arg ref "main" --arg pr "$pr" \
+                  '{ref: $ref, inputs: {target_pr: $pr}}')
+                gh api --method POST \
+                  -H "Accept: application/vnd.github+json" \
+                  "repos/$REPO/actions/workflows/pr-preflight.yml/dispatches" \
+                  --input - <<<"$payload"
+
+                gh api --method POST "repos/$REPO/issues/$pr/comments" \
+                  -f body="$marker"
+                echo "Dispatched PR Preflight for Amazon Q PR #$pr head $head_sha"
+              done
