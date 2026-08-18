@@ -1,0 +1,120 @@
+name: Jules Dispatcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      execute:
+        description: "Invoke Jules after guard PASS"
+        required: true
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 18 * * *" # 03:00 JST
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read Owner-controlled Jules queue
+        id: queue
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/issues/685" > /tmp/control.json
+          TARGET="$(python - <<'PY'
+          import json, re
+          body = json.load(open('/tmp/control.json', encoding='utf-8')).get('body') or ''
+          m = re.search(r'TARGET:\s*#(\d+)\b', body)
+          print(m.group(1) if m else '')
+          PY
+          )"
+          if [[ -z "$TARGET" ]]; then
+            TARGET="0"
+          fi
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+
+      - name: Read target and overlap evidence
+        id: evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET="${{ steps.queue.outputs.target }}"
+          if [[ "$TARGET" == "0" ]]; then
+            printf '{"state":"closed","body":"","comments":[]}' > /tmp/target.json
+            echo "overlap=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TARGET}" > /tmp/target-base.json
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TARGET}/comments?per_page=100" > /tmp/comments.json
+          jq --slurpfile comments /tmp/comments.json '. + {comments: $comments[0]}' /tmp/target-base.json > /tmp/target.json
+
+          QUERY="repo:${GITHUB_REPOSITORY} is:pr is:open ${TARGET}"
+          COUNT="$(gh api search/issues -f q="$QUERY" --jq '.total_count')"
+          if [[ "$COUNT" -gt 0 ]]; then
+            echo "overlap=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "overlap=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deterministic dispatch guard
+        id: guard
+        shell: bash
+        env:
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${JULES_API_KEY:-}" ]]; then
+            SECRET_PRESENT=true
+          else
+            SECRET_PRESENT=false
+          fi
+
+          python scripts/jules_dispatch_guard.py \
+            --control-json /tmp/control.json \
+            --target-json /tmp/target.json \
+            --secret-present "$SECRET_PRESENT" \
+            --overlapping-pr "${{ steps.evidence.outputs.overlap }}" \
+            > /tmp/guard.json
+
+          RESULT="$(jq -r '.result' /tmp/guard.json)"
+          echo "result=$RESULT" >> "$GITHUB_OUTPUT"
+          echo "Jules guard result: $RESULT"
+
+          if [[ "$RESULT" == "DISPATCH_ALLOWED" ]]; then
+            {
+              echo 'prompt<<JULES_PROMPT_EOF'
+              jq -r '.prompt' /tmp/guard.json
+              echo 'JULES_PROMPT_EOF'
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Invoke Jules
+        if: >-
+          steps.guard.outputs.result == 'DISPATCH_ALLOWED' &&
+          ((github.event_name == 'workflow_dispatch' && inputs.execute) ||
+           (github.event_name == 'schedule' && vars.JULES_PRODUCTION_ENABLED == 'true'))
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          prompt: ${{ steps.guard.outputs.prompt }}
+          starting_branch: main
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+
+      - name: Dry-run summary
+        if: >-
+          steps.guard.outputs.result == 'DISPATCH_ALLOWED' &&
+          !((github.event_name == 'workflow_dispatch' && inputs.execute) ||
+            (github.event_name == 'schedule' && vars.JULES_PRODUCTION_ENABLED == 'true'))
+        run: |
+          echo "Guard PASS. Jules invocation intentionally skipped (dry run / production flag off)."
