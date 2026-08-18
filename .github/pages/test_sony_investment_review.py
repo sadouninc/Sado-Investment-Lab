@@ -24,6 +24,15 @@ class SonyInvestmentReviewPublicationContractTest(unittest.TestCase):
         self.assertIn("Forward PER: `UNKNOWN`", text)
         self.assertIn("must not independently generate BUY/SELL", text)
 
+    def test_owner_japanese_summary_layer_contracts(self):
+        text = SONY_COMPANY_LINK.read_text(encoding="utf-8")
+        self.assertIn("## Owner 30秒サマリー", text)
+        self.assertIn("ソニー (6758)", text)
+        self.assertIn("業績モメンタム", text)
+        self.assertIn("投資仮説", text)
+        self.assertIn("将来オプション（現在EPSへ未反映）", text)
+        self.assertIn("本ページはBUY/SELL/HOLD判断、Entry Zone（買付目標価格）、ポジションサイズを自動生成しない", text)
+
     def test_current_valuation_is_bound_to_canonical_consumer_without_price_fallback(self):
         text = SONY_COMPANY_LINK.read_text(encoding="utf-8")
         self.assertTrue(SONY_VALUATION_CONSUMER.exists())

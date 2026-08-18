@@ -12,6 +12,18 @@
 - Final authority: 👑サド / Decision layer
 - Position state: Canonical Portfolio Stateから取得し、Research側では推測しない
 
+## Owner 30秒サマリー
+
+- **銘柄名**: ソニー (6758)
+- **データ確度・Freshness**: FY2026 Q1 決算データ（2026-07-31公式IR時点）
+- **業績モメンタム**: `強い` (FY26 Q1 連結営業利益 4,765億円 / YoY +40%、I&SS 営業利益 1,222億円 / YoY +125%、通期予想 1.72兆円へ上方修正)
+- **投資仮説**: `強化` (エンタメ/IPとI&SSの複数利益エンジンが機能し、イメージセンサーの大幅増益が牽引)
+- **バリュエーション**: `UNKNOWN` (Canonical Market Data連携未完了時はfail-closed表示)
+- **Fair PER**: `UNKNOWN` (Bear / Base / Bull 承認済みモデル未設定のため)
+- **WHY NOW**: I&SS（イメージセンサー）の強固な業績貢献に加え、AI Vision / robotics / Physical AI への `将来オプション（現在EPSへ未反映）` としての追跡価値が向上。
+- **主要リスク**: スマートフォン需要変動、熊本地震サプライチェーン影響、Physical AIの実績伴わない先行期待
+- **非生成境界**: 本ページはBUY/SELL/HOLD判断、Entry Zone（買付目標価格）、ポジションサイズを自動生成しない。
+
 ## Why Now
 
 SonyはEntertainment/IPとImaging & Sensing Solutions (I&SS)という複数の利益エンジンを持つ。FY2026 Q1ではI&SSの増益寄与が大きく、Image Sensorを単なるスマートフォン部材ではなく、将来のAI Vision / robotics / Physical AIへのoptionalityとして追跡する価値が高まっている。
