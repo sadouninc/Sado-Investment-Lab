@@ -1,0 +1,245 @@
+name: Jules Dispatcher
+
+on:
+  workflow_dispatch:
+    inputs:
+      execute:
+        description: "Invoke Jules after guard PASS"
+        required: true
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 18 * * *" # 03:00 JST
+
+# Official jules-invoke quick start requires only repository read access.
+# The dispatcher additionally writes Issue #685 only to claim/terminalize its run lease.
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: jules-dispatch-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read Owner-controlled Jules queue
+        id: queue
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/issues/685" > /tmp/control.json
+          TARGET="$(python - <<'PY'
+          import json, re
+          with open('/tmp/control.json', encoding='utf-8') as fh:
+              body = json.load(fh).get('body') or ''
+          m = re.search(r'TARGET:\s*#(\d+)\b', body)
+          print(m.group(1) if m else '')
+          PY
+          )"
+          if [[ -z "$TARGET" ]]; then
+            TARGET="0"
+          fi
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+
+      - name: Read target and path-overlap evidence
+        id: evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET="${{ steps.queue.outputs.target }}"
+          if [[ "$TARGET" == "0" ]]; then
+            printf '{"state":"closed","body":"","comments":[]}' > /tmp/target.json
+            echo "overlap=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${TARGET}" > /tmp/target-base.json
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${TARGET}/comments?per_page=100" \
+            | jq -s 'add // []' > /tmp/comments.json
+          jq --slurpfile comments /tmp/comments.json '. + {comments: $comments[0]}' /tmp/target-base.json > /tmp/target.json
+
+          python - <<'PY' > /tmp/allowed-paths.txt
+          import json, re
+          with open('/tmp/control.json', encoding='utf-8') as fh:
+              body = json.load(fh).get('body') or ''
+          section = re.search(
+              r'^##\s+Allowed paths[^\n]*\n(?P<body>.*?)(?=^##\s+|\Z)',
+              body,
+              flags=re.MULTILINE | re.DOTALL,
+          )
+          if section:
+              for path in re.findall(r'`([^`]+)`', section.group('body')):
+                  if path and not path.startswith('#'):
+                      print(path)
+          PY
+
+          if [[ ! -s /tmp/allowed-paths.txt ]]; then
+            echo "overlap=true" >> "$GITHUB_OUTPUT"
+            echo "No exact allowed paths found; fail closed."
+            exit 0
+          fi
+
+          OVERLAP=false
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=100" \
+            | jq -s 'add // [] | .[].number' > /tmp/open-prs.txt
+          while read -r PR; do
+            [[ -z "$PR" ]] && continue
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR}/files?per_page=100" \
+              | jq -s -r 'add // [] | .[].filename' > /tmp/pr-files.txt
+            while read -r PATH_TO_CHECK; do
+              [[ -z "$PATH_TO_CHECK" ]] && continue
+              if grep -Fxq -- "$PATH_TO_CHECK" /tmp/pr-files.txt; then
+                echo "Path overlap: PR #${PR} -> ${PATH_TO_CHECK}"
+                OVERLAP=true
+                break 2
+              fi
+            done < /tmp/allowed-paths.txt
+          done < /tmp/open-prs.txt
+          echo "overlap=$OVERLAP" >> "$GITHUB_OUTPUT"
+
+      - name: Deterministic dispatch guard
+        id: guard
+        shell: bash
+        env:
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${JULES_API_KEY:-}" ]]; then
+            SECRET_PRESENT=true
+          else
+            SECRET_PRESENT=false
+          fi
+
+          python scripts/jules_dispatch_guard.py \
+            --control-json /tmp/control.json \
+            --target-json /tmp/target.json \
+            --secret-present "$SECRET_PRESENT" \
+            --overlapping-pr "${{ steps.evidence.outputs.overlap }}" \
+            > /tmp/guard.json
+
+          RESULT="$(jq -r '.result' /tmp/guard.json)"
+          echo "result=$RESULT" >> "$GITHUB_OUTPUT"
+          echo "run_token=$(jq -r '.run_token // ""' /tmp/guard.json)" >> "$GITHUB_OUTPUT"
+          echo "Jules guard result: $RESULT"
+
+          if [[ "$RESULT" == "DISPATCH_ALLOWED" ]]; then
+            {
+              echo 'prompt<<JULES_PROMPT_EOF'
+              jq -r '.prompt' /tmp/guard.json
+              echo 'JULES_PROMPT_EOF'
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Claim single-run lease
+        id: claim
+        if: >-
+          steps.guard.outputs.result == 'DISPATCH_ALLOWED' &&
+          ((github.event_name == 'workflow_dispatch' && inputs.execute) ||
+           (github.event_name == 'schedule' && vars.JULES_PRODUCTION_ENABLED == 'true'))
+        shell: bash
+        env:
+          EXPECTED_TOKEN: ${{ steps.guard.outputs.run_token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/issues/685" > /tmp/control-fresh.json
+          python - <<'PY' > /tmp/control-claimed.md
+          import json, os, re, sys
+          with open('/tmp/control-fresh.json', encoding='utf-8') as fh:
+              body = json.load(fh).get('body') or ''
+          expected = os.environ['EXPECTED_TOKEN']
+          token = re.search(r'ACTIVE RUN TOKEN:\s*`([^`]+)`', body)
+          state = re.search(r'^##[ \t]+STATE[ \t]*\r?\n[ \t]*([^\r\n]+)', body, flags=re.MULTILINE)
+          if not token or token.group(1) != expected or not state or state.group(1).strip() != 'READY_FOR_SCHEDULED_RUN':
+              sys.exit('Queue changed after guard; refusing stale lease claim.')
+          claimed = re.sub(
+              r'(^##[ \t]+STATE[ \t]*\r?\n)[ \t]*[^\r\n]+',
+              r'\1DISPATCHING',
+              body,
+              count=1,
+              flags=re.MULTILINE,
+          )
+          print(claimed, end='')
+          PY
+          jq -n --rawfile body /tmp/control-claimed.md '{body:$body}' \
+            | gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/685" --input - > /dev/null
+          echo "Claimed Jules run token without exposing secret."
+
+      - name: Invoke Jules
+        id: jules
+        if: steps.claim.outcome == 'success'
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          prompt: ${{ steps.guard.outputs.prompt }}
+          starting_branch: main
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+
+      - name: Terminalize successful dispatch
+        if: steps.jules.outcome == 'success'
+        shell: bash
+        env:
+          RUN_TOKEN: ${{ steps.guard.outputs.run_token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/issues/685" > /tmp/control-after.json
+          python - <<'PY' > /tmp/control-stop.md
+          import json, os, re
+          with open('/tmp/control-after.json', encoding='utf-8') as fh:
+              body = json.load(fh).get('body') or ''
+          body = re.sub(
+              r'(^##[ \t]+STATE[ \t]*\r?\n)[ \t]*DISPATCHING[ \t]*$',
+              r'\1STOP',
+              body,
+              count=1,
+              flags=re.MULTILINE,
+          )
+          evidence = (
+              f"\n\n## LAST ACTIONS DISPATCH\n"
+              f"- RUN TOKEN: `{os.environ['RUN_TOKEN']}`\n"
+              f"- RESULT: `JULES_SESSION_ACCEPTED`\n"
+              f"- WORKFLOW RUN: `{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}`\n"
+              f"- Queue returned to STOP; review Jules session/PR before next dispatch.\n"
+          )
+          print(body.rstrip() + evidence, end='')
+          PY
+          jq -n --rawfile body /tmp/control-stop.md '{body:$body}' \
+            | gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/685" --input - > /dev/null
+
+      - name: Hold queue after invocation failure
+        if: failure() && steps.claim.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/issues/685" > /tmp/control-failed.json
+          python - <<'PY' > /tmp/control-hold.md
+          import json, re
+          with open('/tmp/control-failed.json', encoding='utf-8') as fh:
+              body = json.load(fh).get('body') or ''
+          body = re.sub(
+              r'(^##[ \t]+STATE[ \t]*\r?\n)[ \t]*DISPATCHING[ \t]*$',
+              r'\1HOLD',
+              body,
+              count=1,
+              flags=re.MULTILINE,
+          )
+          print(body.rstrip() + '\n\n## LAST ACTIONS DISPATCH\n- RESULT: `INVOCATION_FAILED_HOLD`\n', end='')
+          PY
+          jq -n --rawfile body /tmp/control-hold.md '{body:$body}' \
+            | gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/685" --input - > /dev/null
+
+      - name: Dry-run summary
+        if: >-
+          steps.guard.outputs.result == 'DISPATCH_ALLOWED' &&
+          !((github.event_name == 'workflow_dispatch' && inputs.execute) ||
+            (github.event_name == 'schedule' && vars.JULES_PRODUCTION_ENABLED == 'true'))
+        run: |
+          echo "Guard PASS. Jules invocation intentionally skipped (dry run / production flag off)."
