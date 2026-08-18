@@ -20,8 +20,8 @@ def test_owner_human_trigger_is_preserved():
 def test_diagnostic_is_hard_scoped_to_sandbox_and_protects_79():
     text = _text()
     assert "github.event.issue.number == 700" in text
-    assert 'issue != "700"' in text
-    assert 'issue == "79"' in text
+    assert '"$issue" != "700"' in text
+    assert '"$issue" == "79"' in text
     assert "DIAGNOSTIC_TARGET_MUST_BE_700_AND_NEVER_79" in text
 
 
