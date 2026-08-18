@@ -17,6 +17,36 @@ READY_FOR_SCHEDULED_RUN
         self.assertEqual(control.run_token, "jules-daily-688-sony-owner-view-v1")
         self.assertEqual(control.target_issue, 688)
 
+    def test_parse_control_tolerates_heading_whitespace_and_crlf(self):
+        body = (
+            "##\tSTATE   \r\n"
+            "  READY_FOR_SCHEDULED_RUN\r\n\r\n"
+            "## CURRENT RUN\r\n"
+            "- ACTIVE RUN TOKEN: `token-crlf`\r\n"
+            "- TARGET: #688 — Sony Owner View\r\n"
+        )
+        control = parse_control(body)
+        self.assertEqual(control.state, "READY_FOR_SCHEDULED_RUN")
+        self.assertEqual(control.run_token, "token-crlf")
+        self.assertEqual(control.target_issue, 688)
+
+    def test_noncanonical_state_heading_fails_closed(self):
+        body = """## STATE Notes
+READY_FOR_SCHEDULED_RUN
+- ACTIVE RUN TOKEN: `token`
+- TARGET: #688
+"""
+        control = parse_control(body)
+        self.assertEqual(control.state, "")
+        result = decide(
+            control,
+            secret_present=True,
+            target_open=True,
+            target_ready=True,
+            overlapping_pr=False,
+        )
+        self.assertEqual(result, "SYNC_UNVERIFIED_NOOP")
+
     def test_stop_is_noop_even_with_secret(self):
         result = decide(
             DispatchControl("STOP", "token", 688),
@@ -70,7 +100,7 @@ READY_FOR_SCHEDULED_RUN
                 )
                 self.assertEqual(result, "DUPLICATE_TARGET_NOOP")
 
-    def test_overlap_is_owner_conflict_noop(self):
+    def test_path_overlap_is_fail_closed(self):
         result = decide(
             DispatchControl("READY_FOR_SCHEDULED_RUN", "token", 688),
             secret_present=True,
@@ -78,7 +108,7 @@ READY_FOR_SCHEDULED_RUN
             target_ready=True,
             overlapping_pr=True,
         )
-        self.assertEqual(result, "OWNER_CONFLICT_NOOP")
+        self.assertEqual(result, "PATH_CONFLICT_NOOP")
 
     def test_only_clean_ready_case_dispatches(self):
         result = decide(
