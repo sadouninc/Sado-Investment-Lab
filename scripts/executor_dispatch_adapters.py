@@ -68,7 +68,7 @@ def build_dispatch_plan(lease: Mapping[str, Any]) -> DispatchPlan:
         lease_id=lease_id, executor=executor, target_issue=target_issue
     )
     key_material = f"{lease_id}|{executor}|{target_issue}"
-    idempotency_key = sha256(key_material.encode("utf-8")).hexdigest()[:24]
+    idempotency_key = sha256(key_material.encode("utf-8")).hexdigest()
 
     if executor == "AMAZON_Q":
         action = "ADD_ISSUE_LABEL"
