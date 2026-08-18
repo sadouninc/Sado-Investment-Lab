@@ -11,8 +11,8 @@ on:
   schedule:
     - cron: "0 18 * * *" # 03:00 JST
 
-# Official jules-invoke quick start requires only repository read access.
-# The dispatcher additionally writes Issue #685 only to claim/terminalize its run lease.
+# Official Jules action invokes the Jules API; this workflow itself only needs
+# repository read plus Issue #685 write access to claim/terminalize the run lease.
 permissions:
   contents: read
   issues: write
@@ -177,7 +177,7 @@ jobs:
       - name: Invoke Jules
         id: jules
         if: steps.claim.outcome == 'success'
-        uses: google-labs-code/jules-invoke@v1
+        uses: google-labs-code/jules-action@v1.0.0
         with:
           prompt: ${{ steps.guard.outputs.prompt }}
           starting_branch: main
