@@ -1036,11 +1036,10 @@ def build_engineering_evolution() -> None:
     purpose = section_content(content, "この記録の目的", level=2)
     if purpose:
         page += '<details class="source-journal">
-        page += '## この記録の目的
+        page += purpose + '
     
     if evidence_entries:
         page += '<details class="source-journal">
-        page += '## 2026-08-16 Verified Timeline
         page += "| 時刻 (JST) | Evidence | Category | Summary |\n"
         page += "|---|---|---|---|\n"
         for entry in evidence_entries:
