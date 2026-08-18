@@ -1,0 +1,248 @@
+name: Amazon Q Activation Diagnostic
+
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      target_issue:
+        description: "Diagnostic sandbox Issue number (currently #700 only)"
+        required: true
+        default: "700"
+        type: string
+      wait_seconds:
+        description: "Seconds to wait for Amazon Q bot response (30-300)"
+        required: true
+        default: "180"
+        type: string
+      sample_label:
+        description: "Optional label for this diagnostic sample"
+        required: false
+        default: "manual-recheck"
+        type: string
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  diagnose:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.number == 700 &&
+       github.event.comment.body == '/q dev' &&
+       github.actor == github.repository_owner)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    concurrency:
+      group: amazon-q-activation-diagnostic-700
+      cancel-in-progress: false
+
+    steps:
+      - name: Resolve human-authored diagnostic trigger
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+          ACTOR: ${{ github.actor }}
+          EVENT_ISSUE: ${{ github.event.issue.number }}
+          EVENT_COMMENT_ID: ${{ github.event.comment.id }}
+          EVENT_COMMENT_BODY: ${{ github.event.comment.body }}
+          EVENT_COMMENT_USER: ${{ github.event.comment.user.login }}
+          EVENT_COMMENT_CREATED_AT: ${{ github.event.comment.created_at }}
+          INPUT_TARGET_ISSUE: ${{ inputs.target_issue }}
+          INPUT_WAIT_SECONDS: ${{ inputs.wait_seconds }}
+          SAMPLE_LABEL: ${{ inputs.sample_label }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          result_file="$RUNNER_TEMP/amazon-q-diagnostic.json"
+          echo "result_file=$result_file" >> "$GITHUB_OUTPUT"
+
+          if [[ "$ACTOR" != "$REPOSITORY_OWNER" ]]; then
+            jq -n \
+              --arg status "TRIGGER_INVALID" \
+              --arg reason "WORKFLOW_ACTOR_NOT_REPOSITORY_OWNER" \
+              '{status:$status,reason:$reason}' > "$result_file"
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "$EVENT_NAME" == "issue_comment" ]]; then
+            issue="$EVENT_ISSUE"
+            trigger_id="$EVENT_COMMENT_ID"
+            trigger_body="$EVENT_COMMENT_BODY"
+            trigger_user="$EVENT_COMMENT_USER"
+            trigger_created_at="$EVENT_COMMENT_CREATED_AT"
+            wait_seconds=180
+            sample_label="issue-comment-${trigger_id}"
+          else
+            issue="${INPUT_TARGET_ISSUE:-700}"
+            wait_seconds="${INPUT_WAIT_SECONDS:-180}"
+            sample_label="${SAMPLE_LABEL:-manual-recheck}"
+
+            if [[ "$issue" == "79" || "$issue" != "700" ]]; then
+              jq -n \
+                --arg status "TARGET_INVALID" \
+                --arg reason "DIAGNOSTIC_TARGET_MUST_BE_700_AND_NEVER_79" \
+                --arg issue "$issue" \
+                '{status:$status,reason:$reason,target_issue:$issue}' > "$result_file"
+              echo "proceed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments?per_page=100" > "$RUNNER_TEMP/comments.json"
+            trigger="$(jq -c --arg owner "$REPOSITORY_OWNER" '[.[] | select(.user.login == $owner and .body == "/q dev")] | last // empty' "$RUNNER_TEMP/comments.json")"
+            if [[ -z "$trigger" ]]; then
+              jq -n \
+                --arg status "TRIGGER_INVALID" \
+                --arg reason "NO_OWNER_AUTHORED_Q_DEV_TRIGGER_FOUND" \
+                --arg issue "$issue" \
+                '{status:$status,reason:$reason,target_issue:$issue}' > "$result_file"
+              echo "proceed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            trigger_id="$(jq -r '.id' <<<"$trigger")"
+            trigger_body="$(jq -r '.body' <<<"$trigger")"
+            trigger_user="$(jq -r '.user.login' <<<"$trigger")"
+            trigger_created_at="$(jq -r '.created_at' <<<"$trigger")"
+          fi
+
+          if [[ "$issue" == "79" || "$issue" != "700" || "$trigger_body" != "/q dev" || "$trigger_user" != "$REPOSITORY_OWNER" ]]; then
+            jq -n \
+              --arg status "TRIGGER_INVALID" \
+              --arg reason "OWNER_EXACT_TRIGGER_REQUIRED_ON_SANDBOX_700" \
+              --arg issue "$issue" \
+              --arg trigger_user "$trigger_user" \
+              --arg trigger_body "$trigger_body" \
+              '{status:$status,reason:$reason,target_issue:$issue,trigger_user:$trigger_user,trigger_body:$trigger_body}' > "$result_file"
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ ! "$wait_seconds" =~ ^[0-9]+$ ]]; then
+            wait_seconds=180
+          fi
+          if (( wait_seconds < 30 )); then wait_seconds=30; fi
+          if (( wait_seconds > 300 )); then wait_seconds=300; fi
+
+          echo "proceed=true" >> "$GITHUB_OUTPUT"
+          echo "issue=$issue" >> "$GITHUB_OUTPUT"
+          echo "trigger_id=$trigger_id" >> "$GITHUB_OUTPUT"
+          echo "trigger_created_at=$trigger_created_at" >> "$GITHUB_OUTPUT"
+          echo "wait_seconds=$wait_seconds" >> "$GITHUB_OUTPUT"
+          echo "sample_label=$sample_label" >> "$GITHUB_OUTPUT"
+
+      - name: Poll for Amazon Q activation evidence
+        if: steps.resolve.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ steps.resolve.outputs.issue }}
+          TRIGGER_ID: ${{ steps.resolve.outputs.trigger_id }}
+          TRIGGER_CREATED_AT: ${{ steps.resolve.outputs.trigger_created_at }}
+          WAIT_SECONDS: ${{ steps.resolve.outputs.wait_seconds }}
+          SAMPLE_LABEL: ${{ steps.resolve.outputs.sample_label }}
+          RESULT_FILE: ${{ steps.resolve.outputs.result_file }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          start_epoch="$(date -u +%s)"
+          deadline=$((start_epoch + WAIT_SECONDS))
+          status="TIMEOUT"
+          bot_comment_id=""
+          bot_created_at=""
+          bot_body=""
+          pr_number=""
+
+          while (( $(date -u +%s) <= deadline )); do
+            gh api "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments?per_page=100" > "$RUNNER_TEMP/comments-current.json"
+            bot="$(jq -c --argjson trigger "$TRIGGER_ID" '[.[] | select(.id > $trigger and .user.login == "amazon-q-developer[bot]")] | first // empty' "$RUNNER_TEMP/comments-current.json")"
+            if [[ -n "$bot" ]]; then
+              bot_comment_id="$(jq -r '.id' <<<"$bot")"
+              bot_created_at="$(jq -r '.created_at' <<<"$bot")"
+              bot_body="$(jq -r '.body' <<<"$bot")"
+              pr_number="$(grep -oE 'pull/[0-9]+' <<<"$bot_body" | head -n1 | cut -d/ -f2 || true)"
+              if [[ -n "$pr_number" ]]; then
+                status="PR_OPEN"
+              else
+                status="BOT_ACK"
+              fi
+              break
+            fi
+            sleep 10
+          done
+
+          latency_seconds=""
+          if [[ -n "$bot_created_at" ]]; then
+            latency_seconds="$(python - "$TRIGGER_CREATED_AT" "$bot_created_at" <<'PY'
+          import datetime as dt
+          import sys
+          start = dt.datetime.fromisoformat(sys.argv[1].replace('Z', '+00:00'))
+          end = dt.datetime.fromisoformat(sys.argv[2].replace('Z', '+00:00'))
+          print(max(0, int((end - start).total_seconds())))
+          PY
+          )"
+          fi
+
+          observed_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          jq -n \
+            --arg status "$status" \
+            --arg sample_label "$SAMPLE_LABEL" \
+            --argjson target_issue "$ISSUE_NUMBER" \
+            --arg trigger_comment_id "$TRIGGER_ID" \
+            --arg trigger_created_at "$TRIGGER_CREATED_AT" \
+            --arg bot_comment_id "$bot_comment_id" \
+            --arg bot_created_at "$bot_created_at" \
+            --arg latency_seconds "$latency_seconds" \
+            --arg pr_number "$pr_number" \
+            --arg observed_at "$observed_at" \
+            '{
+              status:$status,
+              sample_label:$sample_label,
+              target_issue:$target_issue,
+              trigger_comment_id:$trigger_comment_id,
+              trigger_created_at:$trigger_created_at,
+              bot_comment_id:($bot_comment_id | if . == "" then null else . end),
+              bot_created_at:($bot_created_at | if . == "" then null else . end),
+              bot_ack_latency_seconds:($latency_seconds | if . == "" then null else tonumber end),
+              linked_pr_number:($pr_number | if . == "" then null else tonumber end),
+              observed_at:$observed_at
+            }' > "$RESULT_FILE"
+
+          {
+            echo "## Amazon Q Activation Diagnostic"
+            echo "- status: **$status**"
+            echo "- sandbox Issue: #$ISSUE_NUMBER"
+            echo "- trigger comment: $TRIGGER_ID"
+            echo "- trigger author: repository owner"
+            echo "- bot comment: ${bot_comment_id:-none}"
+            echo "- ACK latency seconds: ${latency_seconds:-N/A}"
+            echo "- linked PR: ${pr_number:-none}"
+            echo "- sample: $SAMPLE_LABEL"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Summarize invalid diagnostic request
+        if: steps.resolve.outputs.proceed != 'true'
+        env:
+          RESULT_FILE: ${{ steps.resolve.outputs.result_file }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "## Amazon Q Activation Diagnostic" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat "$RESULT_FILE" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload diagnostic JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: amazon-q-activation-diagnostic-${{ github.run_id }}
+          path: ${{ steps.resolve.outputs.result_file }}
+          if-no-files-found: error
+          retention-days: 30
