@@ -1011,11 +1011,17 @@ def build_engineering_evolution() -> None:
     
     before = section_content(content, "Before: ChatGPTチーム中心の直接作業", level=3)
     if before:
-        page += '<div class="content-card">
+        page += (
+            '<div class="content-card"><h3>導入前</h3>
+            + before + '
+        )
     
     current = section_content(content, "Current: 複数AIを組み込んだ5-plane model", level=3)
     if current:
-        page += '<div class="content-card">
+        page += (
+            '<div class="content-card"><h3>現在</h3>
+            + current + '
+        )
     
     page += '</div>\n\n'
     
@@ -1023,7 +1029,10 @@ def build_engineering_evolution() -> None:
     
     inflection = section_content(content, "2026-08-16 — Productivity inflection hypothesis", level=2)
     if inflection:
-        page += '<div class="insight-panel" markdown="1">
+        page += (
+            '<div class="insight-panel" markdown="1">
+            + inflection + '
+        )
     
     page += (
         '<div class="notice-card">
@@ -1035,11 +1044,17 @@ def build_engineering_evolution() -> None:
     
     purpose = section_content(content, "この記録の目的", level=2)
     if purpose:
-        page += '<details class="source-journal">
-        page += purpose + '
+        page += (
+            '<details class="source-journal">
+            '<summary>この記録の目的</summary>
+            + purpose + '
+        )
     
     if evidence_entries:
-        page += '<details class="source-journal">
+        page += (
+            '<details class="source-journal">
+            '<summary>2026-08-16 Timeline</summary>
+        )
         page += "| 時刻 (JST) | Evidence | Category | Summary |\n"
         page += "|---|---|---|---|\n"
         for entry in evidence_entries:
@@ -1054,8 +1069,11 @@ def build_engineering_evolution() -> None:
                 page += f"| {timestamp} | {ref} | {category} | {summary} |\n"
         page += '
     
-    page += '<details class="source-journal">
-    page += content + '
+    page += (
+        '<details class="source-journal">
+        '<summary>Full Record</summary>
+        + content + '
+    )
     
     write(SITE / "platform" / "engineering-evolution" / "index.md", page)
 
