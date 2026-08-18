@@ -10,7 +10,7 @@ This pilot test proves that Amazon Q Developer can be activated using only the c
 
 ## Activation Source
 
-The activation source for this pilot is the **`Amazon Q development agent`** label assigned to Issue #727.
+The activation source for this pilot is the **`Amazon Q development agent`** label assigned to Issue #731.
 
 ## Scope Boundaries
 
@@ -33,7 +33,7 @@ The pilot is considered successful when:
 2. ✓ Amazon Q opens a Pull Request with a non-empty diff
 3. ✓ Changed files = exactly 1 file (this document)
 4. ✓ File path = exactly `docs/automation/amazon-q-label-pilot-2026-08-19.md`
-5. ✓ No Owner-authored `/q dev` comment exists on Issue #727
+5. ✓ No Owner-authored `/q dev` comment exists on Issue #731
 
 ## References
 
