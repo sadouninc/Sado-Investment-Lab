@@ -38,8 +38,8 @@ jobs:
                 # Idempotency: PR Preflight posts no status for workflow_dispatch,
                 # so use an immutable issue comment marker keyed by PR head SHA.
                 marker="AMAZON_Q_PREFLIGHT_DISPATCHED head=$head_sha"
-                if gh api --paginate "repos/$REPO/issues/$pr/comments?per_page=100" \
-                    --jq '.[].body' | grep -Fqx "$marker"; then
+                comments=$(gh api --paginate "repos/$REPO/issues/$pr/comments?per_page=100" --jq '.[].body')
+                if grep -Fqx "$marker" <<<"$comments"; then
                   echo "PR #$pr head $head_sha already dispatched"
                   continue
                 fi
