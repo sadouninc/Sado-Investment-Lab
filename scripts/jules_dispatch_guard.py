@@ -26,7 +26,8 @@ class DispatchControl:
 
 
 def _section_value(body: str, heading: str) -> str | None:
-    pattern = rf"^##\s+{re.escape(heading)}\s*$\n([^\n]+)"
+    """Read the first value below an exact level-2 heading, tolerating whitespace/CRLF only."""
+    pattern = rf"^##[ \t]+{re.escape(heading)}[ \t]*\r?\n[ \t]*([^\r\n]+)"
     match = re.search(pattern, body, flags=re.MULTILINE)
     return match.group(1).strip() if match else None
 
@@ -66,7 +67,7 @@ def decide(
     if not target_open or not target_ready:
         return "DUPLICATE_TARGET_NOOP"
     if overlapping_pr:
-        return "OWNER_CONFLICT_NOOP"
+        return "PATH_CONFLICT_NOOP"
     return "DISPATCH_ALLOWED"
 
 
