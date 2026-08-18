@@ -45,15 +45,22 @@ def test_free_first_prefers_amazon_q_when_healthy():
 
 
 def test_provider_with_two_activation_failures_is_skipped():
-    providers = healthy_providers(
-        AMAZON_Q={"state": "HEALTHY", "consecutive_activation_failures": 2}
-    )
+    providers = healthy_providers(AMAZON_Q={"state": "HEALTHY", "consecutive_activation_failures": 2})
     assert select_route([candidate()], provider_health=providers)["executor"] == "JULES"
 
 
 def test_malformed_provider_health_fails_closed_and_falls_back():
+    providers = healthy_providers(AMAZON_Q={"state": "HEALTHY", "consecutive_activation_failures": "two"})
+    assert select_route([candidate()], provider_health=providers)["executor"] == "JULES"
+
+
+def test_cooldown_without_provider_clock_fails_closed_and_falls_back():
     providers = healthy_providers(
-        AMAZON_Q={"state": "HEALTHY", "consecutive_activation_failures": "two"}
+        AMAZON_Q={
+            "state": "HEALTHY",
+            "consecutive_activation_failures": 0,
+            "cooldown_until": "2026-08-19T00:30:00+00:00",
+        }
     )
     assert select_route([candidate()], provider_health=providers)["executor"] == "JULES"
 
