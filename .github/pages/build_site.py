@@ -1054,7 +1054,6 @@ def build_engineering_evolution() -> None:
             else:
                 page += f"| {timestamp} | {ref} | {category} | {summary} |\n"
         page += '
-        page += '</details>
     
     page += '<details class="source-journal">
     page += content + '
