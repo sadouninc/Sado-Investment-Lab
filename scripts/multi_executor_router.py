@@ -8,12 +8,6 @@ from typing import Any, Iterable, Mapping
 
 DEFAULT_EXECUTOR_ORDER = ("AMAZON_Q", "JULES", "SORA")
 HEALTHY_STATES = {"HEALTHY", "AVAILABLE", "IDLE"}
-TERMINAL_PRE_EXECUTION = {
-    "DISPATCH_ACK_EXPIRED",
-    "ACK_STALLED",
-    "PROVIDER_UNAVAILABLE",
-    "ROUTING_CONFLICT",
-}
 
 
 @dataclass(frozen=True)
@@ -34,14 +28,16 @@ class RouterCandidate:
 
 def _candidate(raw: Mapping[str, Any]) -> RouterCandidate:
     return RouterCandidate(
-        work_ref=str(raw["work_ref"]).strip(),
+        work_ref=str(raw.get("work_ref", "")).strip(),
         task_class=str(raw.get("task_class", "GENERAL")).strip() or "GENERAL",
         priority=int(raw.get("priority", 999)),
         risk=str(raw.get("risk", "")).upper(),
         allowed_paths=tuple(str(v) for v in raw.get("allowed_paths", ())),
         forbidden_paths=tuple(str(v) for v in raw.get("forbidden_paths", ())),
         base_sha=str(raw.get("base_sha", "")).strip(),
-        eligible_executors=tuple(str(v).upper() for v in raw.get("eligible_executors", DEFAULT_EXECUTOR_ORDER)),
+        eligible_executors=tuple(
+            str(v).upper() for v in raw.get("eligible_executors", DEFAULT_EXECUTOR_ORDER)
+        ),
         preflight_valid=bool(raw.get("preflight_valid", False)),
         dependencies_satisfied=bool(raw.get("dependencies_satisfied", False)),
         owner_conflict=bool(raw.get("owner_conflict", False)),
@@ -49,25 +45,35 @@ def _candidate(raw: Mapping[str, Any]) -> RouterCandidate:
     )
 
 
-def _provider_eligible(provider: str, health: Mapping[str, Any]) -> bool:
+def _parse_aware(value: Any, *, field: str) -> datetime:
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{field} must be a valid ISO timestamp") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{field} must be timezone-aware")
+    return parsed.astimezone(timezone.utc)
+
+
+def _provider_eligible(health: Mapping[str, Any]) -> bool:
     state = str(health.get("state", "UNKNOWN")).upper()
     if state not in HEALTHY_STATES:
         return False
-    if int(health.get("consecutive_activation_failures", 0)) >= 2:
+    try:
+        failures = int(health.get("consecutive_activation_failures", 0))
+    except (TypeError, ValueError):
         return False
+    if failures < 0 or failures >= 2:
+        return False
+
     cooldown_until = health.get("cooldown_until")
     if cooldown_until:
         try:
-            until = datetime.fromisoformat(str(cooldown_until).replace("Z", "+00:00"))
+            until = _parse_aware(cooldown_until, field="cooldown_until")
+            current = _parse_aware(health.get("now"), field="now")
         except ValueError:
             return False
-        if until.tzinfo is None:
-            return False
-        now = health.get("now")
-        if now is None:
-            return False
-        current = datetime.fromisoformat(str(now).replace("Z", "+00:00"))
-        if current.tzinfo is None or current < until:
+        if current < until:
             return False
     return True
 
@@ -78,10 +84,7 @@ def select_route(
     provider_health: Mapping[str, Mapping[str, Any]],
     executor_order: Iterable[str] = DEFAULT_EXECUTOR_ORDER,
 ) -> dict[str, Any]:
-    """Select one READY work item and one executor deterministically.
-
-    Pure function: no GitHub writes, dispatches, or mutations.
-    """
+    """Select one READY work item and executor deterministically; no side effects."""
     normalized_order = tuple(str(v).upper() for v in executor_order)
     safe: list[RouterCandidate] = []
     blocked: list[str] = []
@@ -89,7 +92,7 @@ def select_route(
     for raw in candidates:
         try:
             item = _candidate(raw)
-        except (KeyError, TypeError, ValueError):
+        except (TypeError, ValueError):
             blocked.append("PREFLIGHT_INVALID")
             continue
         if not item.work_ref or not item.base_sha or not item.preflight_valid:
@@ -111,7 +114,7 @@ def select_route(
         for executor in normalized_order:
             if executor not in item.eligible_executors:
                 continue
-            if _provider_eligible(executor, provider_health.get(executor, {})):
+            if _provider_eligible(provider_health.get(executor, {})):
                 return {
                     "status": "SELECTED",
                     "work_ref": item.work_ref,
@@ -126,7 +129,12 @@ def select_route(
 
     if safe:
         return {"status": "PROVIDER_UNAVAILABLE", "selected": None}
-    reason_order = ("PREFLIGHT_INVALID", "DEPENDENCY_BLOCKED", "ROUTING_CONFLICT", "RISK_NOT_ELIGIBLE")
+    reason_order = (
+        "PREFLIGHT_INVALID",
+        "DEPENDENCY_BLOCKED",
+        "ROUTING_CONFLICT",
+        "RISK_NOT_ELIGIBLE",
+    )
     reason = next((r for r in reason_order if r in blocked), "NO_SAFE_CANDIDATE")
     return {"status": reason, "selected": None}
 
@@ -136,28 +144,41 @@ def issue_lease(selection: Mapping[str, Any], *, assigned_at: datetime) -> dict[
         raise ValueError("lease requires SELECTED routing result")
     if assigned_at.tzinfo is None or assigned_at.utcoffset() is None:
         raise ValueError("assigned_at must be timezone-aware")
+
+    required = (
+        "work_ref",
+        "executor",
+        "task_class",
+        "allowed_paths",
+        "forbidden_paths",
+        "base_sha",
+        "fallback_order",
+    )
+    missing = [key for key in required if key not in selection]
+    if missing:
+        raise ValueError(f"invalid selection structure: missing {','.join(missing)}")
+
+    work_ref = str(selection["work_ref"]).strip()
+    executor = str(selection["executor"]).strip().upper()
+    base_sha = str(selection["base_sha"]).strip()
+    if not work_ref or not executor or not base_sha:
+        raise ValueError("selection work_ref/executor/base_sha must be nonblank")
+
     assigned = assigned_at.astimezone(timezone.utc)
     ack_deadline = assigned + timedelta(minutes=10)
-    material = "|".join(
-        [
-            str(selection["work_ref"]),
-            str(selection["executor"]),
-            str(selection["base_sha"]),
-            assigned.isoformat(),
-        ]
-    )
+    material = "|".join([work_ref, executor, base_sha, assigned.isoformat()])
     lease_id = "lease-" + sha256(material.encode("utf-8")).hexdigest()[:20]
     return {
         "lease_id": lease_id,
-        "work_ref": selection["work_ref"],
-        "executor": selection["executor"],
-        "task_class": selection["task_class"],
+        "work_ref": work_ref,
+        "executor": executor,
+        "task_class": str(selection["task_class"]),
         "assigned_at": assigned.isoformat(),
         "ack_deadline": ack_deadline.isoformat(),
         "execution_evidence_deadline": None,
         "allowed_paths": tuple(selection["allowed_paths"]),
         "forbidden_paths": tuple(selection["forbidden_paths"]),
-        "base_sha": selection["base_sha"],
+        "base_sha": base_sha,
         "fallback_order": tuple(selection["fallback_order"]),
         "terminal_state": None,
     }
@@ -174,12 +195,20 @@ def evaluate_lease(
     if now.tzinfo is None or now.utcoffset() is None:
         raise ValueError("now must be timezone-aware")
     now_utc = now.astimezone(timezone.utc)
-    assigned = datetime.fromisoformat(str(lease["assigned_at"]))
-    ack_deadline = datetime.fromisoformat(str(lease["ack_deadline"]))
+    try:
+        assigned = _parse_aware(lease["assigned_at"], field="assigned_at")
+        ack_deadline = _parse_aware(lease["ack_deadline"], field="ack_deadline")
+    except KeyError as exc:
+        raise ValueError(f"invalid lease structure: missing {exc.args[0]}") from exc
+    if ack_deadline <= assigned:
+        raise ValueError("ack_deadline must be after assigned_at")
 
     if execution_evidence_at is not None:
-        if execution_evidence_at.tzinfo is None:
+        if execution_evidence_at.tzinfo is None or execution_evidence_at.utcoffset() is None:
             raise ValueError("execution_evidence_at must be timezone-aware")
+        evidence = execution_evidence_at.astimezone(timezone.utc)
+        if evidence < assigned or evidence > now_utc:
+            raise ValueError("execution_evidence_at must be within lease observation window")
         return {"status": "EXECUTION_EVIDENCE", "terminal": False}
 
     if acknowledged_at is None:
@@ -187,12 +216,22 @@ def evaluate_lease(
             return {"status": "DISPATCH_ACK_EXPIRED", "terminal": True}
         return {"status": "DISPATCHED", "terminal": False}
 
-    if acknowledged_at.tzinfo is None:
+    if acknowledged_at.tzinfo is None or acknowledged_at.utcoffset() is None:
         raise ValueError("acknowledged_at must be timezone-aware")
     ack = acknowledged_at.astimezone(timezone.utc)
+    if ack < assigned:
+        raise ValueError("acknowledged_at must not be before assigned_at")
     if ack >= ack_deadline:
         return {"status": "DISPATCH_ACK_EXPIRED", "terminal": True, "late_ack": True}
     evidence_deadline = ack + timedelta(minutes=20)
     if now_utc >= evidence_deadline:
-        return {"status": "ACK_STALLED", "terminal": True, "execution_evidence_deadline": evidence_deadline.isoformat()}
-    return {"status": "ACKED", "terminal": False, "execution_evidence_deadline": evidence_deadline.isoformat()}
+        return {
+            "status": "ACK_STALLED",
+            "terminal": True,
+            "execution_evidence_deadline": evidence_deadline.isoformat(),
+        }
+    return {
+        "status": "ACKED",
+        "terminal": False,
+        "execution_evidence_deadline": evidence_deadline.isoformat(),
+    }
