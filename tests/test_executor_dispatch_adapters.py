@@ -47,6 +47,7 @@ def test_evidence_marker_is_deterministic_and_idempotent():
     first = build_dispatch_plan(lease())
     second = build_dispatch_plan(lease())
     assert first.idempotency_key == second.idempotency_key
+    assert len(first.idempotency_key) == 64
     assert first.evidence_marker == second.evidence_marker
     comments = [{"body": first.evidence_marker}]
     assert already_dispatched(comments, lease_id="lease-abc123") is True
