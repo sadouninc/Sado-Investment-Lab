@@ -85,7 +85,23 @@
       "additionalProperties": true
     },
     "source_refs": {"type": "array", "items": {"type": "string"}},
-    "data_completeness": {"enum": ["COMPLETE", "PARTIAL", "UNKNOWN"]}
+    "data_completeness": {"enum": ["COMPLETE", "PARTIAL", "UNKNOWN"]},
+    "government_evidence_maturity": {
+      "type": "object",
+      "properties": {
+        "level": {"enum": ["L0", "L1", "L2", "L3", "L4", "L5", "UNKNOWN"]},
+        "confidence": {"enum": ["CONFIRMED", "PARTIAL", "UNKNOWN"]},
+        "policy_program": {"type": ["string", "null"]},
+        "direct_support_amount": {},
+        "supported_asset": {"type": ["string", "null"]},
+        "supported_asset_status": {"type": ["string", "null"]},
+        "revenue_attribution": {"enum": ["CONFIRMED", "NOT_CONFIRMED", "NOT_APPLICABLE"]},
+        "profit_cf_attribution": {"enum": ["CONFIRMED", "NOT_CONFIRMED", "NOT_APPLICABLE"]},
+        "as_of": {"type": ["string", "null"], "format": "date"},
+        "sources": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    }
   },
   "$defs": {
     "scenario": {
