@@ -105,7 +105,7 @@ def main() -> int:
     control = parse_control(control_body)
     target_ready = "READY_FOR_IMPLEMENTATION" in target_body or "READY_FOR_IMPLEMENTATION" in json.dumps(
         target_json.get("comments", []), ensure_ascii=False
-    )
+    ) or any((label.get("name") or "") in {"status:ready", "work:ready"} for label in target_json.get("labels", []))
 
     result = decide(
         control,
