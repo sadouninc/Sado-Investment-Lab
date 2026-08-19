@@ -85,7 +85,42 @@
       "additionalProperties": true
     },
     "source_refs": {"type": "array", "items": {"type": "string"}},
-    "data_completeness": {"enum": ["COMPLETE", "PARTIAL", "UNKNOWN"]}
+    "data_completeness": {"enum": ["COMPLETE", "PARTIAL", "UNKNOWN"]},
+    "government_evidence_maturity": {
+      "type": "object",
+      "required": ["level", "confidence", "revenue_attribution", "profit_cf_attribution"],
+      "properties": {
+        "level": {
+          "enum": ["L0", "L1", "L2", "L3", "L4", "L5", "UNKNOWN"],
+          "description": "Policy support maturity level: L0=no support, L1=R&D/subsidy, L2=asset development, L3=production capability, L4=revenue generation, L5=profit/CF positive"
+        },
+        "confidence": {
+          "enum": ["CONFIRMED", "PARTIAL", "UNKNOWN"],
+          "description": "Evidence quality level"
+        },
+        "policy_program": {
+          "type": ["string", "null"],
+          "description": "Name of policy program (e.g., SBIR, K Program)"
+        },
+        "direct_support_amount": {
+          "type": ["number", "null"],
+          "description": "Direct support amount in yen; can be null/unknown"
+        },
+        "supported_asset": {"type": ["string", "null"]},
+        "supported_asset_status": {"type": ["string", "null"]},
+        "revenue_attribution": {
+          "enum": ["CONFIRMED", "NOT_CONFIRMED", "NOT_APPLICABLE"],
+          "description": "Whether policy-supported asset has generated confirmed revenue"
+        },
+        "profit_cf_attribution": {
+          "enum": ["CONFIRMED", "NOT_CONFIRMED", "NOT_APPLICABLE"],
+          "description": "Whether policy-supported asset has generated confirmed profit or operating cash flow"
+        },
+        "as_of": {"type": "string", "format": "date"},
+        "sources": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    }
   },
   "$defs": {
     "scenario": {

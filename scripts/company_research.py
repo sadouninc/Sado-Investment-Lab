@@ -13,6 +13,11 @@ CONFIDENCE = {"LOW", "MEDIUM", "HIGH"}
 DATA_COMPLETENESS = {"COMPLETE", "PARTIAL", "UNKNOWN"}
 
 
+GOVERNMENT_MATURITY_LEVELS = {"L0", "L1", "L2", "L3", "L4", "L5", "UNKNOWN"}
+GOVERNMENT_CONFIDENCE = {"CONFIRMED", "PARTIAL", "UNKNOWN"}
+GOVERNMENT_ATTRIBUTION = {"CONFIRMED", "NOT_CONFIRMED", "NOT_APPLICABLE"}
+
+
 def _text(value: Any, field: str, *, required: bool = True) -> str | None:
     if value is None:
         if required:
@@ -40,6 +45,73 @@ def _has_source_as_of(value: Any) -> bool:
     if isinstance(value, Mapping):
         return bool(value.get("source_ref")) and bool(value.get("as_of"))
     return False
+
+
+def _validate_government_evidence_maturity(raw: Mapping[str, Any]) -> None:
+    """Validate government_evidence_maturity field if present.
+    
+    Critical validation rules:
+    - L4 requires revenue_attribution = CONFIRMED (mass production ≠ L4)
+    - L5 requires profit_cf_attribution = CONFIRMED
+    - CONFIRMED/PARTIAL confidence requires as_of and sources
+    - UNKNOWN, NOT_CONFIRMED, NOT_APPLICABLE are valid and not collapsed
+    """
+    gov_maturity = raw.get("government_evidence_maturity")
+    if not gov_maturity:
+        return  # Field is optional
+    
+    if not isinstance(gov_maturity, Mapping):
+        raise CompanyResearchError("government_evidence_maturity must be an object")
+    
+    # Validate level enum
+    level = str(gov_maturity.get("level", "")).upper()
+    if not level or level not in GOVERNMENT_MATURITY_LEVELS:
+        raise CompanyResearchError(
+            f"government_evidence_maturity.level must be one of {GOVERNMENT_MATURITY_LEVELS}"
+        )
+    
+    # Validate confidence enum
+    confidence = str(gov_maturity.get("confidence", "")).upper()
+    if not confidence or confidence not in GOVERNMENT_CONFIDENCE:
+        raise CompanyResearchError(
+            f"government_evidence_maturity.confidence must be one of {GOVERNMENT_CONFIDENCE}"
+        )
+    
+    # Validate attribution enums
+    revenue_attr = str(gov_maturity.get("revenue_attribution", "")).upper()
+    if not revenue_attr or revenue_attr not in GOVERNMENT_ATTRIBUTION:
+        raise CompanyResearchError(
+            f"government_evidence_maturity.revenue_attribution must be one of {GOVERNMENT_ATTRIBUTION}"
+        )
+    
+    profit_cf_attr = str(gov_maturity.get("profit_cf_attribution", "")).upper()
+    if not profit_cf_attr or profit_cf_attr not in GOVERNMENT_ATTRIBUTION:
+        raise CompanyResearchError(
+            f"government_evidence_maturity.profit_cf_attribution must be one of {GOVERNMENT_ATTRIBUTION}"
+        )
+    
+    # L4 requires CONFIRMED revenue attribution (mass production started ≠ L4)
+    if level == "L4" and revenue_attr != "CONFIRMED":
+        raise CompanyResearchError(
+            "L4 maturity requires revenue_attribution=CONFIRMED (mass production started ≠ L4)"
+        )
+    
+    # L5 requires CONFIRMED profit/CF attribution
+    if level == "L5" and profit_cf_attr != "CONFIRMED":
+        raise CompanyResearchError("L5 maturity requires profit_cf_attribution=CONFIRMED")
+    
+    # CONFIRMED or PARTIAL confidence requires as_of and sources
+    if confidence in ("CONFIRMED", "PARTIAL"):
+        as_of = gov_maturity.get("as_of")
+        sources = gov_maturity.get("sources")
+        if not as_of or not isinstance(as_of, str) or not as_of.strip():
+            raise CompanyResearchError(
+                "government_evidence_maturity with CONFIRMED/PARTIAL confidence requires as_of"
+            )
+        if not isinstance(sources, list) or not sources:
+            raise CompanyResearchError(
+                "government_evidence_maturity with CONFIRMED/PARTIAL confidence requires non-empty sources"
+            )
 
 
 def quality_gate_failures(raw: Mapping[str, Any]) -> list[str]:
@@ -129,6 +201,7 @@ class CompanyResearchRecord:
         if completeness not in DATA_COMPLETENESS:
             raise CompanyResearchError("data_completeness must be COMPLETE/PARTIAL/UNKNOWN")
         record = cls(
+        _validate_government_evidence_maturity(raw)
             security_code=_text(raw.get("security_code"), "security_code") or "",
             company_name=_text(raw.get("company_name"), "company_name") or "",
             as_of=_text(raw.get("as_of"), "as_of") or "",
