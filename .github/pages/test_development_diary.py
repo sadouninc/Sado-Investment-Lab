@@ -10,8 +10,8 @@ import copy
 import importlib.util
 from pathlib import Path
 
-import pytest
 import jsonschema
+import pytest
 
 MODULE_PATH = Path(__file__).with_name("build_development_diary.py")
 spec = importlib.util.spec_from_file_location("build_development_diary", MODULE_PATH)
