@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2026-08-13T12:00:00Z",
+  "signal_state": "ORANGE",
+  "evidence": {
+    "primary": [
+      {
+        "type": "minutes",
+        "date": "2026-07-31",
+        "summary": "July MPM Summary of Opinions discussed faster normalization pace",
+        "hawkishness": "moderately_hawkish",
+        "source_url": null
+      }
+    ],
+    "market_implied": {
+      "next_meeting_hike_probability": 0.76,
+      "as_of_date": "2026-08-13",
+      "jgb_2y_yield": null,
+      "jgb_5y_yield": null,
+      "ois_rate": null,
+      "usdjpy_spot": null
+    },
+    "macro_indicators": {
+      "cpi_yoy": null,
+      "ppi_yoy": 7.2,
+      "import_price_yoy": 29.1
+    }
+  },
+  "state_transition_rationale": "ORANGE: Market-implied hike probability at 76.0%; Multiple hawkish BOJ communications (1); PPI elevated at 7.2% YoY; Import prices elevated at 29.1% YoY",
+  "next_mpm_date": "2026-09-17",
+  "portfolio_impact": {
+    "holdings_count": 0,
+    "high_sensitivity_count": 0,
+    "watch_count": 0,
+    "reduce_candidate_count": 0,
+    "exit_review_count": 0
+  },
+  "_notes": [
+    "Current state: ORANGE as of 2026-08-13",
+    "Market probability alone does NOT promote to RED",
+    "RED requires primary BOJ evidence of imminent rate hike",
+    "Next MPM: 2026-09-17/18",
+    "Research state from 06_Research/boj_early_warning_contract.md",
+    "Evidence snapshot from 06_Research/boj_early_warning_portfolio_sensitivity_2026-08-13.md"
+  ]
+}
+

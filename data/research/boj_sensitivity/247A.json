@@ -1,0 +1,18 @@
+{
+  "ticker": "247A",
+  "name": "Aiロボティクス",
+  "rate_sensitivity": "HIGH",
+  "yen_sensitivity": "MIXED",
+  "energy_input_sensitivity": "LOW",
+  "valuation_duration": "HIGH",
+  "balance_sheet_rate_risk": "HIGH",
+  "boj_risk_action": "WATCH",
+  "evidence_refs": [
+    "06_Research/boj_early_warning_portfolio_sensitivity_2026-08-13.md",
+    "Bridge/short-term financing key transmission path"
+  ],
+  "confidence": "MEDIUM",
+  "position_type": "LONG",
+  "notes": "HIGH funding sensitivity + HIGH valuation duration. Tier A on RED."
+}
+

@@ -1,0 +1,18 @@
+{
+  "ticker": "3291",
+  "name": "飯田グループホールディングス",
+  "rate_sensitivity": "HIGH",
+  "yen_sensitivity": "HEADWIND",
+  "energy_input_sensitivity": "MEDIUM",
+  "valuation_duration": "MEDIUM",
+  "balance_sheet_rate_risk": "MEDIUM",
+  "boj_risk_action": "SHORT_THESIS_REVIEW",
+  "evidence_refs": [
+    "06_Research/boj_early_warning/evidence/3291-iida-ghd.md",
+    "SHORT position - inverse logic"
+  ],
+  "confidence": "MEDIUM",
+  "position_type": "SHORT",
+  "notes": "SHORT: BOJ hike -> mortgage rates up -> housing demand pressure. Inverse logic."
+}
+

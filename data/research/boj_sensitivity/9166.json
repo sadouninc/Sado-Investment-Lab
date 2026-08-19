@@ -1,0 +1,18 @@
+{
+  "ticker": "9166",
+  "name": "GENDA",
+  "rate_sensitivity": "HIGH",
+  "yen_sensitivity": "MIXED",
+  "energy_input_sensitivity": "LOW",
+  "valuation_duration": "MEDIUM",
+  "balance_sheet_rate_risk": "HIGH",
+  "boj_risk_action": "WATCH",
+  "evidence_refs": [
+    "06_Research/boj_early_warning/evidence/9166-genda.md",
+    "FY2025/12 verified debt 22.4B JPY"
+  ],
+  "confidence": "HIGH",
+  "position_type": "LONG",
+  "notes": "M&A-driven growth via acquisition debt. BOJ hike affects refinancing cost."
+}
+

@@ -1,0 +1,177 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BOJ Early Warning System v1",
+  "description": "Contract for BOJ rate hike risk early warning signal states and portfolio sensitivity mapping",
+  "type": "object",
+  "required": ["signal_state", "evidence", "timestamp", "version"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of signal state evaluation"
+    },
+    "signal_state": {
+      "type": "string",
+      "enum": ["GREEN", "ORANGE", "RED"],
+      "description": "Current BOJ policy risk signal state"
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["primary", "market_implied"],
+      "properties": {
+        "primary": {
+          "type": "array",
+          "description": "Primary BOJ policy evidence (statements, minutes, speeches)",
+          "items": {
+            "type": "object",
+            "required": ["type", "date", "summary", "hawkishness"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["statement", "minutes", "speech", "outlook_report", "policy_decision"]
+              },
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "summary": {
+                "type": "string"
+              },
+              "hawkishness": {
+                "type": "string",
+                "enum": ["dovish", "neutral", "moderately_hawkish", "hawkish", "explicitly_imminent"]
+              },
+              "source_url": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "market_implied": {
+          "type": "object",
+          "description": "Market-implied probability and rate expectations",
+          "required": ["next_meeting_hike_probability", "as_of_date"],
+          "properties": {
+            "next_meeting_hike_probability": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Market-implied probability of rate hike at next MPM (0-1)"
+            },
+            "as_of_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "jgb_2y_yield": {
+              "type": "number"
+            },
+            "jgb_5y_yield": {
+              "type": "number"
+            },
+            "ois_rate": {
+              "type": "number"
+            },
+            "usdjpy_spot": {
+              "type": "number"
+            }
+          }
+        },
+        "macro_indicators": {
+          "type": "object",
+          "description": "Supporting macro indicators",
+          "properties": {
+            "cpi_yoy": {
+              "type": "number"
+            },
+            "ppi_yoy": {
+              "type": "number"
+            },
+            "import_price_yoy": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "state_transition_rationale": {
+      "type": "string",
+      "description": "Explanation of why current state was determined"
+    },
+    "next_mpm_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of next BOJ Monetary Policy Meeting"
+    },
+    "portfolio_impact": {
+      "type": "object",
+      "description": "Portfolio-level impact assessment",
+      "properties": {
+        "holdings_count": {
+          "type": "integer"
+        },
+        "high_sensitivity_count": {
+          "type": "integer"
+        },
+        "watch_count": {
+          "type": "integer"
+        },
+        "reduce_candidate_count": {
+          "type": "integer"
+        },
+        "exit_review_count": {
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "company_sensitivity": {
+      "type": "object",
+      "required": ["ticker", "name", "rate_sensitivity", "yen_sensitivity", "boj_risk_action"],
+      "properties": {
+        "ticker": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rate_sensitivity": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
+        },
+        "yen_sensitivity": {
+          "type": "string",
+          "enum": ["BENEFIT", "NEUTRAL", "HEADWIND", "MIXED", "UNKNOWN"]
+        },
+        "energy_input_sensitivity": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
+        },
+        "valuation_duration": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
+        },
+        "balance_sheet_rate_risk": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH", "UNKNOWN"]
+        },
+        "boj_risk_action": {
+          "type": "string",
+          "enum": ["HOLD", "WATCH", "REDUCE_CANDIDATE", "EXIT_REVIEW"]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH"]
+        }
+      }
+    }
+  }
+}

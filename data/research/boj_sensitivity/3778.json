@@ -1,0 +1,18 @@
+{
+  "ticker": "3778",
+  "name": "さくらインターネット",
+  "rate_sensitivity": "HIGH",
+  "yen_sensitivity": "MIXED",
+  "energy_input_sensitivity": "MEDIUM",
+  "valuation_duration": "HIGH",
+  "balance_sheet_rate_risk": "HIGH",
+  "boj_risk_action": "WATCH",
+  "evidence_refs": [
+    "06_Research/boj_early_warning_portfolio_sensitivity_2026-08-13.md",
+    "Direct funding / capex sensitivity"
+  ],
+  "confidence": "HIGH",
+  "position_type": "LONG",
+  "notes": "HIGH direct funding / capex sensitivity + HIGH valuation duration. Tier A on RED."
+}
+

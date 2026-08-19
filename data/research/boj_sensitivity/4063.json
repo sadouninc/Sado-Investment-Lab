@@ -1,0 +1,18 @@
+{
+  "ticker": "4063",
+  "name": "信越化学",
+  "rate_sensitivity": "LOW",
+  "yen_sensitivity": "BENEFIT",
+  "energy_input_sensitivity": "MEDIUM",
+  "valuation_duration": "LOW",
+  "balance_sheet_rate_risk": "LOW",
+  "boj_risk_action": "HOLD",
+  "evidence_refs": [
+    "06_Research/boj_early_warning_portfolio_sensitivity_2026-08-13.md",
+    "Strong verified balance sheet"
+  ],
+  "confidence": "HIGH",
+  "position_type": "LONG",
+  "notes": "Tier C: Monitor valuation, JPY, energy rather than direct debt stress."
+}
+
