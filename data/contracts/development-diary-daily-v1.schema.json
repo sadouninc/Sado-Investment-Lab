@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "development-diary-daily-v1.schema.json",
+  "title": "Development Diary Daily Snapshot v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "diary_date_jst", "closed_at_jst", "source_window_start_jst", "source_window_end_jst", "factory_output", "executor_performance", "flow_health", "economics", "factory_capability_changes", "corrections"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "diary_date_jst": {"type": "string", "format": "date"},
+    "closed_at_jst": {"type": "string", "format": "date-time"},
+    "source_window_start_jst": {"type": "string", "format": "date-time"},
+    "source_window_end_jst": {"type": "string", "format": "date-time"},
+    "factory_output": {"$ref": "#/$defs/factoryOutput"},
+    "executor_performance": {"type": "array", "items": {"$ref": "#/$defs/executorPerformance"}},
+    "flow_health": {"$ref": "#/$defs/flowHealth"},
+    "economics": {"$ref": "#/$defs/economics"},
+    "factory_capability_changes": {"type": "array", "items": {"$ref": "#/$defs/capabilityChange"}},
+    "corrections": {"type": "array", "items": {"$ref": "#/$defs/correction"}}
+  },
+  "$defs": {
+    "count": {"type": "integer", "minimum": 0},
+    "nullableNumber": {"type": ["number", "null"], "minimum": 0},
+    "nullableCount": {"type": ["integer", "null"], "minimum": 0},
+    "factoryOutput": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ready_count", "implementation_start_count", "pr_opened", "pr_merged", "pr_closed_unmerged", "durable_output_count", "productive_step_count", "lead_time_minutes"],
+      "properties": {
+        "ready_count": {"$ref": "#/$defs/count"}, "implementation_start_count": {"$ref": "#/$defs/count"}, "pr_opened": {"$ref": "#/$defs/count"}, "pr_merged": {"$ref": "#/$defs/count"}, "pr_closed_unmerged": {"$ref": "#/$defs/count"}, "durable_output_count": {"$ref": "#/$defs/count"}, "productive_step_count": {"$ref": "#/$defs/count"}, "lead_time_minutes": {"$ref": "#/$defs/nullableNumber"}
+      }
+    },
+    "executorPerformance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["executor", "task_class", "dispatch_count", "ack_count", "execution_evidence_count", "pr_count", "merge_count", "success_count", "failure_count", "terminal_noop_count", "elapsed_minutes", "lead_time_minutes", "rework_count", "duplicate_conflict_waste_count"],
+      "properties": {
+        "executor": {"type": "string", "minLength": 1}, "task_class": {"type": "string", "minLength": 1},
+        "dispatch_count": {"$ref": "#/$defs/count"}, "ack_count": {"$ref": "#/$defs/count"}, "execution_evidence_count": {"$ref": "#/$defs/count"}, "pr_count": {"$ref": "#/$defs/count"}, "merge_count": {"$ref": "#/$defs/count"}, "success_count": {"$ref": "#/$defs/count"}, "failure_count": {"$ref": "#/$defs/count"}, "terminal_noop_count": {"$ref": "#/$defs/count"}, "elapsed_minutes": {"$ref": "#/$defs/nullableNumber"}, "lead_time_minutes": {"$ref": "#/$defs/nullableNumber"}, "rework_count": {"$ref": "#/$defs/count"}, "duplicate_conflict_waste_count": {"$ref": "#/$defs/count"}
+      }
+    },
+    "flowHealth": {
+      "type": "object", "additionalProperties": false,
+      "required": ["active_implementation_wip", "waiting_work_count", "ready_nonconflicting_count", "queue_replenish_latency_minutes", "path_owner_conflict_count", "ci_stall_count", "starvation_state", "blocked_escape_count", "human_intervention_count", "durable_output_interval_minutes"],
+      "properties": {
+        "active_implementation_wip": {"$ref": "#/$defs/count"}, "waiting_work_count": {"$ref": "#/$defs/count"}, "ready_nonconflicting_count": {"$ref": "#/$defs/count"}, "queue_replenish_latency_minutes": {"$ref": "#/$defs/nullableNumber"}, "path_owner_conflict_count": {"$ref": "#/$defs/count"}, "ci_stall_count": {"$ref": "#/$defs/count"}, "starvation_state": {"type": "string", "minLength": 1}, "blocked_escape_count": {"$ref": "#/$defs/count"}, "human_intervention_count": {"$ref": "#/$defs/count"}, "durable_output_interval_minutes": {"$ref": "#/$defs/nullableNumber"}
+      }
+    },
+    "economics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["free_executor_ratio", "paid_fallback_count", "copilot_usage_count", "copilot_credits", "ai_cost_per_accepted_unit", "ai_cost_per_merge"],
+      "properties": {
+        "free_executor_ratio": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "paid_fallback_count": {"$ref": "#/$defs/count"}, "copilot_usage_count": {"$ref": "#/$defs/nullableCount"}, "copilot_credits": {"$ref": "#/$defs/nullableNumber"}, "ai_cost_per_accepted_unit": {"$ref": "#/$defs/nullableNumber"}, "ai_cost_per_merge": {"$ref": "#/$defs/nullableNumber"}
+      }
+    },
+    "capabilityChange": {
+      "type": "object", "additionalProperties": false,
+      "required": ["type", "effective_at", "capability", "before", "after", "evidence_refs", "validation_status"],
+      "properties": {
+        "type": {"const": "FACTORY_CAPABILITY_CHANGE"}, "effective_at": {"type": "string", "format": "date-time"}, "capability": {"type": "string", "minLength": 1}, "before": {}, "after": {}, "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}, "validation_status": {"enum": ["PILOT", "PROVEN", "UNKNOWN"]}
+      }
+    },
+    "correction": {
+      "type": "object", "additionalProperties": false,
+      "required": ["correction_id", "reason", "evidence_refs", "recorded_at"],
+      "properties": {
+        "correction_id": {"type": "string", "minLength": 1}, "reason": {"type": "string", "minLength": 1}, "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}}, "recorded_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}
