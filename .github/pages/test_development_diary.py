@@ -1,3 +1,9 @@
+"""Test suite for Development Diary renderer core v1.
+
+Validates rendering contract: schema validation, Japanese-first rendering,
+null vs zero distinction, executor×task_class preservation, status treatment,
+evidence link safety, corrections separation, and mobile-friendly layout.
+"""
 from __future__ import annotations
 
 import copy
