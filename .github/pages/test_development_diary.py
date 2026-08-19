@@ -5,6 +5,7 @@ import importlib.util
 from pathlib import Path
 
 import pytest
+import jsonschema
 
 MODULE_PATH = Path(__file__).with_name("build_development_diary.py")
 spec = importlib.util.spec_from_file_location("build_development_diary", MODULE_PATH)
@@ -147,14 +148,14 @@ def test_non_url_evidence_is_not_promoted_to_link():
 def test_required_layer_missing_fails_closed():
     snap = valid_snapshot()
     del snap["economics"]
-    with pytest.raises(Exception):
+    with pytest.raises(jsonschema.ValidationError):
         render_snapshot(snap)
 
 
 def test_malformed_type_fails_closed():
     snap = copy.deepcopy(valid_snapshot())
     snap["factory_output"]["ready_count"] = "one"
-    with pytest.raises(Exception):
+    with pytest.raises(jsonschema.ValidationError):
         render_snapshot(snap)
 
 
