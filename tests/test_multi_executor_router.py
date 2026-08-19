@@ -62,7 +62,9 @@ def test_selection_is_deterministic_by_priority_then_work_ref():
 
 def test_issue_lease_has_canonical_deadlines_and_stable_id():
     selection = select_route([candidate()], provider_health=healthy_providers()); first = issue_lease(selection, assigned_at=NOW); second = issue_lease(selection, assigned_at=NOW)
-    assert first["lease_id"] == second["lease_id"] and first["ack_deadline"] == (NOW + timedelta(minutes=10)).isoformat() and first["execution_evidence_deadline"] is None
+    assert first["lease_id"] == second["lease_id"]
+    assert first["lease_id"].startswith("lease-") and len(first["lease_id"]) == 38
+    assert first["ack_deadline"] == (NOW + timedelta(minutes=10)).isoformat() and first["execution_evidence_deadline"] is None
 
 def test_issue_lease_rejects_incomplete_selected_structure():
     with pytest.raises(ValueError, match="invalid selection structure"):
