@@ -8,6 +8,8 @@ on:
         required: true
         default: false
         type: boolean
+  issues:
+    types: [edited]
   schedule:
     - cron: "0 18 * * *" # 03:00 JST
 
@@ -24,6 +26,9 @@ concurrency:
 
 jobs:
   dispatch:
+    if: >-
+      github.event_name != 'issues' ||
+      (github.event.issue.number == 685 && github.actor == github.repository_owner)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -73,7 +78,7 @@ jobs:
           with open('/tmp/control.json', encoding='utf-8') as fh:
               body = json.load(fh).get('body') or ''
           section = re.search(
-              r'^##\s+Allowed paths[^\n]*\n(?P<body>.*?)(?=^##\s+|\Z)',
+              r'^##\s+ALLOWED PATHS[^\n]*\n(?P<body>.*?)(?=^##\s+|\Z)',
               body,
               flags=re.MULTILINE | re.DOTALL,
           )
@@ -145,6 +150,7 @@ jobs:
         if: >-
           steps.guard.outputs.result == 'DISPATCH_ALLOWED' &&
           ((github.event_name == 'workflow_dispatch' && inputs.execute) ||
+           github.event_name == 'issues' ||
            (github.event_name == 'schedule' && vars.JULES_PRODUCTION_ENABLED == 'true'))
         shell: bash
         env:
@@ -240,6 +246,7 @@ jobs:
         if: >-
           steps.guard.outputs.result == 'DISPATCH_ALLOWED' &&
           !((github.event_name == 'workflow_dispatch' && inputs.execute) ||
+            github.event_name == 'issues' ||
             (github.event_name == 'schedule' && vars.JULES_PRODUCTION_ENABLED == 'true'))
         run: |
           echo "Guard PASS. Jules invocation intentionally skipped (dry run / production flag off)."
