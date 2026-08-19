@@ -1,0 +1,43 @@
+[
+  {
+    "schema_version": 1,
+    "observed_at": "2026-08-14T10:30:00+09:00",
+    "source": "fixture-2026-08-14-biotechnology-inflow",
+    "freshness": "FRESH",
+    "data_completeness": "COMPLETE",
+    "benchmark": "TOPIX",
+    "sector": {
+      "id": "sector:pharmaceutical",
+      "label": "Pharmaceutical",
+      "medium_term_regime": "COLD"
+    },
+    "subsector": {
+      "id": "subsector:biotechnology",
+      "label": "Biotechnology",
+      "taxonomy_version": "2026-08-14-v1",
+      "as_of": "2026-08-14",
+      "source_or_authority": "money-flow-subsectors-v1"
+    },
+    "observations": {
+      "intraday_return": 0.036,
+      "benchmark_return": 0.009,
+      "relative_return": 0.027,
+      "rising_count": 4,
+      "constituent_count": 5,
+      "breadth": 0.8,
+      "median_constituent_return": 0.03,
+      "turnover_ratio": 1.8,
+      "concentration_top1": 0.28
+    },
+    "leaders": [
+      {"security_code": "4588", "name": "オンコリスバイオファーマ", "intraday_return": 0.077},
+      {"security_code": "4592", "name": "サンバイオ", "intraday_return": 0.041},
+      {"security_code": "4563", "name": "アンジェス", "intraday_return": 0.032},
+      {"security_code": "4584", "name": "ステムリム", "intraday_return": 0.025},
+      {"security_code": "4596", "name": "窪田製薬HD", "intraday_return": 0.005}
+    ],
+    "flow_state": "STRONG_INFLOW",
+    "acceleration_state": "UNKNOWN",
+    "_notes": "2026-08-14 observation: Pharmaceutical sector remained COLD (medium-term), but Biotechnology subsector showed STRONG_INFLOW with +2.7pt vs TOPIX, 80% breadth, Oncolys Bio +7.7% leader. This is the motivating case for two-tier Money Flow."
+  }
+]

@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "taxonomy_version": "2026-08-14-v1",
+  "authority": "Issue #79 PR1 subsector taxonomy - initial Healthcare/Pharmaceutical decomposition",
+  "created_at": "2026-08-14T12:00:00+09:00",
+  "rationale": "TOPIX-17 sector level is too coarse to detect localized capital flows. Pharmaceutical sector remained COLD while Biotechnology subsector saw +3.6% intraday inflow. This taxonomy enables Sector → Subsector → Stock hierarchy for early flow detection.",
+  "benchmark": {
+    "name": "TOPIX ETF proxy",
+    "symbol": "1306.T",
+    "tracks": "TOPIX Total Return Index",
+    "proxy": true,
+    "authority": "JPX listed ETF code 1306 / NEXT FUNDS TOPIX ETF"
+  },
+  "subsectors": [
+    {
+      "id": "subsector:biotechnology",
+      "label": "Biotechnology",
+      "parent_sector": "sector:pharmaceutical",
+      "parent_sector_label": "Pharmaceutical",
+      "membership_as_of": "2026-08-14",
+      "membership_version": "2026-08-14-v1",
+      "authority": "Issue #79 initial Biotechnology subsector definition",
+      "definition": "Companies primarily engaged in drug discovery, development, or commercialization using biotechnology/genetic engineering. Focus on biotech-driven therapeutics rather than traditional small-molecule pharmaceuticals.",
+      "limitations": [
+        "NARROW_MEMBERSHIP",
+        "INITIAL_PROXY_DEFINITION"
+      ],
+      "members": [
+        {
+          "security_code": "4588",
+          "company_name": "オンコリスバイオファーマ",
+          "symbol": "4588.T",
+          "inclusion_rationale": "Oncolytic virus cancer therapy development. Biotechnology-based drug discovery and development.",
+          "evidence_ref": "Company business: oncolytic virus therapy pipeline"
+        },
+        {
+          "security_code": "4592",
+          "company_name": "サンバイオ",
+          "symbol": "4592.T",
+          "inclusion_rationale": "Regenerative cell therapy development. Biotechnology platform for neurological disorders.",
+          "evidence_ref": "Company business: regenerative medicine cell therapy"
+        },
+        {
+          "security_code": "4563",
+          "company_name": "アンジェス",
+          "symbol": "4563.T",
+          "inclusion_rationale": "Gene therapy and DNA vaccine development. Biotechnology-based therapeutics.",
+          "evidence_ref": "Company business: gene therapy, DNA vaccines"
+        },
+        {
+          "security_code": "4584",
+          "company_name": "ステムリム",
+          "symbol": "4584.T",
+          "inclusion_rationale": "Stem cell regenerative medicine. Biotechnology platform.",
+          "evidence_ref": "Company business: stem cell therapy development"
+        },
+        {
+          "security_code": "4596",
+          "company_name": "窪田製薬ホールディングス",
+          "symbol": "4596.T",
+          "inclusion_rationale": "Ophthalmology biotech therapeutics including gene therapy approaches.",
+          "evidence_ref": "Company business: ophthalmic drug development with biotech approaches"
+        }
+      ]
+    },
+    {
+      "id": "subsector:large-cap-pharma",
+      "label": "Large-cap Pharma",
+      "parent_sector": "sector:pharmaceutical",
+      "parent_sector_label": "Pharmaceutical",
+      "membership_as_of": "2026-08-14",
+      "membership_version": "2026-08-14-v1",
+      "authority": "Issue #79 placeholder large-cap pharma subsector",
+      "definition": "Major integrated pharmaceutical companies. Traditional small-molecule drug discovery, manufacturing, and global commercialization.",
+      "limitations": [
+        "PLACEHOLDER_INITIAL_MEMBERSHIP"
+      ],
+      "members": [
+        {
+          "security_code": "4502",
+          "company_name": "武田薬品工業",
+          "symbol": "4502.T",
+          "inclusion_rationale": "Major integrated pharmaceutical company."
+        },
+        {
+          "security_code": "4503",
+          "company_name": "アステラス製薬",
+          "symbol": "4503.T",
+          "inclusion_rationale": "Major integrated pharmaceutical company."
+        }
+      ]
+    }
+  ],
+  "expansion_policy": "Additional subsectors and members require explicit taxonomy version increment and Authority approval. Avoid post-hoc membership changes to justify past flow observations.",
+  "usage": "Supply subsector definitions to intraday_subsector_aggregation.py and Money Flow pages for Sector → Subsector drill-down."
+}

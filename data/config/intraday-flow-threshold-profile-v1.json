@@ -1,0 +1,87 @@
+{
+  "version": "v1.0-transparent-initial",
+  "source_or_authority": "Issue #79 PR3 transparent initial threshold profile",
+  "rationale": "Initial transparent rules for intraday flow classification. Thresholds are not investment decisions. Relative return and breadth are primary signals; concentration guards against single-stock distortion. Acceleration uses delta from previous snapshot. Threshold changes require explicit 👑Authority approval.",
+  "created_at": "2026-08-14T12:00:00+09:00",
+  "flow_rules": [
+    {
+      "state": "STRONG_INFLOW",
+      "all": [
+        {"field": "observations.relative_return", "op": ">=", "value": 0.025},
+        {"field": "observations.breadth", "op": ">=", "value": 0.6},
+        {"field": "observations.concentration_top1", "op": "<=", "value": 0.4}
+      ]
+    },
+    {
+      "state": "INFLOW",
+      "all": [
+        {"field": "observations.relative_return", "op": ">=", "value": 0.01},
+        {"field": "observations.breadth", "op": ">=", "value": 0.5}
+      ]
+    },
+    {
+      "state": "OUTFLOW",
+      "all": [
+        {"field": "observations.relative_return", "op": "<=", "value": -0.01},
+        {"field": "observations.breadth", "op": "<=", "value": 0.4}
+      ]
+    },
+    {
+      "state": "STRONG_OUTFLOW",
+      "all": [
+        {"field": "observations.relative_return", "op": "<=", "value": -0.025},
+        {"field": "observations.breadth", "op": "<=", "value": 0.3},
+        {"field": "observations.concentration_top1", "op": "<=", "value": 0.4}
+      ]
+    },
+    {
+      "state": "MIXED",
+      "all": []
+    }
+  ],
+  "acceleration_rules": [
+    {
+      "state": "ACCELERATING",
+      "all": [
+        {"field": "delta.relative_return", "op": ">=", "value": 0.015},
+        {"field": "delta.breadth", "op": ">=", "value": 0.1}
+      ]
+    },
+    {
+      "state": "DECELERATING",
+      "all": [
+        {"field": "delta.relative_return", "op": "<=", "value": -0.015},
+        {"field": "delta.breadth", "op": "<=", "value": -0.1}
+      ]
+    },
+    {
+      "state": "REVERSING",
+      "all": [
+        {"field": "delta.relative_return", "op": "<=", "value": -0.03}
+      ]
+    },
+    {
+      "state": "STABLE",
+      "all": []
+    }
+  ],
+  "interpretation_notes": {
+    "flow_state": {
+      "STRONG_INFLOW": "Relative return ≥2.5% vs benchmark, broad participation (≥60% rising), low concentration (≤40% from top constituent). Strong capital inflow signal.",
+      "INFLOW": "Relative return ≥1.0% vs benchmark, moderate participation (≥50% rising). Positive capital flow.",
+      "MIXED": "Neither clear inflow nor outflow. Default state when other conditions not met.",
+      "OUTFLOW": "Relative return ≤-1.0% vs benchmark, weak participation (≤40% rising). Capital leaving.",
+      "STRONG_OUTFLOW": "Relative return ≤-2.5% vs benchmark, very weak participation (≤30% rising), low concentration. Strong capital outflow.",
+      "UNKNOWN": "Data quality insufficient (STALE/PARTIAL) or classification rules not met."
+    },
+    "acceleration_state": {
+      "ACCELERATING": "Flow strengthening vs previous snapshot: relative return delta ≥1.5%, breadth delta ≥10pts.",
+      "DECELERATING": "Flow weakening vs previous snapshot: relative return delta ≤-1.5%, breadth delta ≤-10pts.",
+      "REVERSING": "Sharp reversal: relative return delta ≤-3.0%.",
+      "STABLE": "Flow rate stable. Default when delta thresholds not met.",
+      "UNKNOWN": "No previous snapshot, data quality insufficient, or no explicit acceleration rules."
+    }
+  },
+  "threshold_change_policy": "Threshold modifications require explicit approval from 👑Sado Authority. Changes must be documented with rationale and version increment. This guards against post-hoc threshold fitting to justify past decisions.",
+  "usage": "Supply this profile to scripts/intraday_subsector_classifier_harness.py classify_flow() and classify_acceleration() functions."
+}
