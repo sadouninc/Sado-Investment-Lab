@@ -26,7 +26,10 @@ def schema_path() -> Path:
 
 
 def load_schema() -> dict[str, Any]:
-    return json.loads(schema_path().read_text(encoding="utf-8"))
+    path = schema_path()
+    if not path.exists():
+        raise FileNotFoundError(f"Development Diary schema file not found at {path}")
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def validate_snapshot(snapshot: dict[str, Any]) -> None:
