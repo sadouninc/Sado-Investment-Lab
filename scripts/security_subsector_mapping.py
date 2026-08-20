@@ -28,8 +28,6 @@ def validate_mapping(mapping: dict[str, Any]) -> None:
         end_raw = record["effective_to"]
         if end_raw is not None and date.fromisoformat(end_raw) < start:
             raise ValueError("effective_to must be on or after effective_from")
-        if record["taxonomy_version"] != mapping["taxonomy_version"]:
-            raise ValueError("record taxonomy_version must match mapping taxonomy_version")
 
     by_security: dict[str, list[dict[str, Any]]] = {}
     for record in mapping["records"]:
@@ -65,13 +63,6 @@ def lookup_security_subsector(
 
     source = load_mapping() if mapping is None else mapping
     validate_mapping(source)
-    if source["taxonomy_version"] != expected_taxonomy_version:
-        return {
-            "status": "TAXONOMY_MISMATCH",
-            "security_code": security_code,
-            "subsector_id": None,
-            "taxonomy_version": source["taxonomy_version"],
-        }
 
     active = []
     for record in source["records"]:
@@ -89,10 +80,17 @@ def lookup_security_subsector(
             "status": "NO_EFFECTIVE_RECORD",
             "security_code": security_code,
             "subsector_id": None,
-            "taxonomy_version": source["taxonomy_version"],
+            "taxonomy_version": None,
         }
 
     record = active[0]
+    if record["taxonomy_version"] != expected_taxonomy_version:
+        return {
+            "status": "TAXONOMY_MISMATCH",
+            "security_code": security_code,
+            "subsector_id": None,
+            "taxonomy_version": record["taxonomy_version"],
+        }
     if record["status"] == "UNMAPPED":
         return {
             "status": "UNMAPPED",
