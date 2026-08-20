@@ -1,6 +1,5 @@
 """Unit tests for Canonical Market Observation Contract v1 (#460)."""
 
-import pytest
 from scripts.market_observation_contract import (
     BestBid,
     BestAsk,

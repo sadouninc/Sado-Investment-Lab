@@ -5,8 +5,8 @@ Enforces strict semantic separation between best_bid, best_ask, and indicative_o
 and explicit separation between OS observed_at and provider source_timestamp.
 """
 
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
+from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional, Any
 
@@ -184,7 +184,7 @@ def validate_observation_snapshot(snapshot_dict: Dict[str, Any]) -> ValidationRe
         if src_ts is not None:
             if not parse_iso_timestamp(str(src_ts)):
                 errors.append(f"Symbol '{symbol}' has invalid source_timestamp '{src_ts}'.")
-            if src_ts == observed_at and provider_id != "mock_provider_simultaneous":
+            if src_ts == observed_at:
                 warnings.append(
                     f"Symbol '{symbol}' source_timestamp matches OS observed_at exactly; confirm independent source clock."
                 )
