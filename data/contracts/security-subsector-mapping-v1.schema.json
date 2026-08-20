@@ -3,10 +3,9 @@
   "$id": "security-subsector-mapping-v1.schema.json",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "taxonomy_version", "records"],
+  "required": ["schema_version", "records"],
   "properties": {
     "schema_version": {"const": 1},
-    "taxonomy_version": {"type": "string", "minLength": 1},
     "records": {
       "type": "array",
       "items": {"$ref": "#/$defs/record"}
