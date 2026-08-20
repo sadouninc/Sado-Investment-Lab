@@ -185,3 +185,45 @@ def test_deterministic_identical_input_identical_output() -> None:
 
     assert res1 == res2
     assert json.dumps(res1, sort_keys=True) == json.dumps(res2, sort_keys=True)
+
+
+def test_malformed_non_numeric_quantity_fails_closed() -> None:
+    """Regression: malformed non-numeric quantity must not raise ValueError; fail closed to 0."""
+    position = {
+        "security_code": "3778",
+        "security_name": "さくらインターネット",
+        "position_type": "margin_long",
+        "quantity": "abc",  # Non-numeric string
+    }
+    signal_eval = {
+        "effective_state": "RED",
+        "raw_state": "RED",
+        "primary_evidence_present": True,
+        "probability_only": False,
+        "reason": "RED test",
+    }
+    # Should not raise ValueError/TypeError
+    impact = project_position_impact(position, signal_eval)
+    assert impact["quantity"] == 0
+    assert impact["security_code"] == "3778"
+
+
+def test_malformed_fractional_string_quantity_fails_closed() -> None:
+    """Regression: fractional-string quantity must not raise ValueError; fail closed to 0."""
+    position = {
+        "security_code": "247A",
+        "security_name": "Aiロボティクス",
+        "position_type": "cash",
+        "quantity": "123.45",  # Fractional string
+    }
+    signal_eval = {
+        "effective_state": "ORANGE",
+        "raw_state": "ORANGE",
+        "primary_evidence_present": False,
+        "probability_only": True,
+        "reason": "ORANGE test",
+    }
+    # Should not raise ValueError/TypeError
+    impact = project_position_impact(position, signal_eval)
+    assert impact["quantity"] == 0
+    assert impact["security_code"] == "247A"

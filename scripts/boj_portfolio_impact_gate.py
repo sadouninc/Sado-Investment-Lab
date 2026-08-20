@@ -274,7 +274,18 @@ def project_position_impact(
     code = str(position.get("security_code") or "").strip()
     name = str(position.get("security_name") or "").strip()
     pos_type = str(position.get("position_type") or "").strip()
-    quantity = int(position.get("quantity") or 0)
+    
+    # Safe quantity parsing: fail closed on malformed/non-integer input
+    raw_quantity = position.get("quantity")
+    try:
+        if raw_quantity is None or raw_quantity == "":
+            quantity = 0
+        else:
+            quantity = int(raw_quantity)
+    except (ValueError, TypeError):
+        # Malformed quantity fails closed to 0 without raising; provenance preserved in position dict
+        quantity = 0
+    
     position_side = determine_position_side(pos_type)
 
     effective_signal_state = signal_eval.get("effective_state", "UNKNOWN")
