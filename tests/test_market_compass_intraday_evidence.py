@@ -98,3 +98,28 @@ def test_invalid_payload_raises():
     payload["observations"]["intraday_return"] = "INVALID"
     with pytest.raises(ValueError):
         adapt_intraday_subsector_to_market_compass(payload)
+
+
+def test_missing_nested_key_raises_value_error_fail_closed():
+    payload = make_valid_payload()
+    del payload["subsector"]["id"]
+    with pytest.raises(ValueError, match="subsector missing required fields: id"):
+        adapt_intraday_subsector_to_market_compass(payload)
+
+
+def test_mock_validator_drift_raises_value_error_fail_closed(monkeypatch):
+    payload = make_valid_payload()
+
+    # Simulate validator returning an incomplete object missing a required key
+    def incomplete_validator(_p):
+        v = make_valid_payload()
+        del v["observations"]["relative_return"]
+        return v
+
+    monkeypatch.setattr(
+        "scripts.market_compass_intraday_evidence.validate_intraday_subsector_flow",
+        incomplete_validator,
+    )
+
+    with pytest.raises(ValueError, match="Payload validation failed: missing required key"):
+        adapt_intraday_subsector_to_market_compass(payload)
