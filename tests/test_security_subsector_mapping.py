@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 import jsonschema
 import pytest
 
@@ -8,11 +6,11 @@ from scripts.security_subsector_mapping import lookup_security_subsector, valida
 TAXONOMY = "existing-canonical-ref-v1"
 
 
-def record(*, code="6702", subsector="technology-services", status="MAPPED", start="2026-01-01", end=None, refs=None):
+def record(*, code="6702", subsector="technology-services", status="MAPPED", start="2026-01-01", end=None, refs=None, taxonomy=TAXONOMY):
     return {
         "security_code": code,
         "subsector_id": subsector if status == "MAPPED" else None,
-        "taxonomy_version": TAXONOMY,
+        "taxonomy_version": taxonomy,
         "effective_from": start,
         "effective_to": end,
         "status": status,
@@ -22,7 +20,7 @@ def record(*, code="6702", subsector="technology-services", status="MAPPED", sta
 
 
 def mapping(records):
-    return {"schema_version": 1, "taxonomy_version": TAXONOMY, "records": records}
+    return {"schema_version": 1, "records": records}
 
 
 def test_valid_mapped_record_and_lookup():
@@ -58,16 +56,16 @@ def test_effective_range_boundaries_are_inclusive_and_gap_is_unknown():
     assert lookup_security_subsector("6702", "2026-04-02", TAXONOMY, source)["subsector_id"] == "software"
 
 
-def test_overlapping_effective_ranges_fail_closed():
+def test_overlapping_effective_ranges_fail_closed_even_across_taxonomy_versions():
     source = mapping([
-        record(start="2026-01-01", end="2026-06-30"),
-        record(subsector="software", start="2026-06-30", end=None),
+        record(start="2026-01-01", end="2026-06-30", taxonomy="v1"),
+        record(subsector="software", start="2026-06-30", end=None, taxonomy="v2"),
     ])
     with pytest.raises(ValueError, match="overlapping active mappings"):
         validate_mapping(source)
 
 
-def test_taxonomy_mismatch_returns_explicit_state_without_fallback():
+def test_taxonomy_mismatch_uses_active_record_without_fallback():
     source = mapping([record()])
     result = lookup_security_subsector("6702", "2026-08-21", "future-taxonomy-v2", source)
     assert result == {
@@ -78,12 +76,18 @@ def test_taxonomy_mismatch_returns_explicit_state_without_fallback():
     }
 
 
-def test_record_taxonomy_must_match_top_level_taxonomy():
-    source = mapping([record()])
-    broken = deepcopy(source)
-    broken["records"][0]["taxonomy_version"] = "other-v1"
-    with pytest.raises(ValueError, match="record taxonomy_version"):
-        validate_mapping(broken)
+def test_historical_taxonomy_rollover_is_record_level():
+    source = mapping([
+        record(start="2026-01-01", end="2026-06-30", taxonomy="v1"),
+        record(subsector="software", start="2026-07-02", end=None, taxonomy="v2"),
+    ])
+    validate_mapping(source)
+    assert lookup_security_subsector("6702", "2026-06-30", "v1", source)["status"] == "MAPPED"
+    assert lookup_security_subsector("6702", "2026-07-01", "v1", source)["status"] == "NO_EFFECTIVE_RECORD"
+    assert lookup_security_subsector("6702", "2026-07-02", "v2", source)["subsector_id"] == "software"
+    mismatch = lookup_security_subsector("6702", "2026-07-02", "v1", source)
+    assert mismatch["status"] == "TAXONOMY_MISMATCH"
+    assert mismatch["taxonomy_version"] == "v2"
 
 
 def test_no_security_record_is_not_inferred():
@@ -91,3 +95,4 @@ def test_no_security_record_is_not_inferred():
     result = lookup_security_subsector("4588", "2026-08-21", TAXONOMY, source)
     assert result["status"] == "NO_EFFECTIVE_RECORD"
     assert result["subsector_id"] is None
+    assert result["taxonomy_version"] is None
