@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #751 · NOT PRODUCTION</strong>
-  <span>Head c792c6878b4d · Built 2026-08-20T08:17:31Z</span>
+  <span>Head 5366ba6af883 · Built 2026-08-20T22:58:27Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -181,13 +181,14 @@
   <section class="home-os-section" aria-labelledby="status-title">
     <p class="eyebrow">STATUS</p>
     <h2 id="status-title">重要な変化・状態</h2>
-    <div class="codex-alert" data-state="caution">
-      <strong>Morning Dataset: 一部情報不足 / PARTIAL</strong>
-      <p>Dataset as of: 2026-08-20 / completeness: 1 / 8</p>
+    <div class="codex-alert" data-state="stale">
+      <strong>今日のMorning Datasetはまだ生成されていません / NOT_GENERATED_TODAY</strong>
+      <p>表示中: 2026-08-20 / 期待営業日: 2026-08-21</p>
+      <p>source completenessのPARTIALとは別の、当日pipeline未生成状態です。</p>
     </div>
     <div class="codex-summary-grid home-primary-grid">
 <article class="codex-summary-card"><span class="codex-status-chip" data-state="unavailable">取得できません / MISSING</span><h3>市場データ</h3><p>Morning Datasetの既存market source状態を表示します。</p><p class="codex-evidence__meta">as of: 時点不明</p></article>
-<article class="codex-summary-card"><span class="codex-status-chip" data-state="normal">確認可能 / OK</span><h3>Sector Rotation</h3><p>最新canonical set内の WARMING 0件 / INFLOW 0件。順位や推奨はHomeで生成しません。</p><p class="codex-evidence__meta">as of: 2026-08-19</p></article>
+<article class="codex-summary-card"><span class="codex-status-chip" data-state="normal">確認可能 / OK</span><h3>Sector Rotation</h3><p>最新canonical set内の WARMING 2件 / INFLOW 0件。順位や推奨はHomeで生成しません。</p><p class="codex-evidence__meta">as of: 2026-08-20</p></article>
     </div>
 <div class="codex-alert" data-state="caution"><strong>既存Dataset warning</strong><ul><li>market source is missing</li><li>portfolio source is missing</li><li>capital source is missing</li><li>candidates source is missing</li><li>events source is missing</li></ul></div>
   </section>
@@ -198,7 +199,7 @@
     <p>TOPIX-17 Sector Rotationの前回→現在を表示します。Homeで独自score・ranking・BUY/SELLは生成しません。</p>
     <div class="codex-alert" data-state="normal">
       <strong>Sector Rotation: 確認可能 / OK</strong>
-      <p>as of: 2026-08-19 / source: canonical sector-history.jsonl</p>
+      <p>as of: 2026-08-20 / source: canonical sector-history.jsonl</p>
     </div>
     <div class="home-heatmap-grid" aria-label="TOPIX-17 Sector Rotation HeatMap">
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Automobiles &amp; Transportation Equipment</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
@@ -207,14 +208,14 @@
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Construction &amp; Materials</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Electric Appliances &amp; Precision Instruments</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Electric Power &amp; Gas</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
-<article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Energy Resources</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
+<article class="home-heatmap-cell" data-sector-state="warming"><span class="home-heatmap-cell__state">温まり始め / WARMING</span><h3>Energy Resources</h3><p class="home-heatmap-cell__transition">COLD → WARMING</p><p class="home-heatmap-cell__change">↗ 初動</p></article>
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Financials ex Banks</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Foods</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>IT &amp; Services</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Machinery</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Pharmaceutical</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Raw Materials &amp; Chemicals</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
-<article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Real Estate</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
+<article class="home-heatmap-cell" data-sector-state="warming"><span class="home-heatmap-cell__state">温まり始め / WARMING</span><h3>Real Estate</h3><p class="home-heatmap-cell__transition">COLD → WARMING</p><p class="home-heatmap-cell__change">↗ 初動</p></article>
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Retail Trade</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Steel &amp; Nonferrous Metals</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
 <article class="home-heatmap-cell" data-sector-state="cold"><span class="home-heatmap-cell__state">静穏 / COLD</span><h3>Transportation &amp; Logistics</h3><p class="home-heatmap-cell__transition">COLD → COLD</p><p class="home-heatmap-cell__change">→ 継続</p></article>
