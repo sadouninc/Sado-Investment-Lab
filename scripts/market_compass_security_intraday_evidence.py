@@ -62,20 +62,46 @@ def resolve_security_intraday_evidence(
             "intraday_evidence": None,
         }
 
-    adapted = adapt_intraday_subsector_to_market_compass(subsector_evidence)
-    adapted_subsector = adapted["subsector"]
-    if (
-        adapted_subsector["id"] != mapping_result["subsector_id"]
-        or adapted_subsector["taxonomy_version"] != expected_taxonomy_version
-    ):
+    try:
+        adapted = adapt_intraday_subsector_to_market_compass(subsector_evidence)
+        adapted_subsector = adapted["subsector"]
+    except (KeyError, TypeError, ValueError):
         return {
             **base,
             "status": "UNKNOWN",
-            "reason": "SUBSECTOR_EVIDENCE_MISMATCH",
+            "reason": "INVALID_EVIDENCE_FORMAT",
             "intraday_evidence": None,
         }
 
-    quality_status = adapted["data_quality"]["status"]
+    try:
+        if (
+            adapted_subsector["id"] != mapping_result["subsector_id"]
+            or adapted_subsector["taxonomy_version"] != expected_taxonomy_version
+        ):
+            return {
+                **base,
+                "status": "UNKNOWN",
+                "reason": "SUBSECTOR_EVIDENCE_MISMATCH",
+                "intraday_evidence": None,
+            }
+    except (KeyError, TypeError):
+        return {
+            **base,
+            "status": "UNKNOWN",
+            "reason": "INVALID_MAPPING_OR_EVIDENCE",
+            "intraday_evidence": None,
+        }
+
+    try:
+        quality_status = adapted["data_quality"]["status"]
+    except (KeyError, TypeError):
+        return {
+            **base,
+            "status": "UNKNOWN",
+            "reason": "INVALID_EVIDENCE_STRUCTURE",
+            "intraday_evidence": None,
+        }
+
     status = "PASS" if quality_status == "PASS" else "UNKNOWN"
     return {
         **base,

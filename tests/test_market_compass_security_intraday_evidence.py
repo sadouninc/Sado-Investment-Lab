@@ -102,3 +102,29 @@ def test_inputs_are_not_mutated():
     resolve_security_intraday_evidence("8035", "2026-08-21", TAXONOMY, source_evidence, source_mapping)
     assert source_mapping == before_mapping
     assert source_evidence == before_evidence
+
+
+def test_malformed_adapter_result_missing_subsector_fails_closed():
+    malformed = {"schema_version": 1, "observed_at": "2026-08-21T00:30:00Z"}
+    result = resolve_security_intraday_evidence("8035", "2026-08-21", TAXONOMY, malformed, mapping())
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "INVALID_EVIDENCE_FORMAT"
+    assert result["intraday_evidence"] is None
+
+
+def test_missing_data_quality_status_fails_closed():
+    malformed_evidence = evidence()
+    malformed_evidence["data_quality"] = {}
+    result = resolve_security_intraday_evidence("8035", "2026-08-21", TAXONOMY, malformed_evidence, mapping())
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "INVALID_EVIDENCE_STRUCTURE"
+    assert result["intraday_evidence"] is None
+
+
+def test_missing_subsector_id_in_mapping_fails_closed():
+    bad_mapping = mapping()
+    del bad_mapping["records"][0]["subsector_id"]
+    result = resolve_security_intraday_evidence("8035", "2026-08-21", TAXONOMY, evidence(), bad_mapping)
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "INVALID_MAPPING_OR_EVIDENCE"
+    assert result["intraday_evidence"] is None
