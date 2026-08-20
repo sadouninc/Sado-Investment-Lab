@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "security-subsector-mapping-v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "taxonomy_version", "records"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "taxonomy_version": {"type": "string", "minLength": 1},
+    "records": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/record"}
+    }
+  },
+  "$defs": {
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["security_code", "subsector_id", "taxonomy_version", "effective_from", "effective_to", "status", "source_refs", "as_of"],
+      "properties": {
+        "security_code": {"type": "string", "pattern": "^[0-9A-Za-z]+$", "minLength": 1},
+        "subsector_id": {"type": ["string", "null"]},
+        "taxonomy_version": {"type": "string", "minLength": 1},
+        "effective_from": {"type": "string", "format": "date"},
+        "effective_to": {"type": ["string", "null"], "format": "date"},
+        "status": {"enum": ["MAPPED", "UNMAPPED"]},
+        "source_refs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "as_of": {"type": "string", "format": "date"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "MAPPED"}}, "required": ["status"]},
+          "then": {
+            "properties": {
+              "subsector_id": {"type": "string", "minLength": 1},
+              "source_refs": {"minItems": 1}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"status": {"const": "UNMAPPED"}}, "required": ["status"]},
+          "then": {"properties": {"subsector_id": {"type": "null"}}}
+        }
+      ]
+    }
+  }
+}
