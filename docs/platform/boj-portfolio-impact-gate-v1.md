@@ -42,6 +42,7 @@ Each position is dynamically evaluated against 5 sensitivity dimensions loaded r
 - Missing or ambiguous sensitivity data defaults strictly to `UNKNOWN`. No hard-coded fact databases exist in runtime code.
 - `UNKNOWN` sensitivity is **NEVER coerced to `LOW` or `HOLD`**.
 - A position with incomplete/mixed sensitivity facts (any dimension `UNKNOWN`) **CANNOT produce `REDUCE_CANDIDATE` or `EXIT_REVIEW`**. It fails closed to `WATCH` for monitoring.
+- **Malformed Quantity Inputs**: Non-numeric or fractional string quantity inputs are safely preserved for provenance without raising `ValueError`/`TypeError`, failing closed to `WATCH`.
 
 ---
 

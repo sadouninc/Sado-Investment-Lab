@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from scripts.boj_portfolio_impact_gate import (
     determine_position_side,
     evaluate_boj_signal,
     evaluate_portfolio_boj_impact,
     load_canonical_holdings,
     load_canonical_research_sensitivities,
+    parse_position_quantity,
     project_position_impact,
 )
 
@@ -118,6 +118,50 @@ def test_unknown_position_type_fails_closed() -> None:
     assert impact["boj_risk_action"] == "WATCH"
 
 
+def test_malformed_and_fractional_quantity_fail_closed() -> None:
+    # Valid quantities
+    assert parse_position_quantity(100) == (100, True)
+    assert parse_position_quantity("100") == (100, True)
+    assert parse_position_quantity(None) == (0, True)
+
+    # Non-numeric string quantity
+    val_non_numeric, valid_non_numeric = parse_position_quantity("abc")
+    assert val_non_numeric == "abc"
+    assert valid_non_numeric is False
+
+    # Fractional string quantity
+    val_fractional, valid_fractional = parse_position_quantity("100.5")
+    assert val_fractional == "100.5"
+    assert valid_fractional is False
+
+    # Position evaluation with non-numeric quantity
+    pos_non_numeric = {
+        "security_code": "3778",
+        "security_name": "さくらインターネット",
+        "position_type": "margin_long",
+        "quantity": "abc",
+    }
+    signal_eval = {"effective_state": "RED", "raw_state": "RED", "primary_evidence_present": True, "probability_only": False, "reason": "RED test"}
+    impact_non_numeric = project_position_impact(pos_non_numeric, signal_eval)
+
+    assert impact_non_numeric["quantity"] == "abc"
+    assert impact_non_numeric["boj_risk_action"] == "WATCH"
+    assert "Malformed quantity" in impact_non_numeric["notes"]
+
+    # Position evaluation with fractional string quantity
+    pos_fractional = {
+        "security_code": "3778",
+        "security_name": "さくらインターネット",
+        "position_type": "margin_long",
+        "quantity": "100.5",
+    }
+    impact_fractional = project_position_impact(pos_fractional, signal_eval)
+
+    assert impact_fractional["quantity"] == "100.5"
+    assert impact_fractional["boj_risk_action"] == "WATCH"
+    assert "Malformed quantity" in impact_fractional["notes"]
+
+
 def test_short_position_side_preserved() -> None:
     position = {
         "security_code": "3291",
@@ -185,45 +229,3 @@ def test_deterministic_identical_input_identical_output() -> None:
 
     assert res1 == res2
     assert json.dumps(res1, sort_keys=True) == json.dumps(res2, sort_keys=True)
-
-
-def test_malformed_non_numeric_quantity_fails_closed() -> None:
-    """Regression: malformed non-numeric quantity must not raise ValueError; fail closed to 0."""
-    position = {
-        "security_code": "3778",
-        "security_name": "さくらインターネット",
-        "position_type": "margin_long",
-        "quantity": "abc",  # Non-numeric string
-    }
-    signal_eval = {
-        "effective_state": "RED",
-        "raw_state": "RED",
-        "primary_evidence_present": True,
-        "probability_only": False,
-        "reason": "RED test",
-    }
-    # Should not raise ValueError/TypeError
-    impact = project_position_impact(position, signal_eval)
-    assert impact["quantity"] == 0
-    assert impact["security_code"] == "3778"
-
-
-def test_malformed_fractional_string_quantity_fails_closed() -> None:
-    """Regression: fractional-string quantity must not raise ValueError; fail closed to 0."""
-    position = {
-        "security_code": "247A",
-        "security_name": "Aiロボティクス",
-        "position_type": "cash",
-        "quantity": "123.45",  # Fractional string
-    }
-    signal_eval = {
-        "effective_state": "ORANGE",
-        "raw_state": "ORANGE",
-        "primary_evidence_present": False,
-        "probability_only": True,
-        "reason": "ORANGE test",
-    }
-    # Should not raise ValueError/TypeError
-    impact = project_position_impact(position, signal_eval)
-    assert impact["quantity"] == 0
-    assert impact["security_code"] == "247A"

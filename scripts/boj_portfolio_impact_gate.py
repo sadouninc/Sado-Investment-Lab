@@ -234,6 +234,30 @@ def determine_position_side(position_type: str) -> str:
     return "UNKNOWN"
 
 
+def parse_position_quantity(raw_qty: Any) -> tuple[int | str | None, bool]:
+    """Safely parse position quantity without raising ValueError or TypeError.
+
+    Returns (quantity_value, is_valid_integer).
+    """
+    if raw_qty is None:
+        return 0, True
+    if isinstance(raw_qty, int) and not isinstance(raw_qty, bool):
+        return raw_qty, True
+    if isinstance(raw_qty, float):
+        if raw_qty.is_integer():
+            return int(raw_qty), True
+        return str(raw_qty), False
+    if isinstance(raw_qty, str):
+        cleaned = raw_qty.strip()
+        if not cleaned:
+            return 0, True
+        try:
+            return int(cleaned), True
+        except ValueError:
+            return cleaned, False
+    return str(raw_qty), False
+
+
 def resolve_position_risk_context(code: str, risk_context: dict[str, Any] | None) -> dict[str, Any]:
     """Extract position-specific risk context keyed by security code to prevent global risk leaks."""
     if not risk_context or not isinstance(risk_context, dict):
@@ -268,24 +292,14 @@ def project_position_impact(
     - incomplete sensitivity facts (any UNKNOWN dimension) cannot produce REDUCE_CANDIDATE or EXIT_REVIEW
     - short position side preserved; SHORT must not inherit LONG de-risk action
     - unknown position_type => UNKNOWN position side; fails closed to WATCH/HOLD
+    - malformed/non-integer quantity => preserves raw value for provenance, fails closed to WATCH/HOLD
     - BOJ RED alone cannot produce EXIT_REVIEW
     - risk_context is scoped per position identity to prevent global risk leakage
     """
     code = str(position.get("security_code") or "").strip()
     name = str(position.get("security_name") or "").strip()
     pos_type = str(position.get("position_type") or "").strip()
-    
-    # Safe quantity parsing: fail closed on malformed/non-integer input
-    raw_quantity = position.get("quantity")
-    try:
-        if raw_quantity is None or raw_quantity == "":
-            quantity = 0
-        else:
-            quantity = int(raw_quantity)
-    except (ValueError, TypeError):
-        # Malformed quantity fails closed to 0 without raising; provenance preserved in position dict
-        quantity = 0
-    
+    quantity, qty_valid = parse_position_quantity(position.get("quantity"))
     position_side = determine_position_side(pos_type)
 
     effective_signal_state = signal_eval.get("effective_state", "UNKNOWN")
@@ -332,7 +346,10 @@ def project_position_impact(
     # Determine boj_risk_action
     notes = []
 
-    if position_side == "UNKNOWN":
+    if not qty_valid:
+        action = "HOLD" if effective_signal_state == "GREEN" else "WATCH"
+        notes.append(f"Malformed quantity input '{quantity}'; failing closed to WATCH.")
+    elif position_side == "UNKNOWN":
         action = "HOLD" if effective_signal_state == "GREEN" else "WATCH"
         notes.append("Unknown position_type/side; failing closed to WATCH.")
     elif position_side == "SHORT":
@@ -451,6 +468,7 @@ def evaluate_portfolio_boj_impact(
             "missing_sensitivity_fail_closed": True,
             "unknown_signal_fail_closed": True,
             "position_scoped_risk_context": True,
+            "malformed_quantity_fail_closed": True,
             "issue_79_untouched": True,
             "auto_green_execution_off": True,
         },
