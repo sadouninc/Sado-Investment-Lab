@@ -8,6 +8,7 @@ from scripts.development_diary_collector import (
     DailyCollector,
     calc_window,
     collect_events,
+    load_schema,
     persist_snapshot,
     validate_snapshot,
 )
@@ -165,3 +166,28 @@ def test_invalid_snapshot_does_not_mutate_existing_file(tmp_path: Path):
 def test_capability_change_is_not_synthesized_as_proven():
     snap = collect_events([], DAY)
     assert snap["factory_capability_changes"] == []
+
+
+def test_missing_schema_raises_file_not_found_error(monkeypatch, tmp_path: Path):
+    non_existent = tmp_path / "missing-schema.json"
+    monkeypatch.setattr(
+        "scripts.development_diary_collector.schema_path", lambda: non_existent
+    )
+    with pytest.raises(FileNotFoundError, match="Development Diary schema file not found"):
+        load_schema()
+
+
+def test_missing_schema_fails_closed_without_overwriting_snapshot(monkeypatch, tmp_path: Path):
+    target = tmp_path / "existing-snapshot.json"
+    target.write_text("PRESERVED_EXISTING_SNAPSHOT\n", encoding="utf-8")
+
+    valid_snap = collect_events([], DAY)
+
+    non_existent = tmp_path / "missing-schema.json"
+    monkeypatch.setattr(
+        "scripts.development_diary_collector.schema_path", lambda: non_existent
+    )
+    with pytest.raises(FileNotFoundError, match="Development Diary schema file not found"):
+        persist_snapshot(valid_snap, target)
+
+    assert target.read_text(encoding="utf-8") == "PRESERVED_EXISTING_SNAPSHOT\n"
