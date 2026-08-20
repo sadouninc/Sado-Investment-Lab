@@ -122,6 +122,19 @@ class CompanyResearchTests(unittest.TestCase):
         with self.assertRaises(CompanyResearchError):
             CompanyResearchRecord.from_mapping(raw)
 
+    def test_empty_sources_rejected_when_as_of_provided(self):
+        raw = self._research()
+        raw["government_evidence_maturity"] = {
+            "level": "L1",
+            "confidence": "PARTIAL",
+            "policy_program": "Defense procurement",
+            "as_of": "2026-08-15",
+            "sources": [],
+        }
+        with self.assertRaises(CompanyResearchError) as ctx:
+            CompanyResearchRecord.from_mapping(raw)
+        self.assertIn("non-empty sources", str(ctx.exception))
+
     def test_legacy_company_research_without_field_remains_valid(self):
         raw = self._research()
         record = CompanyResearchRecord.from_mapping(raw)
