@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#11100d">
-  <meta name="description" content="社会変化と需要の波及から投資テーマを考える">
-  <title>Themes — Sado Investment Lab</title>
+  <meta name="description" content="Morning Datasetを分析した朝の市場・投資チェック">
+  <title>朝の市場レポート 2026-08-20 — Sado Investment Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;600;700&display=swap" rel="stylesheet">
@@ -156,23 +156,237 @@
     })();
   </script>
   <main class="book-shell">
-    <h1 id="themes">Themes</h1>
+    <p class="breadcrumb"><a href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/reports/morning/index.html">朝の市場レポート</a> / 2026-08-20</p>
 
-<p>社会変化から需要の流れ、ボトルネック、関連企業を整理します。</p>
+<h1 id="ai-morning-report">AI Morning Report</h1>
+<h2 id="データ品質">データ品質</h2>
+<ul>
+  <li>ステータス: PARTIAL（completeness 0.5, 4 / 8）</li>
+  <li>ソース状況
+    <ul>
+      <li>OK: market, candidates, investor_dna, sector_rotation</li>
+      <li>STALE: portfolio（12日前, 2026-08-08）, watchlist（9日前, 2026-08-11）</li>
+      <li>MISSING: capital（capital_snapshots不在）, events（イベント未収載・網羅性不明）</li>
+    </ul>
+  </li>
+  <li>市場付随メタ
+    <ul>
+      <li>market.phase: null</li>
+      <li>breadth: null</li>
+      <li>sentiment: null</li>
+      <li>risk_state: null</li>
+    </ul>
+  </li>
+  <li>警告
+    <ul>
+      <li>portfolio source is stale: portfolio snapshot is 12 days old (freshness limit 3)</li>
+      <li>capital source is missing: capital_snapshots table not found in canonical history database</li>
+      <li>events source is missing: event calendar contains no events and does not explicitly confirm complete empty coverage</li>
+      <li>watchlist source is stale: watchlist snapshot is 9 days old (freshness limit 3)</li>
+    </ul>
+  </li>
+</ul>
 
-<div class="content-grid">
-<a class="content-card" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/themes/ai/index.html"><strong>AI</strong><span>AI.md</span></a>
-<a class="content-card" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/themes/datacenter/index.html"><strong>Datacenter</strong><span>Datacenter.md</span></a>
-<a class="content-card" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/themes/fusion/index.html"><strong>Fusion</strong><span>Fusion.md</span></a>
-<a class="content-card" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/themes/mobility/index.html"><strong>Mobility</strong><span>Mobility.md</span></a>
-<a class="content-card" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/themes/nuclear/index.html"><strong>Nuclear</strong><span>Nuclear.md</span></a>
-<a class="content-card" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/themes/perovskite/index.html"><strong>Perovskite</strong><span>Perovskite.md</span></a>
-<a class="content-card" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/themes/power-grid/index.html"><strong>Power_Grid</strong><span>Power_Grid.md</span></a>
-<a class="content-card" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/themes/rareearth/index.html"><strong>RareEarth</strong><span>RareEarth.md</span></a>
-<a class="content-card" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/themes/robotics/index.html"><strong>Robotics</strong><span>Robotics.md</span></a>
-<a class="content-card" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/themes/semiconductor/index.html"><strong>Semiconductor</strong><span>Semiconductor.md</span></a>
-<a class="content-card" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-749/themes/space/index.html"><strong>Space</strong><span>Space.md</span></a>
-</div>
+<h2 id="市場概況">市場概況</h2>
+<ul>
+  <li>事実
+    <ul>
+      <li>日本
+        <ul>
+          <li>日経平均: 67,460.73（-2.54%）as of 2026-08-18（^N225）</li>
+          <li>TOPIX（ETF代理:1306.T）: 417.40（-3.16%）as of 2026-08-19</li>
+          <li>TSE Growth 250（ETF代理:2516.T）: 587.90（-1.95%）as of 2026-08-19</li>
+        </ul>
+      </li>
+      <li>米国 as of 2026-08-19 13:30 UTC
+        <ul>
+          <li>S&amp;P500: 7,707.98（+0.21%）</li>
+          <li>NASDAQ: 26,331.09（+0.16%）</li>
+          <li>DOW: 53,463.05（+0.22%）</li>
+          <li>SOX: 11,738.23（-2.12%）</li>
+          <li>VIX: 14.89（-6.0%）as of 07:00 UTC</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>解釈
+    <ul>
+      <li>日本株は広範にリスクオフ。米株は主要指数が底堅い一方、半導体は弱含み。VIX低下は恐怖後退を示唆。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="前日の重要ポイント">前日の重要ポイント</h2>
+<ul>
+  <li>事実
+    <ul>
+      <li>日本株が大幅安（TOPIX代理 -3.16%、Growth 250 -1.95%）</li>
+      <li>米半導体指数（SOX）が-2.12%と調整</li>
+    </ul>
+  </li>
+  <li>評価
+    <ul>
+      <li>日本の半導体・AI関連、景気敏感セクターに逆風。米主要株は小幅高でグローバルのリスク全面縮小ではない点に留意。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="今日の注目イベント">今日の注目イベント</h2>
+<ul>
+  <li>データ不足のため判断保留</li>
+  <li>事実メモ: watchlistに「信越化学の決算」等の記載ありだが、eventsソースはMISSINGのため本日確度の高い予定は特定不可。</li>
+</ul>
+
+<h2 id="保有株へ影響しそうなテーマ">保有株へ影響しそうなテーマ</h2>
+<ul>
+  <li>事実（ポートフォリオはSTALE: 2026-08-08）
+    <ul>
+      <li>半導体・AI周辺
+        <ul>
+          <li>信越化学工業（4063, 信用買い100）/ フィックスターズ（3687, 信用買い100）/ さくらインターネット（3778, 信用買い100）/ 日東紡（3110, 信用買い900）</li>
+        </ul>
+      </li>
+      <li>化学・住宅資材: 積水化学工業（4204, 信用買い100）</li>
+      <li>指数エクスポージャ: 1321 日経225連動型ETF（現物5）</li>
+      <li>その他: 飯田GHD（3291, 信用売り100）</li>
+    </ul>
+  </li>
+  <li>事実（外部指標）
+    <ul>
+      <li>SOXが-2.12%と弱含み</li>
+      <li>日本株指数が大幅下落</li>
+    </ul>
+  </li>
+  <li>解釈
+    <ul>
+      <li>半導体材料・AIインフラ関連は海外半導体弱含みと国内地合い悪化のダブルパンチを受けやすい構図。</li>
+      <li>watchlistテーマ（原子力/送電網/レアアース/トヨタ/ACSL政府受注 等）は更新がSTALEのため即時性は不確か。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="リスク要因">リスク要因</h2>
+<ul>
+  <li>データ起因
+    <ul>
+      <li>ポートフォリオが12日前のスナップショット（現在構成・建玉状況に不確実性）</li>
+      <li>キャピタル情報MISSING（余力/証拠金/レバレッジ把握不可）</li>
+      <li>イベントカレンダーMISSING（決算・経済指標の当日把握に欠落）</li>
+      <li>ウォッチリストSTALE（優先度・論点の鮮度低下）</li>
+    </ul>
+  </li>
+  <li>マーケット
+    <ul>
+      <li>日本株の広範調整継続リスク</li>
+      <li>米半導体の調整波及</li>
+    </ul>
+  </li>
+  <li>行動リスク（Investor DNA）
+    <ul>
+      <li>TAIL_LOSS_DESTROYS_SMALL_WINSパターン多数。特に
+        <ul>
+          <li>積水化学（4204）: WARNING</li>
+          <li>ACSL（6232）: CRITICAL（候補銘柄、現保有とは限らず）</li>
+        </ul>
+      </li>
+      <li>含み損拡大やストップの甘さによるテール損失再発リスク</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="今日の戦略">今日の戦略</h2>
+<ul>
+  <li>前提: データPARTIAL/ポートフォリオSTALE/キャピタルMISSINGのため、強い確信を伴う新規リスクテイクは抑制的に検討。</li>
+  <li>リスク管理
+    <ul>
+      <li>テール損失パターン該当銘柄（4204, 6232など候補含む）は損失許容・退出基準を事前点検（実行は最新口座状況の確認後）。</li>
+      <li>半導体・AI関連のギャップリスクに注意（SOX連動のボラ拡大想定）。</li>
+    </ul>
+  </li>
+  <li>オペレーション
+    <ul>
+      <li>本日のイベント不明（events=MISSING）のため、寄り前に公式開示・取引所日程の別途確認をルーチン化。</li>
+      <li>実残高・証拠金の最新照合完了まで新規の信用建玉は見送りを検討。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="注目銘柄">注目銘柄</h2>
+<ul>
+  <li>信越化学工業（4063）
+    <ul>
+      <li>事実: ポートフォリオ保有/候補に掲載。watchlistに「信越化学の決算」記載（STALE）。</li>
+      <li>観点: 半導体サイクル/決算確認までの需給とガイダンス感応度。</li>
+    </ul>
+  </li>
+  <li>日東紡（3110）
+    <ul>
+      <li>事実: ポートフォリオ保有/候補に掲載。watchlistに「誤発注による信用売り100株への対応」記載（STALE）。</li>
+      <li>観点: 半導体材料連動・誤発注対応のオペリスク再発防止。</li>
+    </ul>
+  </li>
+  <li>さくらインターネット（3778）/ フィックスターズ（3687）
+    <ul>
+      <li>事実: ポートフォリオ保有。AI/DC・HPCテーマ。</li>
+      <li>観点: 日本株地合い悪化時のボラ管理。</li>
+    </ul>
+  </li>
+  <li>積水化学工業（4204）
+    <ul>
+      <li>事実: ポートフォリオ保有。DNAでテール損失WARNING。</li>
+      <li>観点: ストップ/サイズ管理の徹底。</li>
+    </ul>
+  </li>
+  <li>ACSL（6232）
+    <ul>
+      <li>事実: 候補（OWNER_PICK）/ DNAでテール損失CRITICAL。watchlistに政府受注・増資有無の監視（STALE）。</li>
+      <li>観点: 受注・資金繰り/潜在的希薄化の確認後に検討域。</li>
+    </ul>
+  </li>
+</ul>
+
+<p>（参考テーマ）データセンター電源・通信インフラ関連3社 比較レビュー（security_code: 2026, リサーチ項目。銘柄自体ではない）</p>
+
+<h2 id="次回確認時に見る条件">次回確認時に見る条件</h2>
+<ul>
+  <li>データ更新
+    <ul>
+      <li>ポートフォリオ最新化（≤3日以内）と建玉/数量の整合</li>
+      <li>キャピタル（現金余力・証拠金・レバレッジ）復旧</li>
+      <li>イベントカレンダー補完（本日・翌営業日の決算/指標）</li>
+      <li>ウォッチリスト刷新（優先度と具体アクション）</li>
+    </ul>
+  </li>
+  <li>マーケット
+    <ul>
+      <li>SOXの下げ止まり/反発の有無（日本半導体感応度）</li>
+      <li>日本株（TOPIX代理:1306.T/Growth250:2516.T）の反発確認と出来高の増減</li>
+      <li>VIXの継続低下＝リスク許容度改善の継続性</li>
+    </ul>
+  </li>
+  <li>個別
+    <ul>
+      <li>信越化学の決算日程・ガイダンス（要events更新）</li>
+      <li>日東紡の売買記録とオペレーション整合（誤発注メモの解消確認）</li>
+      <li>ACSLの受注/資金調達開示の有無</li>
+      <li>積水化学ほかDNA警告銘柄の損切り基準・実行可否（ルール遵守状況）</li>
+    </ul>
+  </li>
+</ul>
+
+<p>（注）本レポートは提供データがPARTIAL/STALE/MISSINGを含むため、事実と解釈を分離し、未確認事項は売買判断に直結させないこと。取引は行いません。</p>
+
+<h2 id="api-diagnostics">API Diagnostics</h2>
+
+<ul>
+  <li>Model: <code class="language-plaintext highlighter-rouge">gpt-5-2025-08-07</code></li>
+  <li>Dataset status: <code class="language-plaintext highlighter-rouge">PARTIAL</code></li>
+  <li>Input tokens: <code class="language-plaintext highlighter-rouge">4516</code></li>
+  <li>Output tokens: <code class="language-plaintext highlighter-rouge">5614</code></li>
+  <li>Total tokens: <code class="language-plaintext highlighter-rouge">10130</code></li>
+  <li>Execution: <code class="language-plaintext highlighter-rouge">58.705 sec</code></li>
+  <li>Estimated cost USD: <code class="language-plaintext highlighter-rouge">None</code> (pricing_not_configured)</li>
+</ul>
 
   </main>
   <a class="back-to-top" href="#" aria-label="ページ上部へ戻る">↑</a>
