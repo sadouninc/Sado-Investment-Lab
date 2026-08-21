@@ -6,6 +6,7 @@ from copy import deepcopy
 from datetime import date
 from typing import Any
 
+import jsonschema
 from scripts.market_compass_intraday_evidence import (
     adapt_intraday_subsector_to_market_compass,
 )
@@ -32,12 +33,26 @@ def resolve_security_intraday_evidence(
     """
     mapping_result = lookup_security_subsector(
         security_code,
-        as_of,
-        expected_taxonomy_version,
-        mapping,
-    )
-
-    base = {
+    try:
+        mapping_result = lookup_security_subsector(
+            security_code,
+            as_of,
+            expected_taxonomy_version,
+            mapping,
+        )
+    except (ValueError, TypeError, KeyError, jsonschema.ValidationError):
+        return {
+            "schema_version": 1,
+            "security_code": security_code if isinstance(security_code, str) else None,
+            "as_of": as_of.isoformat() if isinstance(as_of, date) else as_of if isinstance(as_of, str) else None,
+            "expected_taxonomy_version": expected_taxonomy_version if isinstance(expected_taxonomy_version, str) else None,
+            "mapping": None,
+            "investment_authority": "READ_ONLY_EVIDENCE",
+            "trade_recommendation": None,
+            "status": "UNKNOWN",
+            "reason": "INVALID_MAPPING_AUTHORITY_INPUT",
+            "intraday_evidence": None,
+        }
         "schema_version": 1,
         "security_code": security_code,
         "as_of": as_of.isoformat() if isinstance(as_of, date) else as_of,
