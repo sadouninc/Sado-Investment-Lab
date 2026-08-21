@@ -31,8 +31,6 @@ def resolve_security_intraday_evidence(
     Mapping authority remains #756 and intraday evidence authority remains #752.
     Any mapping uncertainty or evidence mismatch stays fail-closed UNKNOWN.
     """
-    mapping_result = lookup_security_subsector(
-        security_code,
     try:
         mapping_result = lookup_security_subsector(
             security_code,
@@ -53,6 +51,8 @@ def resolve_security_intraday_evidence(
             "reason": "INVALID_MAPPING_AUTHORITY_INPUT",
             "intraday_evidence": None,
         }
+
+    base = {
         "schema_version": 1,
         "security_code": security_code,
         "as_of": as_of.isoformat() if isinstance(as_of, date) else as_of,
