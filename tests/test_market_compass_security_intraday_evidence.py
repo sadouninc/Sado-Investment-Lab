@@ -113,19 +113,19 @@ def test_malformed_adapter_result_missing_subsector_fails_closed():
 
 
 def test_missing_data_quality_status_fails_closed():
-    from scripts.market_compass_security_intraday_evidence import adapt_intraday_subsector_to_market_compass
     import scripts.market_compass_security_intraday_evidence as mod
+
     orig = mod.adapt_intraday_subsector_to_market_compass
-    
+
     def patched(ev):
         r = orig(ev)
         r["data_quality"] = {}
         return r
-    
+
     mod.adapt_intraday_subsector_to_market_compass = patched
     result = resolve_security_intraday_evidence("8035", "2026-08-21", TAXONOMY, evidence(), mapping())
     mod.adapt_intraday_subsector_to_market_compass = orig
-    
+
     assert result["status"] == "UNKNOWN"
     assert result["reason"] == "INVALID_EVIDENCE_STRUCTURE"
     assert result["intraday_evidence"] is None
@@ -136,5 +136,5 @@ def test_missing_subsector_id_in_mapping_fails_closed():
     del bad_mapping["records"][0]["subsector_id"]
     result = resolve_security_intraday_evidence("8035", "2026-08-21", TAXONOMY, evidence(), bad_mapping)
     assert result["status"] == "UNKNOWN"
-    assert result["reason"] == "INVALID_MAPPING_OR_EVIDENCE"
+    assert result["reason"] == "INVALID_MAPPING_AUTHORITY_INPUT"
     assert result["intraday_evidence"] is None
