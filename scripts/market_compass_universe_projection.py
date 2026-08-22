@@ -42,7 +42,7 @@ def project_market_compass_universe(
     """Project current/re-entry membership and B1 evidence without mutation.
 
     A confirmed exit newer than the portfolio snapshot supersedes stale current
-    membership.  If temporal authority cannot be compared, membership remains
+    membership. If temporal authority cannot be compared, membership remains
     fail-closed UNKNOWN rather than being guessed.
     """
     portfolio_copy = deepcopy(portfolio)
@@ -97,7 +97,7 @@ def project_market_compass_universe(
                     evidence_payload,
                     mapping,
                 )
-            except (ValueError, TypeError, KeyError):
+            except (ValueError, TypeError):
                 evidence = _unknown_evidence(security_code, "RESOLVER_FAILURE")
 
         row = {
