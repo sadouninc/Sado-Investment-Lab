@@ -195,9 +195,12 @@ permalink: /research/morning-dataset/
 
 def main() -> None:
     if not REPORT.is_file():
-        print(f"WARNING: Morning Dataset not found at {REPORT}")
-        print("Skipping Morning Dataset page generation - file will be created by ai-morning-analyst workflow")
-        return
+        msg = (
+            f"MISSING_CANONICAL_MORNING_SNAPSHOT: {REPORT} not found.
+            "Expected canonical dataset from ai-morning-analyst.yml.
+            "Pages must not generate reduced/empty dataset. See Issue #334."
+        )
+        raise FileNotFoundError(msg)
     
     payload = json.loads(REPORT.read_text(encoding="utf-8"))
     

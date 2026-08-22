@@ -89,10 +89,12 @@ jobs:
       # Pages publish must NOT regenerate with a reduced provider set, as that would replace
       # OK sources with MISSING. The canonical file is already committed to the repo.
       # Issue #334 Pages regression fix.
-      - name: Verify Morning Dataset exists
+      - name: Fail closed if canonical Morning snapshot is missing
         run: |
-          test -f data/generated/public/morning-dataset.json || \
-            echo "Warning: morning-dataset.json not found, Pages will use fallback"
+          if ! test -f data/generated/public/morning-dataset.json; then
+            echo "MISSING_CANONICAL_MORNING_SNAPSHOT: data/generated/public/morning-dataset.json not found"
+            exit 1
+          fi
 
       - name: Test Trade Journal mapping
         run: python3 -m unittest discover -s .github/pages -p "test_*.py"

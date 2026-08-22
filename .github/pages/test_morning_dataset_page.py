@@ -147,6 +147,24 @@ class MorningDatasetPageTest(unittest.TestCase):
         page = module.build_page(canonical)
         self.assertIn("Morning Dataset Diagnostics", page)
 
+    def test_missing_canonical_snapshot_fails_closed_issue_334(self) -> None:
+        """
+        Issue #334: If canonical morning-dataset.json does not exist,
+        main() must fail closed with explicit error rather than silently
+        skipping or generating reduced/empty dataset.
+        """
+        import tempfile
+        temp_root = Path(tempfile.mkdtemp())
+        original_report = module.REPORT
+        try:
+            # Point to non-existent file
+            module.REPORT = temp_root / "does-not-exist" / "morning-dataset.json"
+            with self.assertRaises(FileNotFoundError) as ctx:
+                module.main()
+            self.assertIn("MISSING_CANONICAL_MORNING_SNAPSHOT", str(ctx.exception))
+        finally:
+            module.REPORT = original_report
+
 
 if __name__ == "__main__":
     unittest.main()

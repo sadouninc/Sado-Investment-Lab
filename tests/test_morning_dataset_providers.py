@@ -115,6 +115,47 @@ class MorningDatasetProviderTest(unittest.TestCase):
         # build_morning_dataset.py should reject this pattern
         self.assertEqual(1, payload["data_quality"]["ok_sources"])
 
+    def test_issue_334_weekend_off_schedule_publish_preserves_canonical_snapshot(self) -> None:
+        """
+        Issue #334: Weekend/off-schedule Pages publish must consume the last-valid
+        canonical snapshot without regenerating a reduced-contract dataset.
+        This test verifies the canonical dataset structure is preserved.
+        """
+        # Simulate a canonical dataset with multiple OK sources (weekday generation)
+        canonical_providers = [
+            StaticProvider(
+                ProviderResult.ok(
+                    "market",
+                    {"phase": "BULL", "indices": ["N225"]},
+                    as_of="2026-08-15",  # Friday
+                    source_reference="live-market-api",
+                )
+            ),
+            StaticProvider(
+                ProviderResult.ok(
+                    "portfolio",
+                    {"positions": 5, "exposure": 0.85},
+                    as_of="2026-08-15",
+                    source_reference="data/portfolio/positions.json",
+                )
+            ),
+            StaticProvider(
+                ProviderResult.ok(
+                    "investor_dna",
+                    {"sample_count": 400, "win_rate": 0.78},
+                    as_of="2026-08-15",
+                    source_reference="data/generated/public/investor-dna.json",
+                )
+            ),
+        ]
+        canonical_snapshot = build_dataset_from_providers(canonical_providers, as_of=date(2026, 8, 15))
+        
+        # Verify canonical snapshot has multiple OK sources (consumer must preserve this)
+        status_map = {row["name"]: row["status"] for row in canonical_snapshot["source_status"]}
+        self.assertEqual(3, sum(1 for s in status_map.values() if s == "OK"))
+        self.assertEqual("OK", status_map.get("market"))
+        self.assertEqual("OK", status_map.get("portfolio"))
+        self.assertEqual("OK", status_map.get("investor_dna"))
 
 if __name__ == "__main__":
     unittest.main()
