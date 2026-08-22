@@ -1,3 +1,3 @@
 # Amazon Q PR Revision Canary
 
-phase: initial
+phase: revision-proven
