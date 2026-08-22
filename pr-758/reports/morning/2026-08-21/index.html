@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#11100d">
-  <meta name="description" content="Datacenterのテーマ分析">
-  <title>Datacenter — Sado Investment Lab</title>
+  <meta name="description" content="Morning Datasetを分析した朝の市場・投資チェック">
+  <title>朝の市場レポート 2026-08-21 — Sado Investment Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;600;700&display=swap" rel="stylesheet">
@@ -156,17 +156,236 @@
     })();
   </script>
   <main class="book-shell">
-    <p class="breadcrumb"><a href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-758/themes/index.html">Themes</a> / Datacenter</p>
+    <p class="breadcrumb"><a href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-758/reports/morning/index.html">朝の市場レポート</a> / 2026-08-21</p>
 
-<h1 id="datacenter">Datacenter</h1>
+<h1 id="ai-morning-report">AI Morning Report</h1>
+<h2 id="データ品質">データ品質</h2>
+<ul>
+  <li>ステータス: PARTIAL（4 / 8 ソース、完全性0.5）</li>
+  <li>重要な警告
+    <ul>
+      <li>portfolio: STALE（13日前のスナップショット、許容3日）</li>
+      <li>watchlist: STALE（10日前）</li>
+      <li>capital: MISSING（資金情報テーブル見当たらず）</li>
+      <li>events: MISSING（イベントカレンダーに網羅性の確認なし）</li>
+    </ul>
+  </li>
+  <li>市場データ: Yahoo FinanceチャートAPIはOKだが、指標ごとの as_of が非同期（例: 日経225は8/19、TOPIX/Growthは8/20、米指数は8/20）</li>
+  <li>補足: sector_rotation ソースはOKだが、本データセット内に具体値未掲載</li>
+</ul>
 
-<h2 id="thesis">Thesis</h2>
-<h2 id="demand-drivers">Demand Drivers</h2>
-<h2 id="supply-chain">Supply Chain</h2>
-<h2 id="beneficiaries">Beneficiaries</h2>
-<h2 id="risks">Risks</h2>
-<h2 id="indicators">Indicators</h2>
-<h2 id="sources">Sources</h2>
+<h2 id="市場概況">市場概況</h2>
+<ul>
+  <li>日本
+    <ul>
+      <li>[事実] 日経225: 65,326.42（-3.16%、as_of 8/19）</li>
+      <li>[事実] TOPIX（ETF代理:1306.T）: +1.29%（as_of 8/20）</li>
+      <li>[事実] Growth250（ETF代理:2516.T）: +4.68%（as_of 8/20）</li>
+      <li>[解釈] 指数間で非同期かつ分散。大型は軟調の直近データが古く、直近8/20はグロース優位が示唆される可能性</li>
+    </ul>
+  </li>
+  <li>米国
+    <ul>
+      <li>[事実] S&amp;P500 -0.87%、NASDAQ -1.00%、DOW -1.32%、SOX +0.53%（as_of 8/20）</li>
+      <li>[事実] VIX 16.01（+7.52%）</li>
+      <li>[解釈] 広範な調整下で半導体は相対堅調、ボラ上昇でリスク許容度は低下</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="前日の重要ポイント">前日の重要ポイント</h2>
+<ul>
+  <li>[事実] 日本Growth250が+4.68%、TOPIXも+1.29%（8/20）</li>
+  <li>[事実] 米主要指数は下落、VIX上昇、SOXは小幅高（8/20）</li>
+  <li>[事実] 日経225の直近更新は8/19で-3.16%</li>
+  <li>[解釈] グロース/半導体関連の相対強さと、グローバルのリスクオフ圧力が併存。日本はスタイル間の乖離が大きい可能性</li>
+</ul>
+
+<h2 id="今日の注目イベント">今日の注目イベント</h2>
+<p>データ不足のため判断保留</p>
+
+<h2 id="保有株へ影響しそうなテーマ">保有株へ影響しそうなテーマ</h2>
+<ul>
+  <li>半導体/素材
+    <ul>
+      <li>[事実] SOX上昇、Growth250強含み（直近データ）</li>
+      <li>[解釈] 4063 信越化学工業、3110 日東紡（半導体素材）が相対的な関心領域</li>
+    </ul>
+  </li>
+  <li>AI/データセンター
+    <ul>
+      <li>[事実] ウォッチに「データセンター/AI」近接テーマ（さくらインターネット、フィックスターズ）</li>
+      <li>[解釈] Growth強含み局面ではモメンタム恩恵余地</li>
+    </ul>
+  </li>
+  <li>インフラ（送電網/原子力）
+    <ul>
+      <li>[事実] ウォッチリストに「原子力」「送電網」</li>
+      <li>[解釈] 4204 積水化学、6622 ダイヘンなど関連バリューチェーンの思惑波及余地</li>
+    </ul>
+  </li>
+  <li>バイオ（4588/4592）
+    <ul>
+      <li>[事実] 個別イベント不明（events MISSING）</li>
+      <li>[解釈] ボラ高・材料待ちの色合い、全体ボラ上昇局面では資金逆風リスク</li>
+    </ul>
+  </li>
+  <li>オペレーション留意
+    <ul>
+      <li>[事実] ウォッチに「日東紡の誤発注による信用売り100株への対応」が記載（10日前/STALE）</li>
+      <li>[事実] 現ポート（13日前/STALE）では3110は信用買い900株のみ表示</li>
+      <li>[解釈] 記録不整合の可能性。建玉・発注履歴の突合が先決</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="リスク要因">リスク要因</h2>
+<ul>
+  <li>データリスク
+    <ul>
+      <li>[事実] portfolio/ watchlist STALE、capital/ events MISSING</li>
+      <li>[解釈] 実際の建玉・資金制約が不明確のまま意思決定リスク</li>
+    </ul>
+  </li>
+  <li>マクロ/ボラ
+    <ul>
+      <li>[事実] VIX上昇（16台）</li>
+      <li>[解釈] ギャップ/ヒゲ拡大の損切り難化</li>
+    </ul>
+  </li>
+  <li>テイルロス・パターン（Investor DNA）
+    <ul>
+      <li>[事実] 6232 ACSL（CRITICAL）、4204 積水化学（WARNING）などで「TAIL_LOSS_DESTROYS_SMALL_WINS」検出</li>
+      <li>[解釈] これら銘柄はサイズ/損切り厳格化が前提</li>
+    </ul>
+  </li>
+  <li>非同期市場データ
+    <ul>
+      <li>[事実] 指数の as_of が混在</li>
+      <li>[解釈] 前提相場の取り違えリスク</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="今日の戦略">今日の戦略</h2>
+<ul>
+  <li>フレーム
+    <ul>
+      <li>[事実] 短期反復優位性（win率/Profit Factorの実証）</li>
+      <li>[解釈] エッジは短期・流動性厚いリーダーへの限定適用＋機械的撤退</li>
+    </ul>
+  </li>
+  <li>シナリオ
+    <ul>
+      <li>Growth継続（事実: 8/20にGrowth250強含み）
+        <ul>
+          <li>[解釈] AI/DC/半導体素材に短期トレード検討。寄り後の相対強度確認→押し目限定、ブレイクはスリッページ許容を事前設定</li>
+        </ul>
+      </li>
+      <li>リスクオフ加速（事実: VIX上昇、米株調整）
+        <ul>
+          <li>[解釈] インデックス感応度の高い建玉（1321など）はエクスポージャー縮小を検討、逆行含みは早期撤退</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>リスク管理
+    <ul>
+      <li>[解釈] テイルロス警告（6232/4204等）へのサイズ抑制、平均損失上限の厳守、難平禁止</li>
+      <li>[事実] capital MISSING</li>
+      <li>[解釈] 追加ポジション前に利用可能資金・証拠金余力の最新確認が必須</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="注目銘柄">注目銘柄</h2>
+<ul>
+  <li>4063 信越化学工業
+    <ul>
+      <li>[根拠(事実)] 候補リストCURRENT、半導体素材大手。SOX上昇</li>
+      <li>[注目(解釈)] セクター相対強度持続ならモメンタム追随余地</li>
+    </ul>
+  </li>
+  <li>3110 日東紡
+    <ul>
+      <li>[根拠(事実)] 候補リストCURRENT、ポートフォリオ（STALE）に信用買い。ウォッチに運用上の誤発注課題</li>
+      <li>[注目(解釈)] まず建玉整合の確認。半導体関連で資金流入局面は短期妙味</li>
+    </ul>
+  </li>
+  <li>3778 さくらインターネット
+    <ul>
+      <li>[根拠(事実)] ポートフォリオ（STALE）に信用買い。AI/DCテーマ</li>
+      <li>[注目(解釈)] Growth優位局面で出来高増を伴う強弱判定</li>
+    </ul>
+  </li>
+  <li>3687 フィックスターズ
+    <ul>
+      <li>[根拠(事実)] ポートフォリオ（STALE）に信用買い。AI最適化ソフト文脈</li>
+      <li>[注目(解釈)] セクター連動性と実需ニュース有無の確認が鍵</li>
+    </ul>
+  </li>
+  <li>6232 ACSL
+    <ul>
+      <li>[根拠(事実)] 候補CURRENT（オーナーピック）、防衛/政府資金テーマ。DNAでテイルロスCRITICAL</li>
+      <li>[注目(解釈)] 好材料期待と損失尾リスクの両睨みでサイズ極小・即時撤退前提</li>
+    </ul>
+  </li>
+  <li>6622 ダイヘン
+    <ul>
+      <li>[根拠(事実)] 候補CURRENT（ポート保有フラグあり）。送電/電力機器連想</li>
+      <li>[注目(解釈)] インフラテーマに資金が向く日だけに限定</li>
+    </ul>
+  </li>
+  <li>1321 日経225連動ETF
+    <ul>
+      <li>[根拠(事実)] ポートに現物。日経225直近-3.16%（8/19）</li>
+      <li>[注目(解釈)] 日本株の方向性ヘッジ/縮小の軸としてモニタ</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="次回確認時に見る条件">次回確認時に見る条件</h2>
+<ul>
+  <li>データ更新
+    <ul>
+      <li>[事実] portfolioを最新化、capitalを復旧、eventsを充足</li>
+      <li>[解釈] 建玉・余力・カレンダー不確実性の解消を最優先</li>
+    </ul>
+  </li>
+  <li>市場シグナル
+    <ul>
+      <li>日本：Growth250 vs TOPIXの相対強度が継続するか</li>
+      <li>米国：SOXの相対強度持続とVIXの低下転換有無</li>
+    </ul>
+  </li>
+  <li>個別トリガー（ウォッチ）
+    <ul>
+      <li>信越化学の決算日・内容（events MISSINGのため要自前確認）</li>
+      <li>原子力/送電網/レアアース政策・価格動向のヘッドライン</li>
+      <li>ACSL：防衛省継続受注、SBIR/K Program資金、資金繰り/増資の有無</li>
+      <li>日東紡：誤発注記録の解消状況（建玉・約定履歴の照合）</li>
+    </ul>
+  </li>
+  <li>運用規律
+    <ul>
+      <li>テイルロス警告銘柄のサイズ上限と損切りルール順守状況のチェック</li>
+    </ul>
+  </li>
+</ul>
+
+<p>（注）本レポートはデータPARTIAL/STALE/MISSINGを含み、事実と解釈を区別して記載。売買執行は行わず、投資助言の保証はありません。</p>
+
+<h2 id="api-diagnostics">API Diagnostics</h2>
+
+<ul>
+  <li>Model: <code class="language-plaintext highlighter-rouge">gpt-5-2025-08-07</code></li>
+  <li>Dataset status: <code class="language-plaintext highlighter-rouge">PARTIAL</code></li>
+  <li>Input tokens: <code class="language-plaintext highlighter-rouge">4512</code></li>
+  <li>Output tokens: <code class="language-plaintext highlighter-rouge">4734</code></li>
+  <li>Total tokens: <code class="language-plaintext highlighter-rouge">9246</code></li>
+  <li>Execution: <code class="language-plaintext highlighter-rouge">44.81 sec</code></li>
+  <li>Estimated cost USD: <code class="language-plaintext highlighter-rouge">None</code> (pricing_not_configured)</li>
+</ul>
 
   </main>
   <a class="back-to-top" href="#" aria-label="ページ上部へ戻る">↑</a>
