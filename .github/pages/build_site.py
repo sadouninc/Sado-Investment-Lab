@@ -762,7 +762,14 @@ def render_journal_section(title: str, content: str, *, required: bool = False) 
 
 def discover_journal_entries() -> list[JournalEntry]:
     entries: list[JournalEntry] = []
+    # Pattern to match daily journal files (YYYY-MM-DD.md) and exclude monthly files (YYYY-MM.md)
+    daily_file_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}\.md$")
+    
     for source in sorted((ROOT / "01_Portfolio" / "Transactions").glob("*.md")):
+        # Only process daily journal files, skip monthly aggregate files
+        if not daily_file_pattern.match(source.name):
+            continue
+        
         text = source.read_text(encoding="utf-8")
         matches = list(JOURNAL_HEADING.finditer(text))
         for index, match in enumerate(matches):

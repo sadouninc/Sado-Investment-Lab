@@ -97,6 +97,27 @@ class TradeJournalBuildTest(unittest.TestCase):
 
         self.assertEqual(public_page.count("## Today's Trades"), 1)
 
+    def test_daily_and_monthly_files_do_not_create_duplicate_entries(self) -> None:
+        """Regression test: Monthly files (YYYY-MM.md) should be excluded from daily listing."""
+        all_entries = build_site.discover_journal_entries()
+        
+        # Check that each date appears only once in the entries list
+        dates_seen = {}
+        for entry in all_entries:
+            date_str = entry.day.isoformat()
+            if date_str in dates_seen:
+                self.fail(
+                    f"Duplicate entry found for {date_str}. "
+                    f"First source: {dates_seen[date_str]}, Second source: {entry.source}"
+                )
+            dates_seen[date_str] = entry.source
+        
+        # Verify that all discovered entries come from daily files (YYYY-MM-DD.md)
+        for entry in all_entries:
+            filename = entry.source.name
+            self.assertRegex(filename, r"^\d{4}-\d{2}-\d{2}\.md$",
+                           f"Entry source {filename} should be a daily file (YYYY-MM-DD.md)")
+
     def test_2026_08_07_trade_journal_is_published(self) -> None:
         page = self.page("2026-08-07")
 
