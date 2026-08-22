@@ -114,6 +114,26 @@ class TradeJournalBuildTest(unittest.TestCase):
             encoding="utf-8"
         )
         
+        # Create notes-2026-08-03.md (required in frozen AC)
+        notes_file = transactions_dir / "notes-2026-08-03.md"
+        notes_file.write_text(
+            "# Notes 2026-08-03
+            "## 2026-08-03
+            "### Market
+            "注目銘柄のメモ。
+            encoding="utf-8"
+        )
+        
+        # Create a second valid daily file for 2026-08-20
+        daily_file_2 = transactions_dir / "2026-08-20.md"
+        daily_file_2.write_text(
+            "# 2026-08-20
+            "## 2026-08-20
+            "### Market
+            "日経平均は続伸。
+            encoding="utf-8"
+        )
+        
         # Create a monthly aggregate file that ALSO contains an entry for the same date
         monthly_file = transactions_dir / "2026-08.md"
         monthly_file.write_text(
@@ -136,6 +156,11 @@ class TradeJournalBuildTest(unittest.TestCase):
             # Check that each date appears only once (no duplicates from monthly file)
             dates_seen = {}
             for entry in all_entries:
+            # Assert deterministic reverse-chronological ordering
+            entry_dates = [entry.day for entry in all_entries]
+            self.assertEqual(entry_dates, sorted(entry_dates, reverse=True),
+                "Entries must be in deterministic reverse-chronological order")
+            
                 date_str = entry.day.isoformat()
                 self.assertNotIn(date_str, dates_seen,
                     f"Duplicate entry found for {date_str}. "
