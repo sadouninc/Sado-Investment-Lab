@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
+import re
 import tempfile
 import unittest
 from datetime import date
@@ -84,7 +85,17 @@ class TradeJournalBuildTest(unittest.TestCase):
             self.assertIn(expected, page)
 
     def test_2026_08_13_confirmed_trades_are_rendered_exactly_once(self) -> None:
-        page = self.page("2026-08-13")
+        source = build_site.ROOT / "01_Portfolio" / "Transactions" / "2026-08.md"
+        text = source.read_text(encoding="utf-8")
+        match = re.search(r"^## 2026-08-13\s*$", text, re.MULTILINE)
+        assert match
+        content = text[match.end():].strip()
+        entry = build_site.JournalEntry(
+            day=date(2026, 8, 13),
+            source=source,
+            content=content,
+        )
+        page = build_site.build_journal_page(entry)
         public_page = page.split('<details class="source-journal">', 1)[0]
 
         for expected in (
