@@ -158,3 +158,109 @@ def test_provider_ok_is_explicitly_preserved() -> None:
     result = evaluate_price_identity_gate(record, expected=_expected())
 
     assert result.provider_status == PROVIDER_OK
+
+
+@pytest.mark.parametrize("symbol", ["6501", "6503", "6622"])
+def test_ai_dc_price_fixture_v1_exact_identity_fresh_close_is_usable(symbol: str) -> None:
+    trading_date = date(2026, 8, 14)
+    source_observed_at = "2026-08-15T08:00:00+09:00"
+    security_id = f"JP:{symbol}"
+
+    daily = MarketDataRecord(
+        instrument_code=symbol,
+        instrument_kind="security",
+        market_date=trading_date,
+        source="JQUANTS_V2",
+        source_timestamp=source_observed_at,
+        open=3000.0,
+        high=3050.0,
+        low=2980.0,
+        close=3020.0,
+        volume=5_000_000.0,
+        adjustment_basis="split_adjusted",
+    )
+    expected = PriceIdentityExpectation(
+        security_id=security_id,
+        symbol=symbol,
+        exchange="TSE",
+        trading_date=trading_date,
+        price_type=PRICE_CLOSE,
+        currency="JPY",
+        adjustment_basis="split_adjusted",
+    )
+    record = canonical_from_daily_record(
+        daily,
+        security_id=security_id,
+        provider_status=PROVIDER_OK,
+        not_market_truth=False,
+    )
+    result = evaluate_price_identity_gate(record, expected=expected)
+
+    assert result.identity_status == IDENTITY_VERIFIED
+    assert result.freshness_status == CANONICAL_FRESH
+    assert result.validation_reasons == ()
+    assert result.usable_for_current_valuation is True
+
+
+@pytest.mark.parametrize("symbol", ["6501", "6503", "6622"])
+def test_ai_dc_price_fixture_v1_fail_closed_behavior(symbol: str) -> None:
+    trading_date = date(2026, 8, 14)
+    source_observed_at = "2026-08-15T08:00:00+09:00"
+    security_id = f"JP:{symbol}"
+
+    daily = MarketDataRecord(
+        instrument_code=symbol,
+        instrument_kind="security",
+        market_date=trading_date,
+        source="JQUANTS_V2",
+        source_timestamp=source_observed_at,
+        open=3000.0,
+        high=3050.0,
+        low=2980.0,
+        close=3020.0,
+        volume=5_000_000.0,
+        adjustment_basis="split_adjusted",
+    )
+    expected = PriceIdentityExpectation(
+        security_id=security_id,
+        symbol=symbol,
+        exchange="TSE",
+        trading_date=trading_date,
+        price_type=PRICE_CLOSE,
+        currency="JPY",
+        adjustment_basis="split_adjusted",
+    )
+
+    # Stale source timestamp
+    stale_record = canonical_from_daily_record(
+        replace(daily, source_timestamp="2026-08-16T13:00:00+09:00"),
+        security_id=security_id,
+        provider_status=PROVIDER_OK,
+        not_market_truth=False,
+    )
+    stale_res = evaluate_price_identity_gate(stale_record, expected=expected)
+    assert stale_res.freshness_status == CANONICAL_STALE
+    assert stale_res.usable_for_current_valuation is False
+
+    # Identity / symbol mismatch
+    mismatch_record = canonical_from_daily_record(
+        replace(daily, instrument_code="9999"),
+        security_id=security_id,
+        provider_status=PROVIDER_OK,
+        not_market_truth=False,
+    )
+    mismatch_res = evaluate_price_identity_gate(mismatch_record, expected=expected)
+    assert mismatch_res.identity_status == IDENTITY_FAILED
+    assert mismatch_res.usable_for_current_valuation is False
+
+    # Not market truth & provider failure
+    fake_record = canonical_from_daily_record(
+        daily,
+        security_id=security_id,
+        provider_status=PROVIDER_CREDENTIAL_MISSING,
+        not_market_truth=True,
+    )
+    fake_res = evaluate_price_identity_gate(fake_record, expected=expected)
+    assert fake_res.provider_status == PROVIDER_CREDENTIAL_MISSING
+    assert fake_res.not_market_truth is True
+    assert fake_res.usable_for_current_valuation is False
