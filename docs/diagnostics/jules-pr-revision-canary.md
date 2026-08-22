@@ -1,3 +1,3 @@
 # Jules PR Revision Canary
 
-phase: initial
+phase: revision-proven
