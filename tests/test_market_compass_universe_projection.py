@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+import pytest
+
 import scripts.market_compass_universe_projection as projection
 
 
@@ -66,6 +68,46 @@ def test_missing_evidence_is_per_security_unknown_and_inputs_immutable(monkeypat
     assert all(row["intraday_evidence"]["status"] == "UNKNOWN" for row in rows)
     assert portfolio == before[0]
     assert watch == before[1]
+
+
+def test_expected_resolver_value_error_fails_closed(monkeypatch):
+    def fail(*args, **kwargs):
+        raise ValueError("invalid authority input")
+
+    monkeypatch.setattr(projection, "resolve_security_intraday_evidence", fail)
+    result = projection.project_market_compass_universe(
+        _portfolio(), {}, {"6702": {}},
+        evidence_as_of="2026-08-21", expected_taxonomy_version="v1",
+    )
+    evidence = result["current_holdings"][0]["intraday_evidence"]
+    assert evidence["status"] == "UNKNOWN"
+    assert evidence["reason"] == "RESOLVER_FAILURE"
+
+
+def test_expected_resolver_type_error_fails_closed(monkeypatch):
+    def fail(*args, **kwargs):
+        raise TypeError("malformed resolver input")
+
+    monkeypatch.setattr(projection, "resolve_security_intraday_evidence", fail)
+    result = projection.project_market_compass_universe(
+        _portfolio(), {}, {"6702": {}},
+        evidence_as_of="2026-08-21", expected_taxonomy_version="v1",
+    )
+    evidence = result["current_holdings"][0]["intraday_evidence"]
+    assert evidence["status"] == "UNKNOWN"
+    assert evidence["reason"] == "RESOLVER_FAILURE"
+
+
+def test_unexpected_resolver_key_error_is_not_masked(monkeypatch):
+    def fail(*args, **kwargs):
+        raise KeyError("unexpected implementation defect")
+
+    monkeypatch.setattr(projection, "resolve_security_intraday_evidence", fail)
+    with pytest.raises(KeyError, match="unexpected implementation defect"):
+        projection.project_market_compass_universe(
+            _portfolio(), {}, {"6702": {}},
+            evidence_as_of="2026-08-21", expected_taxonomy_version="v1",
+        )
 
 
 def test_w33_stale_snapshot_does_not_override_confirmed_exits(monkeypatch):
