@@ -42,8 +42,8 @@ def project_market_compass_universe(
     """Project current/re-entry membership and B1 evidence without mutation.
 
     A confirmed exit newer than the portfolio snapshot supersedes stale current
-    membership. If temporal authority cannot be compared, membership remains
-    fail-closed UNKNOWN rather than being guessed.
+    membership. Current holding membership additionally requires VERIFIED
+    portfolio authority. Unknown authority fails closed instead of being guessed.
     """
     portfolio_copy = deepcopy(portfolio)
     reentry_copy = deepcopy(reentry_watch)
@@ -51,6 +51,7 @@ def project_market_compass_universe(
 
     snapshot_as_of = _parse_date(portfolio_copy.get("as_of"))
     authority_status = portfolio_copy.get("verification_status", "UNKNOWN")
+    portfolio_membership_verified = authority_status == "VERIFIED"
     positions = {
         str(row.get("security_code")): row
         for row in portfolio_copy.get("positions", [])
@@ -76,13 +77,19 @@ def project_market_compass_universe(
                 membership = "MEMBERSHIP_UNKNOWN"
             elif exit_date > snapshot_as_of:
                 membership = "REENTRY_WATCH"
-            else:
+            elif portfolio_membership_verified:
                 membership = "CURRENT_HOLDING"
+            else:
+                membership = "MEMBERSHIP_UNKNOWN"
         elif position is not None:
-            membership = "CURRENT_HOLDING" if snapshot_as_of is not None else "MEMBERSHIP_UNKNOWN"
+            membership = (
+                "CURRENT_HOLDING"
+                if snapshot_as_of is not None and portfolio_membership_verified
+                else "MEMBERSHIP_UNKNOWN"
+            )
         elif candidate is not None:
             membership = "REENTRY_WATCH" if exit_date is not None else "MEMBERSHIP_UNKNOWN"
-        else:  # defensive; union above makes this unreachable
+        else:
             membership = "MEMBERSHIP_UNKNOWN"
 
         evidence_payload = evidence_copy.get(security_code)
