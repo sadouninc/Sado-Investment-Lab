@@ -10,6 +10,7 @@ from datetime import date
 from pathlib import Path
 
 
+from build_market_compass import build_market_compass_page
 ROOT = Path(__file__).resolve().parents[2]
 PAGES = ROOT / ".github" / "pages"
 SITE = ROOT / "site-src"
@@ -991,6 +992,10 @@ def main() -> None:
     build_key_person_watch()
     build_trade_journal()
     build_trade_analysis_v2()
+
+    # Build Market Compass v0.1
+    market_compass_page = build_market_compass_page()
+    write(SITE / "market-compass" / "index.md", market_compass_page)
 
 
 if __name__ == "__main__":
