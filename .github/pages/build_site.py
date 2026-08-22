@@ -37,6 +37,7 @@ FRAMEWORK_CHAPTERS = [
     ("metrics", ROOT / "00_Framework" / "08_Original_Metrics.md"),
 ]
 
+JOURNAL_FILENAME = re.compile(r"^\d{4}-\d{2}-\d{2}\.md$")
 JOURNAL_HEADING = re.compile(r"^## (\d{4}-\d{2}-\d{2})\s*$", re.MULTILINE)
 MONTH_NAMES = {
     1: "January", 2: "February", 3: "March", 4: "April",
@@ -762,7 +763,12 @@ def render_journal_section(title: str, content: str, *, required: bool = False) 
 
 def discover_journal_entries() -> list[JournalEntry]:
     entries: list[JournalEntry] = []
-    for source in sorted((ROOT / "01_Portfolio" / "Transactions").glob("*.md")):
+    transactions_dir = ROOT / "01_Portfolio" / "Transactions"
+    if not transactions_dir.is_dir():
+        return entries
+    for source in sorted(transactions_dir.glob("*.md")):
+        if not JOURNAL_FILENAME.match(source.name):
+            continue
         text = source.read_text(encoding="utf-8")
         matches = list(JOURNAL_HEADING.finditer(text))
         for index, match in enumerate(matches):

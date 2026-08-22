@@ -242,6 +242,41 @@ class TradeJournalBuildTest(unittest.TestCase):
         self.assertNotIn("MARKET_CHART_DATA_URI", page)
         self.assertIn("/market-analysis/2026/2026-08-05/", index)
 
+    def test_journal_source_classification_isolation(self) -> None:
+        original_root = build_site.ROOT
+        temp_root = Path(tempfile.mkdtemp())
+        build_site.ROOT = temp_root
+        self.addCleanup(setattr, build_site, "ROOT", original_root)
+
+        tx_dir = temp_root / "01_Portfolio" / "Transactions"
+        tx_dir.mkdir(parents=True, exist_ok=True)
+
+        (tx_dir / "2026-08-03.md").write_text(
+            "## 2026-08-03\n### Market\n\nDaily 03 content.\n", encoding="utf-8"
+        )
+        (tx_dir / "2026-08.md").write_text(
+            "## 2026-08-03\n### Market\n\nMonthly content.\n", encoding="utf-8"
+        )
+        (tx_dir / "notes-2026-08-03.md").write_text(
+            "## 2026-08-03\n### Market\n\nAmbiguous content.\n", encoding="utf-8"
+        )
+        (tx_dir / "2026-08-04.md").write_text(
+            "## 2026-08-04\n### Market\n\nDaily 04 content.\n", encoding="utf-8"
+        )
+
+        entries = build_site.discover_journal_entries()
+
+        aug_03_entries = [e for e in entries if e.day == date(2026, 8, 3)]
+        self.assertEqual(len(aug_03_entries), 1)
+        self.assertEqual(aug_03_entries[0].source.name, "2026-08-03.md")
+
+        all_source_names = {e.source.name for e in entries}
+        self.assertNotIn("2026-08.md", all_source_names)
+        self.assertNotIn("notes-2026-08-03.md", all_source_names)
+
+        self.assertEqual(len(entries), 2)
+        self.assertEqual([e.day for e in entries], [date(2026, 8, 4), date(2026, 8, 3)])
+
     def test_market_phase_report_is_published(self) -> None:
         build_site.build_market_phase()
         page = (
