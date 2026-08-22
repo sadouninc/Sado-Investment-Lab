@@ -99,24 +99,55 @@ class TradeJournalBuildTest(unittest.TestCase):
 
     def test_daily_and_monthly_files_do_not_create_duplicate_entries(self) -> None:
         """Regression test: Monthly files (YYYY-MM.md) should be excluded from daily listing."""
-        all_entries = build_site.discover_journal_entries()
+        # Create an isolated temporary Transactions directory with both file types
+        temp_root = Path(self.temp_dir.name) / "test-root"
+        transactions_dir = temp_root / "01_Portfolio" / "Transactions"
+        transactions_dir.mkdir(parents=True, exist_ok=True)
         
-        # Check that each date appears only once in the entries list
-        dates_seen = {}
-        for entry in all_entries:
-            date_str = entry.day.isoformat()
-            if date_str in dates_seen:
-                self.fail(
+        # Create a daily journal file that contains one entry for 2026-08-15
+        daily_file = transactions_dir / "2026-08-15.md"
+        daily_file.write_text(
+            "# 2026-08-15
+            "## 2026-08-15
+            "### Market
+            "日経平均は小幅高。
+            encoding="utf-8"
+        )
+        
+        # Create a monthly aggregate file that ALSO contains an entry for the same date
+        monthly_file = transactions_dir / "2026-08.md"
+        monthly_file.write_text(
+            "# 2026-08 Transactions
+            "## 2026-08-15
+            "### Market
+            "日経平均は小幅高（月次集計）。
+            "## 2026-08-20
+            "### Market
+            "続伸。
+            encoding="utf-8"
+        )
+        
+        # Temporarily override the ROOT to use our isolated test directory
+        original_root = build_site.ROOT
+        build_site.ROOT = temp_root
+        try:
+            all_entries = build_site.discover_journal_entries()
+            
+            # Check that each date appears only once (no duplicates from monthly file)
+            dates_seen = {}
+            for entry in all_entries:
+                date_str = entry.day.isoformat()
+                self.assertNotIn(date_str, dates_seen,
                     f"Duplicate entry found for {date_str}. "
-                    f"First source: {dates_seen[date_str]}, Second source: {entry.source}"
-                )
-            dates_seen[date_str] = entry.source
-        
-        # Verify that all discovered entries come from daily files (YYYY-MM-DD.md)
-        for entry in all_entries:
-            filename = entry.source.name
-            self.assertRegex(filename, r"^\d{4}-\d{2}-\d{2}\.md$",
-                           f"Entry source {filename} should be a daily file (YYYY-MM-DD.md)")
+                    f"First source: {dates_seen.get(date_str)}, Second source: {entry.source}")
+                dates_seen[date_str] = entry.source
+            
+            # Verify all discovered entries come from daily files, not monthly files
+            for entry in all_entries:
+                self.assertRegex(entry.source.name, r"^\d{4}-\d{2}-\d{2}\.md$",
+                    f"Entry from {entry.source.name} should only come from daily files (YYYY-MM-DD.md)")
+        finally:
+            build_site.ROOT = original_root
 
     def test_2026_08_07_trade_journal_is_published(self) -> None:
         page = self.page("2026-08-07")
