@@ -1005,56 +1005,56 @@ def build_engineering_evolution() -> None:
         '<p class="breadcrumb"><a href="{{ \'/\' | relative_url }}">Home</a>'
         ' / Platform / Engineering Evolution</p>\n\n'
         '# AI開発組織の進化 — Evidence Record
-        '## 導入前 → 現在
-        '<div class="content-grid">
-    )
+            '# AI開発組織の進化 — Evidence Record
+            '## 導入前 → 現在
+            '<div class="content-grid">
     
     before = section_content(content, "Before: ChatGPTチーム中心の直接作業", level=3)
     if before:
         page += (
             '<div class="content-card"><h3>導入前</h3>
+            '<div class="content-card"><h3>導入前</h3>
             + before + '
-        )
     
     current = section_content(content, "Current: 複数AIを組み込んだ5-plane model", level=3)
     if current:
         page += (
             '<div class="content-card"><h3>現在</h3>
+            '<div class="content-card"><h3>現在</h3>
             + current + '
-        )
     
     page += '</div>\n\n'
     
     page += '## 何が変わったか
-    
+    page += '## 何が変わったか
     inflection = section_content(content, "2026-08-16 — Productivity inflection hypothesis", level=2)
     if inflection:
         page += (
             '<div class="insight-panel" markdown="1">
+            '<div class="insight-panel" markdown="1">
             + inflection + '
-        )
     
     page += (
         '<div class="notice-card">
+        '<div class="notice-card">
         '<p><strong>⚠️ EARLY_SIGNAL / CAUSALITY_UNPROVEN</strong></p>
-        '<p>2026-08-16後半のデータは1日分のsampleです。因果関係は主張しません。'
+        'Productivity変化の仮説は、長期観測と追加evidenceで初めて検証可能になります。</p>
         'Productivity変化の仮説は、長期観測と追加evidenceで初めて検証可能になります。</p>
         '</div>
-    )
     
     purpose = section_content(content, "この記録の目的", level=2)
     if purpose:
         page += (
             '<details class="source-journal">
+            '<details class="source-journal">
             '<summary>この記録の目的</summary>
             + purpose + '
-        )
     
     if evidence_entries:
         page += (
             '<details class="source-journal">
+            '<details class="source-journal">
             '<summary>2026-08-16 Timeline</summary>
-        )
         page += "| 時刻 (JST) | Evidence | Category | Summary |\n"
         page += "|---|---|---|---|\n"
         for entry in evidence_entries:
@@ -1068,12 +1068,12 @@ def build_engineering_evolution() -> None:
             else:
                 page += f"| {timestamp} | {ref} | {category} | {summary} |\n"
         page += '
-    
+        page += '
     page += (
+        '<details class="source-journal">
         '<details class="source-journal">
         '<summary>Full Record</summary>
         + content + '
-    )
     
     write(SITE / "platform" / "engineering-evolution" / "index.md", page)
 
