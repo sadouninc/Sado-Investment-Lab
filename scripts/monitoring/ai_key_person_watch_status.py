@@ -125,23 +125,45 @@ def update_status(current_payload: dict[str, Any], evidence: dict[str, Any]) -> 
     validate_status(current_payload)
     validate_run_evidence(evidence)
 
+    evidence_run_at = evidence["run_at"]
+    evidence_dt = parse_timestamp(evidence_run_at)
+    current_run_at = current_payload.get("last_run_at")
+    current_dt = parse_timestamp(current_run_at) if current_run_at else None
+
+    if current_dt is not None and evidence_dt is not None:
+        evidence_utc = evidence_dt.astimezone(timezone.utc)
+        current_utc = current_dt.astimezone(timezone.utc)
+
+        if evidence_utc < current_utc:
+            raise ValueError(f"evidence run_at ({evidence_run_at}) is older than current last_run_at ({current_run_at})")
+
+        if evidence_utc == current_utc:
+            is_match = (
+                current_payload.get("last_status") == evidence["status"]
+                and current_payload.get("news_delta") == evidence["news_delta"]
+                and current_payload.get("news_persisted") == evidence["news_persisted"]
+                and current_payload.get("persistence_status") == evidence["persistence_status"]
+            )
+            if is_match:
+                return dict(current_payload)
+            raise ValueError(f"conflicting evidence for same run_at ({evidence_run_at})")
+
     updated = dict(current_payload)
-    run_at = evidence["run_at"]
     status = evidence["status"]
     news_delta = evidence["news_delta"]
     news_persisted = evidence["news_persisted"]
     persistence_status = evidence["persistence_status"]
 
-    updated["last_run_at"] = run_at
+    updated["last_run_at"] = evidence_run_at
     updated["last_status"] = status
     updated["news_delta"] = news_delta
     updated["news_persisted"] = news_persisted
     updated["persistence_status"] = persistence_status
 
     if status == "OK":
-        updated["last_success_at"] = run_at
+        updated["last_success_at"] = evidence_run_at
         if news_delta > 0:
-            updated["last_news_delta_at"] = run_at
+            updated["last_news_delta_at"] = evidence_run_at
 
     validate_status(updated)
     return updated

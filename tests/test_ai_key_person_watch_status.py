@@ -208,6 +208,60 @@ class AIKeyPersonWatchStatusTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             update_status(BASE, dict(valid_evidence, news_persisted="yes"))
 
+    def test_update_status_older_evidence_rejected(self) -> None:
+        initial = dict(BASE, last_run_at="2026-08-09T08:30:00+09:00", last_success_at="2026-08-09T08:30:00+09:00")
+        older_evidence = {
+            "run_at": "2026-08-09T08:29:59+09:00",
+            "status": "OK",
+            "news_delta": 0,
+            "news_persisted": False,
+            "persistence_status": "NOT_REQUIRED",
+        }
+        with self.assertRaises(ValueError) as ctx:
+            update_status(initial, older_evidence)
+        self.assertIn("older than current last_run_at", str(ctx.exception))
+
+    def test_update_status_exact_replay_idempotent(self) -> None:
+        initial = dict(
+            BASE,
+            last_run_at="2026-08-09T08:30:00+09:00",
+            last_success_at="2026-08-09T08:30:00+09:00",
+            last_status="OK",
+            news_delta=0,
+            news_persisted=False,
+            persistence_status="NOT_REQUIRED",
+        )
+        exact_evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "OK",
+            "news_delta": 0,
+            "news_persisted": False,
+            "persistence_status": "NOT_REQUIRED",
+        }
+        updated = update_status(initial, exact_evidence)
+        self.assertEqual(initial, updated)
+
+    def test_update_status_conflicting_same_timestamp_rejected(self) -> None:
+        initial = dict(
+            BASE,
+            last_run_at="2026-08-09T08:30:00+09:00",
+            last_success_at="2026-08-09T08:30:00+09:00",
+            last_status="OK",
+            news_delta=0,
+            news_persisted=False,
+            persistence_status="NOT_REQUIRED",
+        )
+        conflicting_evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "ERROR",
+            "news_delta": 0,
+            "news_persisted": False,
+            "persistence_status": "NOT_REQUIRED",
+        }
+        with self.assertRaises(ValueError) as ctx:
+            update_status(initial, conflicting_evidence)
+        self.assertIn("conflicting evidence for same run_at", str(ctx.exception))
+
 
 if __name__ == "__main__":
     unittest.main()
