@@ -87,7 +87,16 @@ jobs:
 
       - name: Generate Morning Dataset
         run: |
+          AS_OF_JST="$(TZ=Asia/Tokyo date +%F)"
           python3 scripts/generate_morning_dataset.py \
+            --as-of "$AS_OF_JST" \
+            --live-market \
+            --repo-portfolio \
+            --repo-capital \
+            --selector-candidates \
+            --repo-events \
+            --repo-watchlist \
+            --repo-sector-rotation \
             --investor-dna data/generated/public/investor-dna.json
 
       - name: Test Trade Journal mapping

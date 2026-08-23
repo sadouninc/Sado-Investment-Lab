@@ -94,6 +94,23 @@ class MorningDatasetPageTest(unittest.TestCase):
         self.assertIn("- Data: MISSING", capital_section)
         self.assertNotIn("Raw JSONを見る — capital", capital_section)
 
+    def test_main_handles_missing_report_file_gracefully(self) -> None:
+        import tempfile
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            missing_report = temp_path / "data" / "generated" / "public" / "morning-dataset.json"
+            site_dir = temp_path / "site-src" / "research" / "morning-dataset"
+
+            with patch.object(module, "REPORT", missing_report), \
+                 patch.object(module, "SITE", site_dir), \
+                 patch.object(module, "build_intraday_market"):
+                module.main()
+
+            self.assertTrue((site_dir / "index.md").exists())
+            self.assertTrue((site_dir / "morning-dataset.json").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
