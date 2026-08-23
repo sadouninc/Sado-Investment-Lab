@@ -107,9 +107,61 @@ def project_market_compass_universe(
             except (ValueError, TypeError):
                 evidence = _unknown_evidence(security_code, "RESOLVER_FAILURE")
 
+        pos_dict = position or {}
+        cand_dict = candidate or {}
+
+        # Bridge evaluator inputs without imputing missing values
+        fundamental_integrity = (
+            cand_dict.get("fundamental_integrity")
+            or pos_dict.get("fundamental_integrity")
+            or (evidence or {}).get("fundamental_integrity")
+            or "UNKNOWN"
+        )
+        if isinstance(fundamental_integrity, dict):
+            fundamental_integrity = fundamental_integrity.get("status", "UNKNOWN")
+
+        def _get_score_val(primary: dict[str, Any], secondary: dict[str, Any], name: str, alt_name: str) -> float | int | None:
+            for d in (primary, secondary):
+                if not d:
+                    continue
+                scores = d.get("scores")
+                if isinstance(scores, dict) and name in scores and scores[name] is not None:
+                    return scores[name]
+                if name in d and d[name] is not None:
+                    return d[name]
+                if alt_name in d and d[alt_name] is not None:
+                    return d[alt_name]
+            return None
+
+        excess_decline = _get_score_val(cand_dict, pos_dict, "excess_decline", "excess_decline_score")
+        valuation_reset = _get_score_val(cand_dict, pos_dict, "valuation_reset", "valuation_reset_score")
+        fundamental_strength = _get_score_val(cand_dict, pos_dict, "fundamental_strength", "fundamental_strength_score")
+        risk_stabilization = _get_score_val(cand_dict, pos_dict, "risk_stabilization", "risk_stabilization_score")
+
+        confidence = cand_dict.get("confidence") or pos_dict.get("confidence")
+        unquantified_det = (
+            cand_dict.get("unquantified_deterioration")
+            if cand_dict.get("unquantified_deterioration") is not None
+            else cand_dict.get("company_specific_deterioration_unquantified")
+            if cand_dict.get("company_specific_deterioration_unquantified") is not None
+            else pos_dict.get("unquantified_deterioration")
+            if pos_dict.get("unquantified_deterioration") is not None
+            else pos_dict.get("company_specific_deterioration_unquantified")
+        )
+        verified_stab_count = (
+            cand_dict.get("verified_stabilization_count")
+            if cand_dict.get("verified_stabilization_count") is not None
+            else pos_dict.get("verified_stabilization_count")
+        )
+        stabilization_inputs = (
+            cand_dict.get("stabilization_inputs")
+            if cand_dict.get("stabilization_inputs") is not None
+            else pos_dict.get("stabilization_inputs")
+        )
+
         row = {
             "security_code": security_code,
-            "security_name": (position or {}).get("security_name") or (candidate or {}).get("name"),
+            "security_name": pos_dict.get("security_name") or cand_dict.get("name"),
             "membership": membership,
             "portfolio_authority_status": (
                 "STALE_RELATIVE_TO_EXIT"
@@ -117,7 +169,23 @@ def project_market_compass_universe(
                 else authority_status if position is not None else None
             ),
             "portfolio_snapshot_as_of": portfolio_copy.get("as_of") if position is not None else None,
-            "confirmed_exit_date": candidate.get("exit_date") if candidate is not None else None,
+            "confirmed_exit_date": cand_dict.get("exit_date") if candidate is not None else None,
+            "fundamental_integrity": fundamental_integrity,
+            "scores": {
+                "excess_decline": excess_decline,
+                "valuation_reset": valuation_reset,
+                "fundamental_strength": fundamental_strength,
+                "risk_stabilization": risk_stabilization,
+            },
+            "confidence": confidence,
+            "unquantified_deterioration": unquantified_det,
+            "verified_stabilization_count": verified_stab_count,
+            "stabilization_inputs": deepcopy(stabilization_inputs),
+            "fundamental_evidence": deepcopy(cand_dict.get("fundamental_evidence") or pos_dict.get("fundamental_evidence")),
+            "source_refs": deepcopy(cand_dict.get("source_refs") or cand_dict.get("source_references") or pos_dict.get("source_references")),
+            "notes": cand_dict.get("notes") or pos_dict.get("notes"),
+            "next_price_observation": cand_dict.get("next_price_observation"),
+            "next_fundamental_checkpoint": cand_dict.get("next_fundamental_checkpoint"),
             "position": deepcopy(position),
             "reentry_candidate": deepcopy(candidate),
             "intraday_evidence": deepcopy(evidence),
@@ -134,6 +202,12 @@ def project_market_compass_universe(
         "as_of": evidence_as_of,
         "investment_authority": "READ_ONLY_EVIDENCE",
         "trade_recommendation": None,
+        "portfolio_base_snapshot": portfolio_copy.get("base_snapshot"),
+        "portfolio_authority": portfolio_copy.get("authority"),
+        "portfolio_verification_source": portfolio_copy.get("verification_source"),
+        "portfolio_verification_as_of": portfolio_copy.get("verification_as_of"),
+        "portfolio_verification_scope": portfolio_copy.get("verification_scope"),
+        "portfolio_source_references": deepcopy(portfolio_copy.get("source_references")),
         "current_holdings": current,
         "reentry_watch": reentry,
         "membership_unknown": unknown,

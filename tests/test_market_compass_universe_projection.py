@@ -159,3 +159,65 @@ def test_w33_stale_snapshot_does_not_override_confirmed_exits(monkeypatch):
     )
     assert result["current_holdings"] == []
     assert [row["security_code"] for row in result["reentry_watch"]] == codes
+
+
+def test_schema_bridge_preserves_evaluator_fields_and_source_refs(monkeypatch):
+    monkeypatch.setattr(projection, "resolve_security_intraday_evidence", _pass_evidence)
+    portfolio = {
+        "as_of": "2026-08-08",
+        "verification_status": "VERIFIED",
+        "base_snapshot": "verified-2026-08-08",
+        "authority": "sbi_verified_position_snapshot",
+        "source_references": {"snapshot_id": "verified-2026-08-08"},
+        "positions": [
+            {
+                "security_code": "6622",
+                "security_name": "ダイヘン",
+                "fundamental_integrity": "PASS",
+                "excess_decline_score": 15,
+                "valuation_reset_score": 20,
+                "fundamental_strength_score": 25,
+                "risk_stabilization_score": 10,
+                "confidence": "HIGH",
+            }
+        ],
+    }
+    watch = {
+        "candidates": [
+            {
+                "security_code": "6376",
+                "name": "日機装",
+                "exit_date": "2026-08-14",
+                "fundamental_integrity": "PASS",
+                "fundamental_strength_score": 25,
+                "notes": "Strongest candidate",
+                "fundamental_evidence": {"thesis": "STRENGTHENING"},
+            }
+        ]
+    }
+    result = projection.project_market_compass_universe(
+        portfolio, watch, {}, evidence_as_of="2026-08-21", expected_taxonomy_version="v1"
+    )
+    assert result["portfolio_base_snapshot"] == "verified-2026-08-08"
+    assert result["portfolio_source_references"] == {"snapshot_id": "verified-2026-08-08"}
+
+    holding = result["current_holdings"][0]
+    assert holding["fundamental_integrity"] == "PASS"
+    assert holding["scores"] == {
+        "excess_decline": 15,
+        "valuation_reset": 20,
+        "fundamental_strength": 25,
+        "risk_stabilization": 10,
+    }
+    assert holding["confidence"] == "HIGH"
+
+    reentry = result["reentry_watch"][0]
+    assert reentry["fundamental_integrity"] == "PASS"
+    assert reentry["scores"] == {
+        "excess_decline": None,
+        "valuation_reset": None,
+        "fundamental_strength": 25,
+        "risk_stabilization": None,
+    }
+    assert reentry["notes"] == "Strongest candidate"
+    assert reentry["fundamental_evidence"] == {"thesis": "STRENGTHENING"}
