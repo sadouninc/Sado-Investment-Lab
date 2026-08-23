@@ -966,6 +966,12 @@ def build_trade_analysis_v2() -> None:
     write(SITE / "trade-analysis" / "index.md", page)
 
 
+def build_market_compass_page() -> None:
+    from build_market_compass import build as build_market_compass
+
+    build_market_compass()
+
+
 def main() -> None:
     if SITE.exists():
         shutil.rmtree(SITE)
@@ -991,6 +997,7 @@ def main() -> None:
     build_key_person_watch()
     build_trade_journal()
     build_trade_analysis_v2()
+    build_market_compass_page()
 
 
 if __name__ == "__main__":
