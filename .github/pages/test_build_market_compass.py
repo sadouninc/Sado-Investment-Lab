@@ -229,3 +229,18 @@ def test_mobile_responsive_layout_primitives():
     assert "box-sizing: border-box" in rendered
     assert "word-break: break-word" in rendered
     assert "@media (min-width: 768px)" in rendered
+
+
+def test_real_fixture_payload_is_not_globally_false_avoid():
+    """Regression test proving real fixture projection does not evaluate non-FAIL/REVIEW securities as false AVOID."""
+    evaluated = bmc.generate_market_compass_projection()
+
+    reentry_6376 = next(
+        (x for x in evaluated["reentry_watch"] if x["security_code"] == "6376"),
+        None,
+    )
+    assert reentry_6376 is not None
+    assert reentry_6376["fundamental_integrity"] == "PASS"
+    assert reentry_6376["market_compass_state"] != "AVOID"
+    assert reentry_6376["evaluation_status"] == "UNKNOWN"
+    assert reentry_6376["evaluation_reason"] == "SCORE_UNKNOWN"
