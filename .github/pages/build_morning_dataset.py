@@ -194,19 +194,12 @@ permalink: /research/morning-dataset/
 
 
 def main() -> None:
-    if REPORT.is_file():
-        payload = json.loads(REPORT.read_text(encoding="utf-8"))
-    else:
-        from datetime import date
-        from scripts.morning_dataset.generator import build_dataset
-
-        payload = build_dataset(as_of=date.today())
-
+    if not REPORT.is_file():
+        raise FileNotFoundError(f"Morning Dataset not found: {REPORT}")
+    payload = json.loads(REPORT.read_text(encoding="utf-8"))
     SITE.mkdir(parents=True, exist_ok=True)
     (SITE / "index.md").write_text(build_page(payload), encoding="utf-8")
-    (SITE / "morning-dataset.json").write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
+    shutil.copyfile(REPORT, SITE / "morning-dataset.json")
     build_intraday_market()
 
 
