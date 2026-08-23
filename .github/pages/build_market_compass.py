@@ -19,13 +19,14 @@ SITE = ROOT / "site-src"
 OUTPUT_FILE = SITE / "research" / "market-compass" / "index.md"
 
 PORTFOLIO_FILE = ROOT / "data" / "portfolio" / "current.json"
+REENTRY_WATCH_FILE = ROOT / "06_Research" / "market_compass" / "w33_reentry_watch_v0_1.json"
 SUBSECTOR_EVIDENCE_FILE = ROOT / "data" / "fixtures" / "intraday-subsector-flow-v1.json"
 SUBSECTOR_MAPPING_FILE = ROOT / "data" / "masters" / "security-subsector-mapping-v1.json"
 
 STATE_JAPANESE_LABELS = {
     "AVOID": "危険回避 (AVOID)",
     "WATCH": "要観察 (WATCH)",
-    "BUY_WATCH": "買付打診 (BUY WATCH)",
+    "BUY_WATCH": "買い候補を監視 (BUY WATCH)",
     "REENTRY_READY": "再参入準備 (RE-ENTRY READY)",
 }
 
@@ -45,17 +46,6 @@ AUTHORITY_JAPANESE_LABELS = {
     "UNKNOWN": "不明 (UNKNOWN)",
 }
 
-# Initial confirmed exits from W33 as defined in #586 B4
-DEFAULT_REENTRY_WATCH_CANDIDATES = {
-    "candidates": [
-        {"security_code": "3778", "name": "さくらインターネット", "exit_date": "2026-08-14"},
-        {"security_code": "4588", "name": "オンコリスバイオファーマ", "exit_date": "2026-08-14"},
-        {"security_code": "5801", "name": "古河電気工業", "exit_date": "2026-08-14"},
-        {"security_code": "6376", "name": "日機装", "exit_date": "2026-08-14"},
-        {"security_code": "6702", "name": "富士通", "exit_date": "2026-08-14"},
-    ]
-}
-
 
 def load_json_file(path: Path) -> dict[str, Any] | None:
     if path.is_file():
@@ -72,9 +62,21 @@ def get_default_portfolio() -> dict[str, Any]:
         return loaded
     return {
         "schema_version": 1,
-        "as_of": "2026-08-08",
+        "as_of": "UNKNOWN",
         "verification_status": "PROVISIONAL",
         "positions": [],
+    }
+
+
+def get_default_reentry_watch() -> dict[str, Any]:
+    loaded = load_json_file(REENTRY_WATCH_FILE)
+    if loaded is not None and isinstance(loaded, dict):
+        return loaded
+    return {
+        "schema_version": "market_compass_reentry_watch_v0.1",
+        "as_of": "UNKNOWN",
+        "macro_state": "UNKNOWN",
+        "candidates": [],
     }
 
 
@@ -94,24 +96,32 @@ def generate_market_compass_projection(
     reentry_watch: dict[str, Any] | None = None,
     subsector_evidence: dict[str, dict[str, Any]] | None = None,
     subsector_mapping: dict[str, Any] | None = None,
-    evidence_as_of: str = "2026-08-21",
+    evidence_as_of: str | None = None,
     expected_taxonomy_version: str = "v1",
 ) -> dict[str, Any]:
     port = portfolio if portfolio is not None else get_default_portfolio()
-    reentry = reentry_watch if reentry_watch is not None else DEFAULT_REENTRY_WATCH_CANDIDATES
+    reentry = reentry_watch if reentry_watch is not None else get_default_reentry_watch()
     evidence = subsector_evidence if subsector_evidence is not None else get_default_subsector_evidence()
     mapping = subsector_mapping if subsector_mapping is not None else get_default_subsector_mapping()
+
+    resolved_as_of = (
+        evidence_as_of
+        if evidence_as_of is not None
+        else (reentry.get("as_of") or port.get("as_of") or "UNKNOWN")
+    )
 
     universe = project_market_compass_universe(
         port,
         reentry,
         evidence,
-        evidence_as_of=evidence_as_of,
+        evidence_as_of=resolved_as_of,
         expected_taxonomy_version=expected_taxonomy_version,
         mapping=mapping,
     )
 
-    return evaluate_market_compass_universe_states(universe)
+    evaluated = evaluate_market_compass_universe_states(universe)
+    evaluated["macro_state"] = reentry.get("macro_state", "UNKNOWN")
+    return evaluated
 
 
 def _render_state_badge(state: str | None, evaluation_status: str | None = None) -> str:
@@ -181,7 +191,14 @@ def _render_security_card(item: dict[str, Any], is_current_holding: bool) -> str
         lines.append(f'    <span class="mc-meta-item">{qty_str}</span>')
     else:
         exit_str = f"売却確定日: {html.escape(str(exit_date))}" if exit_date else "売却済み候補"
-        lines.append(f'    <span class="mc-meta-item">{exit_str}</span>')
+        exit_price = reentry.get("exit_price")
+        benchmark = reentry.get("benchmark")
+        meta_items = [exit_str]
+        if exit_price is not None:
+            meta_items.append(f"売却価格: {exit_price}円")
+        if benchmark:
+            meta_items.append(f"ベンチマーク: {html.escape(str(benchmark))}")
+        lines.append(f'    <span class="mc-meta-item">{" | ".join(meta_items)}</span>')
 
     if authority:
         lines.append(f'    <span class="mc-meta-item">権限状態: {_render_authority_badge(authority)}</span>')
@@ -226,8 +243,9 @@ def _render_security_card(item: dict[str, Any], is_current_holding: bool) -> str
     return "\n".join(lines)
 
 
-def render_market_compass_page(evaluated_universe: dict[str, Any], boj_status: str = "GREEN") -> str:
-    as_of = html.escape(str(evaluated_universe.get("as_of", "2026-08-21")))
+def render_market_compass_page(evaluated_universe: dict[str, Any], boj_status: str | None = None) -> str:
+    as_of = html.escape(str(evaluated_universe.get("as_of", "UNKNOWN")))
+    macro_state = boj_status if boj_status is not None else evaluated_universe.get("macro_state", "UNKNOWN")
 
     current_holdings = evaluated_universe.get("current_holdings", [])
     reentry_watch = evaluated_universe.get("reentry_watch", [])
@@ -304,7 +322,7 @@ def render_market_compass_page(evaluated_universe: dict[str, Any], boj_status: s
     page.append('    <h2 class="mc-section-title">1. マクロリスク状況 (BOJ Early Warning #512)</h2>')
     page.append('    <div class="mc-macro-panel">')
 
-    boj_upper = (boj_status or "GREEN").upper()
+    boj_upper = (macro_state or "UNKNOWN").upper()
     boj_label_map = {
         "GREEN": "GREEN (緑 / 観測非活性)",
         "ORANGE": "ORANGE (橙 / シャドー観測)",
@@ -396,7 +414,7 @@ def render_market_compass_page(evaluated_universe: dict[str, Any], boj_status: s
 
 def build() -> None:
     evaluated = generate_market_compass_projection()
-    content = render_market_compass_page(evaluated, boj_status="GREEN")
+    content = render_market_compass_page(evaluated)
 
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_FILE.write_text(content, encoding="utf-8")
