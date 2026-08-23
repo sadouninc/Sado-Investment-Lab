@@ -3,7 +3,11 @@ from __future__ import annotations
 import unittest
 from datetime import datetime
 
-from scripts.monitoring.ai_key_person_watch_status import classify_health, validate_status
+from scripts.monitoring.ai_key_person_watch_status import (
+    classify_health,
+    update_status,
+    validate_status,
+)
 
 
 BASE = {
@@ -95,6 +99,114 @@ class AIKeyPersonWatchStatusTest(unittest.TestCase):
         health = classify_health(payload, datetime.fromisoformat("2026-08-09T08:30:00+09:00"))
         self.assertEqual("DEGRADED", health.state)
         self.assertIn("last_news_delta_at is later than last_run_at", health.reason)
+
+    def test_update_status_success_delta_zero(self) -> None:
+        initial = {
+            "schema_version": "1.0",
+            "watch": "AI_Key_Person_Watch",
+            "expected_interval_minutes": 60,
+            "stale_after_minutes": 150,
+            "last_run_at": "2026-08-09T07:30:00+09:00",
+            "last_success_at": "2026-08-09T07:30:00+09:00",
+            "last_status": "OK",
+            "news_delta": 2,
+            "last_news_delta_at": "2026-08-09T07:30:00+09:00",
+            "news_persisted": True,
+            "persistence_status": "COMPLETED",
+            "updated_by": "❤️レイ",
+        }
+        evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "OK",
+            "news_delta": 0,
+            "news_persisted": False,
+            "persistence_status": "NOT_REQUIRED",
+        }
+        updated = update_status(initial, evidence)
+        self.assertEqual("2026-08-09T08:30:00+09:00", updated["last_run_at"])
+        self.assertEqual("2026-08-09T08:30:00+09:00", updated["last_success_at"])
+        self.assertEqual("2026-08-09T07:30:00+09:00", updated["last_news_delta_at"])
+        self.assertEqual(0, updated["news_delta"])
+        self.assertFalse(updated["news_persisted"])
+        self.assertEqual("NOT_REQUIRED", updated["persistence_status"])
+
+        health = classify_health(updated, datetime.fromisoformat("2026-08-09T08:35:00+09:00"))
+        self.assertEqual("HEALTHY", health.state)
+
+    def test_update_status_success_delta_positive(self) -> None:
+        initial = dict(BASE, last_run_at="2026-08-09T07:30:00+09:00", last_success_at="2026-08-09T07:30:00+09:00")
+        evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "OK",
+            "news_delta": 3,
+            "news_persisted": True,
+            "persistence_status": "COMPLETED",
+        }
+        updated = update_status(initial, evidence)
+        self.assertEqual("2026-08-09T08:30:00+09:00", updated["last_run_at"])
+        self.assertEqual("2026-08-09T08:30:00+09:00", updated["last_success_at"])
+        self.assertEqual("2026-08-09T08:30:00+09:00", updated["last_news_delta_at"])
+        self.assertEqual(3, updated["news_delta"])
+        self.assertTrue(updated["news_persisted"])
+        self.assertEqual("COMPLETED", updated["persistence_status"])
+
+    def test_update_status_error_run(self) -> None:
+        initial = dict(
+            BASE,
+            last_run_at="2026-08-09T07:30:00+09:00",
+            last_success_at="2026-08-09T07:30:00+09:00",
+            last_news_delta_at="2026-08-09T07:30:00+09:00",
+        )
+        evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "ERROR",
+            "news_delta": 0,
+            "news_persisted": False,
+            "persistence_status": "NOT_REQUIRED",
+        }
+        updated = update_status(initial, evidence)
+        self.assertEqual("2026-08-09T08:30:00+09:00", updated["last_run_at"])
+        self.assertEqual("2026-08-09T07:30:00+09:00", updated["last_success_at"])
+        self.assertEqual("2026-08-09T07:30:00+09:00", updated["last_news_delta_at"])
+        self.assertEqual("ERROR", updated["last_status"])
+
+        health = classify_health(updated, datetime.fromisoformat("2026-08-09T08:35:00+09:00"))
+        self.assertEqual("DEGRADED", health.state)
+
+    def test_update_status_pending_persistence_is_degraded(self) -> None:
+        initial = dict(BASE, last_run_at="2026-08-09T07:30:00+09:00", last_success_at="2026-08-09T07:30:00+09:00")
+        evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "OK",
+            "news_delta": 1,
+            "news_persisted": False,
+            "persistence_status": "PENDING_PERSIST",
+        }
+        updated = update_status(initial, evidence)
+        self.assertEqual("PENDING_PERSIST", updated["persistence_status"])
+
+        health = classify_health(updated, datetime.fromisoformat("2026-08-09T08:35:00+09:00"))
+        self.assertEqual("DEGRADED", health.state)
+
+    def test_update_status_invalid_evidence_rejected(self) -> None:
+        valid_evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "OK",
+            "news_delta": 0,
+            "news_persisted": False,
+            "persistence_status": "NOT_REQUIRED",
+        }
+        with self.assertRaises(ValueError):
+            update_status(BASE, dict(valid_evidence, run_at="2026-08-09T08:30:00"))  # Naive timestamp
+
+        with self.assertRaises(ValueError):
+            update_status(BASE, dict(valid_evidence, status="INVALID"))
+
+        with self.assertRaises(ValueError):
+            update_status(BASE, dict(valid_evidence, news_delta=-1))
+
+        with self.assertRaises(ValueError):
+            update_status(BASE, dict(valid_evidence, news_persisted="yes"))
 
 
 if __name__ == "__main__":

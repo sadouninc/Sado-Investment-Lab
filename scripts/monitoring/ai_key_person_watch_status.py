@@ -101,6 +101,52 @@ def load_status(path: Path) -> dict[str, Any]:
     return payload
 
 
+def save_status(path: Path, payload: dict[str, Any]) -> None:
+    validate_status(payload)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def validate_run_evidence(evidence: dict[str, Any]) -> None:
+    if not isinstance(evidence, dict):
+        raise ValueError("evidence must be a dictionary")
+    parse_timestamp(evidence.get("run_at"))
+    if evidence.get("status") not in VALID_RUN_STATUS:
+        raise ValueError("invalid status in evidence")
+    news_delta = evidence.get("news_delta")
+    if not isinstance(news_delta, int) or news_delta < 0:
+        raise ValueError("news_delta in evidence must be a non-negative integer")
+    if not isinstance(evidence.get("news_persisted"), bool):
+        raise ValueError("news_persisted in evidence must be a boolean")
+    if evidence.get("persistence_status") not in VALID_PERSISTENCE_STATUS:
+        raise ValueError("invalid persistence_status in evidence")
+
+
+def update_status(current_payload: dict[str, Any], evidence: dict[str, Any]) -> dict[str, Any]:
+    validate_status(current_payload)
+    validate_run_evidence(evidence)
+
+    updated = dict(current_payload)
+    run_at = evidence["run_at"]
+    status = evidence["status"]
+    news_delta = evidence["news_delta"]
+    news_persisted = evidence["news_persisted"]
+    persistence_status = evidence["persistence_status"]
+
+    updated["last_run_at"] = run_at
+    updated["last_status"] = status
+    updated["news_delta"] = news_delta
+    updated["news_persisted"] = news_persisted
+    updated["persistence_status"] = persistence_status
+
+    if status == "OK":
+        updated["last_success_at"] = run_at
+        if news_delta > 0:
+            updated["last_news_delta_at"] = run_at
+
+    validate_status(updated)
+    return updated
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[2]
     status_path = root / "Ops" / "Monitoring" / "AI_Key_Person_Watch" / "status.json"
