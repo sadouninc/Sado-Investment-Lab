@@ -279,7 +279,7 @@
   "investor_dna": {
     "schema_version": 2,
     "model_version": "investor-dna-v0.2",
-    "generated_at": "2026-08-23T13:09:00+00:00",
+    "generated_at": "2026-08-23T13:41:37+00:00",
     "source_updated_date": "2026-08-06",
     "principle": "Compatibility is an unresolved pattern to explain, not a permanent label.",
     "investor_profile": {
@@ -8764,7 +8764,7 @@
       "name": "investor_dna",
       "source": "data/generated/public/investor-dna.json",
       "source_reference": "data/generated/public/investor-dna.json",
-      "as_of": "2026-08-23T13:09:00+00:00",
+      "as_of": "2026-08-23T13:41:37+00:00",
       "status": "OK",
       "reason": null
     },
@@ -8794,7 +8794,7 @@
     }
   ],
   "schema_version": "1.0",
-  "generated_at": "2026-08-23T13:09:01+00:00",
+  "generated_at": "2026-08-23T13:41:37+00:00",
   "as_of": "2026-08-23",
   "data_quality": {
     "status": "PARTIAL",
