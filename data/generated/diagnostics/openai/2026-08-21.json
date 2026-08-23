@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-08-20T23:59:34+00:00",
+  "dataset_as_of": "2026-08-21",
+  "dataset_schema_version": "1.0",
+  "dataset_status": "PARTIAL",
+  "dataset_sha256": "a72e57e4966a23c25bcd61ab2990d5cc5af1b3729058894a6dcb27804b11d020",
+  "model": "gpt-5-2025-08-07",
+  "response_id": "resp_029cd5dd156fd3a4006a8794ba38cc87d0a2965e18387065d4",
+  "execution_seconds": 44.81,
+  "input_tokens": 4512,
+  "output_tokens": 4734,
+  "total_tokens": 9246,
+  "estimated_cost_usd": null,
+  "cost_basis": "pricing_not_configured",
+  "context_optimization": {
+    "raw_dataset_chars": 192063,
+    "optimized_prompt_chars": 14424,
+    "reduction_ratio": 0.9249,
+    "estimated_input_tokens": 3606,
+    "hard_cap_chars": 40000,
+    "status": "OK"
+  },
+  "optimized_dataset_path": "data/generated/diagnostics/openai/optimized-morning-dataset.json",
+  "report_path": "05_Daily_Reports/Morning/2026-08-21.md",
+  "status": "OK"
+}

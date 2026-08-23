@@ -10,8 +10,9 @@ SONY_VALUATION_CONSUMER = ROOT / "scripts" / "sony_canonical_valuation.py"
 
 class SonyInvestmentReviewPublicationContractTest(unittest.TestCase):
     def test_company_source_reuses_canonical_handoff_without_copying_research(self):
-        self.assertTrue(SONY_COMPANY_LINK.is_symlink())
-        self.assertEqual(SONY_COMPANY_LINK.resolve(), SONY_HANDOFF.resolve())
+        self.assertTrue(SONY_COMPANY_LINK.is_file())
+        self.assertFalse(SONY_COMPANY_LINK.is_symlink())
+        self.assertEqual(SONY_COMPANY_LINK.read_bytes(), SONY_HANDOFF.read_bytes())
         self.assertIn(SONY_COMPANY_LINK, list((ROOT / "03_Companies").glob("*/*.md")))
 
     def test_entry_review_and_fail_closed_valuation_survive_company_projection(self):
@@ -22,6 +23,15 @@ class SonyInvestmentReviewPublicationContractTest(unittest.TestCase):
         self.assertIn("Bull EPS: `UNKNOWN`", text)
         self.assertIn("Forward PER: `UNKNOWN`", text)
         self.assertIn("must not independently generate BUY/SELL", text)
+
+    def test_owner_japanese_summary_layer_contracts(self):
+        text = SONY_COMPANY_LINK.read_text(encoding="utf-8")
+        self.assertIn("## Owner 30秒サマリー", text)
+        self.assertIn("ソニー (6758)", text)
+        self.assertIn("業績モメンタム", text)
+        self.assertIn("投資仮説", text)
+        self.assertIn("将来オプション（現在EPSへ未反映）", text)
+        self.assertIn("本ページはBUY/SELL/HOLD判断、Entry Zone（買付目標価格）、ポジションサイズを自動生成しない", text)
 
     def test_current_valuation_is_bound_to_canonical_consumer_without_price_fallback(self):
         text = SONY_COMPANY_LINK.read_text(encoding="utf-8")

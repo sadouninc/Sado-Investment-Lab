@@ -122,6 +122,135 @@ class CompanyResearchTests(unittest.TestCase):
         with self.assertRaises(CompanyResearchError):
             CompanyResearchRecord.from_mapping(raw)
 
+    def test_empty_sources_rejected_when_as_of_provided(self):
+        raw = self._research()
+        raw["government_evidence_maturity"] = {
+            "level": "L1",
+            "confidence": "PARTIAL",
+            "policy_program": "Defense procurement",
+            "as_of": "2026-08-15",
+            "sources": [],
+        }
+        with self.assertRaises(CompanyResearchError) as ctx:
+            CompanyResearchRecord.from_mapping(raw)
+        self.assertIn("non-empty sources", str(ctx.exception))
+
+    def test_legacy_company_research_without_field_remains_valid(self):
+        raw = self._research()
+        record = CompanyResearchRecord.from_mapping(raw)
+        self.assertIsNone(record.government_evidence_maturity)
+
+    def test_unknown_maturity_accepted(self):
+        raw = self._research()
+        raw["government_evidence_maturity"] = {
+            "level": "UNKNOWN",
+            "confidence": "UNKNOWN",
+            "policy_program": None,
+            "direct_support_amount": None,
+            "supported_asset": None,
+            "supported_asset_status": None,
+            "revenue_attribution": "NOT_CONFIRMED",
+            "profit_cf_attribution": "NOT_CONFIRMED",
+            "as_of": None,
+            "sources": [],
+        }
+        record = CompanyResearchRecord.from_mapping(raw)
+        self.assertIsNotNone(record.government_evidence_maturity)
+        self.assertEqual(record.government_evidence_maturity["level"], "UNKNOWN")
+
+    def test_l3_production_start_evidence_accepted_without_auto_l4(self):
+        raw = self._research()
+        raw["government_evidence_maturity"] = {
+            "level": "L3",
+            "confidence": "CONFIRMED",
+            "policy_program": "SBIR",
+            "direct_support_amount": 522000000,
+            "supported_asset": "SOTEN mass production line",
+            "supported_asset_status": "MASS_PRODUCTION_STARTED",
+            "revenue_attribution": "NOT_CONFIRMED",
+            "profit_cf_attribution": "NOT_CONFIRMED",
+            "as_of": "2026-08-15",
+            "sources": ["ir:6232:sbir_announcement"],
+        }
+        record = CompanyResearchRecord.from_mapping(raw)
+        self.assertEqual(record.government_evidence_maturity["level"], "L3")
+        self.assertEqual(record.government_evidence_maturity["revenue_attribution"], "NOT_CONFIRMED")
+
+    def test_l4_rejected_when_revenue_attribution_not_confirmed(self):
+        raw = self._research()
+        raw["government_evidence_maturity"] = {
+            "level": "L4",
+            "confidence": "CONFIRMED",
+            "revenue_attribution": "NOT_CONFIRMED",
+            "profit_cf_attribution": "NOT_CONFIRMED",
+            "as_of": "2026-08-15",
+            "sources": ["ir:6232:procurement"],
+        }
+        with self.assertRaises(CompanyResearchError) as ctx:
+            CompanyResearchRecord.from_mapping(raw)
+        self.assertIn("revenue_attribution=CONFIRMED", str(ctx.exception))
+
+    def test_l5_rejected_when_profit_cf_attribution_not_confirmed(self):
+        raw = self._research()
+        raw["government_evidence_maturity"] = {
+            "level": "L5",
+            "confidence": "CONFIRMED",
+            "revenue_attribution": "CONFIRMED",
+            "profit_cf_attribution": "NOT_CONFIRMED",
+            "as_of": "2026-08-15",
+            "sources": ["ir:6232:financial_report"],
+        }
+        with self.assertRaises(CompanyResearchError) as ctx:
+            CompanyResearchRecord.from_mapping(raw)
+        self.assertIn("profit_cf_attribution=CONFIRMED", str(ctx.exception))
+
+    def test_support_amount_can_remain_unknown_null_without_invention(self):
+        raw = self._research()
+        raw["government_evidence_maturity"] = {
+            "level": "L2",
+            "confidence": "CONFIRMED",
+            "policy_program": "K Program",
+            "direct_support_amount": None,
+            "as_of": "2026-08-15",
+            "sources": ["press_release:k_program"],
+        }
+        record = CompanyResearchRecord.from_mapping(raw)
+        self.assertIsNone(record.government_evidence_maturity["direct_support_amount"])
+
+    def test_source_and_as_of_required_when_confidence_confirmed_or_partial(self):
+        raw = self._research()
+        raw["government_evidence_maturity"] = {
+            "level": "L1",
+            "confidence": "PARTIAL",
+            "policy_program": "Defense procurement",
+            "as_of": None,
+            "sources": [],
+        }
+        with self.assertRaises(CompanyResearchError):
+            CompanyResearchRecord.from_mapping(raw)
+
+    def test_acsl_6232_fixture_separates_subsidy_and_procurement(self):
+        # ACSL fixture testing distinction between SBIR grant and Defense procurement order
+        raw = self._research(
+            security_code="6232",
+            company_name="ACSL Ltd.",
+            government_evidence_maturity={
+                "level": "L3",
+                "confidence": "CONFIRMED",
+                "policy_program": "SBIR / K Program & MOD Procurement",
+                "direct_support_amount": "SBIR: 5.22 oku yen grant / MOD: 5.2 oku yen order",
+                "supported_asset": "SOTEN defense drone platform",
+                "supported_asset_status": "MASS_PRODUCTION_DELIVERY",
+                "revenue_attribution": "NOT_CONFIRMED",
+                "profit_cf_attribution": "NOT_CONFIRMED",
+                "as_of": "2026-08-15",
+                "sources": ["ir:6232:sbir_grant_2025", "ir:6232:mod_soten_procurement_2025"],
+            },
+        )
+        record = CompanyResearchRecord.from_mapping(raw)
+        self.assertEqual(record.security_code, "6232")
+        self.assertEqual(record.government_evidence_maturity["level"], "L3")
+
 
 if __name__ == "__main__":
     unittest.main()

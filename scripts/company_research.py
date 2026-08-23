@@ -11,6 +11,10 @@ class CompanyResearchError(ValueError):
 RESEARCH_STATUSES = {"IN_PROGRESS", "CURRENT", "NEEDS_REVIEW"}
 CONFIDENCE = {"LOW", "MEDIUM", "HIGH"}
 DATA_COMPLETENESS = {"COMPLETE", "PARTIAL", "UNKNOWN"}
+MATURITY_LEVELS = {"L0", "L1", "L2", "L3", "L4", "L5", "UNKNOWN"}
+MATURITY_CONFIDENCE = {"CONFIRMED", "PARTIAL", "UNKNOWN"}
+REVENUE_ATTRIBUTION = {"CONFIRMED", "NOT_CONFIRMED", "NOT_APPLICABLE"}
+PROFIT_CF_ATTRIBUTION = {"CONFIRMED", "NOT_CONFIRMED", "NOT_APPLICABLE"}
 
 
 def _text(value: Any, field: str, *, required: bool = True) -> str | None:
@@ -116,9 +120,46 @@ class CompanyResearchRecord:
     hypothesis: Mapping[str, Any]
     source_refs: tuple[str, ...]
     data_completeness: str
+    government_evidence_maturity: Mapping[str, Any] | None = None
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, Any]) -> "CompanyResearchRecord":
+        gov_maturity = raw.get("government_evidence_maturity")
+        parsed_gov_maturity: Mapping[str, Any] | None = None
+        if gov_maturity is not None:
+            gov_obj = _mapping(gov_maturity, "government_evidence_maturity")
+            level = str(gov_obj.get("level", "UNKNOWN")).upper()
+            if level not in MATURITY_LEVELS:
+                raise CompanyResearchError(f"unsupported government_evidence_maturity.level: {level}")
+
+            gov_confidence = str(gov_obj.get("confidence", "UNKNOWN")).upper()
+            if gov_confidence not in MATURITY_CONFIDENCE:
+                raise CompanyResearchError(f"unsupported government_evidence_maturity.confidence: {gov_confidence}")
+
+            revenue_attr = str(gov_obj.get("revenue_attribution", "NOT_CONFIRMED")).upper()
+            if revenue_attr not in REVENUE_ATTRIBUTION:
+                raise CompanyResearchError(f"unsupported government_evidence_maturity.revenue_attribution: {revenue_attr}")
+
+            profit_attr = str(gov_obj.get("profit_cf_attribution", "NOT_CONFIRMED")).upper()
+            if profit_attr not in PROFIT_CF_ATTRIBUTION:
+                raise CompanyResearchError(f"unsupported government_evidence_maturity.profit_cf_attribution: {profit_attr}")
+
+            if level == "L4" and revenue_attr != "CONFIRMED":
+                raise CompanyResearchError("L4 maturity level requires revenue_attribution=CONFIRMED")
+
+            if level == "L5" and profit_attr != "CONFIRMED":
+                raise CompanyResearchError("L5 maturity level requires profit_cf_attribution=CONFIRMED")
+
+            if gov_confidence in ("CONFIRMED", "PARTIAL"):
+                as_of_val = gov_obj.get("as_of") or raw.get("as_of")
+                if not as_of_val:
+                    raise CompanyResearchError("government_evidence_maturity requires as_of when confidence is CONFIRMED or PARTIAL")
+                sources_val = gov_obj.get("sources")
+                if not isinstance(sources_val, list) or not sources_val:
+                    raise CompanyResearchError("government_evidence_maturity requires non-empty sources when confidence is CONFIRMED or PARTIAL")
+
+            parsed_gov_maturity = gov_obj
+
         status = _text(raw.get("status"), "status") or ""
         if status not in RESEARCH_STATUSES:
             raise CompanyResearchError(f"unsupported status: {status}")
@@ -140,6 +181,7 @@ class CompanyResearchRecord:
             hypothesis=_mapping(raw.get("hypothesis"), "hypothesis"),
             source_refs=tuple(sorted({_text(x, "source_ref") or "" for x in _array(raw.get("source_refs"), "source_refs")})),
             data_completeness=completeness,
+            government_evidence_maturity=parsed_gov_maturity,
         )
         if record.status == "CURRENT":
             failures = quality_gate_failures(raw)

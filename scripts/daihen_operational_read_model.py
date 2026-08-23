@@ -4,6 +4,8 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Any, Mapping
 
+from scripts.fair_per_evidence import FACTOR_OPTIONALITY, FairPEREvidenceRecord
+
 
 class DaihenOperationalReadModelError(ValueError):
     """Raised when the #257 integration read-model contract is violated."""
@@ -105,6 +107,94 @@ def _section(name: str, raw: Any) -> dict[str, Any]:
     return out
 
 
+def _unavailable_fair_per_projection() -> dict[str, Any]:
+    return {
+        "status": "UNAVAILABLE",
+        "fair_per_range": {
+            "fair_per_low": None,
+            "fair_per_high": None,
+            "confidence": None,
+        },
+        "canonical_price": {
+            "identity_status": "UNKNOWN",
+            "freshness_status": "UNKNOWN",
+            "provider_status": "UNKNOWN",
+            "not_market_truth": True,
+            "price": None,
+            "price_as_of": None,
+            "usable_for_current_valuation": False,
+        },
+        "current_valuation_status": "UNKNOWN",
+        "implied_expectation": {
+            "current_per": None,
+            "implied_scenario": None,
+            "expectation_gap_to_low": None,
+            "expectation_gap_to_high": None,
+        },
+        "factors": {},
+        "strengthening": [],
+        "invalidation": [],
+        "next_checkpoint": [],
+    }
+
+
+def _project_fair_per_evidence(
+    record: FairPEREvidenceRecord | None,
+    *,
+    security_code: str,
+) -> dict[str, Any]:
+    """Losslessly project #626 evidence without deriving a new valuation decision."""
+    if record is None:
+        return _unavailable_fair_per_projection()
+    if not isinstance(record, FairPEREvidenceRecord):
+        raise DaihenOperationalReadModelError("fair_per_evidence must be FairPEREvidenceRecord or None")
+    if record.symbol != security_code:
+        raise DaihenOperationalReadModelError(
+            f"fair_per_evidence symbol mismatch: expected {security_code}, got {record.symbol}"
+        )
+
+    implied = record.implied_expectation
+    factors: dict[str, dict[str, Any]] = {}
+    for factor_name in sorted(record.factors):
+        evidence = record.factors[factor_name]
+        factors[factor_name] = {
+            "as_of": evidence.as_of,
+            "confidence": evidence.confidence,
+            "source_ref": evidence.source_ref,
+            "stage": evidence.stage if factor_name == FACTOR_OPTIONALITY else None,
+        }
+
+    gate = record.canonical_price
+    return {
+        "status": "AVAILABLE",
+        "fair_per_range": {
+            "fair_per_low": record.fair_per_range.fair_per_low,
+            "fair_per_high": record.fair_per_range.fair_per_high,
+            "confidence": record.fair_per_range.confidence,
+        },
+        "canonical_price": {
+            "identity_status": gate.identity_status,
+            "freshness_status": gate.freshness_status,
+            "provider_status": gate.provider_status,
+            "not_market_truth": gate.not_market_truth,
+            "price": gate.price,
+            "price_as_of": gate.price_as_of,
+            "usable_for_current_valuation": gate.usable_for_current_valuation,
+        },
+        "current_valuation_status": record.current_valuation_status,
+        "implied_expectation": {
+            "current_per": implied.current_per,
+            "implied_scenario": implied.implied_scenario,
+            "expectation_gap_to_low": implied.expectation_gap_to_low,
+            "expectation_gap_to_high": implied.expectation_gap_to_high,
+        },
+        "factors": factors,
+        "strengthening": list(record.strengthening),
+        "invalidation": list(record.invalidation),
+        "next_checkpoint": list(record.next_checkpoint),
+    }
+
+
 def _overall_status(sections: Mapping[str, Mapping[str, Any]]) -> str:
     statuses = [str(sections[name]["status"]) for name in SECTION_NAMES]
     if "NEEDS_REVIEW" in statuses:
@@ -125,12 +215,15 @@ def build_daihen_operational_read_model(
     upstream: Mapping[str, Any],
     *,
     generated_at: str,
+    fair_per_evidence: FairPEREvidenceRecord | None = None,
 ) -> dict[str, Any]:
     """Bundle existing canonical outputs for #257 without recomputation or write-back.
 
     The function is intentionally presentation-neutral. It accepts already-authoritative
     upstream projections and only copies/aggregates explicit status, freshness and refs.
     It never derives EPS, valuation, expectation gaps, portfolio limits or trade actions.
+    A supplied #626 ``FairPEREvidenceRecord`` is projected losslessly as a valuation
+    sub-record; when absent, only that sub-record remains unavailable.
     """
     if not isinstance(upstream, Mapping):
         raise DaihenOperationalReadModelError("upstream must be an object")
@@ -143,6 +236,12 @@ def build_daihen_operational_read_model(
     generated = _iso_datetime(generated_at, "generated_at")
 
     sections = {name: _section(name, upstream.get(name)) for name in SECTION_NAMES}
+    fair_per_projection = _project_fair_per_evidence(
+        fair_per_evidence,
+        security_code=security_code,
+    )
+    sections["valuation"]["fair_per_evidence"] = fair_per_projection
+
     missing_components = [
         name for name in SECTION_NAMES if sections[name]["status"] in {"UNAVAILABLE", "NOT_RUN"}
     ]
@@ -152,6 +251,10 @@ def build_daihen_operational_read_model(
     all_refs: set[str] = set()
     for name in SECTION_NAMES:
         all_refs.update(sections[name].get("source_refs") or [])
+    for factor in fair_per_projection["factors"].values():
+        source_ref = factor.get("source_ref")
+        if source_ref:
+            all_refs.add(str(source_ref))
 
     if stale_components:
         freshness_overall = "STALE"

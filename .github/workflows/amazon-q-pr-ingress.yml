@@ -1,0 +1,39 @@
+name: Amazon Q PR Ingress
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: write
+
+concurrency:
+  group: amazon-q-pr-ingress-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  dispatch-preflight:
+    if: >-
+      github.actor == 'amazon-q-developer[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch PR Preflight against merge ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload=$(jq -nc --arg ref "main" --arg pr "$PR_NUMBER" \
+            '{ref: $ref, inputs: {target_pr: $pr}}')
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "repos/$REPO/actions/workflows/pr-preflight.yml/dispatches" \
+            --input - <<<"$payload"
+          echo "Dispatched PR Preflight for Amazon Q PR #$PR_NUMBER"
