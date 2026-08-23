@@ -221,3 +221,61 @@ def test_schema_bridge_preserves_evaluator_fields_and_source_refs(monkeypatch):
     }
     assert reentry["notes"] == "Strongest candidate"
     assert reentry["fundamental_evidence"] == {"thesis": "STRENGTHENING"}
+
+
+def test_presence_precedence_for_invalid_candidate_confidence(monkeypatch):
+    monkeypatch.setattr(projection, "resolve_security_intraday_evidence", _pass_evidence)
+    from scripts.market_compass_state_evaluator import evaluate_security_state
+
+    portfolio = {
+        "as_of": "2026-08-08",
+        "verification_status": "VERIFIED",
+        "positions": [
+            {
+                "security_code": "6702",
+                "confidence": "HIGH",
+            }
+        ],
+    }
+
+    # Case 1: candidate confidence = 0
+    candidate_zero = {
+        "security_code": "6702",
+        "exit_date": "2026-08-14",
+        "fundamental_integrity": "PASS",
+        "excess_decline_score": 20,
+        "valuation_reset_score": 20,
+        "fundamental_strength_score": 20,
+        "risk_stabilization_score": 15,
+        "verified_stabilization_count": 3,
+        "confidence": 0,
+    }
+    res_zero = projection.project_market_compass_universe(
+        portfolio, {"candidates": [candidate_zero]}, {}, evidence_as_of="2026-08-21", expected_taxonomy_version="v1"
+    )
+    row_zero = res_zero["reentry_watch"][0]
+    assert row_zero["confidence"] == 0
+    eval_zero = evaluate_security_state(row_zero)
+    assert eval_zero["market_compass_state"] != "REENTRY_READY"
+
+    # Case 2: candidate confidence = ""
+    candidate_empty = deepcopy(candidate_zero)
+    candidate_empty["confidence"] = ""
+    res_empty = projection.project_market_compass_universe(
+        portfolio, {"candidates": [candidate_empty]}, {}, evidence_as_of="2026-08-21", expected_taxonomy_version="v1"
+    )
+    row_empty = res_empty["reentry_watch"][0]
+    assert row_empty["confidence"] == ""
+    eval_empty = evaluate_security_state(row_empty)
+    assert eval_empty["market_compass_state"] != "REENTRY_READY"
+
+    # Case 3: candidate confidence omitted -> falls back to position HIGH
+    candidate_omitted = deepcopy(candidate_zero)
+    del candidate_omitted["confidence"]
+    res_omitted = projection.project_market_compass_universe(
+        portfolio, {"candidates": [candidate_omitted]}, {}, evidence_as_of="2026-08-21", expected_taxonomy_version="v1"
+    )
+    row_omitted = res_omitted["reentry_watch"][0]
+    assert row_omitted["confidence"] == "HIGH"
+    eval_omitted = evaluate_security_state(row_omitted)
+    assert eval_omitted["market_compass_state"] == "REENTRY_READY"

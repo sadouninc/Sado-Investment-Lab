@@ -110,58 +110,68 @@ def project_market_compass_universe(
         pos_dict = position or {}
         cand_dict = candidate or {}
 
-        # Bridge evaluator inputs without imputing missing values
-        fundamental_integrity = (
-            cand_dict.get("fundamental_integrity")
-            or pos_dict.get("fundamental_integrity")
-            or (evidence or {}).get("fundamental_integrity")
-            or "UNKNOWN"
-        )
+        def _get_first_present_value(sources: list[dict[str, Any]], keys: list[str]) -> tuple[bool, Any]:
+            for d in sources:
+                if not d or not isinstance(d, dict):
+                    continue
+                scores = d.get("scores")
+                if isinstance(scores, dict):
+                    for k in keys:
+                        if k in scores:
+                            return True, scores[k]
+                for k in keys:
+                    if k in d:
+                        return True, d[k]
+            return False, None
+
+        # Bridge evaluator inputs with explicit field-presence precedence
+        fi_found, raw_fi = _get_first_present_value([cand_dict, pos_dict, evidence or {}], ["fundamental_integrity"])
+        fundamental_integrity = raw_fi if fi_found else "UNKNOWN"
         if isinstance(fundamental_integrity, dict):
             fundamental_integrity = fundamental_integrity.get("status", "UNKNOWN")
 
-        def _get_score_val(primary: dict[str, Any], secondary: dict[str, Any], name: str, alt_name: str) -> float | int | None:
-            for d in (primary, secondary):
-                if not d:
-                    continue
-                scores = d.get("scores")
-                if isinstance(scores, dict) and name in scores and scores[name] is not None:
-                    return scores[name]
-                if name in d and d[name] is not None:
-                    return d[name]
-                if alt_name in d and d[alt_name] is not None:
-                    return d[alt_name]
-            return None
+        ed_found, ed_val = _get_first_present_value([cand_dict, pos_dict], ["excess_decline", "excess_decline_score"])
+        excess_decline = ed_val if ed_found else None
 
-        excess_decline = _get_score_val(cand_dict, pos_dict, "excess_decline", "excess_decline_score")
-        valuation_reset = _get_score_val(cand_dict, pos_dict, "valuation_reset", "valuation_reset_score")
-        fundamental_strength = _get_score_val(cand_dict, pos_dict, "fundamental_strength", "fundamental_strength_score")
-        risk_stabilization = _get_score_val(cand_dict, pos_dict, "risk_stabilization", "risk_stabilization_score")
+        vr_found, vr_val = _get_first_present_value([cand_dict, pos_dict], ["valuation_reset", "valuation_reset_score"])
+        valuation_reset = vr_val if vr_found else None
 
-        confidence = cand_dict.get("confidence") or pos_dict.get("confidence")
-        unquantified_det = (
-            cand_dict.get("unquantified_deterioration")
-            if cand_dict.get("unquantified_deterioration") is not None
-            else cand_dict.get("company_specific_deterioration_unquantified")
-            if cand_dict.get("company_specific_deterioration_unquantified") is not None
-            else pos_dict.get("unquantified_deterioration")
-            if pos_dict.get("unquantified_deterioration") is not None
-            else pos_dict.get("company_specific_deterioration_unquantified")
+        fs_found, fs_val = _get_first_present_value([cand_dict, pos_dict], ["fundamental_strength", "fundamental_strength_score"])
+        fundamental_strength = fs_val if fs_found else None
+
+        rs_found, rs_val = _get_first_present_value([cand_dict, pos_dict], ["risk_stabilization", "risk_stabilization_score"])
+        risk_stabilization = rs_val if rs_found else None
+
+        conf_found, conf_val = _get_first_present_value([cand_dict, pos_dict], ["confidence"])
+        confidence = conf_val if conf_found else None
+
+        unq_found, unq_val = _get_first_present_value(
+            [cand_dict, pos_dict],
+            ["unquantified_deterioration", "company_specific_deterioration_unquantified"],
         )
-        verified_stab_count = (
-            cand_dict.get("verified_stabilization_count")
-            if cand_dict.get("verified_stabilization_count") is not None
-            else pos_dict.get("verified_stabilization_count")
-        )
-        stabilization_inputs = (
-            cand_dict.get("stabilization_inputs")
-            if cand_dict.get("stabilization_inputs") is not None
-            else pos_dict.get("stabilization_inputs")
-        )
+        unquantified_det = unq_val if unq_found else None
+
+        vsc_found, vsc_val = _get_first_present_value([cand_dict, pos_dict], ["verified_stabilization_count"])
+        verified_stab_count = vsc_val if vsc_found else None
+
+        si_found, si_val = _get_first_present_value([cand_dict, pos_dict], ["stabilization_inputs"])
+        stabilization_inputs = si_val if si_found else None
+
+        fe_found, fe_val = _get_first_present_value([cand_dict, pos_dict], ["fundamental_evidence"])
+        fundamental_evidence = fe_val if fe_found else None
+
+        sr_found, sr_val = _get_first_present_value([cand_dict, pos_dict], ["source_refs", "source_references"])
+        source_refs = sr_val if sr_found else None
+
+        notes_found, notes_val = _get_first_present_value([cand_dict, pos_dict], ["notes"])
+        notes = notes_val if notes_found else None
+
+        name_found, name_val = _get_first_present_value([pos_dict, cand_dict], ["security_name", "name"])
+        security_name = name_val if name_found else None
 
         row = {
             "security_code": security_code,
-            "security_name": pos_dict.get("security_name") or cand_dict.get("name"),
+            "security_name": security_name,
             "membership": membership,
             "portfolio_authority_status": (
                 "STALE_RELATIVE_TO_EXIT"
@@ -181,9 +191,9 @@ def project_market_compass_universe(
             "unquantified_deterioration": unquantified_det,
             "verified_stabilization_count": verified_stab_count,
             "stabilization_inputs": deepcopy(stabilization_inputs),
-            "fundamental_evidence": deepcopy(cand_dict.get("fundamental_evidence") or pos_dict.get("fundamental_evidence")),
-            "source_refs": deepcopy(cand_dict.get("source_refs") or cand_dict.get("source_references") or pos_dict.get("source_references")),
-            "notes": cand_dict.get("notes") or pos_dict.get("notes"),
+            "fundamental_evidence": deepcopy(fundamental_evidence),
+            "source_refs": deepcopy(source_refs),
+            "notes": notes,
             "next_price_observation": cand_dict.get("next_price_observation"),
             "next_fundamental_checkpoint": cand_dict.get("next_fundamental_checkpoint"),
             "position": deepcopy(position),
