@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Cross-Agent Loop Phase 1 Result Schema",
+  "description": "Provider-neutral result schema for benchmark case executions",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["case_id", "provider", "timestamp", "oracle_result", "metadata"],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "Provider-neutral case identifier",
+      "enum": ["P1-R1", "P1-R2", "P2-R1", "P2-R2", "P3-R1", "P3-R2"]
+    },
+    "provider": {
+      "type": "string",
+      "description": "AI provider/executor name",
+      "examples": ["amazon-q", "copilot", "cursor", "manual"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of execution"
+    },
+    "oracle_result": {
+      "type": "string",
+      "description": "Oracle classification result",
+      "enum": [
+        "PASS",
+        "SYNTAX_FAIL",
+        "SEMANTIC_FAIL",
+        "SCOPE_FAIL",
+        "NO_OUTPUT",
+        "HARNESS_ERROR",
+        "CONTROL_PLANE_FAIL"
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional execution metadata",
+      "properties": {
+        "pattern_type": {
+          "type": "string",
+          "enum": ["P1_NATURAL", "P2_STRUCTURED", "P3_CONTRACT"]
+        },
+        "repetition": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2
+        },
+        "execution_time_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "harness_version": {
+          "type": "string"
+        }
+      },
+      "required": ["pattern_type", "repetition"]
+    },
+    "oracle_details": {
+      "type": "object",
+      "description": "Detailed oracle check results",
+      "properties": {
+        "checks": {
+          "type": "object",
+          "description": "Individual check pass/fail status"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Error or diagnostic messages"
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional human observations or context"
+    }
+  },
+  "additionalProperties": false,
+  "$comment": "HARNESS_ERROR and CONTROL_PLANE_FAIL are not counted as provider failures in analysis"
+}
