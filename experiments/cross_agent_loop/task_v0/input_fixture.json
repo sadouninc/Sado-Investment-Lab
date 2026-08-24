@@ -1,0 +1,48 @@
+[
+  {
+    "id": "  rec-001  ",
+    "value": 123.456789,
+    "category": "ALPHA"
+  },
+  {
+    "id": "rec-002",
+    "value": 99.99,
+    "category": "beta"
+  },
+  {
+    "id": "rec-003",
+    "value": 50.1,
+    "category": "Gamma"
+  },
+  {
+    "id": "rec-004",
+    "category": "alpha"
+  },
+  {
+    "id": "rec-005",
+    "value": "not-a-number",
+    "category": "beta"
+  },
+  {
+    "id": 12345,
+    "value": 100.0,
+    "category": "alpha"
+  },
+  {
+    "id": "rec-007",
+    "value": 75.5555,
+    "category": "delta"
+  },
+  {
+    "id": "rec-008",
+    "value": 200.001,
+    "category": "alpha",
+    "extra_field": "should be ignored"
+  },
+  {
+    "value": 150.0,
+    "category": "beta"
+  },
+  {
+  }
+]
