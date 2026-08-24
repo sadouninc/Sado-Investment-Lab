@@ -109,6 +109,11 @@ def save_status(path: Path, payload: dict[str, Any]) -> None:
 def validate_run_evidence(evidence: dict[str, Any]) -> None:
     if not isinstance(evidence, dict):
         raise ValueError("evidence must be a dictionary")
+    required_fields = ("run_at", "status", "news_delta", "news_persisted", "persistence_status")
+    missing = [field for field in required_fields if field not in evidence]
+    if missing:
+        raise ValueError(f"missing required evidence field(s): {', '.join(missing)}")
+
     parse_timestamp(evidence.get("run_at"))
     if evidence.get("status") not in VALID_RUN_STATUS:
         raise ValueError("invalid status in evidence")

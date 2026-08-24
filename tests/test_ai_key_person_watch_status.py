@@ -208,6 +208,23 @@ class AIKeyPersonWatchStatusTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             update_status(BASE, dict(valid_evidence, news_persisted="yes"))
 
+    def test_update_status_missing_required_fields_raises_value_error(self) -> None:
+        valid_evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "OK",
+            "news_delta": 0,
+            "news_persisted": False,
+            "persistence_status": "NOT_REQUIRED",
+        }
+        required_fields = ("run_at", "status", "news_delta", "news_persisted", "persistence_status")
+        for field in required_fields:
+            incomplete = dict(valid_evidence)
+            del incomplete[field]
+            with self.assertRaises(ValueError) as ctx:
+                update_status(BASE, incomplete)
+            self.assertIn("missing required evidence field", str(ctx.exception))
+            self.assertIn(field, str(ctx.exception))
+
     def test_update_status_older_evidence_rejected(self) -> None:
         initial = dict(BASE, last_run_at="2026-08-09T08:30:00+09:00", last_success_at="2026-08-09T08:30:00+09:00")
         older_evidence = {
