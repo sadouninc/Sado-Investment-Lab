@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from scripts.copilot_poc1_harness_result import (
+    _read_json,
     build_harness_result,
     classify_outcome,
     parse_copilot_result,
@@ -145,6 +146,19 @@ confirmation_count: 0
     assert res["agent_declared_outcome"] == "BLOCKED"
     assert res["agent_blocked_reason"] == "ALREADY_IMPLEMENTED_OR_NO_DIFF"
     assert res["classification"] == "NO_OUTPUT"
+
+
+def test_read_json_handles_expected_errors(tmp_path: Path):
+    invalid_json = tmp_path / "invalid.json"
+    invalid_json.write_text("{bad json syntax", encoding="utf-8")
+    assert _read_json(invalid_json) is None
+
+    non_dict_json = tmp_path / "list.json"
+    non_dict_json.write_text("[1, 2, 3]", encoding="utf-8")
+    assert _read_json(non_dict_json) is None
+
+    missing_file = tmp_path / "non_existent.json"
+    assert _read_json(missing_file) is None
 
 
 def test_render_step_summary():

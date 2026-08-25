@@ -109,7 +109,7 @@ def _read_json(path: Path | str | None) -> dict[str, Any] | None:
         data = json.loads(p.read_text(encoding="utf-8"))
         if isinstance(data, dict):
             return data
-    except Exception:
+    except (json.JSONDecodeError, OSError, UnicodeDecodeError, ValueError):
         pass
     return None
 
