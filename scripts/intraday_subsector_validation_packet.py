@@ -117,14 +117,34 @@ def _output_signal(state: str, spec: dict[str, Any]) -> str:
     return "UNKNOWN"
 
 
-def _first_transition_at(
+def _compute_transitions(
     replay: list[dict[str, Any]], target_states: list[str]
-) -> str | None:
+) -> tuple[str | None, dict[str, str | None]]:
     targets = set(target_states)
+    transitions_by_series: dict[str, str | None] = {}
+    series_keys_order: list[str] = []
+
     for row in replay:
-        if row.get("flow_state") in targets:
-            return str(row.get("observed_at"))
-    return None
+        series_key = row.get("series_key")
+        s_key = str(series_key) if series_key is not None else "default"
+        if s_key not in transitions_by_series:
+            transitions_by_series[s_key] = None
+            series_keys_order.append(s_key)
+        if (
+            transitions_by_series[s_key] is None
+            and row.get("flow_state") in targets
+        ):
+            transitions_by_series[s_key] = str(row.get("observed_at"))
+
+    sorted_by_series = {k: transitions_by_series[k] for k in sorted(series_keys_order)}
+
+    if len(sorted_by_series) == 1:
+        single_key = next(iter(sorted_by_series))
+        scalar_transition = sorted_by_series[single_key]
+    else:
+        scalar_transition = None
+
+    return scalar_transition, sorted_by_series
 
 
 def score_profile_replay(
@@ -190,6 +210,10 @@ def score_profile_replay(
         elif case["expected_signal"] == "POSITIVE" and output_signal == "NEGATIVE":
             false_negative_proxy += 1
 
+    first_transition_at, first_transition_by_series = _compute_transitions(
+        replay, spec["target_transition_states"]
+    )
+
     return {
         "evaluated_case_count": evaluated,
         "missing_replay_case_count": missing,
@@ -199,9 +223,8 @@ def score_profile_replay(
         "unknown_output_rate": unknown_output / evaluated if evaluated else None,
         "false_positive_proxy_count": false_positive_proxy,
         "false_negative_proxy_count": false_negative_proxy,
-        "first_target_transition_at": _first_transition_at(
-            replay, spec["target_transition_states"]
-        ),
+        "first_target_transition_at": first_transition_at,
+        "first_target_transition_by_series": first_transition_by_series,
     }
 
 

@@ -187,3 +187,76 @@ def test_transition_timing_is_deterministic_from_replay_order() -> None:
     )
     metrics = packet["candidates"]["candidate-a"]["metrics"]
     assert metrics["first_target_transition_at"] == "2026-08-14T10:00:00+09:00"
+
+
+def test_interleaved_series_transition_timing_attribution() -> None:
+    ts1 = "2026-08-14T09:30:00+09:00"
+    ts2 = "2026-08-14T10:00:00+09:00"
+
+    a1 = _snapshot(ts1, relative_return=0.03, breadth=0.75)
+    a2 = _snapshot(ts2, relative_return=0.005, breadth=0.25)
+
+    b1 = _snapshot(ts1, relative_return=0.005, breadth=0.25)
+    b1["subsector"] = {
+        "id": "medical_devices",
+        "label": "Medical Devices",
+        "taxonomy_version": "theme-v1",
+        "as_of": "2026-08-14",
+        "source_or_authority": "fixture-taxonomy",
+    }
+    b2 = _snapshot(ts2, relative_return=0.03, breadth=0.75)
+    b2["subsector"] = deepcopy(b1["subsector"])
+
+    history = [a1, b1, a2, b2]
+    shuffled_history = [b2, a2, b1, a1]
+
+    profile = _profile("candidate-a", 0.01)
+    cases_a = [
+        {
+            "case_id": "c1",
+            "series_key": "theme-v1:pharmaceutical:biotechnology:historical-fixture",
+            "observed_at": ts1,
+            "label_source_or_authority": "fixture",
+            "rationale": "test",
+            "expected_signal": "POSITIVE",
+            "accepted_flow_states": ["STATE_POS"],
+        },
+        {
+            "case_id": "c2",
+            "series_key": "theme-v1:pharmaceutical:medical_devices:historical-fixture",
+            "observed_at": ts2,
+            "label_source_or_authority": "fixture",
+            "rationale": "test",
+            "expected_signal": "POSITIVE",
+            "accepted_flow_states": ["STATE_POS"],
+        },
+    ]
+
+    p1 = build_candidate_validation_packet(
+        history=history,
+        profiles=[profile],
+        cases=cases_a,
+        validation_spec=_spec(),
+    )
+    p2 = build_candidate_validation_packet(
+        history=shuffled_history,
+        profiles=[profile],
+        cases=cases_a,
+        validation_spec=_spec(),
+    )
+
+    m1 = p1["candidates"]["candidate-a"]["metrics"]
+    m2 = p2["candidates"]["candidate-a"]["metrics"]
+
+    assert m1 == m2
+    assert m1["first_target_transition_at"] is None
+    by_series = m1["first_target_transition_by_series"]
+    assert len(by_series) == 2
+    assert (
+        by_series["theme-v1:pharmaceutical:biotechnology:historical-fixture"]
+        == ts1
+    )
+    assert (
+        by_series["theme-v1:pharmaceutical:medical_devices:historical-fixture"]
+        == ts2
+    )
