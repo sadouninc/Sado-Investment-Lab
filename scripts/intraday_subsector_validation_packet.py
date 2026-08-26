@@ -62,39 +62,48 @@ def validate_validation_spec(spec: dict[str, Any]) -> dict[str, Any]:
 def validate_validation_cases(cases: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
     normalized: list[dict[str, Any]] = []
     case_ids: set[str] = set()
-    observed_keys: set[str] = set()
+    row_keys: set[str] = set()
     for index, raw in enumerate(cases):
         if not isinstance(raw, dict):
             raise ValueError(f"cases[{index}] must be an object")
         case_id = _text(raw.get("case_id"), f"cases[{index}].case_id")
         observed_at = _iso(raw.get("observed_at"), f"cases[{index}].observed_at")
+        series_key = raw.get("series_key")
+        if series_key is not None:
+            series_key = _text(series_key, f"cases[{index}].series_key")
+            row_key = f"{series_key}:{observed_at}"
+        else:
+            row_key = observed_at
+
         if case_id in case_ids:
             raise ValueError(f"duplicate case_id: {case_id}")
-        if observed_at in observed_keys:
-            raise ValueError(f"duplicate case observed_at: {observed_at}")
+        if row_key in row_keys:
+            raise ValueError(f"duplicate case row_key or observed_at: {row_key}")
         case_ids.add(case_id)
-        observed_keys.add(observed_at)
+        row_keys.add(row_key)
         expected_signal = _text(
             raw.get("expected_signal"), f"cases[{index}].expected_signal"
         ).upper()
         if expected_signal not in _SIGNAL_LABELS:
             raise ValueError(f"unsupported expected_signal: {expected_signal}")
-        normalized.append(
-            {
-                "case_id": case_id,
-                "observed_at": observed_at,
-                "label_source_or_authority": _text(
-                    raw.get("label_source_or_authority"),
-                    f"cases[{index}].label_source_or_authority",
-                ),
-                "rationale": _text(raw.get("rationale"), f"cases[{index}].rationale"),
-                "expected_signal": expected_signal,
-                "accepted_flow_states": _state_list(
-                    raw.get("accepted_flow_states"),
-                    f"cases[{index}].accepted_flow_states",
-                ),
-            }
-        )
+        case_dict = {
+            "case_id": case_id,
+            "observed_at": observed_at,
+            "label_source_or_authority": _text(
+                raw.get("label_source_or_authority"),
+                f"cases[{index}].label_source_or_authority",
+            ),
+            "rationale": _text(raw.get("rationale"), f"cases[{index}].rationale"),
+            "expected_signal": expected_signal,
+            "accepted_flow_states": _state_list(
+                raw.get("accepted_flow_states"),
+                f"cases[{index}].accepted_flow_states",
+            ),
+        }
+        if series_key is not None:
+            case_dict["series_key"] = series_key
+            case_dict["row_key"] = row_key
+        normalized.append(case_dict)
     return normalized
 
 
@@ -126,12 +135,23 @@ def score_profile_replay(
     """Score one replay against explicit labels; UNKNOWN never becomes negative."""
     spec = validate_validation_spec(validation_spec)
     validated_cases = validate_validation_cases(cases)
+    rows_by_key: dict[str, dict[str, Any]] = {}
     rows_by_time: dict[str, dict[str, Any]] = {}
+    ambiguous_times: set[str] = set()
+
     for row in replay:
         observed_at = _iso(row.get("observed_at"), "replay.observed_at")
+        row_key = row.get("row_key")
+        if row_key is not None:
+            rk = str(row_key)
+            if rk in rows_by_key:
+                raise ValueError(f"duplicate replay row_key: {rk}")
+            rows_by_key[rk] = row
+
         if observed_at in rows_by_time:
-            raise ValueError(f"duplicate replay observed_at: {observed_at}")
-        rows_by_time[observed_at] = row
+            ambiguous_times.add(observed_at)
+        else:
+            rows_by_time[observed_at] = row
 
     evaluated = 0
     missing = 0
@@ -142,7 +162,17 @@ def score_profile_replay(
     false_negative_proxy = 0
 
     for case in validated_cases:
-        row = rows_by_time.get(case["observed_at"])
+        if "row_key" in case:
+            row = rows_by_key.get(case["row_key"])
+        elif "series_key" in case:
+            row = rows_by_key.get(f"{case['series_key']}:{case['observed_at']}")
+        else:
+            if case["observed_at"] in ambiguous_times:
+                raise ValueError(
+                    f"ambiguous case observed_at without series_key: {case['observed_at']}"
+                )
+            row = rows_by_time.get(case["observed_at"])
+
         if row is None:
             missing += 1
             continue

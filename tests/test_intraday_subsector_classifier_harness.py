@@ -178,3 +178,108 @@ def test_compare_profiles_never_selects_a_winner() -> None:
     assert "winner" not in packet
     assert packet["candidate-loose"][0]["flow_state"] == "STRONG_INFLOW"
     assert packet["candidate-strict"][0]["flow_state"] == "INFLOW"
+
+
+def test_coexisting_same_timestamp_distinct_series() -> None:
+    profile = _profile("candidate-a", 0.015)
+    ts = "2026-08-14T09:30:00+09:00"
+    bio = _snapshot(observed_at=ts, relative_return=0.02)
+    med = _snapshot(observed_at=ts, relative_return=0.01)
+    med["subsector"] = {
+        "id": "medical_devices",
+        "label": "Medical Devices",
+        "taxonomy_version": "theme-v1",
+        "as_of": "2026-08-14",
+        "source_or_authority": "existing-theme-taxonomy",
+    }
+
+    replay = replay_profile([bio, med], profile)
+    assert len(replay) == 2
+    keys = [r["series_key"] for r in replay]
+    assert len(set(keys)) == 2
+    assert all(r["acceleration_state"] == "UNKNOWN" for r in replay)
+
+
+def test_interleaved_series_replay_only_compares_same_series() -> None:
+    profile = _profile("candidate-a", 0.015)
+    ts1 = "2026-08-14T09:30:00+09:00"
+    ts2 = "2026-08-14T10:00:00+09:00"
+
+    a1 = _snapshot(observed_at=ts1, relative_return=0.005)
+    a2 = _snapshot(observed_at=ts2, relative_return=0.02)
+
+    b1 = _snapshot(observed_at=ts1, relative_return=0.03)
+    b1["subsector"] = {
+        "id": "medical_devices",
+        "label": "Medical Devices",
+        "taxonomy_version": "theme-v1",
+        "as_of": "2026-08-14",
+        "source_or_authority": "existing-theme-taxonomy",
+    }
+    b2 = _snapshot(observed_at=ts2, relative_return=0.01)
+    b2["subsector"] = deepcopy(b1["subsector"])
+
+    replay = replay_profile([a1, b1, a2, b2], profile)
+    assert len(replay) == 4
+
+    rows_by_row_key = {r["row_key"]: r for r in replay}
+    a2_row = rows_by_row_key[a2["subsector"]["taxonomy_version"] + ":" + a2["sector"]["id"] + ":" + a2["subsector"]["id"] + ":" + a2["source"] + ":" + ts2]
+    b2_row = rows_by_row_key[b2["subsector"]["taxonomy_version"] + ":" + b2["sector"]["id"] + ":" + b2["subsector"]["id"] + ":" + b2["source"] + ":" + ts2]
+
+    assert a2_row["acceleration_state"] == "ACCELERATING"
+    assert b2_row["acceleration_state"] == "DECELERATING"
+
+
+def test_direct_cross_series_acceleration_fails_closed() -> None:
+    profile = _profile("candidate-a", 0.015)
+    bio = _snapshot(relative_return=0.005)
+    med = _snapshot(relative_return=0.02)
+    med["subsector"] = {
+        "id": "medical_devices",
+        "label": "Medical Devices",
+        "taxonomy_version": "theme-v1",
+        "as_of": "2026-08-14",
+        "source_or_authority": "existing-theme-taxonomy",
+    }
+
+    acc = classify_acceleration(bio, med, profile)
+    assert acc["acceleration_state"] == "UNKNOWN"
+    assert acc["classification_reason"] == "CROSS_SERIES_MISMATCH"
+
+
+def test_shuffled_input_yields_deterministic_replay() -> None:
+    profile = _profile("candidate-a", 0.015)
+    ts1 = "2026-08-14T09:30:00+09:00"
+    ts2 = "2026-08-14T10:00:00+09:00"
+
+    a1 = _snapshot(observed_at=ts1, relative_return=0.005)
+    a2 = _snapshot(observed_at=ts2, relative_return=0.02)
+    b1 = _snapshot(observed_at=ts1, relative_return=0.01)
+    b1["subsector"] = {
+        "id": "medical_devices",
+        "label": "Medical Devices",
+        "taxonomy_version": "theme-v1",
+        "as_of": "2026-08-14",
+        "source_or_authority": "existing-theme-taxonomy",
+    }
+    b2 = _snapshot(observed_at=ts2, relative_return=0.025)
+    b2["subsector"] = deepcopy(b1["subsector"])
+
+    r1 = replay_profile([a1, b1, a2, b2], profile)
+    r2 = replay_profile([b2, a2, b1, a1], profile)
+    assert r1 == r2
+
+
+def test_idempotent_and_conflicting_duplicate_row_key() -> None:
+    profile = _profile("candidate-a", 0.015)
+    snap1 = _snapshot(relative_return=0.02)
+    snap2 = deepcopy(snap1)
+
+    r = replay_profile([snap1, snap2], profile)
+    assert len(r) == 1
+
+    conflicting = deepcopy(snap1)
+    conflicting["observations"]["relative_return"] = 0.05
+    conflicting["observations"]["intraday_return"] = 0.055
+    with pytest.raises(ValueError, match="conflicting duplicate snapshot"):
+        replay_profile([snap1, conflicting], profile)

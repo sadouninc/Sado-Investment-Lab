@@ -25,6 +25,20 @@ _ALLOWED_ACCEL_FIELDS = {
 }
 
 
+def compute_series_key(snapshot: dict[str, Any]) -> str:
+    subsector = snapshot.get("subsector", {})
+    sector = snapshot.get("sector", {})
+    taxonomy_version = str(subsector.get("taxonomy_version", ""))
+    sector_id = str(sector.get("id", ""))
+    subsector_id = str(subsector.get("id", ""))
+    source = str(snapshot.get("source", ""))
+    return f"{taxonomy_version}:{sector_id}:{subsector_id}:{source}"
+
+
+def compute_row_key(series_key: str, observed_at: str) -> str:
+    return f"{series_key}:{observed_at}"
+
+
 def _text(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{field} must be a non-empty string")
@@ -161,6 +175,8 @@ def classify_flow(
 ) -> dict[str, Any]:
     validated_snapshot = validate_intraday_subsector_flow(snapshot)
     profile = validate_threshold_profile(threshold_profile)
+    series_key = compute_series_key(validated_snapshot)
+    row_key = compute_row_key(series_key, validated_snapshot["observed_at"])
     if (
         validated_snapshot["freshness"] != "FRESH"
         or validated_snapshot["data_completeness"] != "COMPLETE"
@@ -171,6 +187,8 @@ def classify_flow(
         state = _evaluate_rules(validated_snapshot, profile["flow_rules"])
         reason = "EXPLICIT_PROFILE_EVALUATION"
     return {
+        "series_key": series_key,
+        "row_key": row_key,
         "observed_at": validated_snapshot["observed_at"],
         "flow_state": state,
         "classification_reason": reason,
@@ -206,6 +224,20 @@ def classify_acceleration(
     previous = validate_intraday_subsector_flow(previous_snapshot)
     current = validate_intraday_subsector_flow(current_snapshot)
     profile = validate_threshold_profile(threshold_profile)
+
+    prev_series_key = compute_series_key(previous)
+    curr_series_key = compute_series_key(current)
+    if prev_series_key != curr_series_key:
+        return {
+            "series_key": curr_series_key,
+            "row_key": compute_row_key(curr_series_key, current["observed_at"]),
+            "observed_at": current["observed_at"],
+            "acceleration_state": "UNKNOWN",
+            "classification_reason": "CROSS_SERIES_MISMATCH",
+            "profile_version": profile["version"],
+            "profile_source_or_authority": profile["source_or_authority"],
+        }
+
     if (
         previous["freshness"] != "FRESH"
         or current["freshness"] != "FRESH"
@@ -223,6 +255,8 @@ def classify_acceleration(
         )
         reason = "EXPLICIT_PROFILE_EVALUATION"
     return {
+        "series_key": curr_series_key,
+        "row_key": compute_row_key(curr_series_key, current["observed_at"]),
         "observed_at": current["observed_at"],
         "acceleration_state": state,
         "classification_reason": reason,
@@ -234,25 +268,45 @@ def classify_acceleration(
 def replay_profile(
     history: Iterable[dict[str, Any]], threshold_profile: dict[str, Any]
 ) -> list[dict[str, Any]]:
-    """Replay one explicit profile over historical snapshots in observed_at order."""
+    """Replay one explicit profile over historical snapshots partitioned by series_key and sorted by observed_at."""
     profile = validate_threshold_profile(threshold_profile)
-    snapshots = [validate_intraday_subsector_flow(item) for item in history]
-    snapshots.sort(
-        key=lambda item: datetime.fromisoformat(item["observed_at"].replace("Z", "+00:00"))
-    )
+    seen_rows: dict[str, dict[str, Any]] = {}
+    unique_snapshots: list[dict[str, Any]] = []
+
+    for item in history:
+        validated = validate_intraday_subsector_flow(item)
+        series_key = compute_series_key(validated)
+        row_key = compute_row_key(series_key, validated["observed_at"])
+        if row_key in seen_rows:
+            if seen_rows[row_key] == validated:
+                continue
+            raise ValueError(f"conflicting duplicate snapshot for row_key: {row_key}")
+        seen_rows[row_key] = validated
+        unique_snapshots.append(validated)
+
+    series_groups: dict[str, list[dict[str, Any]]] = {}
+    for snapshot in unique_snapshots:
+        s_key = compute_series_key(snapshot)
+        series_groups.setdefault(s_key, []).append(snapshot)
+
     results: list[dict[str, Any]] = []
-    previous: dict[str, Any] | None = None
-    for snapshot in snapshots:
-        row = classify_flow(snapshot, profile)
-        if previous is None:
-            row["acceleration_state"] = "UNKNOWN"
-            row["acceleration_reason"] = "NO_PREVIOUS_SNAPSHOT"
-        else:
-            acceleration = classify_acceleration(previous, snapshot, profile)
-            row["acceleration_state"] = acceleration["acceleration_state"]
-            row["acceleration_reason"] = acceleration["classification_reason"]
-        results.append(row)
-        previous = snapshot
+    for s_key in sorted(series_groups.keys()):
+        group = series_groups[s_key]
+        group.sort(
+            key=lambda snap: datetime.fromisoformat(snap["observed_at"].replace("Z", "+00:00"))
+        )
+        previous: dict[str, Any] | None = None
+        for snapshot in group:
+            row = classify_flow(snapshot, profile)
+            if previous is None:
+                row["acceleration_state"] = "UNKNOWN"
+                row["acceleration_reason"] = "NO_PREVIOUS_SNAPSHOT"
+            else:
+                acceleration = classify_acceleration(previous, snapshot, profile)
+                row["acceleration_state"] = acceleration["acceleration_state"]
+                row["acceleration_reason"] = acceleration["classification_reason"]
+            results.append(row)
+            previous = snapshot
     return results
 
 
