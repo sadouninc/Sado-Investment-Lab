@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#11100d">
-  <meta name="description" content="Spaceのテーマ分析">
-  <title>Space — Sado Investment Lab</title>
+  <meta name="description" content="Morning Datasetを分析した朝の市場・投資チェック">
+  <title>朝の市場レポート 2026-08-27 — Sado Investment Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;600;700&display=swap" rel="stylesheet">
@@ -156,17 +156,192 @@
     })();
   </script>
   <main class="book-shell">
-    <p class="breadcrumb"><a href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-793/themes/index.html">Themes</a> / Space</p>
+    <p class="breadcrumb"><a href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-793/reports/morning/index.html">朝の市場レポート</a> / 2026-08-27</p>
 
-<h1 id="space">Space</h1>
+<h1 id="ai-morning-report">AI Morning Report</h1>
+<h2 id="データ品質">データ品質</h2>
+<ul>
+  <li>ステータス: PARTIAL（4/8ソース。OK:4, STALE:2, MISSING:2）</li>
+  <li>警告
+    <ul>
+      <li>portfolio: 19日前のスナップショット（鮮度上限3日）→保有・数量は不確実</li>
+      <li>capital: 取得不能（履歴DBにcapital_snapshotsなし）</li>
+      <li>events: 経済/企業イベントの網羅性が未確認（カレンダー空）</li>
+      <li>watchlist: 16日前のスナップショット（鮮度上限3日）</li>
+    </ul>
+  </li>
+  <li>注記: 以降の「事実」は当データセットに限定。「所感/解釈」は明示。データは部分欠落・鮮度低下を含むため判断は保留気味に運用。</li>
+</ul>
 
-<h2 id="thesis">Thesis</h2>
-<h2 id="demand-drivers">Demand Drivers</h2>
-<h2 id="supply-chain">Supply Chain</h2>
-<h2 id="beneficiaries">Beneficiaries</h2>
-<h2 id="risks">Risks</h2>
-<h2 id="indicators">Indicators</h2>
-<h2 id="sources">Sources</h2>
+<h2 id="市場概況">市場概況</h2>
+<ul>
+  <li>事実
+    <ul>
+      <li>日本
+        <ul>
+          <li>日経225: 66,131.98（-0.20%）</li>
+          <li>TOPIX（1306.T proxy）: 429.40（+0.28%）</li>
+          <li>グロース250（2516.T proxy）: 635.0（+2.45%）</li>
+        </ul>
+      </li>
+      <li>米国
+        <ul>
+          <li>S&amp;P500: -0.02% / NASDAQ: -0.08% / ダウ: -0.21%</li>
+          <li>SOX半導体: +0.20%</li>
+          <li>VIX: 14.97（-1.58%）</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>所感
+    <ul>
+      <li>日本は「大型・バリュー堅調、グロース強含み、日経は小反落」のミックス。米国は横ばい圏で、半導体は小幅高。VIX低位は平穏だが反転時のボラ急騰リスクに注意。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="前日の重要ポイント">前日の重要ポイント</h2>
+<ul>
+  <li>事実
+    <ul>
+      <li>東証グロース系が相対的に強い上昇（+2.45%）対し、日経は小反落、TOPIXは小幅高。</li>
+      <li>米半導体指数は小幅続伸（+0.20%）。</li>
+      <li>VIXは低下（14.97）。</li>
+    </ul>
+  </li>
+  <li>所感
+    <ul>
+      <li>スタイル面では成長株の戻り基調が示唆。半導体・AI関連のセンチメントは良化方向。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="今日の注目イベント">今日の注目イベント</h2>
+<p>データ不足のため判断保留</p>
+
+<h2 id="保有株へ影響しそうなテーマ">保有株へ影響しそうなテーマ</h2>
+<ul>
+  <li>事実（保有候補・保有銘柄に紐づく動き）
+    <ul>
+      <li>半導体・素材（4063 信越化学、3110 日東紡［リサーチは半導体系分類］）：SOXが小幅高。</li>
+      <li>成長株/AI・DC関連（3778 さくらインターネット、3687 フィックスターズ）：東証グロース強含み。</li>
+      <li>1321 日経225連動ETF：日経は小反落。</li>
+    </ul>
+  </li>
+  <li>所感
+    <ul>
+      <li>本日のスタイル優位が続くなら、国内グロース/AI周辺は追い風。一方、指数連動は伸びにくさに留意。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="リスク要因">リスク要因</h2>
+<ul>
+  <li>事実（投資家DNA・データ品質）
+    <ul>
+      <li>データ鮮度低下（portfolio/watchlistがSTALE、capital/eventsがMISSING）→実残高・イベント把握に不確実性。</li>
+      <li>リスクパターン「TAIL_LOSS_DESTROYS_SMALL_WINS」が複数銘柄で検出（例：4204 積水化学＝WARNING）。勝率の高さを単独で拠り所にしない警告。</li>
+    </ul>
+  </li>
+  <li>所感
+    <ul>
+      <li>低VIX局面はガードが緩みやすく、急変時のドローダウン拡大に注意。グロース主導の偏りは反転時の下押しを増幅しやすい。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="今日の戦略">今日の戦略</h2>
+<ul>
+  <li>事実（投資家DNA）
+    <ul>
+      <li>強み: 短期ホライゾンの再現性高、同一銘柄反復の執行が得意。</li>
+    </ul>
+  </li>
+  <li>方針（所感）
+    <ul>
+      <li>短期軸で「強いものに乗る」を徹底。ただしギャップ追随は避け、場中の出来高・高値更新など価格特徴の確認後に限定。</li>
+      <li>テイル損失の抑制を最優先。1トレードの許容損失水準を事前に固定し、指値/逆指値で機械的に実行する運用へ。</li>
+      <li>データ鮮度が低いため、新規判断はサイズを抑制し、確度の高いセットアップに限定。</li>
+      <li>ウォッチリスト記載の「日東紡の誤発注による信用売り100株への対応」は、現状の実ポジ確認が先決（注文・余力・約定履歴の再点検）。方向性不一致の建玉は方針確定後に機械的対応。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="注目銘柄">注目銘柄</h2>
+<ul>
+  <li>4063 信越化学工業
+    <ul>
+      <li>事実: 保有中（STALE情報）/リサーチ有り。SOX小幅高。</li>
+      <li>所感: 半導体材料の地合い追随で相対強弱を確認。</li>
+    </ul>
+  </li>
+  <li>3110 日東紡（Nittobo）
+    <ul>
+      <li>事実: リサーチ対象（半導体系）。ウォッチに「誤発注対応」メモ。</li>
+      <li>所感: 実ポジと売買履歴の突合を最優先。方向性の整合確認後に短期戦術。</li>
+    </ul>
+  </li>
+  <li>6232 ACSL
+    <ul>
+      <li>事実: オーナーピック/政府調達・資金繰りの監視テーマ明記。</li>
+      <li>所感: 需給主導になりやすいため出来高・板気配の質を重視。</li>
+    </ul>
+  </li>
+  <li>6622 ダイヘン
+    <ul>
+      <li>事実: リサーチ対象（溶接・電力機器）。セクターテーマ「送電網」と親和。</li>
+      <li>所感: マネーフローが設備投資テーマへ広がるかを観察。</li>
+    </ul>
+  </li>
+  <li>6758 Sony Group
+    <ul>
+      <li>事実: リサーチ対象（AI/コンテンツ）。グロース地合いのベンチ銘柄。</li>
+      <li>所感: 指数・為替影響を受けやすく、相対強度の推移に注目。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="次回確認時に見る条件">次回確認時に見る条件</h2>
+<ul>
+  <li>データ更新
+    <ul>
+      <li>portfolio/capital/eventsの最新化（実エクスポージャ、余力、当日イベントの確認）</li>
+      <li>ウォッチリストの鮮度更新と優先度付け</li>
+    </ul>
+  </li>
+  <li>マーケット判定
+    <ul>
+      <li>東証グロース250がTOPIX・日経に対して相対強を維持しているか</li>
+      <li>SOXの続伸有無と国内半導体・素材（4063/3110など）の相関</li>
+      <li>VIXのトレンド転換（≧16方向）兆候</li>
+    </ul>
+  </li>
+  <li>銘柄条件
+    <ul>
+      <li>さくら/フィックスターズ等の出来高増加と高値更新有無</li>
+      <li>信越化学・日東紡の相対強度（指数比）と需給の質</li>
+    </ul>
+  </li>
+  <li>運用面
+    <ul>
+      <li>テイル損抑制ルールが遵守されているか（損切り遅延・サイズ過多の兆候有無）</li>
+    </ul>
+  </li>
+</ul>
+
+<p>（注）本レポートは提供データがPARTIAL/STALE/MISSINGを含むため、定量・定性いずれも暫定評価。売買執行は行いません。投資判断は自己責任にて。</p>
+
+<h2 id="api-diagnostics">API Diagnostics</h2>
+
+<ul>
+  <li>Model: <code class="language-plaintext highlighter-rouge">gpt-5-2025-08-07</code></li>
+  <li>Dataset status: <code class="language-plaintext highlighter-rouge">PARTIAL</code></li>
+  <li>Input tokens: <code class="language-plaintext highlighter-rouge">4520</code></li>
+  <li>Output tokens: <code class="language-plaintext highlighter-rouge">3527</code></li>
+  <li>Total tokens: <code class="language-plaintext highlighter-rouge">8047</code></li>
+  <li>Execution: <code class="language-plaintext highlighter-rouge">75.488 sec</code></li>
+  <li>Estimated cost USD: <code class="language-plaintext highlighter-rouge">None</code> (pricing_not_configured)</li>
+</ul>
 
   </main>
   <a class="back-to-top" href="#" aria-label="ページ上部へ戻る">↑</a>
