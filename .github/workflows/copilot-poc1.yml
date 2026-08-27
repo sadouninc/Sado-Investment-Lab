@@ -233,6 +233,24 @@ jobs:
 
           git diff --binary > /tmp/copilot.patch || true
 
+      - name: Emit harness result diagnostic
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          python -m scripts.copilot_poc1_harness_result \
+            --issue-number "${ISSUE_NUMBER:-${{ github.event.inputs.issue_number }}}" \
+            --output-json /tmp/harness-result.json
+
+      - name: Upload harness result artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: copilot-poc1-${{ env.ISSUE_NUMBER || github.event.inputs.issue_number }}-harness-result
+          path: /tmp/harness-result.json
+          if-no-files-found: ignore
+          retention-days: 3
+
       - name: Upload review patch
         if: always()
         uses: actions/upload-artifact@v4
