@@ -281,6 +281,29 @@ def test_result_schema_is_valid_json():
     assert "CONTROL_PLANE_FAIL" in result_enum
 
 
+
+def test_result_schema_has_evidence_fields():
+    """Result schema includes evidence_refs and rendered_prompt_path fields."""
+    base = Path(__file__).parent.parent / "results"
+    schema_file = base / "schema-v1.json"
+    
+    with open(schema_file) as f:
+        schema = json.load(f)
+    
+    props = schema["properties"]
+    
+    # Verify evidence_refs field
+    assert "evidence_refs" in props
+    assert props["evidence_refs"]["type"] == "array"
+    item_props = props["evidence_refs"]["items"]["properties"]
+    assert "type" in item_props
+    assert "path" in item_props
+    assert "rendered_prompt" in item_props["type"]["enum"]
+    
+    # Verify rendered_prompt_path field
+    assert "rendered_prompt_path" in props
+    assert props["rendered_prompt_path"]["type"] == "string"
+
 def test_state_machine_simulation():
     """Simulate PASS/FAIL/TIMEOUT state machine reaching RESULT_RECORDED."""
     

@@ -64,7 +64,7 @@ class OracleValidator:
         return True
     
     def _load_fixture(self):
-        """Load test fixture data."""
+        """Load test fixture data from file."""
         try:
             with open(self.fixture_file) as fh:
                 self.fixture = json.load(fh)

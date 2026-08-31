@@ -1,0 +1,69 @@
+# Canonical Semantic Packet v1
+# Single source of truth for Task Family v0: Deterministic Record Normalization
+version: "1.0.0"
+status: CANONICAL
+provider_neutral: true
+phase: "Cross-Agent Loop Phase 1"
+
+goal: "Implement a pure deterministic Python function that transforms JSON records"
+
+input:
+  source: "input_fixture.json"
+  format: "list[dict]"
+  behavior: "Accept a list of record dictionaries"
+
+output:
+  format: "dict"
+  keys:
+    accepted: "list of normalized valid records in original input order"
+    rejected: "list of rejection objects with {input: <original>, reason: <classification>}"
+
+required_fields:
+  id: {type: "string", description: "Record identifier"}
+  value: {type: "number", description: "Numeric value"}
+  category: {type: "string", description: "Category from allowed set", allowed_values: ["alpha", "beta", "gamma"]}
+
+normalization_rules:
+  id:
+    - strip_whitespace
+    - convert_to_uppercase
+  value:
+    - round_to_2_decimal_places
+  category:
+    - convert_to_lowercase
+  order: preserve_input_order_for_accepted_records
+
+rejection_rules:
+  policy: fail_closed
+  reasons:
+    missing_required_field: "Any required field is missing"
+    invalid_type: "id not string OR value not number OR category not string"
+    unknown_category: "category not in allowed set [alpha, beta, gamma]"
+  extra_fields_policy: ignore
+
+invariants:
+  deterministic: true
+  pure_function: true
+  no_external_io: true
+  no_randomness: true
+  no_time_dependency: true
+  no_input_mutation: true
+
+allowed_mutations:
+  paths: ["experiments/cross_agent_loop/task_v0/solution.py"]
+
+forbidden_actions:
+  - modify_other_files
+  - access_production_data
+  - access_investment_logic
+  - skip_ci
+  - infer_missing_values
+
+validation:
+  oracle: "oracle_test.py"
+  minimum_checks: 7
+  pass_condition: "oracle_returns_PASS"
+
+ci_policy:
+  skip_allowed: false
+  all_tests_must_pass: true

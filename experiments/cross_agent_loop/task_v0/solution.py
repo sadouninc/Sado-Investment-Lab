@@ -5,9 +5,6 @@ Reference implementation for the oracle.
 This is the canonical solution that solver implementations will be tested against.
 """
 
-import json
-from pathlib import Path
-
 
 def normalize_records(records):
     """
