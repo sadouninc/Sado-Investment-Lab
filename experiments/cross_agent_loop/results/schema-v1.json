@@ -69,7 +69,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["rendered_prompt", "canonical_packet", "oracle_output", "solver_output"],
+            "enum": ["rendered_prompt", "canonical_packet", "oracle_output", "solver_output", "dispatch_trigger", "ack"],
             "description": "Type of evidence artifact"
           },
           "path": {

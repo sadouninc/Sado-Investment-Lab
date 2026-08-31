@@ -304,6 +304,109 @@ def test_result_schema_has_evidence_fields():
     assert "rendered_prompt_path" in props
     assert props["rendered_prompt_path"]["type"] == "string"
 
+
+def test_result_schema_requires_rendered_prompt_evidence():
+    """Result schema requires rendered_prompt_path field (fail-closed)."""
+    base = Path(__file__).parent.parent / "results"
+    schema_file = base / "schema-v1.json"
+    
+    with open(schema_file) as f:
+        schema = json.load(f)
+    
+    required = schema.get("required", [])
+    
+    # Rendered prompt path must be required (fail-closed on missing evidence)
+    assert "rendered_prompt_path" in required, \
+        "rendered_prompt_path must be required field for auditable evidence"
+    
+    # evidence_refs must be required
+    assert "evidence_refs" in required, \
+        "evidence_refs must be required field for typed lifecycle evidence"
+
+
+def test_result_schema_evidence_refs_includes_lifecycle_types():
+    """Result schema evidence_refs includes dispatch_trigger and ack types."""
+    base = Path(__file__).parent.parent / "results"
+    schema_file = base / "schema-v1.json"
+    
+    with open(schema_file) as f:
+        schema = json.load(f)
+    
+    props = schema["properties"]
+    evidence_types = props["evidence_refs"]["items"]["properties"]["type"]["enum"]
+    
+    # Verify lifecycle evidence types exist separately from provider/oracle results
+    assert "dispatch_trigger" in evidence_types, \
+        "evidence_refs must support dispatch_trigger lifecycle evidence"
+    assert "ack" in evidence_types, \
+        "evidence_refs must support ack/activation lifecycle evidence"
+    
+    # Verify provider/oracle result types remain
+    assert "rendered_prompt" in evidence_types
+    assert "oracle_output" in evidence_types
+    assert "solver_output" in evidence_types
+
+
+def test_result_validation_fails_on_missing_rendered_prompt():
+    """Validation fails when rendered_prompt_path is missing (fail-closed)."""
+    base = Path(__file__).parent.parent / "results"
+    schema_file = base / "schema-v1.json"
+    
+    with open(schema_file) as f:
+        schema = json.load(f)
+    
+    # Create result missing rendered_prompt_path
+    invalid_result = {
+        "case_id": "P1-R1",
+        "provider": "test-provider",
+        "timestamp": "2026-09-01T00:00:00Z",
+        "oracle_result": "PASS",
+        "metadata": {
+            "pattern_type": "P1_NATURAL",
+            "repetition": 1
+        },
+        "evidence_refs": []
+        # Missing rendered_prompt_path - should fail validation
+    }
+    
+    # Verify schema requires rendered_prompt_path
+    required = schema.get("required", [])
+    assert "rendered_prompt_path" in required
+    
+    # Check the invalid result is missing the required field
+    assert "rendered_prompt_path" not in invalid_result
+
+
+def test_result_validation_fails_on_missing_evidence_refs():
+    """Validation fails when evidence_refs is missing (fail-closed)."""
+    base = Path(__file__).parent.parent / "results"
+    schema_file = base / "schema-v1.json"
+    
+    with open(schema_file) as f:
+        schema = json.load(f)
+    
+    # Create result missing evidence_refs
+    invalid_result = {
+        "case_id": "P1-R1",
+        "provider": "test-provider",
+        "timestamp": "2026-09-01T00:00:00Z",
+        "oracle_result": "PASS",
+        "metadata": {
+            "pattern_type": "P1_NATURAL",
+            "repetition": 1
+        },
+        "rendered_prompt_path": "task_v0/patterns/p1_r1.txt"
+        # Missing evidence_refs - should fail validation
+    }
+    
+    # Verify schema requires evidence_refs
+    required = schema.get("required", [])
+    assert "evidence_refs" in required
+    
+    # Check the invalid result is missing the required field
+    assert "evidence_refs" not in invalid_result
+
+
 def test_state_machine_simulation():
     """Simulate PASS/FAIL/TIMEOUT state machine reaching RESULT_RECORDED."""
     
