@@ -11,6 +11,7 @@ import argparse
 import json
 import re
 from dataclasses import dataclass
+from scripts.work_contract_validator import validate_issue_body
 
 
 ALLOWED_READY_STATES = {"READY_FOR_SCHEDULED_RUN"}
@@ -86,6 +87,34 @@ def build_prompt(control_body: str, target_body: str) -> str:
     )
 
 
+def is_target_ready(target_json: dict) -> bool:
+    """Determine if target issue is ready based on canonical current state only.
+    
+    Readiness comes from:
+    1. Current canonical labels: status:ready or work:ready
+    2. Current structured Work Contract with status: READY_FOR_IMPLEMENTATION
+    
+    Historical comments, prose mentions, quoted examples, or negative text
+    containing READY_FOR_IMPLEMENTATION are NOT evidence of readiness.
+    Malformed or ambiguous contracts fail closed (return False).
+    
+    Args:
+        target_json: GitHub Issue JSON payload with body, labels, etc.
+        
+    Returns:
+        True if target is ready via canonical current evidence, False otherwise.
+    """
+    # Check canonical ready labels
+    labels = target_json.get("labels", [])
+    if any((label.get("name") or "") in {"status:ready", "work:ready"} for label in labels):
+        return True
+    
+    # Check canonical structured Work Contract state
+    body = target_json.get("body") or ""
+    validation = validate_issue_body(body)
+    return validation.executable
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--control-json", required=True)
@@ -103,9 +132,8 @@ def main() -> int:
     control_body = control_json.get("body") or ""
     target_body = target_json.get("body") or ""
     control = parse_control(control_body)
-    target_ready = "READY_FOR_IMPLEMENTATION" in target_body or "READY_FOR_IMPLEMENTATION" in json.dumps(
-        target_json.get("comments", []), ensure_ascii=False
-    ) or any((label.get("name") or "") in {"status:ready", "work:ready"} for label in target_json.get("labels", []))
+    
+    target_ready = is_target_ready(target_json)
 
     result = decide(
         control,
