@@ -94,6 +94,45 @@ class MorningDatasetPageTest(unittest.TestCase):
         self.assertIn("- Data: MISSING", capital_section)
         self.assertNotIn("Raw JSONを見る — capital", capital_section)
 
+    def test_main_consumes_persisted_report_when_primary_missing(self) -> None:
+        import json
+        import tempfile
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            primary_report = temp_path / "data" / "generated" / "public" / "morning-dataset.json"
+            persisted_report = temp_path / "data" / "generated" / "diagnostics" / "openai" / "optimized-morning-dataset.json"
+            persisted_report.parent.mkdir(parents=True, exist_ok=True)
+            persisted_report.write_text(json.dumps(self.build_payload()), encoding="utf-8")
+            site_dir = temp_path / "site-src" / "research" / "morning-dataset"
+
+            with patch.object(module, "REPORT", primary_report), \
+                 patch.object(module, "PERSISTED_REPORT", persisted_report), \
+                 patch.object(module, "SITE", site_dir), \
+                 patch.object(module, "build_intraday_market"):
+                module.main()
+
+            self.assertTrue((site_dir / "index.md").exists())
+            self.assertTrue((site_dir / "morning-dataset.json").exists())
+            self.assertTrue(primary_report.exists())
+
+    def test_main_fails_closed_when_all_reports_missing(self) -> None:
+        import tempfile
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            missing_primary = temp_path / "data" / "generated" / "public" / "morning-dataset.json"
+            missing_persisted = temp_path / "data" / "generated" / "diagnostics" / "openai" / "optimized-morning-dataset.json"
+            site_dir = temp_path / "site-src" / "research" / "morning-dataset"
+
+            with patch.object(module, "REPORT", missing_primary), \
+                 patch.object(module, "PERSISTED_REPORT", missing_persisted), \
+                 patch.object(module, "SITE", site_dir):
+                with self.assertRaises(FileNotFoundError):
+                    module.main()
+
 
 if __name__ == "__main__":
     unittest.main()
