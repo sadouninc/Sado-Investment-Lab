@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Cross-Agent Loop Phase 1 Result Schema v1",
+  "description": "Provider-neutral result schema for benchmark case execution",
+  "version": "1",
+  "type": "object",
+  "required": ["case_id", "provider", "timestamp", "oracle_result", "metadata"],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "Provider-neutral case identity",
+      "enum": ["P1-R1", "P1-R2", "P2-R1", "P2-R2", "P3-R1", "P3-R2"],
+      "examples": ["P1-R1", "P2-R2"]
+    },
+    "provider": {
+      "type": "string",
+      "description": "AI provider/solver identity (not embedded in task/oracle)",
+      "examples": ["amazon-q", "github-copilot", "openai-gpt4", "anthropic-claude"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of execution start"
+    },
+    "oracle_result": {
+      "type": "string",
+      "description": "Deterministic oracle verdict",
+      "enum": [
+        "PASS",
+        "SYNTAX_FAIL",
+        "SEMANTIC_FAIL",
+        "SCOPE_FAIL",
+        "NO_OUTPUT",
+        "HARNESS_ERROR",
+        "CONTROL_PLANE_FAIL"
+      ]
+    },
+    "oracle_checks": {
+      "type": "object",
+      "description": "Detailed oracle check results",
+      "properties": {
+        "syntax_import_succeeds": {"type": "boolean"},
+        "function_signature_exists": {"type": "boolean"},
+        "valid_fixture_normalized_exactly": {"type": "boolean"},
+        "malformed_required_field_rejected": {"type": "boolean"},
+        "unknown_field_rejected": {"type": "boolean"},
+        "deterministic_repeated_run": {"type": "boolean"},
+        "only_allowed_path_changed": {"type": "boolean"}
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Execution metadata",
+      "required": ["duration_seconds", "prompt_pattern"],
+      "properties": {
+        "duration_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Total execution duration"
+        },
+        "prompt_pattern": {
+          "type": "string",
+          "enum": ["P1_NATURAL", "P2_STRUCTURED", "P3_CONTRACT"],
+          "description": "Which canonical semantic packet rendering was used"
+        },
+        "repetition": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2,
+          "description": "Repetition number (1 or 2)"
+        },
+        "solver_output": {
+          "type": "string",
+          "description": "Raw solver output/logs (optional)"
+        },
+        "git_diff_stat": {
+          "type": "object",
+          "description": "Git diff statistics for scope verification",
+          "properties": {
+            "files_changed": {"type": "integer"},
+            "insertions": {"type": "integer"},
+            "deletions": {"type": "integer"},
+            "modified_paths": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "error_details": {
+      "type": "string",
+      "description": "Human-readable error details if oracle_result is not PASS"
+    }
+  },
+  "additionalProperties": false
+}
