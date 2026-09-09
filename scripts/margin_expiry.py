@@ -1,59 +1,50 @@
-"""Margin Position Expiry Tracking - Domain Model (PR1)
+"""Margin Position Expiry Tracking - Domain Model (PR1).
 
 Pure deterministic expiry calculation for margin positions with repayment due dates.
-Does not make investment decisions (BUY/SELL/HOLD/現引/ロール).
+This module is INFORMATION_ONLY and never emits BUY/SELL/HOLD/現引/ロール decisions.
 
-Authority Boundary:
-- Provides INFORMATION_ONLY about margin expiry timeline
-- Does not recommend or execute trades
-- Distinguishes forced MARGIN_EXPIRY from discretionary SELL
-
-Fail-Closed Approach:
-- If exact due date exists → calculate deterministic days_to_due
-- If due date missing/ambiguous → return UNKNOWN status
-- open_date alone MUST NOT synthesize a six-month due date
-- Closed positions emit no active alert
+Fail-closed rules:
+- exact repayment_due_date -> deterministic days_to_due
+- missing due date -> UNKNOWN; open_date alone never synthesizes a due date
+- closed positions never emit active alerts
+- stale or unknown source freshness never qualifies for an active alert
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
 from enum import Enum
-from typing import Any
 
 
 class DueStatus(str, Enum):
-    """Status tier for margin position expiry proximity.
-    
-    These are display/alert tiers, NOT investment decision rules.
-    Thresholds are configurable and do not constitute trading signals.
-    """
-    OK = "OK"  # Not approaching expiry
-    NOTICE = "NOTICE"  # Approaching expiry (default: 15-30 days)
-    URGENT = "URGENT"  # Very close to expiry (default: 8-14 days)
-    DUE = "DUE"  # Expiry date has arrived (0 days)
-    OVERDUE = "OVERDUE"  # Past due date but position not yet closed
-    UNKNOWN = "UNKNOWN"  # Due date cannot be determined
+    OK = "OK"
+    NOTICE = "NOTICE"
+    URGENT = "URGENT"
+    DUE = "DUE"
+    OVERDUE = "OVERDUE"
+    UNKNOWN = "UNKNOWN"
+
+
+class SourceFreshness(str, Enum):
+    """Caller-provided source freshness; UNKNOWN is intentionally fail-closed."""
+
+    CURRENT = "CURRENT"
+    STALE = "STALE"
+    UNKNOWN = "UNKNOWN"
 
 
 class ExitReason(str, Enum):
-    """Exit reason classification for Trade Journal integration.
-    
-    Distinguishes forced margin expiry from discretionary user decisions.
-    """
-    MARGIN_EXPIRY = "MARGIN_EXPIRY"  # Forced settlement due to repayment deadline
-    DISCRETIONARY_SELL = "DISCRETIONARY_SELL"  # User-initiated exit (利確/損切り)
+    MARGIN_EXPIRY = "MARGIN_EXPIRY"
+    DISCRETIONARY_SELL = "DISCRETIONARY_SELL"
 
 
 class MarginTerm(str, Enum):
-    """Margin position term type."""
-    SIX_MONTH = "6M"  # 6か月信用
-    GENERAL = "GENERAL"  # 制度信用
-    UNKNOWN = "UNKNOWN"  # Cannot determine
+    SIX_MONTH = "6M"
+    GENERAL = "GENERAL"
+    UNKNOWN = "UNKNOWN"
 
 
 class DataSource(str, Enum):
-    """Source of margin position/expiry data."""
     SBI_CSV = "SBI_CSV"
     BROKER_EXPORT = "BROKER_EXPORT"
     MANUAL_VERIFIED = "MANUAL_VERIFIED"
@@ -62,98 +53,97 @@ class DataSource(str, Enum):
 
 @dataclass(frozen=True)
 class MarginExpiryInput:
-    """Input contract for margin expiry calculation."""
-    # Core date facts
-    repayment_due_date: date | None  # Exact due date if known
-    as_of: date  # Evaluation date (typically today)
-    
-    # Position context
-    open_date: date | None = None  # Position open date (does NOT infer due date)
-    is_closed: bool = False  # Whether position is already closed
-    
-    # Optional metadata
+    repayment_due_date: date | None
+    as_of: date
+    open_date: date | None = None
+    is_closed: bool = False
     position_id: str | None = None
     security_code: str | None = None
     margin_term: MarginTerm = MarginTerm.UNKNOWN
     source: DataSource = DataSource.UNKNOWN
     source_as_of: date | None = None
+    # Freshness is an explicit caller fact. This module does not invent broker
+    # freshness thresholds. Omitted/unknown freshness therefore fails closed.
+    source_freshness: SourceFreshness = SourceFreshness.UNKNOWN
 
 
 @dataclass(frozen=True)
 class MarginExpiryResult:
-    """Output contract for margin expiry evaluation."""
-    # Deterministic calculation results
-    days_to_due: int | None  # None if due date unknown
+    days_to_due: int | None
     due_status: DueStatus
-    
-    # Context echoed from input
     position_id: str | None
     security_code: str | None
     margin_term: MarginTerm
     source: DataSource
     source_as_of: date | None
-    
-    # Authority declaration
+    source_freshness: SourceFreshness
     authority: str = "INFORMATION_ONLY"
-    
-    # Expiry-specific flag for Trade Journal
-    is_active_alert: bool = False  # True only if position open and expiry near/due
+    is_active_alert: bool = False
+    # Explicit eligibility makes stale/unknown distinguishable from a normal
+    # non-alerting OK position without requiring callers to reverse-engineer it.
+    active_alert_eligible: bool = False
 
 
 @dataclass(frozen=True)
 class ExpiryThresholds:
-    """Configurable thresholds for status tiers.
-    
-    These are display/notification settings, NOT trading rules.
-    """
-    notice_days: int = 30  # Start showing notice
-    urgent_days: int = 7   # Escalate to urgent
-    
-    def __post_init__(self):
+    """Display/notification thresholds, not trading rules."""
+
+    notice_days: int = 30
+    urgent_days: int = 7
+
+    def __post_init__(self) -> None:
         if self.notice_days < self.urgent_days:
-            raise ValueError(f"notice_days ({self.notice_days}) must be >= urgent_days ({self.urgent_days})")
+            raise ValueError(
+                f"notice_days ({self.notice_days}) must be >= urgent_days ({self.urgent_days})"
+            )
         if self.urgent_days < 0:
             raise ValueError(f"urgent_days ({self.urgent_days}) must be >= 0")
 
 
+def _result(
+    input_data: MarginExpiryInput,
+    *,
+    days_to_due: int | None,
+    due_status: DueStatus,
+    active_alert_eligible: bool,
+    is_active_alert: bool,
+) -> MarginExpiryResult:
+    return MarginExpiryResult(
+        days_to_due=days_to_due,
+        due_status=due_status,
+        position_id=input_data.position_id,
+        security_code=input_data.security_code,
+        margin_term=input_data.margin_term,
+        source=input_data.source,
+        source_as_of=input_data.source_as_of,
+        source_freshness=input_data.source_freshness,
+        active_alert_eligible=active_alert_eligible,
+        is_active_alert=is_active_alert,
+    )
+
+
 def calculate_expiry_status(
     input_data: MarginExpiryInput,
-    thresholds: ExpiryThresholds | None = None
+    thresholds: ExpiryThresholds | None = None,
 ) -> MarginExpiryResult:
-    """Calculate margin position expiry status deterministically.
-    
-    Fail-closed approach:
-    - If repayment_due_date exists → calculate exact days_to_due
-    - If repayment_due_date is None → return UNKNOWN (no inference)
-    - If is_closed=True → is_active_alert=False
-    
-    Args:
-        input_data: Margin position with due date and context
-        thresholds: Optional custom thresholds (defaults to standard)
-    
-    Returns:
-        MarginExpiryResult with deterministic status
+    """Calculate expiry proximity while failing closed on source freshness.
+
+    `due_status` remains a deterministic statement about the supplied due date.
+    Active-alert eligibility is separate: only an open position whose caller
+    explicitly marks the source CURRENT may produce an active alert.
     """
-    if thresholds is None:
-        thresholds = ExpiryThresholds()
-    
-    # If no due date, cannot calculate → UNKNOWN
+    thresholds = thresholds or ExpiryThresholds()
+
     if input_data.repayment_due_date is None:
-        return MarginExpiryResult(
+        return _result(
+            input_data,
             days_to_due=None,
             due_status=DueStatus.UNKNOWN,
-            position_id=input_data.position_id,
-            security_code=input_data.security_code,
-            margin_term=input_data.margin_term,
-            source=input_data.source,
-            source_as_of=input_data.source_as_of,
-            is_active_alert=False,  # Unknown = no alert
+            active_alert_eligible=False,
+            is_active_alert=False,
         )
-    
-    # Calculate deterministic days to due
+
     days_to_due = (input_data.repayment_due_date - input_data.as_of).days
-    
-    # Determine status based on days remaining
     if days_to_due < 0:
         due_status = DueStatus.OVERDUE
     elif days_to_due == 0:
@@ -164,24 +154,34 @@ def calculate_expiry_status(
         due_status = DueStatus.NOTICE
     else:
         due_status = DueStatus.OK
-    
-    # Active alert only if position is open AND status requires attention
-    # (Closed positions emit no active alert)
-    is_active_alert = (
+
+    active_alert_eligible = (
         not input_data.is_closed
-        and due_status in {DueStatus.NOTICE, DueStatus.URGENT, DueStatus.DUE, DueStatus.OVERDUE}
+        and input_data.source_freshness is SourceFreshness.CURRENT
     )
-    
-    return MarginExpiryResult(
+    is_active_alert = (
+        active_alert_eligible
+        and due_status
+        in {DueStatus.NOTICE, DueStatus.URGENT, DueStatus.DUE, DueStatus.OVERDUE}
+    )
+
+    return _result(
+        input_data,
         days_to_due=days_to_due,
         due_status=due_status,
-        position_id=input_data.position_id,
-        security_code=input_data.security_code,
-        margin_term=input_data.margin_term,
-        source=input_data.source,
-        source_as_of=input_data.source_as_of,
+        active_alert_eligible=active_alert_eligible,
         is_active_alert=is_active_alert,
     )
 
 
-__all__ = ["DueStatus", "ExitReason", "MarginTerm", "DataSource", "MarginExpiryInput", "MarginExpiryResult", "ExpiryThresholds", "calculate_expiry_status"]
+__all__ = [
+    "DueStatus",
+    "SourceFreshness",
+    "ExitReason",
+    "MarginTerm",
+    "DataSource",
+    "MarginExpiryInput",
+    "MarginExpiryResult",
+    "ExpiryThresholds",
+    "calculate_expiry_status",
+]
