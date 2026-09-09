@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic fail-closed guard for the Jules scheduled dispatcher.
-
-The guard intentionally does not execute Jules itself. It validates the Owner-controlled
-Issue #685 control record and emits a small machine-readable decision for the workflow.
-"""
+"""Deterministic fail-closed guard for the Jules scheduled dispatcher."""
 
 from __future__ import annotations
 
@@ -12,10 +8,13 @@ import json
 import re
 from dataclasses import dataclass
 
+from scripts.work_contract_validator import extract_work_contract, validate_contract
+
 
 ALLOWED_READY_STATES = {"READY_FOR_SCHEDULED_RUN"}
 STOP_STATES = {"STOP", "PAUSE", "HOLD", "NO-OP"}
 FORBIDDEN_ISSUE = 79
+READY_LABELS = {"status:ready", "work:ready"}
 
 
 @dataclass(frozen=True)
@@ -26,7 +25,6 @@ class DispatchControl:
 
 
 def _section_value(body: str, heading: str) -> str | None:
-    """Read the first value below an exact level-2 heading, tolerating whitespace/CRLF only."""
     pattern = rf"^##[ \t]+{re.escape(heading)}[ \t]*\r?\n[ \t]*([^\r\n]+)"
     match = re.search(pattern, body, flags=re.MULTILINE)
     return match.group(1).strip() if match else None
@@ -41,6 +39,24 @@ def parse_control(body: str) -> DispatchControl:
         run_token=token_match.group(1) if token_match else None,
         target_issue=int(target_match.group(1)) if target_match else None,
     )
+
+
+def target_is_ready(target_json: dict) -> bool:
+    """Use only current canonical readiness evidence; historical comments are never authority."""
+    labels = {
+        (label.get("name") or "").strip()
+        for label in target_json.get("labels", [])
+        if isinstance(label, dict)
+    }
+    if labels & READY_LABELS:
+        return True
+
+    body = target_json.get("body") or ""
+    try:
+        contract = extract_work_contract(body)
+        return validate_contract(contract).executable
+    except (TypeError, ValueError):
+        return False
 
 
 def decide(
@@ -72,7 +88,6 @@ def decide(
 
 
 def build_prompt(control_body: str, target_body: str) -> str:
-    """Return a bounded prompt sourced only from Owner-controlled GitHub SSoT."""
     return (
         "You are the Jules implementation executor for Sado Investment Lab.\n"
         "GitHub is the SSoT. Execute exactly one task and never substitute another.\n"
@@ -103,9 +118,7 @@ def main() -> int:
     control_body = control_json.get("body") or ""
     target_body = target_json.get("body") or ""
     control = parse_control(control_body)
-    target_ready = "READY_FOR_IMPLEMENTATION" in target_body or "READY_FOR_IMPLEMENTATION" in json.dumps(
-        target_json.get("comments", []), ensure_ascii=False
-    ) or any((label.get("name") or "") in {"status:ready", "work:ready"} for label in target_json.get("labels", []))
+    target_ready = target_is_ready(target_json)
 
     result = decide(
         control,
@@ -116,11 +129,7 @@ def main() -> int:
         last_consumed_run_token=args.last_consumed_run_token,
     )
 
-    output = {
-        "result": result,
-        "run_token": control.run_token,
-        "target_issue": control.target_issue,
-    }
+    output = {"result": result, "run_token": control.run_token, "target_issue": control.target_issue}
     if result == "DISPATCH_ALLOWED":
         output["prompt"] = build_prompt(control_body, target_body)
     print(json.dumps(output, ensure_ascii=False))
