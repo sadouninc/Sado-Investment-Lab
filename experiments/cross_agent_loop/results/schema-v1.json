@@ -9,13 +9,11 @@
     "case_id": {
       "type": "string",
       "description": "Provider-neutral case identity",
-      "enum": ["P1-R1", "P1-R2", "P2-R1", "P2-R2", "P3-R1", "P3-R2"],
-      "examples": ["P1-R1", "P2-R2"]
+      "enum": ["P1-R1", "P1-R2", "P2-R1", "P2-R2", "P3-R1", "P3-R2"]
     },
     "provider": {
       "type": "string",
-      "description": "AI provider/solver identity (not embedded in task/oracle)",
-      "examples": ["amazon-q", "github-copilot", "openai-gpt4", "anthropic-claude"]
+      "description": "AI provider/solver identity; never embedded in case truth"
     },
     "timestamp": {
       "type": "string",
@@ -24,20 +22,29 @@
     },
     "oracle_result": {
       "type": "string",
-      "description": "Deterministic oracle verdict",
+      "description": "Recorded terminal outcome. TIMEOUT is an execution lifecycle outcome and is not automatically a provider failure.",
       "enum": [
         "PASS",
         "SYNTAX_FAIL",
         "SEMANTIC_FAIL",
         "SCOPE_FAIL",
         "NO_OUTPUT",
+        "TIMEOUT",
         "HARNESS_ERROR",
         "CONTROL_PLANE_FAIL"
       ]
     },
+    "result_state": {
+      "type": "string",
+      "enum": ["RESULT_RECORDED"],
+      "description": "All terminal outcomes are persisted through the same provider-neutral result state."
+    },
+    "provider_failure_eligible": {
+      "type": "boolean",
+      "description": "Whether this result may be counted in provider capability scoring after classification. HARNESS_ERROR and CONTROL_PLANE_FAIL must be false; TIMEOUT requires caller classification and defaults false in the harness simulation."
+    },
     "oracle_checks": {
       "type": "object",
-      "description": "Detailed oracle check results",
       "properties": {
         "syntax_import_succeeds": {"type": "boolean"},
         "function_signature_exists": {"type": "boolean"},
@@ -50,48 +57,27 @@
     },
     "metadata": {
       "type": "object",
-      "description": "Execution metadata",
       "required": ["duration_seconds", "prompt_pattern"],
       "properties": {
-        "duration_seconds": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Total execution duration"
-        },
+        "duration_seconds": {"type": "number", "minimum": 0},
         "prompt_pattern": {
           "type": "string",
-          "enum": ["P1_NATURAL", "P2_STRUCTURED", "P3_CONTRACT"],
-          "description": "Which canonical semantic packet rendering was used"
+          "enum": ["P1_NATURAL", "P2_STRUCTURED", "P3_CONTRACT"]
         },
-        "repetition": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 2,
-          "description": "Repetition number (1 or 2)"
-        },
-        "solver_output": {
-          "type": "string",
-          "description": "Raw solver output/logs (optional)"
-        },
+        "repetition": {"type": "integer", "minimum": 1, "maximum": 2},
+        "solver_output": {"type": "string"},
         "git_diff_stat": {
           "type": "object",
-          "description": "Git diff statistics for scope verification",
           "properties": {
             "files_changed": {"type": "integer"},
             "insertions": {"type": "integer"},
             "deletions": {"type": "integer"},
-            "modified_paths": {
-              "type": "array",
-              "items": {"type": "string"}
-            }
+            "modified_paths": {"type": "array", "items": {"type": "string"}}
           }
         }
       }
     },
-    "error_details": {
-      "type": "string",
-      "description": "Human-readable error details if oracle_result is not PASS"
-    }
+    "error_details": {"type": "string"}
   },
   "additionalProperties": false
 }
