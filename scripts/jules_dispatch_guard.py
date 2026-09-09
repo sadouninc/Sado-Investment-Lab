@@ -55,7 +55,9 @@ def target_is_ready(target_json: dict) -> bool:
     try:
         contract = extract_work_contract(body)
         return validate_contract(contract).executable
-    except (TypeError, ValueError):
+    except Exception:
+        # Readiness parsing/validation is a trust boundary: any unexpected
+        # parser/schema failure must deny dispatch rather than crash open.
         return False
 
 
