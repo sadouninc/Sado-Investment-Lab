@@ -85,11 +85,6 @@ jobs:
       - name: Generate Investor DNA v2 report
         run: python3 scripts/investor_dna_v2.py
 
-      - name: Generate Morning Dataset
-        run: |
-          python3 scripts/generate_morning_dataset.py \
-            --investor-dna data/generated/public/investor-dna.json
-
       - name: Test Trade Journal mapping
         run: python3 -m unittest discover -s .github/pages -p "test_*.py"
 
