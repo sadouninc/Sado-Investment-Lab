@@ -1,0 +1,62 @@
+{
+  "description": "Test fixture for Cross-Agent Loop Phase 1 Task v0",
+  "version": "1",
+  "test_cases": {
+    "valid_complete": [
+      {
+        "id": "rec001",
+        "name": "Alpha",
+        "value": 100,
+        "status": "pending"
+      }
+    ],
+    "valid_minimal": [
+      {
+        "id": "rec002",
+        "name": "BETA"
+      }
+    ],
+    "valid_mixed": [
+      {
+        "id": "rec003",
+        "name": "Gamma",
+        "value": 50
+      },
+      {
+        "id": "rec004",
+        "name": "DELTA"
+      },
+      {
+        "id": 5,
+        "name": "Epsilon",
+        "status": "inactive"
+      }
+    ],
+    "invalid_missing_id": [
+      {
+        "name": "NoId",
+        "value": 10
+      }
+    ],
+    "invalid_missing_name": [
+      {
+        "id": "rec005",
+        "value": 20
+      }
+    ],
+    "invalid_unknown_field": [
+      {
+        "id": "rec006",
+        "name": "UnknownField",
+        "value": 30,
+        "unknown_extra": "should reject"
+      }
+    ],
+    "mixed_valid_invalid": [
+      {"id": "rec007", "name": "Valid1"},
+      {"name": "Invalid_NoId"},
+      {"id": "rec008", "name": "Valid2", "value": 99},
+      {"id": "rec009", "name": "Invalid", "unexpected": true}
+    ]
+  }
+}
