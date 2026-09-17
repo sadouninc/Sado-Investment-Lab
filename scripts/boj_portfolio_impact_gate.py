@@ -116,13 +116,17 @@ def load_canonical_holdings(path: Path | str | None = None) -> dict[str, Any]:
 
 
 def evaluate_boj_signal(signal_input: dict[str, Any] | str | Path | None = None) -> dict[str, Any]:
-    """Evaluate BOJ signal input and enforce probability-only capping at ORANGE.
+    """Normalize legacy BOJ signal input and delegate to canonical classifier.
 
-    Fail-closed rule: Missing or unparseable signal, or unknown boj_state, remains UNKNOWN.
-    UNKNOWN != PASS/ORANGE.
+    This function acts as a legacy input adapter:
+    - Loads signal from file/dict/default ledger
+    - Normalizes legacy field names (boj_state/signal_state -> raw_requested_state)
+    - Delegates policy classification to canonical classify_boj_signal
+    - Adapts canonical output shape to legacy gate output format
+
+    All classification logic resides in the canonical classifier.
     """
     if signal_input is None:
-        # Check if canonical ledger file exists
         ledger_file = Path("06_Research/boj_evidence/boj_observation_ledger_512.jsonl")
         if ledger_file.is_file():
             try:
@@ -172,55 +176,25 @@ def evaluate_boj_signal(signal_input: dict[str, Any] | str | Path | None = None)
             "reason": f"unsupported signal input type: {type(signal_input)}",
         }
 
-    raw_state_str = signal_data.get("boj_state") or signal_data.get("signal_state")
-    if not raw_state_str or not isinstance(raw_state_str, str):
-        return {
-            "effective_state": "UNKNOWN",
-            "raw_state": "UNKNOWN",
-            "primary_evidence_present": False,
-            "probability_only": True,
-            "reason": "Missing or non-string boj_state in signal payload; failing closed to UNKNOWN.",
-        }
+    # Normalize legacy field names: boj_state / signal_state -> raw_requested_state
+    normalized_input = dict(signal_data)
+    if "raw_requested_state" not in normalized_input:
+        legacy_state = normalized_input.get("boj_state") or normalized_input.get("signal_state")
+        if legacy_state:
+            normalized_input["raw_requested_state"] = legacy_state
 
-    raw_state = raw_state_str.strip().upper()
-    if raw_state not in VALID_SIGNAL_STATES:
-        return {
-            "effective_state": "UNKNOWN",
-            "raw_state": raw_state,
-            "primary_evidence_present": False,
-            "probability_only": True,
-            "reason": f"Unknown boj_state '{raw_state}'; failing closed to UNKNOWN.",
-        }
+    # Delegate to canonical classifier
+    canonical_result = classify_boj_signal(normalized_input)
 
-    primary_evidence_present = bool(
-        signal_data.get("primary_evidence_present")
-        or signal_data.get("primary_evidence")
-        or signal_data.get("has_primary_evidence")
-        or (signal_data.get("interpretation") and isinstance(signal_data["interpretation"], dict) and signal_data["interpretation"].get("red_gate") == "MET")
-    )
-
-    probability_only = bool(
-        signal_data.get("probability_only")
-        or signal_data.get("market_probability_only")
-        or not primary_evidence_present
-    )
-
-    reason = str(signal_data.get("reason") or signal_data.get("policy_message") or "")
-
-    effective_state = raw_state
-    if raw_state == "RED" and probability_only:
-        effective_state = "ORANGE"
-        reason = (
-            f"[CAPPED_AT_ORANGE] Raw signal requested RED, but market-implied probability alone "
-            f"cannot produce RED without primary BOJ evidence. {reason}".strip()
-        )
+    # Adapt canonical output to legacy gate format
+    result_dict = canonical_result.to_dict()
 
     return {
-        "effective_state": effective_state,
-        "raw_state": raw_state,
-        "primary_evidence_present": primary_evidence_present,
-        "probability_only": probability_only,
-        "reason": reason if reason else f"Evaluated state {effective_state}",
+        "effective_state": result_dict["effective_state"],
+        "raw_state": result_dict["raw_requested_state"],
+        "primary_evidence_present": result_dict["primary_evidence_present"],
+        "probability_only": result_dict["probability_only"],
+        "reason": result_dict["reason"],
     }
 
 

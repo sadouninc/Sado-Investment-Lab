@@ -28,16 +28,22 @@ def test_market_probability_alone_capped_at_orange() -> None:
 
 
 def test_primary_evidence_allows_red() -> None:
+    """Valid primary BOJ evidence with tightening indication allows RED classification."""
     signal_data = {
         "boj_state": "RED",
-        "primary_evidence_present": True,
-        "probability_only": False,
-        "reason": "BOJ Governor explicit hawkish press conference statement.",
+        "primary_evidence": {
+            "primary_evidence_present": True,
+            "evidence_status": "VALID",
+            "indicates_near_term_tightening": True,
+            "evidence_refs": [{"ref_id": "gov-1", "source_title": "Governor Press Conference", "evidence_type": "GOVERNOR_SPEECH"}],
+        },
+        "market_factors": {"market_implied_probability": 0.75},
     }
     eval_result = evaluate_boj_signal(signal_data)
     assert eval_result["raw_state"] == "RED"
     assert eval_result["effective_state"] == "RED"
     assert eval_result["primary_evidence_present"] is True
+    assert eval_result["probability_only"] is False
 
 
 def test_missing_or_invalid_signal_fails_closed_to_unknown() -> None:
