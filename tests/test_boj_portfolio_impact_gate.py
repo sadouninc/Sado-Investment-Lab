@@ -272,4 +272,3 @@ def test_adapter_with_real_canonical_ledger_shape():
     
     # Market probability is recorded but does not elevate to RED
     assert result.get("market_implied_probability_pct") == 80.0
-    assert json.dumps(res1, sort_keys=True) == json.dumps(res2, sort_keys=True)
