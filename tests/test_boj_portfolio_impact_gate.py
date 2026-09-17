@@ -326,5 +326,5 @@ def test_adapter_control_no_delta_no_unrelated_factor_manufactured():
     
     # Without policy_delta strengthening signal, sub-50% probability should not maintain ORANGE
     # This verifies no unrelated factor is manufactured
-    assert result["effective_state"] in {"GREEN", "ORANGE"}  # Depends on canonical classifier logic
+    assert result["effective_state"] == "GREEN"
     assert result.get("market_implied_probability_pct") == 35.0
