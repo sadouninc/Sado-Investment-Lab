@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Sequence
+from typing import Any
 
 
 class BOJSignalState(str, Enum):
@@ -151,7 +151,14 @@ def _parse_market_factors_input(data: Any) -> BOJMarketFactorsInput:
         return BOJMarketFactorsInput()
 
     prob = data.get("market_implied_probability")
-    prob_float = float(prob) if prob is not None and isinstance(prob, (int, float, str)) and str(prob).replace(".", "", 1).isdigit() else None
+    prob_float: float | None = None
+    if prob is not None and not isinstance(prob, (bool, list, dict, set, tuple)):
+        try:
+            val = float(prob)
+            if not (val != val):  # exclude NaN
+                prob_float = val
+        except (ValueError, TypeError):
+            prob_float = None
 
     return BOJMarketFactorsInput(
         market_implied_probability=prob_float,
@@ -232,7 +239,7 @@ def classify_boj_signal(signal_input: BOJSignalInput | dict[str, Any] | None) ->
     ]
     multi_factor_count = sum(1 for s in factor_signals if s)
     prob_val = market_fact.market_implied_probability
-    has_high_market_prob = (prob_val is not None and prob_val >= 0.5) or market_fact.market_prob_rising or market_fact.market_probability_only
+    has_high_market_prob = (prob_val is not None and prob_val >= 0.5) or market_fact.market_prob_rising
 
     probability_only = (
         market_fact.market_probability_only

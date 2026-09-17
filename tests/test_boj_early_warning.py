@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 from src.sado_investment_lab.domain.boj_early_warning import (
     BOJEvidenceInput,
     BOJEvidenceRef,
@@ -10,6 +9,7 @@ from src.sado_investment_lab.domain.boj_early_warning import (
     BOJSignalState,
     EvidenceStatus,
     EvidenceType,
+    _parse_market_factors_input,
     classify_boj_signal,
 )
 
@@ -227,3 +227,42 @@ def test_output_contains_provenance_and_no_trading_recommendation():
     # Verify no trading actions or recommendations in keys
     forbidden_keys = {"buy", "sell", "hold", "action", "recommendation", "portfolio_action"}
     assert not (forbidden_keys & set(data_dict.keys()))
+
+
+def test_market_probability_only_flag_alone_does_not_elevate_to_orange():
+    """market_probability_only=True with no/low probability and no other risk factors does not elevate to ORANGE."""
+    input_data = BOJSignalInput(
+        primary_evidence=BOJEvidenceInput(
+            primary_evidence_present=False,
+            evidence_status=EvidenceStatus.MISSING,
+        ),
+        market_factors=BOJMarketFactorsInput(
+            market_implied_probability=0.2,
+            market_probability_only=True,
+            inflation_upside=False,
+            hawkish_breadth_expanding=False,
+            market_prob_rising=False,
+            macro_pressures=False,
+        ),
+    )
+    result = classify_boj_signal(input_data)
+    assert result.effective_state == BOJSignalState.GREEN.value
+
+
+def test_parse_market_factors_robustness():
+    """Test robust parsing of market_implied_probability strings (malformed, signed, scientific)."""
+    # Signed float string
+    mf1 = _parse_market_factors_input({"market_implied_probability": "+0.8"})
+    assert mf1.market_implied_probability == 0.8
+
+    # Scientific notation string
+    mf2 = _parse_market_factors_input({"market_implied_probability": "1e-2"})
+    assert mf2.market_implied_probability == 0.01
+
+    # Malformed text string
+    mf3 = _parse_market_factors_input({"market_implied_probability": "invalid_number"})
+    assert mf3.market_implied_probability is None
+
+    # None / unparseable types
+    mf4 = _parse_market_factors_input({"market_implied_probability": ["list"]})
+    assert mf4.market_implied_probability is None
