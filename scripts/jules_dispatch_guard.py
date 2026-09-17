@@ -8,7 +8,15 @@ import json
 import re
 from dataclasses import dataclass
 
-from scripts.work_contract_validator import extract_work_contract, validate_contract
+try:
+    from scripts.work_contract_validator import extract_work_contract, validate_contract
+except ModuleNotFoundError as exc:
+    # `python scripts/jules_dispatch_guard.py` puts scripts/ (not the repo root)
+    # on sys.path. Support that canonical workflow invocation without masking
+    # unrelated import failures.
+    if exc.name != "scripts":
+        raise
+    from work_contract_validator import extract_work_contract, validate_contract
 
 
 ALLOWED_READY_STATES = {"READY_FOR_SCHEDULED_RUN"}
