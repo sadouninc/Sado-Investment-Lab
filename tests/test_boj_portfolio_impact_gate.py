@@ -234,4 +234,42 @@ def test_deterministic_identical_input_identical_output() -> None:
     res2 = evaluate_portfolio_boj_impact(holdings_input=holdings, boj_signal_input=signal)
 
     assert res1 == res2
+
+
+def test_adapter_with_real_canonical_ledger_shape():
+    """
+    Adapter-level regression: evaluate_boj_signal with real canonical ledger shape.
+    
+    Real canonical ledger identified by Luna review 5238569928:
+    - boj_state=ORANGE
+    - policy_delta=STRENGTHENS_ORANGE  
+    - policy_pricing.next_meeting_hike_probability_pct=80.0
+    - interpretation.red_gate=NOT_MET_PRIMARY_EVIDENCE_REQUIRED
+    
+    Expected: effective_state=ORANGE
+    Market probability alone must NOT produce RED without valid primary evidence.
+    """
+    real_canonical_signal = {
+        "boj_state": "ORANGE",
+        "policy_delta": "STRENGTHENS_ORANGE",
+        "policy_pricing": {
+            "next_meeting_hike_probability_pct": 80.0
+        },
+        "interpretation": {
+            "red_gate": "NOT_MET_PRIMARY_EVIDENCE_REQUIRED"
+        }
+    }
+    
+    result = evaluate_boj_signal(real_canonical_signal)
+    
+    # Core assertions: market probability alone cannot produce RED
+    assert result is not None
+    assert "effective_state" in result
+    assert result["effective_state"] == "ORANGE"
+    
+    # Additional guardrails
+    assert result.get("primary_evidence_present") is not True  # No valid primary evidence
+    
+    # Market probability is recorded but does not elevate to RED
+    assert result.get("market_implied_probability_pct") == 80.0
     assert json.dumps(res1, sort_keys=True) == json.dumps(res2, sort_keys=True)

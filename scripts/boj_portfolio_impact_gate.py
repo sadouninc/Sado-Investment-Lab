@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from src.sado_investment_lab.domain.boj_early_warning import classify_boj_signal
 CANONICAL_HOLDINGS_PATH = Path("data/portfolio/current.json")
 CANONICAL_RESEARCH_DIR = Path("06_Research/boj_evidence")
 
