@@ -186,6 +186,18 @@ def evaluate_boj_signal(signal_input: dict[str, Any] | str | Path | None = None)
     
     # Extract market probability from canonical ledger shape if present
     # Real canonical ledger format: policy_pricing.next_meeting_hike_probability_pct
+    # Normalize policy_delta to market_prob_rising
+    policy_delta = signal_data.get("policy_delta")
+    if policy_delta == "STRENGTHENS_ORANGE":
+        # Initialize market_factors if needed
+        if "market_factors" not in normalized_input:
+            normalized_input["market_factors"] = {}
+        if not isinstance(normalized_input["market_factors"], dict):
+            normalized_input["market_factors"] = {}
+        # Set market_prob_rising only if not already present
+        if "market_prob_rising" not in normalized_input["market_factors"]:
+            normalized_input["market_factors"]["market_prob_rising"] = True
+    
     policy_pricing = signal_data.get("policy_pricing")
     if isinstance(policy_pricing, dict):
         prob_pct = policy_pricing.get("next_meeting_hike_probability_pct")
