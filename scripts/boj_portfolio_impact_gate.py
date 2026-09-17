@@ -183,6 +183,23 @@ def evaluate_boj_signal(signal_input: dict[str, Any] | str | Path | None = None)
         legacy_state = normalized_input.get("boj_state") or normalized_input.get("signal_state")
         if legacy_state:
             normalized_input["raw_requested_state"] = legacy_state
+    
+    # Extract market probability from canonical ledger shape if present
+    # Real canonical ledger format: policy_pricing.next_meeting_hike_probability_pct
+    policy_pricing = signal_data.get("policy_pricing")
+    if isinstance(policy_pricing, dict):
+        prob_pct = policy_pricing.get("next_meeting_hike_probability_pct")
+        if prob_pct is not None and isinstance(prob_pct, (int, float)):
+            # Convert percentage to decimal for canonical classifier (80.0 -> 0.80)
+            prob_decimal = prob_pct / 100.0
+            # Inject into market_factors for canonical classifier
+            if "market_factors" not in normalized_input:
+                normalized_input["market_factors"] = {}
+            if not isinstance(normalized_input["market_factors"], dict):
+                normalized_input["market_factors"] = {}
+            # Preserve any existing market_implied_probability; only set if missing
+            if "market_implied_probability" not in normalized_input["market_factors"]:
+                normalized_input["market_factors"]["market_implied_probability"] = prob_decimal
 
     # Delegate to canonical classifier
     canonical_result = classify_boj_signal(normalized_input)
@@ -190,12 +207,20 @@ def evaluate_boj_signal(signal_input: dict[str, Any] | str | Path | None = None)
     # Adapt canonical output to legacy gate format
     result_dict = canonical_result.to_dict()
 
+    # Extract market probability from canonical provenance for adapter output
+    market_implied_prob_decimal = result_dict.get("provenance", {}).get("market_implied_probability")
+    market_implied_prob_pct = None
+    if market_implied_prob_decimal is not None and isinstance(market_implied_prob_decimal, (int, float)):
+        # Convert decimal back to percentage (0.80 -> 80.0)
+        market_implied_prob_pct = market_implied_prob_decimal * 100.0
+
     return {
         "effective_state": result_dict["effective_state"],
         "raw_state": result_dict["raw_requested_state"],
         "primary_evidence_present": result_dict["primary_evidence_present"],
         "probability_only": result_dict["probability_only"],
         "reason": result_dict["reason"],
+        "market_implied_probability_pct": market_implied_prob_pct,
     }
 
 
