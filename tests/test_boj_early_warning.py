@@ -12,6 +12,7 @@ from src.sado_investment_lab.domain.boj_early_warning import (
     _parse_market_factors_input,
     classify_boj_signal,
 )
+from scripts.boj_portfolio_impact_gate import evaluate_boj_signal
 
 
 def test_market_implied_probability_alone_never_classifies_red():
@@ -251,18 +252,35 @@ def test_market_probability_only_flag_alone_does_not_elevate_to_orange():
 
 def test_parse_market_factors_robustness():
     """Test robust parsing of market_implied_probability strings (malformed, signed, scientific)."""
-    # Signed float string
     mf1 = _parse_market_factors_input({"market_implied_probability": "+0.8"})
     assert mf1.market_implied_probability == 0.8
 
-    # Scientific notation string
     mf2 = _parse_market_factors_input({"market_implied_probability": "1e-2"})
     assert mf2.market_implied_probability == 0.01
 
-    # Malformed text string
     mf3 = _parse_market_factors_input({"market_implied_probability": "invalid_number"})
     assert mf3.market_implied_probability is None
 
-    # None / unparseable types
     mf4 = _parse_market_factors_input({"market_implied_probability": ["list"]})
     assert mf4.market_implied_probability is None
+
+
+def test_portfolio_impact_gate_delegates_to_canonical_domain_classifier():
+    """Test that scripts/boj_portfolio_impact_gate.py::evaluate_boj_signal delegates to classify_boj_signal."""
+    dict_input = {
+        "signal_state": "RED",
+        "primary_evidence_present": False,
+        "market_probability_only": True,
+        "market_factors": {
+            "inflation_upside": True,
+            "hawkish_breadth_expanding": True,
+        },
+    }
+
+    gate_eval = evaluate_boj_signal(dict_input)
+    domain_eval = classify_boj_signal(dict_input)
+
+    assert gate_eval["effective_state"] == domain_eval.effective_state
+    assert gate_eval["effective_state"] == "ORANGE"  # Capped at ORANGE due to missing primary evidence
+    assert gate_eval["probability_only"] == domain_eval.probability_only
+    assert gate_eval["reason"] == domain_eval.reason

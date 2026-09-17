@@ -114,7 +114,12 @@ def _parse_evidence_input(data: Any) -> BOJEvidenceInput:
     if not isinstance(data, dict):
         return BOJEvidenceInput()
 
-    refs_data = data.get("evidence_refs", [])
+    if "primary_evidence" in data and isinstance(data["primary_evidence"], dict):
+        sub_data = data["primary_evidence"]
+    else:
+        sub_data = data
+
+    refs_data = sub_data.get("evidence_refs", [])
     parsed_refs: list[BOJEvidenceRef] = []
     if isinstance(refs_data, list):
         for ref in refs_data:
@@ -131,18 +136,42 @@ def _parse_evidence_input(data: Any) -> BOJEvidenceInput:
                     )
                 )
 
-    status_str = _normalize_status(data.get("evidence_status") or data.get("status"))
-    ev_type_str = _normalize_type(data.get("evidence_type"))
+    present = bool(
+        sub_data.get("primary_evidence_present")
+        or sub_data.get("present")
+        or sub_data.get("has_primary_evidence")
+        or data.get("primary_evidence_present")
+        or data.get("has_primary_evidence")
+    )
+
+    status_raw = sub_data.get("evidence_status") or sub_data.get("status") or data.get("evidence_status") or data.get("status")
+    if not status_raw:
+        status_str = EvidenceStatus.VALID.value if present else EvidenceStatus.MISSING.value
+    else:
+        status_str = _normalize_status(status_raw)
+
+    ev_type_str = _normalize_type(sub_data.get("evidence_type") or data.get("evidence_type"))
+
+    prob_only = bool(data.get("market_probability_only") or data.get("probability_only") or sub_data.get("probability_only"))
+    raw_req = str(data.get("boj_state") or data.get("raw_requested_state") or data.get("signal_state") or "").strip().upper()
+
+    indicates_tightening = bool(
+        sub_data.get("indicates_near_term_tightening")
+        or data.get("indicates_near_term_tightening")
+        or (raw_req == "RED" and present and not prob_only)
+    )
+
+    actual_hike = bool(sub_data.get("actual_rate_hike_decision") or data.get("actual_rate_hike_decision"))
 
     return BOJEvidenceInput(
-        primary_evidence_present=bool(data.get("primary_evidence_present") or data.get("present")),
+        primary_evidence_present=present,
         evidence_status=status_str,
         evidence_type=ev_type_str,
-        indicates_near_term_tightening=bool(data.get("indicates_near_term_tightening")),
-        actual_rate_hike_decision=bool(data.get("actual_rate_hike_decision")),
+        indicates_near_term_tightening=indicates_tightening,
+        actual_rate_hike_decision=actual_hike,
         evidence_refs=parsed_refs,
-        is_stale=bool(data.get("is_stale")),
-        notes=str(data.get("notes") or ""),
+        is_stale=bool(sub_data.get("is_stale") or data.get("is_stale")),
+        notes=str(sub_data.get("notes") or data.get("notes") or ""),
     )
 
 
@@ -150,7 +179,12 @@ def _parse_market_factors_input(data: Any) -> BOJMarketFactorsInput:
     if not isinstance(data, dict):
         return BOJMarketFactorsInput()
 
-    prob = data.get("market_implied_probability")
+    if "market_factors" in data and isinstance(data["market_factors"], dict):
+        sub_data = data["market_factors"]
+    else:
+        sub_data = data
+
+    prob = sub_data.get("market_implied_probability") if "market_implied_probability" in sub_data else data.get("market_implied_probability")
     prob_float: float | None = None
     if prob is not None and not isinstance(prob, (bool, list, dict, set, tuple)):
         try:
@@ -160,13 +194,20 @@ def _parse_market_factors_input(data: Any) -> BOJMarketFactorsInput:
         except (ValueError, TypeError):
             prob_float = None
 
+    prob_only_explicit = bool(
+        "market_probability_only" in data
+        or "probability_only" in data
+        or "probability_only" in sub_data
+    )
+    prob_only_val = bool(data.get("market_probability_only") or data.get("probability_only") or sub_data.get("probability_only"))
+
     return BOJMarketFactorsInput(
         market_implied_probability=prob_float,
-        market_probability_only=bool(data.get("market_probability_only") or data.get("probability_only")),
-        inflation_upside=bool(data.get("inflation_upside")),
-        hawkish_breadth_expanding=bool(data.get("hawkish_breadth_expanding")),
-        market_prob_rising=bool(data.get("market_prob_rising")),
-        macro_pressures=bool(data.get("macro_pressures")),
+        market_probability_only=prob_only_val if prob_only_explicit else False,
+        inflation_upside=bool(sub_data.get("inflation_upside") or data.get("inflation_upside")),
+        hawkish_breadth_expanding=bool(sub_data.get("hawkish_breadth_expanding") or data.get("hawkish_breadth_expanding")),
+        market_prob_rising=bool(sub_data.get("market_prob_rising") or data.get("market_prob_rising")),
+        macro_pressures=bool(sub_data.get("macro_pressures") or data.get("macro_pressures")),
     )
 
 
@@ -202,10 +243,10 @@ def classify_boj_signal(signal_input: BOJSignalInput | dict[str, Any] | None) ->
         as_of = signal_input.as_of
         raw_requested = signal_input.raw_requested_state or "UNSPECIFIED"
     elif isinstance(signal_input, dict):
-        primary_ev = _parse_evidence_input(signal_input.get("primary_evidence") or signal_input)
-        market_fact = _parse_market_factors_input(signal_input.get("market_factors") or signal_input)
+        primary_ev = _parse_evidence_input(signal_input)
+        market_fact = _parse_market_factors_input(signal_input)
         as_of = str(signal_input.get("as_of") or "")
-        raw_requested = str(signal_input.get("raw_requested_state") or signal_input.get("signal_state") or "UNSPECIFIED").upper()
+        raw_requested = str(signal_input.get("boj_state") or signal_input.get("raw_requested_state") or signal_input.get("signal_state") or "UNSPECIFIED").upper()
     else:
         return BOJSignalResult(
             signal_state=BOJSignalState.UNKNOWN.value,
@@ -293,7 +334,6 @@ def classify_boj_signal(signal_input: BOJSignalInput | dict[str, Any] | None) ->
 
     # 3. Handling requested RED or invalid/missing/stale/ambiguous primary evidence
     if raw_requested == "RED" or primary_ev.indicates_near_term_tightening or primary_ev.actual_rate_hike_decision:
-        # RED was requested or implied, but primary evidence condition failed
         if is_stale:
             reason = "Primary BOJ evidence is stale; cannot classify RED without current valid primary evidence."
         elif is_ambiguous:
@@ -303,7 +343,7 @@ def classify_boj_signal(signal_input: BOJSignalInput | dict[str, Any] | None) ->
         else:
             reason = f"Primary evidence status '{status_norm}' invalid for RED classification."
 
-        if multi_factor_count >= 2 or has_high_market_prob:
+        if raw_requested == "RED" or multi_factor_count >= 2 or has_high_market_prob:
             return BOJSignalResult(
                 signal_state=BOJSignalState.ORANGE.value,
                 effective_state=BOJSignalState.ORANGE.value,
@@ -311,7 +351,7 @@ def classify_boj_signal(signal_input: BOJSignalInput | dict[str, Any] | None) ->
                 primary_evidence_present=primary_ev.primary_evidence_present,
                 probability_only=probability_only,
                 evidence_refs=refs_serialized,
-                reason=f"[CAPPED_AT_ORANGE] {reason} Multi-factor risk elevated.",
+                reason=f"[CAPPED_AT_ORANGE] {reason}".strip(),
                 provenance=provenance,
             )
         else:

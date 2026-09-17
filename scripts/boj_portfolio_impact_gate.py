@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from src.sado_investment_lab.domain.boj_early_warning import classify_boj_signal
+
 CANONICAL_HOLDINGS_PATH = Path("data/portfolio/current.json")
 CANONICAL_RESEARCH_DIR = Path("06_Research/boj_evidence")
 
@@ -116,13 +118,11 @@ def load_canonical_holdings(path: Path | str | None = None) -> dict[str, Any]:
 
 
 def evaluate_boj_signal(signal_input: dict[str, Any] | str | Path | None = None) -> dict[str, Any]:
-    """Evaluate BOJ signal input and enforce probability-only capping at ORANGE.
+    """Evaluate BOJ signal input by delegating to canonical domain classifier src/sado_investment_lab/domain/boj_early_warning.py.
 
-    Fail-closed rule: Missing or unparseable signal, or unknown boj_state, remains UNKNOWN.
-    UNKNOWN != PASS/ORANGE.
+    Enforces probability-only capping at ORANGE and fail-closed UNKNOWN for missing/invalid inputs.
     """
     if signal_input is None:
-        # Check if canonical ledger file exists
         ledger_file = Path("06_Research/boj_evidence/boj_observation_ledger_512.jsonl")
         if ledger_file.is_file():
             try:
@@ -172,6 +172,7 @@ def evaluate_boj_signal(signal_input: dict[str, Any] | str | Path | None = None)
             "reason": f"unsupported signal input type: {type(signal_input)}",
         }
 
+    # Validate signal state format compatibility
     raw_state_str = signal_data.get("boj_state") or signal_data.get("signal_state")
     if not raw_state_str or not isinstance(raw_state_str, str):
         return {
@@ -192,35 +193,15 @@ def evaluate_boj_signal(signal_input: dict[str, Any] | str | Path | None = None)
             "reason": f"Unknown boj_state '{raw_state}'; failing closed to UNKNOWN.",
         }
 
-    primary_evidence_present = bool(
-        signal_data.get("primary_evidence_present")
-        or signal_data.get("primary_evidence")
-        or signal_data.get("has_primary_evidence")
-        or (signal_data.get("interpretation") and isinstance(signal_data["interpretation"], dict) and signal_data["interpretation"].get("red_gate") == "MET")
-    )
-
-    probability_only = bool(
-        signal_data.get("probability_only")
-        or signal_data.get("market_probability_only")
-        or not primary_evidence_present
-    )
-
-    reason = str(signal_data.get("reason") or signal_data.get("policy_message") or "")
-
-    effective_state = raw_state
-    if raw_state == "RED" and probability_only:
-        effective_state = "ORANGE"
-        reason = (
-            f"[CAPPED_AT_ORANGE] Raw signal requested RED, but market-implied probability alone "
-            f"cannot produce RED without primary BOJ evidence. {reason}".strip()
-        )
+    # Delegate to canonical domain classifier
+    domain_result = classify_boj_signal(signal_data)
 
     return {
-        "effective_state": effective_state,
-        "raw_state": raw_state,
-        "primary_evidence_present": primary_evidence_present,
-        "probability_only": probability_only,
-        "reason": reason if reason else f"Evaluated state {effective_state}",
+        "effective_state": domain_result.effective_state,
+        "raw_state": raw_state if raw_state else domain_result.raw_requested_state,
+        "primary_evidence_present": domain_result.primary_evidence_present,
+        "probability_only": domain_result.probability_only,
+        "reason": domain_result.reason,
     }
 
 
