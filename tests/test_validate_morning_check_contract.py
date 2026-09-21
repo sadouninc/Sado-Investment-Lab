@@ -49,3 +49,47 @@ def test_separation_required():
 def test_owner_final_judgment_required():
     c = copy.deepcopy(BASE); c["owner_final_judgment_required"] = False
     assert v.validate(c)
+
+
+def test_non_object_top_level_fails_closed():
+    assert v.validate([]) == ["contract must be a JSON object"]
+
+
+def test_malformed_section_shape_fails_closed():
+    c = copy.deepcopy(BASE); c["sections"][0] = "not-an-object"
+    assert "each section must be an object" in v.validate(c)
+
+
+def test_malformed_input_shape_fails_closed():
+    c = copy.deepcopy(BASE); c["sections"][0]["required_inputs"][0] = "not-an-object"
+    assert any("input must be an object" in error for error in v.validate(c))
+
+
+def test_missing_cli_arg_fails_closed(capsys):
+    assert v.main(None) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["valid"] is False
+    assert payload["errors"] == ["contract path argument is required"]
+
+
+def test_missing_file_fails_closed(tmp_path, capsys):
+    assert v.main(tmp_path / "missing.json") == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["valid"] is False
+    assert payload["errors"][0].startswith("contract file unreadable:")
+
+
+def test_invalid_json_fails_closed(tmp_path, capsys):
+    path = tmp_path / "invalid.json"
+    path.write_text("{not-json", encoding="utf-8")
+    assert v.main(path) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload == {"errors": ["contract file contains invalid JSON"], "valid": False}
+
+
+def test_non_object_json_file_fails_closed(tmp_path, capsys):
+    path = tmp_path / "array.json"
+    path.write_text("[]", encoding="utf-8")
+    assert v.main(path) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload == {"errors": ["contract must be a JSON object"], "valid": False}
