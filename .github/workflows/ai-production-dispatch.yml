@@ -85,8 +85,8 @@ jobs:
           done
           jq -s 'add // []' /tmp/comment-pages.jsonl > /tmp/comments.json
           if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            marker="AUTO_ROUTER_DISPATCH lease_id=${LEASE_ID} executor=COPILOT target_issue=${issue}"
-            jq -e --arg marker "$marker" 'any(.[]; (.body // "") | contains($marker))' /tmp/comments.json >/dev/null || { echo CANONICAL_LEASE_EVIDENCE_MISSING; exit 78; }
+            marker="<!-- AUTO_ROUTER_DISPATCH lease_id=${LEASE_ID} executor=COPILOT target_issue=${issue} -->"
+            jq -e --arg marker "$marker" 'any(.[]; (.body // "") as $body | ($body | split("\n") | any(. == $marker)))' /tmp/comments.json >/dev/null || { echo CANONICAL_LEASE_EVIDENCE_MISSING; exit 78; }
           fi
           python - <<'PY'
           import datetime as dt
