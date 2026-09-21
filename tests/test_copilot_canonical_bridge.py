@@ -25,3 +25,9 @@ def test_canonical_ingress_validates_lease_shape_fail_closed():
     text=WORKFLOW.read_text(encoding='utf-8')
     assert 'INVALID_ROUTED_LEASE' in text
     assert '^lease-[0-9a-f]{32}$' in text
+
+def test_canonical_ingress_requires_exact_standalone_html_marker():
+    text=WORKFLOW.read_text(encoding='utf-8')
+    assert 'marker="<!-- AUTO_ROUTER_DISPATCH lease_id=${LEASE_ID} executor=COPILOT target_issue=${issue} -->"' in text
+    assert 'split("\\n") | any(. == $marker)' in text
+    assert 'contains($marker)' not in text
