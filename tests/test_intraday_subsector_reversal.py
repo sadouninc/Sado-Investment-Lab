@@ -5,16 +5,25 @@ from scripts.intraday_subsector_validation_corpus import append_observation, rep
 
 
 FIXTURE = Path("data/fixtures/intraday-subsector-reversal-v1.json")
+EXPECTED_REPLAY_COUNT = 5
 
 
 def replay_fixture():
+    assert FIXTURE.is_file(), f"missing reversal replay fixture: {FIXTURE}"
     rows = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    assert len(rows) == EXPECTED_REPLAY_COUNT, (
+        f"expected {EXPECTED_REPLAY_COUNT} reversal fixture rows, got {len(rows)}"
+    )
     corpus = {}
     # Deliberately insert out of order: replay order, not fixture insertion order,
     # is the contract used for persistence/dropout checks.
     for row in [rows[2], rows[0], rows[4], rows[1], rows[3]]:
         corpus = append_observation(corpus, row)
-    return replay_observations(corpus)
+    replayed = replay_observations(corpus)
+    assert len(replayed) == EXPECTED_REPLAY_COUNT, (
+        f"expected {EXPECTED_REPLAY_COUNT} replayed observations, got {len(replayed)}"
+    )
+    return replayed
 
 
 def test_replay_distinguishes_isolated_leader_from_broad_recovery_by_raw_metrics():
