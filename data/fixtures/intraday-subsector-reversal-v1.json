@@ -1,0 +1,78 @@
+[
+  {
+    "schema_version": 1,
+    "observed_at": "2026-09-22T09:15:00+09:00",
+    "source": "fixture:reversal-replay-v1",
+    "freshness": "FRESH",
+    "data_completeness": "COMPLETE",
+    "benchmark": "TOPIX",
+    "sector": {"id": "pharmaceutical", "label": "Pharmaceutical", "medium_term_regime": "COLD"},
+    "subsector": {"id": "biotechnology", "label": "Biotechnology", "taxonomy_version": "existing-canonical-ref-v1", "as_of": "2026-09-22", "source_or_authority": "existing-canonical-taxonomy"},
+    "observations": {"intraday_return": -0.018, "benchmark_return": -0.015, "relative_return": -0.003, "rising_count": 0, "constituent_count": 5, "breadth": 0.0, "median_constituent_return": -0.018, "turnover_ratio": 1.0, "concentration_top1": null},
+    "leaders": [],
+    "flow_state": "UNKNOWN",
+    "acceleration_state": "UNKNOWN"
+  },
+  {
+    "schema_version": 1,
+    "observed_at": "2026-09-22T09:45:00+09:00",
+    "source": "fixture:reversal-replay-v1",
+    "freshness": "FRESH",
+    "data_completeness": "COMPLETE",
+    "benchmark": "TOPIX",
+    "sector": {"id": "pharmaceutical", "label": "Pharmaceutical", "medium_term_regime": "COLD"},
+    "subsector": {"id": "biotechnology", "label": "Biotechnology", "taxonomy_version": "existing-canonical-ref-v1", "as_of": "2026-09-22", "source_or_authority": "existing-canonical-taxonomy"},
+    "observations": {"intraday_return": 0.002, "benchmark_return": -0.010, "relative_return": 0.012, "rising_count": 1, "constituent_count": 5, "breadth": 0.2, "median_constituent_return": -0.009, "turnover_ratio": 1.5, "concentration_top1": 0.82},
+    "leaders": [
+      {"security_code": "4588", "name": "Oncolys BioPharma", "intraday_return": 0.050},
+      {"security_code": "4592", "name": "SanBio", "intraday_return": 0.018}
+    ],
+    "flow_state": "UNKNOWN",
+    "acceleration_state": "UNKNOWN"
+  },
+  {
+    "schema_version": 1,
+    "observed_at": "2026-09-22T10:30:00+09:00",
+    "source": "fixture:reversal-replay-v1",
+    "freshness": "FRESH",
+    "data_completeness": "COMPLETE",
+    "benchmark": "TOPIX",
+    "sector": {"id": "pharmaceutical", "label": "Pharmaceutical", "medium_term_regime": "COLD"},
+    "subsector": {"id": "biotechnology", "label": "Biotechnology", "taxonomy_version": "existing-canonical-ref-v1", "as_of": "2026-09-22", "source_or_authority": "existing-canonical-taxonomy"},
+    "observations": {"intraday_return": 0.031, "benchmark_return": 0.002, "relative_return": 0.029, "rising_count": 4, "constituent_count": 5, "breadth": 0.8, "median_constituent_return": 0.025, "turnover_ratio": 2.1, "concentration_top1": 0.34},
+    "leaders": [
+      {"security_code": "4588", "name": "Oncolys BioPharma", "intraday_return": 0.077},
+      {"security_code": "4565", "name": "Nxera Pharma", "intraday_return": 0.041}
+    ],
+    "flow_state": "UNKNOWN",
+    "acceleration_state": "UNKNOWN"
+  },
+  {
+    "schema_version": 1,
+    "observed_at": "2026-09-22T11:30:00+09:00",
+    "source": "fixture:reversal-replay-v1",
+    "freshness": "STALE",
+    "data_completeness": "PARTIAL",
+    "benchmark": "TOPIX",
+    "sector": {"id": "pharmaceutical", "label": "Pharmaceutical", "medium_term_regime": "COLD"},
+    "subsector": {"id": "biotechnology", "label": "Biotechnology", "taxonomy_version": "existing-canonical-ref-v1", "as_of": "2026-09-22", "source_or_authority": "existing-canonical-taxonomy"},
+    "observations": {"intraday_return": null, "benchmark_return": 0.005, "relative_return": null, "rising_count": null, "constituent_count": null, "breadth": null, "median_constituent_return": null, "turnover_ratio": null, "concentration_top1": null},
+    "leaders": [],
+    "flow_state": "UNKNOWN",
+    "acceleration_state": "UNKNOWN"
+  },
+  {
+    "schema_version": 1,
+    "observed_at": "2026-09-22T12:00:00+09:00",
+    "source": "fixture:reversal-replay-v1",
+    "freshness": "UNKNOWN",
+    "data_completeness": "UNKNOWN",
+    "benchmark": "UNKNOWN",
+    "sector": {"id": "unknown-sector", "label": "Unknown Sector", "medium_term_regime": "UNKNOWN"},
+    "subsector": {"id": "unknown-subsector", "label": "Unknown Subsector", "taxonomy_version": "UNKNOWN", "as_of": "UNKNOWN", "source_or_authority": "UNKNOWN"},
+    "observations": {"intraday_return": null, "benchmark_return": null, "relative_return": null, "rising_count": null, "constituent_count": null, "breadth": null, "median_constituent_return": null, "turnover_ratio": null, "concentration_top1": null},
+    "leaders": [],
+    "flow_state": "UNKNOWN",
+    "acceleration_state": "UNKNOWN"
+  }
+]
