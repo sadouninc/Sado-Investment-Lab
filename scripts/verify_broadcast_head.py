@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Iterable
 
-from update_broadcast_head import MARKER_RE
+from scripts.update_broadcast_head import MARKER_RE
 
 
 class BroadcastVerificationStatus(str, Enum):
