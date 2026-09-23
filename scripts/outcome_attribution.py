@@ -62,6 +62,9 @@ def _canonical_refs(value: Any) -> list[str]:
 
 
 def _project_axis(name: str, raw: Any) -> dict[str, Any]:
+    if name not in _MISSING_STATUS:
+        raise ValueError(f"unknown axis: {name}")
+
     source = raw if isinstance(raw, Mapping) else {}
     status = source.get("status", _MISSING_STATUS[name])
     if status not in _ALLOWED_STATUS[name]:
