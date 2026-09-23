@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "routine_version": "1.0.0",
+  "owner_final_judgment_required": true,
+  "separation": {
+    "fact": true,
+    "hypothesis": true,
+    "action_candidate": true
+  },
+  "sections": [
+    {
+      "name": "Overnight",
+      "required_inputs": [{"name": "overnight_market_changes", "source_class": "current_market", "missing_policy": "UNKNOWN"}],
+      "optional_inputs": [{"name": "official_company_updates", "source_class": "official_ir", "missing_policy": "MISSING"}]
+    },
+    {
+      "name": "Japan Setup",
+      "required_inputs": [{"name": "japan_market_setup", "source_class": "current_market", "missing_policy": "UNKNOWN"}],
+      "optional_inputs": [{"name": "internal_market_context", "source_class": "github_ssot", "missing_policy": "MISSING"}]
+    },
+    {
+      "name": "Money Flow",
+      "required_inputs": [{"name": "money_flow_observations", "source_class": "derived", "missing_policy": "UNKNOWN"}],
+      "optional_inputs": []
+    },
+    {
+      "name": "Portfolio Risk",
+      "required_inputs": [{"name": "portfolio_state", "source_class": "github_ssot", "missing_policy": "UNKNOWN"}],
+      "optional_inputs": [{"name": "company_ir", "source_class": "official_ir", "missing_policy": "MISSING"}]
+    },
+    {
+      "name": "Watchlist",
+      "required_inputs": [{"name": "watchlist", "source_class": "github_ssot", "missing_policy": "UNKNOWN"}],
+      "optional_inputs": [{"name": "watchlist_market_data", "source_class": "current_market", "missing_policy": "MISSING"}]
+    },
+    {
+      "name": "Events",
+      "required_inputs": [{"name": "event_calendar", "source_class": "current_market", "missing_policy": "UNKNOWN"}],
+      "optional_inputs": [{"name": "official_event_updates", "source_class": "official_ir", "missing_policy": "MISSING"}]
+    },
+    {
+      "name": "Morning Hypothesis",
+      "required_inputs": [{"name": "observed_facts", "source_class": "derived", "missing_policy": "UNKNOWN"}],
+      "optional_inputs": []
+    },
+    {
+      "name": "Confidence+Invalidation",
+      "required_inputs": [{"name": "hypothesis_evidence", "source_class": "derived", "missing_policy": "UNKNOWN"}],
+      "optional_inputs": []
+    }
+  ]
+}
