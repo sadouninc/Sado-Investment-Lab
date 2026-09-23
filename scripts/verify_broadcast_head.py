@@ -56,6 +56,8 @@ def verify_broadcast_head(issue_body: str, fetched_comment_ids: Iterable[int]) -
         return BroadcastVerification(BroadcastVerificationStatus.UNVERIFIED, head, "comment evidence contains duplicate ids")
     if ids != tuple(sorted(ids)):
         return BroadcastVerification(BroadcastVerificationStatus.UNVERIFIED, head, "comment evidence is not ordered")
+    if not ids:
+        return BroadcastVerification(BroadcastVerificationStatus.UNVERIFIED, head, "comment evidence is empty")
     if head.comment_id not in ids:
         return BroadcastVerification(BroadcastVerificationStatus.UNVERIFIED, head, "authoritative head was not fetched")
     if ids[-1] != head.comment_id:
