@@ -1,6 +1,8 @@
 from copy import deepcopy
 
-from scripts.outcome_attribution import AXIS_ORDER, project_outcome_attribution
+import pytest
+
+from scripts.outcome_attribution import AXIS_ORDER, _project_axis, project_outcome_attribution
 
 
 def _base_input():
@@ -82,6 +84,11 @@ def test_unknown_status_fails_closed_to_axis_missing_semantics():
 
     assert result["axes"]["thesis"]["status"] == "NOT_JUDGABLE"
     assert result["axes"]["market_context"]["status"] == "UNAVAILABLE"
+
+
+def test_unknown_axis_fails_closed_with_value_error():
+    with pytest.raises(ValueError, match="unknown axis: sentiment"):
+        _project_axis("sentiment", {})
 
 
 def test_projection_is_deterministic_and_does_not_mutate_input():
