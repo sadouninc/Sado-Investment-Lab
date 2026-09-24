@@ -84,6 +84,22 @@ def test_decision_quality_outcome_and_execution_fidelity_stay_separate():
     assert result["execution_fidelity_refs"] == ["execution-fidelity:1"]
 
 
+def test_optional_reference_fields_remain_absent_when_not_supplied():
+    source = _record()
+    optional_ref_fields = (
+        "decision_quality_refs",
+        "outcome_refs",
+        "execution_fidelity_refs",
+        "retrospective_episode_refs",
+        "explicit_psychology_context_refs",
+    )
+    for field in optional_ref_fields:
+        del source[field]
+    result = validate_pattern_record(source)
+    for field in optional_ref_fields:
+        assert field not in result
+
+
 def test_retrospective_refs_must_be_observed_and_remain_explicit():
     result = validate_pattern_record(_record(retrospective_episode_refs=["episode:2"]))
     assert result["retrospective_episode_refs"] == ["episode:2"]
