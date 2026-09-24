@@ -110,7 +110,10 @@ def validate_pattern_record(record: Mapping[str, Any]) -> dict[str, Any]:
     if isinstance(sample_size, bool) or not isinstance(sample_size, int) or sample_size < 0:
         raise PatternContractValidationError("sample_size must be a non-negative integer")
 
-    refs = {field: _require_ref_list(record, field) for field in _REF_LIST_FIELDS}
+    refs = {}
+    for field in _REF_LIST_FIELDS:
+        if field in record or field in ("supporting_episode_refs", "counterexample_episode_refs"):
+            refs[field] = _require_ref_list(record, field)
     support = refs["supporting_episode_refs"]
     counter = refs["counterexample_episode_refs"]
     if set(support) & set(counter):
@@ -122,7 +125,7 @@ def validate_pattern_record(record: Mapping[str, Any]) -> dict[str, Any]:
             "sample_size must equal unique supporting + counterexample episode refs"
         )
 
-    retrospective = set(refs["retrospective_episode_refs"])
+    retrospective = set(refs.get("retrospective_episode_refs", []))
     observed = set(support + counter)
     if not retrospective <= observed:
         raise PatternContractValidationError(
