@@ -18,7 +18,7 @@ def _dispatch_status_set(name: str) -> set[str]:
 def _replay_dispatch_state(statuses: list[str]) -> tuple[bool, bool]:
     """Replay the workflow's ordered terminal/retry state contract."""
     retryable_statuses = _dispatch_status_set("retryable_statuses")
-    terminalizing_statuses = _dispatch_status_set("terminalizing_statuses")
+    terminal_statuses = _dispatch_status_set("terminal_statuses")
     terminalizing = False
     retryable = False
     for status in statuses:
@@ -26,7 +26,7 @@ def _replay_dispatch_state(statuses: list[str]) -> tuple[bool, bool]:
             retryable = True
             terminalizing = False
             continue
-        if status in terminalizing_statuses:
+        if status in terminal_statuses:
             terminalizing = True
             retryable = False
     return terminalizing, retryable
@@ -42,7 +42,9 @@ def test_ai_copilot_command_is_exact_after_outer_whitespace_and_crlf_normalizati
     assert "COMMAND_NOT_EXACT_SKIP" in text
     assert 'echo "accepted=true" >> "$GITHUB_OUTPUT"' in text
     assert 'echo "accepted=false" >> "$GITHUB_OUTPUT"' in text
-    assert "exit 78" not in text.split("- name: Fail closed and validate READY issue", 1)[0]
+    # Canonical workflow_dispatch ingress is intentionally fail-closed when lease evidence is invalid.
+    assert "CANONICAL_LEASE_EVIDENCE_MISSING" in text
+    assert "exit 78" in text
 
 
 def test_dispatcher_suppresses_duplicate_redispatch_during_promotion_terminalization():
@@ -69,50 +71,30 @@ def test_dispatcher_ignores_unrelated_json_when_reconstructing_state():
     assert evidence_pattern.findall(unrelated) == []
     assert r"re.findall(r'\{[^\n]*\}', body)" not in text
     assert '(?:\"work_ref\"|\"issue_number\"|\"status\"|\"action\"|\"owner_slice\")' in text
-    # With no recognized evidence record, state remains fresh/default and dispatch is allowed.
-    state = {
-        "active_lease": False,
-        "terminalizing": False,
-        "recorded_branch": "",
-        "retryable": False,
-    }
-    assert state == {
-        "active_lease": False,
-        "terminalizing": False,
-        "recorded_branch": "",
-        "retryable": False,
-    }
+    state = {"active_lease": False, "terminalizing": False, "recorded_branch": "", "retryable": False}
+    assert state == {"active_lease": False, "terminalizing": False, "recorded_branch": "", "retryable": False}
 
 
 def test_base_drift_reopens_prior_promotion_for_fresh_dispatch():
-    terminalizing, retryable = _replay_dispatch_state(
-        ["PROMOTION_DISPATCHED", "BLOCKED_BASE_DRIFT"]
-    )
+    terminalizing, retryable = _replay_dispatch_state(["PROMOTION_DISPATCHED", "BLOCKED_BASE_DRIFT"])
     assert retryable is True
     assert terminalizing is False
 
 
 def test_contract_replay_terminal_reopens_prior_promotion_for_fresh_dispatch():
-    terminalizing, retryable = _replay_dispatch_state(
-        ["PROMOTION_DISPATCHED", "BLOCKED_CONTRACT_REPLAY"]
-    )
+    terminalizing, retryable = _replay_dispatch_state(["PROMOTION_DISPATCHED", "BLOCKED_CONTRACT_REPLAY"])
     assert retryable is True
     assert terminalizing is False
 
 
 def test_pr_handoff_after_promotion_remains_non_redispatchable():
-    terminalizing, retryable = _replay_dispatch_state(
-        ["PROMOTION_DISPATCHED", "PR_CREATE_REQUIRED"]
-    )
+    terminalizing, retryable = _replay_dispatch_state(["PROMOTION_DISPATCHED", "PR_CREATE_REQUIRED"])
     assert retryable is False
     assert terminalizing is True
 
 
 def test_retryable_reset_is_ordered_before_later_terminal_evidence():
-    # A fresh terminal state after a retry reset must close the lane again.
-    terminalizing, retryable = _replay_dispatch_state(
-        ["PROMOTION_DISPATCHED", "BLOCKED_BASE_DRIFT", "PROMOTION_DISPATCHED"]
-    )
+    terminalizing, retryable = _replay_dispatch_state(["PROMOTION_DISPATCHED", "BLOCKED_BASE_DRIFT", "PROMOTION_DISPATCHED"])
     assert retryable is False
     assert terminalizing is True
 
@@ -122,15 +104,8 @@ def test_dispatcher_keeps_expired_and_explicit_retryable_paths_redispatchable():
     retryable_statuses = _dispatch_status_set("retryable_statuses")
     assert "lease_expires_at" in text
     assert "expiry > now" in text
-    assert {
-        "DISPATCH_LEASE_EXPIRED",
-        "COPILOT_RETRYABLE_FAILURE",
-        "RETRYABLE_FAILURE",
-        "FALLBACK_RETRYABLE_FAILURE",
-        "BLOCKED_BASE_DRIFT",
-        "BLOCKED_CONTRACT_REPLAY",
-    } <= retryable_statuses
-    assert "retryable = True" in text
+    assert {"DISPATCH_LEASE_EXPIRED", "COPILOT_RETRYABLE_FAILURE", "RETRYABLE_FAILURE", "FALLBACK_RETRYABLE_FAILURE", "BLOCKED_BASE_DRIFT", "BLOCKED_CONTRACT_REPLAY"} <= retryable_statuses
+    assert "retryable=True" in text
     assert "terminalizing = False" in text
     assert "active_lease = False" in text
     assert "recorded_branch = ''" in text

@@ -3,6 +3,16 @@ name: AI Production Dispatch
 on:
   issue_comment:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Canonical issue number
+        required: true
+        type: string
+      lease_id:
+        description: Canonical multi-executor lease id
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -12,28 +22,42 @@ permissions:
 jobs:
   dispatch:
     if: >-
-      github.event.issue.pull_request == null &&
-      github.event.comment.user.login == github.repository_owner
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.issue.pull_request == null && github.event.comment.user.login == github.repository_owner)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     concurrency:
-      group: ai-production-dispatch-${{ github.event.issue.number }}
+      group: ai-production-dispatch-${{ github.event_name == 'workflow_dispatch' && inputs.issue_number || github.event.issue.number }}
       cancel-in-progress: false
     steps:
-      - name: Require exact normalized owner command
+      - name: Validate dispatch ingress
         id: command
         env:
           COMMENT_BODY: ${{ github.event.comment.body }}
+          ROUTED_ISSUE: ${{ inputs.issue_number }}
+          ROUTED_LEASE: ${{ inputs.lease_id }}
         shell: bash
         run: |
           set -euo pipefail
-          normalized="$(printf '%s' "$COMMENT_BODY" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-          if [[ "$normalized" == '/ai copilot' ]]; then
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            [[ "$ROUTED_ISSUE" =~ ^[1-9][0-9]*$ ]] || { echo INVALID_ROUTED_ISSUE; exit 78; }
+            [[ "$ROUTED_ISSUE" != "79" ]] || { echo PROTECTED_ISSUE_79; exit 79; }
+            [[ "$ROUTED_LEASE" =~ ^lease-[0-9a-f]{32}$ ]] || { echo INVALID_ROUTED_LEASE; exit 78; }
             echo "accepted=true" >> "$GITHUB_OUTPUT"
-            echo COMMAND_EXACT_ACCEPTED
+            echo "issue_number=$ROUTED_ISSUE" >> "$GITHUB_OUTPUT"
+            echo "lease_id=$ROUTED_LEASE" >> "$GITHUB_OUTPUT"
+            echo CANONICAL_LEASE_ACCEPTED
           else
-            echo "accepted=false" >> "$GITHUB_OUTPUT"
-            echo COMMAND_NOT_EXACT_SKIP
+            normalized="$(printf '%s' "$COMMENT_BODY" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+            if [[ "$normalized" == '/ai copilot' ]]; then
+              echo "accepted=true" >> "$GITHUB_OUTPUT"
+              echo "issue_number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+              echo "lease_id=owner-command" >> "$GITHUB_OUTPUT"
+              echo COMMAND_EXACT_ACCEPTED
+            else
+              echo "accepted=false" >> "$GITHUB_OUTPUT"
+              echo COMMAND_NOT_EXACT_SKIP
+            fi
           fi
 
       - name: Fail closed and validate READY issue
@@ -41,22 +65,15 @@ jobs:
         if: steps.command.outputs.accepted == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_NUMBER: ${{ steps.command.outputs.issue_number }}
+          LEASE_ID: ${{ steps.command.outputs.lease_id }}
         shell: bash
         run: |
           set -euo pipefail
           issue="${ISSUE_NUMBER%%.*}"
-          if [[ "$issue" == "79" ]]; then
-            echo PROTECTED_ISSUE_79
-            exit 79
-          fi
-
+          [[ "$issue" != "79" ]] || { echo PROTECTED_ISSUE_79; exit 79; }
           gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}" > /tmp/issue.json
-          jq -e '.labels | map(.name) | index("READY_FOR_IMPLEMENTATION") != null' /tmp/issue.json >/dev/null || {
-            echo ISSUE_NOT_READY
-            exit 78
-          }
-
+          jq -e '.labels | map(.name) | index("READY_FOR_IMPLEMENTATION") != null' /tmp/issue.json >/dev/null || { echo ISSUE_NOT_READY; exit 78; }
           : > /tmp/comment-pages.jsonl
           page=1
           while :; do
@@ -67,123 +84,49 @@ jobs:
             page=$((page + 1))
           done
           jq -s 'add // []' /tmp/comment-pages.jsonl > /tmp/comments.json
-
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            marker="<!-- AUTO_ROUTER_DISPATCH lease_id=${LEASE_ID} executor=COPILOT target_issue=${issue} -->"
+            jq -e --arg marker "$marker" 'any(.[]; (.body // "") as $body | ($body | split("\n") | any(. == $marker)))' /tmp/comments.json >/dev/null || { echo CANONICAL_LEASE_EVIDENCE_MISSING; exit 78; }
+          fi
           python - <<'PY'
           import datetime as dt
           import json, os, re
-
-          issue = int(os.environ['ISSUE_NUMBER'])
-          comments = json.load(open('/tmp/comments.json'))
-          now = dt.datetime.now(dt.timezone.utc)
-          active_lease = False
-          terminalizing = False
-          recorded_branch = ''
-          retryable = False
-
-          retryable_statuses = {
-              'DISPATCH_LEASE_EXPIRED', 'COPILOT_RETRYABLE_FAILURE',
-              'RETRYABLE_FAILURE', 'FALLBACK_RETRYABLE_FAILURE',
-              'BLOCKED_BASE_DRIFT', 'BLOCKED_CONTRACT_REPLAY'
-          }
-          terminalizing_statuses = {
-              'PROMOTION_DISPATCHED', 'PROMOTION_BRANCH_READY',
-              'PR_CREATE_REQUIRED', 'DUPLICATE_SUPERSEDED',
-              'PR_ALREADY_EXISTS', 'PR_ALREADY_EXISTS_RACE_RESOLVED'
-          }
-
+          issue=int(os.environ['ISSUE_NUMBER']); comments=json.load(open('/tmp/comments.json')); now=dt.datetime.now(dt.timezone.utc)
+          active=False; terminal=False; branch=''; retryable=False
+          retryable_statuses={'DISPATCH_LEASE_EXPIRED','COPILOT_RETRYABLE_FAILURE','RETRYABLE_FAILURE','FALLBACK_RETRYABLE_FAILURE','BLOCKED_BASE_DRIFT','BLOCKED_CONTRACT_REPLAY'}
+          terminal_statuses={'PROMOTION_DISPATCHED','PROMOTION_BRANCH_READY','PR_CREATE_REQUIRED','DUPLICATE_SUPERSEDED','PR_ALREADY_EXISTS','PR_ALREADY_EXISTS_RACE_RESOLVED'}
           for comment in comments:
-              body = comment.get('body') or ''
-              for raw in re.findall(r'\{[^\n]*(?:"work_ref"|"issue_number"|"status"|"action"|"owner_slice")[^\n]*\}', body):
-                  try:
-                      evidence = json.loads(raw)
-                  except json.JSONDecodeError:
-                      continue
-                  work_ref = evidence.get('work_ref')
-                  evidence_issue = evidence.get('issue_number')
-                  if work_ref not in (None, f'issue:{issue}'):
-                      continue
-                  if evidence_issue not in (None, issue):
-                      continue
-
-                  status = evidence.get('status') or evidence.get('action')
-                  # Retryable terminal evidence is an explicit state reset. This
-                  # intentionally runs before terminalizing evidence so a later
-                  # BLOCKED_BASE_DRIFT can reopen a prior PROMOTION_DISPATCHED.
-                  if status in retryable_statuses:
-                      retryable = True
-                      terminalizing = False
-                      active_lease = False
-                      recorded_branch = ''
-                      continue
-
-                  if status in terminalizing_statuses:
-                      terminalizing = True
-                      retryable = False
-                      recorded_branch = evidence.get('branch') or recorded_branch
-
-                  if evidence.get('owner_slice') == f'issue-{issue}' and status in {'ASSIGNED','ACKNOWLEDGED','FALLBACK_ASSIGNED'}:
-                      expires = evidence.get('lease_expires_at')
-                      try:
-                          expiry = dt.datetime.fromisoformat(expires.replace('Z', '+00:00')) if expires else None
-                      except (TypeError, ValueError):
-                          expiry = None
-                      if expiry and expiry > now:
-                          active_lease = True
-                      else:
-                          active_lease = False
-
-          state = {
-              'active_lease': active_lease,
-              'terminalizing': terminalizing and not retryable,
-              'recorded_branch': recorded_branch,
-              'retryable': retryable,
-          }
-          with open('/tmp/dispatch-state.json', 'w') as f:
-              json.dump(state, f)
+            body=comment.get('body') or ''
+            for raw in re.findall(r'\{[^\n]*(?:"work_ref"|"issue_number"|"status"|"action"|"owner_slice")[^\n]*\}',body):
+              try: ev=json.loads(raw)
+              except json.JSONDecodeError: continue
+              if ev.get('work_ref') not in (None,f'issue:{issue}') or ev.get('issue_number') not in (None,issue): continue
+              status=ev.get('status') or ev.get('action')
+              if status in retryable_statuses: retryable=True; terminal=False; active=False; branch=''; continue
+              if status in terminal_statuses: terminal=True; retryable=False; branch=ev.get('branch') or branch
+              if ev.get('owner_slice') == f'issue-{issue}' and status in {'ASSIGNED','ACKNOWLEDGED','FALLBACK_ASSIGNED'}:
+                try: expiry=dt.datetime.fromisoformat((ev.get('lease_expires_at') or '').replace('Z','+00:00'))
+                except ValueError: expiry=None
+                active=bool(expiry and expiry > now)
+          json.dump({'active_lease':active,'terminalizing':terminal and not retryable,'recorded_branch':branch,'retryable':retryable},open('/tmp/dispatch-state.json','w'))
           PY
-
-          if jq -e '.active_lease == true' /tmp/dispatch-state.json >/dev/null; then
-            echo DUPLICATE_ACTIVE_DISPATCH_SKIP
-            echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
+          if jq -e '.active_lease == true' /tmp/dispatch-state.json >/dev/null; then echo DUPLICATE_ACTIVE_DISPATCH_SKIP; echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           recorded_branch="$(jq -r '.recorded_branch // empty' /tmp/dispatch-state.json)"
           if [[ -n "$recorded_branch" ]]; then
             existing_pr="$(gh pr list --repo "$GITHUB_REPOSITORY" --state all --head "$recorded_branch" --json number --jq '.[0].number // empty')"
-            if [[ -n "$existing_pr" ]]; then
-              echo "DUPLICATE_EXISTING_PR_SKIP pr=${existing_pr}"
-              echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
+            if [[ -n "$existing_pr" ]]; then echo "DUPLICATE_EXISTING_PR_SKIP pr=${existing_pr}"; echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           fi
-
-          if jq -e '.terminalizing == true' /tmp/dispatch-state.json >/dev/null; then
-            echo DUPLICATE_PROMOTION_TERMINALIZATION_SKIP
-            echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          assigned_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          expires_at="$(date -u -d '+60 minutes' +%Y-%m-%dT%H:%M:%SZ)"
-          lease="$(jq -nc \
-            --arg work_ref "issue:${issue}" \
-            --arg owner_slice "issue-${issue}" \
-            --arg assigned_at "$assigned_at" \
-            --arg expires_at "$expires_at" \
-            '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"copilot",assigned_at:$assigned_at,acknowledged_at:null,lease_expires_at:$expires_at,fallback_owner:"amazon_q_free",status:"ASSIGNED"}')"
-
-          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments" \
-            -f body="<!-- flow-dispatch-lease -->
+          if jq -e '.terminalizing == true' /tmp/dispatch-state.json >/dev/null; then echo DUPLICATE_PROMOTION_TERMINALIZATION_SKIP; echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          assigned_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; expires_at="$(date -u -d '+60 minutes' +%Y-%m-%dT%H:%M:%SZ)"
+          lease="$(jq -nc --arg work_ref "issue:${issue}" --arg owner_slice "issue-${issue}" --arg assigned_at "$assigned_at" --arg expires_at "$expires_at" --arg canonical_lease "$LEASE_ID" '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"copilot",canonical_lease_id:$canonical_lease,assigned_at:$assigned_at,acknowledged_at:null,lease_expires_at:$expires_at,fallback_owner:"amazon_q_free",status:"ASSIGNED"}')"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments" -f body="<!-- flow-dispatch-lease -->
           ${lease}
 
           担当: ♦️ソラ
           種別: AI Production Dispatch / Copilot Lease
 
-          Owner-authenticated /ai copilot accepted. Copilot safe lane dispatched with 60m lease. Contract/safety failure remains fail-closed." >/dev/null
-
-          echo "issue_number=$issue" >> "$GITHUB_OUTPUT"
-          echo "dispatch_allowed=true" >> "$GITHUB_OUTPUT"
+          Canonical/owner-authenticated Copilot ingress accepted. Safety failure remains fail-closed." >/dev/null
+          echo "issue_number=$issue" >> "$GITHUB_OUTPUT"; echo "dispatch_allowed=true" >> "$GITHUB_OUTPUT"
 
       - name: Dispatch Copilot and explicitly hand off completion
         if: steps.command.outputs.accepted == 'true' && steps.gate.outputs.dispatch_allowed == 'true'
@@ -193,35 +136,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          request_started="$(date -u -d '-2 seconds' +%Y-%m-%dT%H:%M:%SZ)"
-          source_title="Copilot PoC1 — issue ${ISSUE_NUMBER}"
-
+          request_started="$(date -u -d '-2 seconds' +%Y-%m-%dT%H:%M:%SZ)"; source_title="Copilot PoC1 — issue ${ISSUE_NUMBER}"
           gh workflow run copilot-poc1.yml --repo "$GITHUB_REPOSITORY" --ref main -f issue_number="$ISSUE_NUMBER"
-
           source_run_id=""
           for _ in {1..60}; do
             gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/copilot-poc1.yml/runs?event=workflow_dispatch&per_page=30" > /tmp/copilot-runs.json
-            source_run_id="$(jq -r \
-              --arg title "$source_title" \
-              --arg started "$request_started" \
-              '[.workflow_runs[] | select(.display_title == $title and .created_at >= $started)] | sort_by(.created_at) | last | .id // empty' \
-              /tmp/copilot-runs.json)"
-            [[ -n "$source_run_id" ]] && break
-            sleep 2
+            source_run_id="$(jq -r --arg title "$source_title" --arg started "$request_started" '[.workflow_runs[] | select(.display_title == $title and .created_at >= $started)] | sort_by(.created_at) | last | .id // empty' /tmp/copilot-runs.json)"
+            [[ -n "$source_run_id" ]] && break; sleep 2
           done
-          if [[ -z "$source_run_id" ]]; then
-            echo COPILOT_SOURCE_RUN_NOT_FOUND
-            exit 76
-          fi
-
-          set +e
-          gh run watch "$source_run_id" --repo "$GITHUB_REPOSITORY" --exit-status
-          watch_rc=$?
-          set -e
+          [[ -n "$source_run_id" ]] || { echo COPILOT_SOURCE_RUN_NOT_FOUND; exit 76; }
+          set +e; gh run watch "$source_run_id" --repo "$GITHUB_REPOSITORY" --exit-status; watch_rc=$?; set -e
           source_conclusion="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${source_run_id}" --jq '.conclusion // "unknown"')"
           echo "Copilot source run ${source_run_id} completed: ${source_conclusion} (watch_rc=${watch_rc})"
-
-          gh workflow run ai-production-followup.yml --repo "$GITHUB_REPOSITORY" --ref main \
-            -f issue_number="$ISSUE_NUMBER" \
-            -f source_run_id="$source_run_id" \
-            -f source_conclusion="$source_conclusion"
+          gh workflow run ai-production-followup.yml --repo "$GITHUB_REPOSITORY" --ref main -f issue_number="$ISSUE_NUMBER" -f source_run_id="$source_run_id" -f source_conclusion="$source_conclusion"
