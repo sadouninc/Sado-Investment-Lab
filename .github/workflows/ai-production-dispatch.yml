@@ -92,7 +92,7 @@ jobs:
           import datetime as dt
           import json, os, re
           issue=int(os.environ['ISSUE_NUMBER']); comments=json.load(open('/tmp/comments.json')); now=dt.datetime.now(dt.timezone.utc)
-          active=False; terminal=False; branch=''; retryable=False
+          active_lease = False; terminalizing = False; recorded_branch = ''; retryable=False
           retryable_statuses={'DISPATCH_LEASE_EXPIRED','COPILOT_RETRYABLE_FAILURE','RETRYABLE_FAILURE','FALLBACK_RETRYABLE_FAILURE','BLOCKED_BASE_DRIFT','BLOCKED_CONTRACT_REPLAY'}
           terminal_statuses={'PROMOTION_DISPATCHED','PROMOTION_BRANCH_READY','PR_CREATE_REQUIRED','DUPLICATE_SUPERSEDED','PR_ALREADY_EXISTS','PR_ALREADY_EXISTS_RACE_RESOLVED'}
           for comment in comments:
@@ -102,13 +102,13 @@ jobs:
               except json.JSONDecodeError: continue
               if ev.get('work_ref') not in (None,f'issue:{issue}') or ev.get('issue_number') not in (None,issue): continue
               status=ev.get('status') or ev.get('action')
-              if status in retryable_statuses: retryable=True; terminal=False; active=False; branch=''; continue
-              if status in terminal_statuses: terminal=True; retryable=False; branch=ev.get('branch') or branch
+              if status in retryable_statuses: retryable=True; terminalizing = False; active_lease = False; recorded_branch = ''; continue
+              if status in terminal_statuses: terminalizing=True; retryable=False; recorded_branch=ev.get('branch') or recorded_branch
               if ev.get('owner_slice') == f'issue-{issue}' and status in {'ASSIGNED','ACKNOWLEDGED','FALLBACK_ASSIGNED'}:
                 try: expiry=dt.datetime.fromisoformat((ev.get('lease_expires_at') or '').replace('Z','+00:00'))
                 except ValueError: expiry=None
-                active=bool(expiry and expiry > now)
-          json.dump({'active_lease':active,'terminalizing':terminal and not retryable,'recorded_branch':branch,'retryable':retryable},open('/tmp/dispatch-state.json','w'))
+                active_lease=bool(expiry and expiry > now)
+          json.dump({'active_lease':active_lease,'terminalizing':terminalizing and not retryable,'recorded_branch':recorded_branch,'retryable':retryable},open('/tmp/dispatch-state.json','w'))
           PY
           if jq -e '.active_lease == true' /tmp/dispatch-state.json >/dev/null; then echo DUPLICATE_ACTIVE_DISPATCH_SKIP; echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           recorded_branch="$(jq -r '.recorded_branch // empty' /tmp/dispatch-state.json)"
