@@ -4,7 +4,7 @@
 > Permanent rules remain in `TEAM_RULES.md`. Broadcast history remains in Issue #99.
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
-Last updated: 2026-08-18  
+Last updated: 2026-10-01  
 Sources: Issue #99 Current Active Board; #602; #617; #625; #645; #556; #690; merged PR #605; merged PR #621; merged PR #627  
 
 ## User Mode v2
@@ -19,7 +19,7 @@ flow_authority_fallback: SORA_DELEGATED
 
 - Current operational meaning remains **AWAY**: 👑サド is inactive for routine flow decisions.
 - Owner / Investment Authority is never inferred from AWAY.
-- `AUTO_GREEN` is the merge policy contract, but actual auto-merge execution remains disabled until #625 Activation Gate is completed.
+- `AUTO_GREEN` is the active production merge policy. Explicit activation was authorized by 👑サド under #625 on 2026-10-01 JST. Execution remains fail-closed: exact-head + mergeability recheck, required CI/Product/Design/Reliability gates GREEN, no REQUEST_CHANGES, `UNKNOWN != PASS`, and no sensitive/security/permission/Owner/Investment-Authority path. Issue #79 is a hard deny.
 - Legacy `ACTIVE` is interpreted only as migration alias for `ACTIVE_MANUAL`.
 
 ## User-facing Modes
