@@ -11,12 +11,13 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_dispatch_is_owner_authenticated_ready_only_and_protects_79():
+def test_dispatch_is_dual_ingress_ready_only_and_protects_79():
     text = _read(DISPATCH)
     assert "issue_comment:" in text
+    assert "workflow_dispatch:" in text
     assert "github.event.issue.pull_request == null" in text
     assert "github.event.comment.user.login == github.repository_owner" in text
-    assert "Require exact normalized owner command" in text
+    assert "Validate dispatch ingress" in text
     assert "tr -d '\\r'" in text
     assert "[[ \"$normalized\" == '/ai copilot' ]]" in text
     assert "startsWith(github.event.comment.body, '/ai copilot')" not in text
@@ -24,17 +25,23 @@ def test_dispatch_is_owner_authenticated_ready_only_and_protects_79():
     assert 'echo "accepted=false" >> "$GITHUB_OUTPUT"' in text
     assert text.count("if: steps.command.outputs.accepted == 'true'") >= 2
     assert "READY_FOR_IMPLEMENTATION" in text
-    assert '[[ "$issue" == "79" ]]' in text
+    assert '[[ "$ROUTED_ISSUE" != "79" ]]' in text
+    assert '[[ "$issue" != "79" ]]' in text
+    assert "PROTECTED_ISSUE_79" in text
+    assert "CANONICAL_LEASE_EVIDENCE_MISSING" in text
+    assert "AUTO_ROUTER_DISPATCH lease_id=${LEASE_ID} executor=COPILOT target_issue=${issue}" in text
     assert "DUPLICATE_ACTIVE_DISPATCH" in text
+    assert "DUPLICATE_EXISTING_PR_SKIP" in text
+    assert "DUPLICATE_PROMOTION_TERMINALIZATION_SKIP" in text
     assert "lease_expires_at" in text
     assert "'+60 minutes'" in text
     assert "gh workflow run copilot-poc1.yml" in text
 
 
-def test_dispatch_serializes_same_issue_before_lease_check_and_creation():
+def test_dispatch_serializes_same_issue_for_both_ingress_paths():
     text = _read(DISPATCH)
     assert "concurrency:" in text
-    assert "group: ai-production-dispatch-${{ github.event.issue.number }}" in text
+    assert "group: ai-production-dispatch-${{ github.event_name == 'workflow_dispatch' && inputs.issue_number || github.event.issue.number }}" in text
     assert "cancel-in-progress: false" in text
 
 

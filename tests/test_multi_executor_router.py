@@ -7,18 +7,18 @@ from scripts.multi_executor_router import evaluate_lease, issue_lease, select_ro
 NOW = datetime(2026, 8, 19, 0, 0, tzinfo=timezone.utc)
 
 def healthy_providers(**overrides):
-    base = {"AMAZON_Q": {"state": "HEALTHY", "consecutive_activation_failures": 0}, "JULES": {"state": "HEALTHY", "consecutive_activation_failures": 0}, "SORA": {"state": "AVAILABLE", "consecutive_activation_failures": 0}}
+    base = {"AMAZON_Q": {"state": "HEALTHY", "consecutive_activation_failures": 0}, "JULES": {"state": "HEALTHY", "consecutive_activation_failures": 0}, "COPILOT": {"state": "HEALTHY", "consecutive_activation_failures": 0}, "SORA": {"state": "AVAILABLE", "consecutive_activation_failures": 0}}
     base.update(overrides)
     return base
 
 def candidate(**overrides):
-    data = {"work_ref": "#900", "task_class": "CODE", "priority": 1, "risk": "GREEN", "allowed_paths": ["scripts/example.py"], "forbidden_paths": [".github/**", "TEAM_RULES.md"], "base_sha": "abc123", "eligible_executors": ["AMAZON_Q", "JULES", "SORA"], "preflight_valid": True, "dependencies_satisfied": True, "owner_conflict": False, "path_conflict": False, "authority": "EXECUTOR", "broadcast_sync_verified": True}
+    data = {"work_ref": "#900", "task_class": "CODE", "priority": 1, "risk": "GREEN", "allowed_paths": ["scripts/example.py"], "forbidden_paths": [".github/**", "TEAM_RULES.md"], "base_sha": "abc123", "eligible_executors": ["AMAZON_Q", "JULES", "COPILOT", "SORA"], "preflight_valid": True, "dependencies_satisfied": True, "owner_conflict": False, "path_conflict": False, "authority": "EXECUTOR", "broadcast_sync_verified": True}
     data.update(overrides)
     return data
 
 def test_free_first_prefers_amazon_q_when_healthy():
     result = select_route([candidate()], provider_health=healthy_providers())
-    assert result["status"] == "SELECTED" and result["executor"] == "AMAZON_Q" and result["fallback_order"] == ("JULES", "SORA")
+    assert result["status"] == "SELECTED" and result["executor"] == "AMAZON_Q" and result["fallback_order"] == ("JULES", "COPILOT", "SORA")
 
 def test_provider_with_two_activation_failures_is_skipped():
     providers = healthy_providers(AMAZON_Q={"state": "HEALTHY", "consecutive_activation_failures": 2})
@@ -33,7 +33,7 @@ def test_cooldown_without_provider_clock_fails_closed_and_falls_back():
     assert select_route([candidate()], provider_health=providers)["executor"] == "JULES"
 
 def test_provider_unavailable_falls_back_to_sora():
-    providers = healthy_providers(AMAZON_Q={"state": "BLOCKED", "consecutive_activation_failures": 0}, JULES={"state": "BLOCKED", "consecutive_activation_failures": 0})
+    providers = healthy_providers(AMAZON_Q={"state": "BLOCKED", "consecutive_activation_failures": 0}, JULES={"state": "BLOCKED", "consecutive_activation_failures": 0}, COPILOT={"state": "BLOCKED", "consecutive_activation_failures": 0})
     assert select_route([candidate()], provider_health=providers)["executor"] == "SORA"
 
 def test_conflict_fails_closed():
