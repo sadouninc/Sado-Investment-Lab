@@ -1,0 +1,104 @@
+name: Queue Auto-Promotion Consumer
+
+# Issue #556: fail-closed scheduled queue consumer. Bounded-scans safe
+# READY_FOR_IMPLEMENTATION Issues and hands at most one safe candidate per
+# tick to the existing canonical AI Production Dispatch
+# (ai-production-dispatch.yml), without depending on a scheduled ChatGPT
+# Issue comment. This workflow performs no merges and never selects
+# Issue #79.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  actions: write
+
+concurrency:
+  group: queue-auto-promotion-consumer
+  cancel-in-progress: false
+
+jobs:
+  consume:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Bounded scan of safe READY candidates (no GitHub writes)
+        id: scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/issues?state=open&labels=READY_FOR_IMPLEMENTATION&per_page=20" > /tmp/issues-raw.json
+          jq '[.[] | select((.pull_request // null) == null and .number != 79) | {number, title, state, body}]' /tmp/issues-raw.json > /tmp/issues-candidates.json
+          echo "Bounded candidate pool: $(jq 'length' /tmp/issues-candidates.json) open READY_FOR_IMPLEMENTATION issue(s) (Issue #79 excluded)."
+
+          SAFE='[]'
+          for number in $(jq -r '.[].number' /tmp/issues-candidates.json); do
+            : > /tmp/comment-pages.jsonl
+            page=1
+            while :; do
+              gh api "repos/${GITHUB_REPOSITORY}/issues/${number}/comments?per_page=100&page=${page}" > /tmp/comment-page.json
+              jq -c '.' /tmp/comment-page.json >> /tmp/comment-pages.jsonl
+              count="$(jq 'length' /tmp/comment-page.json)"
+              [[ "$count" == "100" ]] || break
+              page=$((page + 1))
+            done
+            jq -s 'add // []' /tmp/comment-pages.jsonl > /tmp/comments.json
+            if jq -e --arg n "$number"               'any(.[]; (.body // "") as $b | ($b | test("AUTO_ROUTER_DISPATCH lease_id=.* executor=COPILOT target_issue=" + $n + "\\b")))'               /tmp/comments.json >/dev/null; then
+              echo "Issue #${number} already has an existing canonical lease marker; excluding from this tick (duplicate-active-lease fail-closed)."
+              continue
+            fi
+            ISSUE_ENTRY="$(jq --arg n "$number" '.[] | select(.number == ($n|tonumber))' /tmp/issues-candidates.json)"
+            SAFE="$(jq -c --argjson entry "$ISSUE_ENTRY" '. + [$entry]' <<< "$SAFE")"
+          done
+          echo "$SAFE" > /tmp/issues.json
+          echo "candidate_count=$(jq 'length' /tmp/issues.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Collect active conflicting-PR paths (bounded, no writes)
+        id: active
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=30" > /tmp/open-prs.json
+          : > /tmp/active-paths.jsonl
+          for pr in $(jq -r '.[].number' /tmp/open-prs.json); do
+            gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr}/files?per_page=100" --jq '.[].filename' >> /tmp/active-paths.jsonl
+          done
+          sort -u /tmp/active-paths.jsonl | jq -Rsc 'split("\n") | map(select(length > 0))' > /tmp/active-paths.json
+          echo "active_path_count=$(jq 'length' /tmp/active-paths.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Select one safe candidate
+        id: select
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/queue_auto_promotion_consumer.py             --issues /tmp/issues.json             --active-paths /tmp/active-paths.json             --output /tmp/selection.json
+          cat /tmp/selection.json
+          selected="$(jq -r '.selected // empty' /tmp/selection.json)"
+          echo "selected=${selected}" >> "$GITHUB_OUTPUT"
+
+      - name: Persist canonical lease and dispatch
+        if: steps.select.outputs.selected != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          issue="${{ steps.select.outputs.selected }}"
+          lease_id="queue-auto-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${issue}"
+          marker="AUTO_ROUTER_DISPATCH lease_id=${lease_id} executor=COPILOT target_issue=${issue}"
+          gh issue comment "${issue}" --repo "${GITHUB_REPOSITORY}" --body "${marker}"
+          gh workflow run ai-production-dispatch.yml             --repo "${GITHUB_REPOSITORY}"             --ref main             -f issue_number="${issue}"
+
+      - name: Fail closed when no safe candidate
+        if: steps.select.outputs.selected == ''
+        shell: bash
+        run: |
+          echo "No safe candidate selected; no lease written and no executor dispatched."
