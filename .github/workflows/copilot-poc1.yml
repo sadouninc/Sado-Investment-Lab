@@ -144,10 +144,15 @@ jobs:
           fi
           printf '%s\n' "$changed" > /tmp/changed-paths.txt
 
-          generic_forbidden="$(printf '%s\n' "$changed" | grep -E '(^\.github/workflows/|(^|/)(package(-lock)?\.json|pyproject\.toml|requirements[^/]*\.txt|poetry\.lock|uv\.lock)$)' || true)"
-          if [[ -n "$generic_forbidden" ]]; then
+          set +e
+          python -m scripts.copilot_harness_path_guard \
+            --changed-paths-file /tmp/changed-paths.txt \
+            --allowed-paths-file /tmp/issue-allowed-paths.txt \
+            --forbidden-paths-output /tmp/forbidden-paths.txt
+          guard_rc=$?
+          set -e
+          if [[ $guard_rc -ne 0 ]]; then
             echo "HARNESS_OUTCOME=BLOCKED_FORBIDDEN_PATH" >> "$GITHUB_ENV"
-            printf '%s\n' "$generic_forbidden" > /tmp/forbidden-paths.txt
             exit 86
           fi
 
