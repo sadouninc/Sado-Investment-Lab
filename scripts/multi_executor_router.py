@@ -111,7 +111,9 @@ def select_queue_starvation_route(
         if age < timedelta(0) or age > ready_max_age:
             blocked.append("READY_STALE_OR_UNKNOWN")
             continue
-        if raw.get("live_lease") is True or bool(str(raw.get("implementation_owner", "")).strip()):
+        owner = raw.get("implementation_owner", "")
+        has_owner = bool(owner) if isinstance(owner, bool) else bool(str(owner).strip())
+        if raw.get("live_lease") is True or has_owner:
             blocked.append("DUPLICATE_IMPLEMENTATION")
             continue
         eligible.append(raw)
