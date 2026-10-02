@@ -132,3 +132,12 @@ def test_queue_starvation_does_not_consume_nonimplementation_capacity():
 def test_queue_starvation_stale_ready_fails_closed():
     result = select_queue_starvation_route([queue_candidate(ready_observed_at=(NOW - timedelta(hours=25)).isoformat())], provider_health=healthy_providers(), now=NOW, implementation_capacity_free=True)
     assert result == {"status": "READY_STALE_OR_UNKNOWN", "selected": None}
+
+
+def test_queue_starvation_expired_lease_can_reroute_only_after_fresh_preflight():
+    selection = select_queue_starvation_route([queue_candidate()], provider_health=healthy_providers(), now=NOW, implementation_capacity_free=True)
+    lease = issue_lease(selection, assigned_at=NOW)
+    expired = evaluate_lease(lease, now=NOW + timedelta(minutes=10))
+    assert expired["status"] == "DISPATCH_ACK_EXPIRED" and expired["terminal"] is True
+    reroute = select_queue_starvation_route([queue_candidate()], provider_health=healthy_providers(), now=NOW + timedelta(minutes=10), implementation_capacity_free=True)
+    assert reroute["status"] == "SELECTED"
