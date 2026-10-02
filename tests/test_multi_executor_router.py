@@ -141,3 +141,8 @@ def test_queue_starvation_expired_lease_can_reroute_only_after_fresh_preflight()
     assert expired["status"] == "DISPATCH_ACK_EXPIRED" and expired["terminal"] is True
     reroute = select_queue_starvation_route([queue_candidate()], provider_health=healthy_providers(), now=NOW + timedelta(minutes=10), implementation_capacity_free=True)
     assert reroute["status"] == "SELECTED"
+
+
+def test_queue_starvation_boolean_false_owner_is_unowned():
+    result = select_queue_starvation_route([queue_candidate(implementation_owner=False)], provider_health=healthy_providers(), now=NOW, implementation_capacity_free=True)
+    assert result["status"] == "SELECTED"
