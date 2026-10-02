@@ -75,6 +75,58 @@ def select_route(candidates: Iterable[Mapping[str, Any]], *, provider_health: Ma
     return {"status":next((r for r in reason_order if r in blocked),"NO_SAFE_CANDIDATE"),"selected":None}
 
 
+def select_queue_starvation_route(
+    candidates: Iterable[Mapping[str, Any]],
+    *,
+    provider_health: Mapping[str, Mapping[str, Any]],
+    now: datetime,
+    implementation_capacity_free: bool,
+    executor_order: Iterable[str] = DEFAULT_EXECUTOR_ORDER,
+    ready_max_age: timedelta = timedelta(hours=24),
+) -> dict[str, Any]:
+    """Fail-closed ingress for unattended QUEUE_STARVATION routing."""
+    if now.tzinfo is None or now.utcoffset() is None:
+        return {"status": "PREFLIGHT_INVALID", "selected": None}
+    if implementation_capacity_free is not True:
+        return {"status": "IMPLEMENTATION_CAPACITY_FULL", "selected": None}
+
+    eligible: list[Mapping[str, Any]] = []
+    blocked: list[str] = []
+    now_utc = now.astimezone(timezone.utc)
+    for raw in candidates:
+        work_ref = str(raw.get("work_ref", "")).strip()
+        if work_ref == "#79":
+            blocked.append("ISSUE_79_HARD_DENY")
+            continue
+        labels = {str(v).strip().upper() for v in raw.get("labels", ())}
+        if "READY_FOR_IMPLEMENTATION" not in labels:
+            blocked.append("READY_REQUIRED")
+            continue
+        try:
+            observed = _parse_aware(raw.get("ready_observed_at"), field="ready_observed_at")
+        except ValueError:
+            blocked.append("READY_STALE_OR_UNKNOWN")
+            continue
+        age = now_utc - observed
+        if age < timedelta(0) or age > ready_max_age:
+            blocked.append("READY_STALE_OR_UNKNOWN")
+            continue
+        if raw.get("live_lease") is True or bool(str(raw.get("implementation_owner", "")).strip()):
+            blocked.append("DUPLICATE_IMPLEMENTATION")
+            continue
+        eligible.append(raw)
+
+    if eligible:
+        return select_route(eligible, provider_health=provider_health, executor_order=executor_order)
+    reason_order = (
+        "ISSUE_79_HARD_DENY",
+        "DUPLICATE_IMPLEMENTATION",
+        "READY_STALE_OR_UNKNOWN",
+        "READY_REQUIRED",
+    )
+    return {"status": next((r for r in reason_order if r in blocked), "NO_SAFE_CANDIDATE"), "selected": None}
+
+
 def issue_lease(selection: Mapping[str, Any], *, assigned_at: datetime) -> dict[str, Any]:
     if selection.get("status") != "SELECTED": raise ValueError("lease requires SELECTED routing result")
     if assigned_at.tzinfo is None or assigned_at.utcoffset() is None: raise ValueError("assigned_at must be timezone-aware")
