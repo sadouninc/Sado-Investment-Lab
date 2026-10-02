@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from scripts.multi_executor_router import evaluate_lease, issue_lease, select_route
+from scripts.multi_executor_router import evaluate_lease, issue_lease, select_queue_starvation_route, select_route
 
 NOW = datetime(2026, 8, 19, 0, 0, tzinfo=timezone.utc)
 
@@ -94,3 +94,41 @@ def test_naive_stored_lease_timestamp_rejected():
     lease = issue_lease(select_route([candidate()], provider_health=healthy_providers()), assigned_at=NOW); lease["assigned_at"] = "2026-08-19T00:00:00"
     with pytest.raises(ValueError, match="assigned_at must be timezone-aware"):
         evaluate_lease(lease, now=NOW + timedelta(minutes=1))
+
+
+def queue_candidate(**overrides):
+    data = candidate(labels=["READY_FOR_IMPLEMENTATION"], ready_observed_at=NOW.isoformat(), live_lease=False, implementation_owner="")
+    data.update(overrides)
+    return data
+
+
+def test_queue_starvation_selects_fresh_ready_work_when_capacity_is_free():
+    result = select_queue_starvation_route([queue_candidate()], provider_health=healthy_providers(), now=NOW, implementation_capacity_free=True)
+    assert result["status"] == "SELECTED" and result["work_ref"] == "#900"
+
+
+def test_queue_starvation_fails_closed_without_safe_candidate():
+    result = select_queue_starvation_route([queue_candidate(labels=[])], provider_health=healthy_providers(), now=NOW, implementation_capacity_free=True)
+    assert result == {"status": "READY_REQUIRED", "selected": None}
+
+
+def test_queue_starvation_suppresses_live_lease_and_owner_duplicates():
+    live = select_queue_starvation_route([queue_candidate(live_lease=True)], provider_health=healthy_providers(), now=NOW, implementation_capacity_free=True)
+    owned = select_queue_starvation_route([queue_candidate(implementation_owner="SORA")], provider_health=healthy_providers(), now=NOW, implementation_capacity_free=True)
+    assert live["status"] == "DUPLICATE_IMPLEMENTATION"
+    assert owned["status"] == "DUPLICATE_IMPLEMENTATION"
+
+
+def test_queue_starvation_hard_denies_issue_79():
+    result = select_queue_starvation_route([queue_candidate(work_ref="#79")], provider_health=healthy_providers(), now=NOW, implementation_capacity_free=True)
+    assert result == {"status": "ISSUE_79_HARD_DENY", "selected": None}
+
+
+def test_queue_starvation_does_not_consume_nonimplementation_capacity():
+    result = select_queue_starvation_route([queue_candidate()], provider_health=healthy_providers(), now=NOW, implementation_capacity_free=False)
+    assert result == {"status": "IMPLEMENTATION_CAPACITY_FULL", "selected": None}
+
+
+def test_queue_starvation_stale_ready_fails_closed():
+    result = select_queue_starvation_route([queue_candidate(ready_observed_at=(NOW - timedelta(hours=25)).isoformat())], provider_health=healthy_providers(), now=NOW, implementation_capacity_free=True)
+    assert result == {"status": "READY_STALE_OR_UNKNOWN", "selected": None}
