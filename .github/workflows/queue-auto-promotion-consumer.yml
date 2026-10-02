@@ -53,7 +53,9 @@ jobs:
               page=$((page + 1))
             done
             jq -s 'add // []' /tmp/comment-pages.jsonl > /tmp/comments.json
-            if jq -e --arg n "$number"               'any(.[]; (.body // "") as $b | ($b | test("AUTO_ROUTER_DISPATCH lease_id=.* executor=COPILOT target_issue=" + $n + "\\b")))'               /tmp/comments.json >/dev/null; then
+            if jq -e --arg n "$number" \
+              'any(.[]; (.body // "") as $b | ($b | test("AUTO_ROUTER_DISPATCH lease_id=.* executor=COPILOT target_issue=" + $n + "\\b")))' \
+              /tmp/comments.json >/dev/null; then
               echo "Issue #${number} already has an existing canonical lease marker; excluding from this tick (duplicate-active-lease fail-closed)."
               continue
             fi
@@ -71,34 +73,58 @@ jobs:
           gh api "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=30" > /tmp/open-prs.json
           : > /tmp/active-paths.jsonl
           for pr in $(jq -r '.[].number' /tmp/open-prs.json); do
-            gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr}/files?per_page=100" --jq '.[].filename' >> /tmp/active-paths.jsonl
+            gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr}/files?per_page=100" | jq -r '.[].filename' >> /tmp/active-paths.jsonl
           done
-          sort -u /tmp/active-paths.jsonl | jq -Rsc 'split("\n") | map(select(length > 0))' > /tmp/active-paths.json
-          echo "active_path_count=$(jq 'length' /tmp/active-paths.json)" >> "$GITHUB_OUTPUT"
+          jq -R -s -c 'split("\n") | map(select(length > 0)) | unique' /tmp/active-paths.jsonl > /tmp/active-paths.json
+          echo '[]' > /tmp/active-owner-slices.json
 
-      - name: Select one safe candidate
-        id: select
+      - name: Compute one safe queue-consumer tick (no GitHub writes)
+        id: tick
         shell: bash
         run: |
           set -euo pipefail
-          python scripts/queue_auto_promotion_consumer.py             --issues /tmp/issues.json             --active-paths /tmp/active-paths.json             --output /tmp/selection.json
-          cat /tmp/selection.json
-          selected="$(jq -r '.selected // empty' /tmp/selection.json)"
-          echo "selected=${selected}" >> "$GITHUB_OUTPUT"
+          echo '{"copilot":"available"}' > /tmp/worker-state.json
+          BASE_SHA="$(git rev-parse HEAD)"
+          python scripts/queue_auto_promotion_consumer.py \
+            --issues /tmp/issues.json \
+            --worker-state /tmp/worker-state.json \
+            --active-owner-slices /tmp/active-owner-slices.json \
+            --active-paths /tmp/active-paths.json \
+            --base-sha "$BASE_SHA" \
+            --output /tmp/packet.json || true
+          status="$(jq -r '.status' /tmp/packet.json)"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "Queue consumer tick status: $status"
+          if [[ "$status" == "DISPATCH_READY" ]]; then
+            echo "issue_number=$(jq -r '.selected.issue_number' /tmp/packet.json)" >> "$GITHUB_OUTPUT"
+            echo "lease_id=$(jq -r '.dispatch.workflow_dispatch.inputs.lease_id' /tmp/packet.json)" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Persist canonical lease and dispatch
-        if: steps.select.outputs.selected != ''
+      - name: Post canonical lease evidence and invoke AI Production Dispatch
+        if: steps.tick.outputs.status == 'DISPATCH_READY'
+        env:
+          ISSUE_NUMBER: ${{ steps.tick.outputs.issue_number }}
+          LEASE_ID: ${{ steps.tick.outputs.lease_id }}
         shell: bash
         run: |
           set -euo pipefail
-          issue="${{ steps.select.outputs.selected }}"
-          lease_id="queue-auto-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${issue}"
-          marker="AUTO_ROUTER_DISPATCH lease_id=${lease_id} executor=COPILOT target_issue=${issue}"
-          gh issue comment "${issue}" --repo "${GITHUB_REPOSITORY}" --body "${marker}"
-          gh workflow run ai-production-dispatch.yml             --repo "${GITHUB_REPOSITORY}"             --ref main             -f issue_number="${issue}"
+          [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]] || { echo INVALID_ISSUE_NUMBER; exit 78; }
+          [[ "$ISSUE_NUMBER" != "79" ]] || { echo PROTECTED_ISSUE_79; exit 79; }
+          [[ "$LEASE_ID" =~ ^lease-[0-9a-f]{32}$ ]] || { echo INVALID_LEASE_ID; exit 78; }
+          {
+            jq -r '.dispatch.evidence_comment' /tmp/packet.json
+            echo
+            echo
+            echo "担当: 🌊ナギ"
+            echo "種別: Autonomous Queue Consumer / Canonical Lease Evidence"
+            echo
+            echo "Bounded safe-selection tick (Issue #556) selected this Issue for the existing canonical AI Production Dispatch. Fail-closed duplicate/lease/path/authority checks remain authoritative downstream."
+          } > /tmp/evidence-comment.md
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/comments" -F body=@/tmp/evidence-comment.md >/dev/null
+          gh workflow run ai-production-dispatch.yml --repo "$GITHUB_REPOSITORY" --ref main -f issue_number="$ISSUE_NUMBER" -f lease_id="$LEASE_ID"
 
-      - name: Fail closed when no safe candidate
-        if: steps.select.outputs.selected == ''
+      - name: No safe candidate this tick
+        if: steps.tick.outputs.status != 'DISPATCH_READY'
         shell: bash
         run: |
-          echo "No safe candidate selected; no lease written and no executor dispatched."
+          echo "Queue consumer tick result: ${{ steps.tick.outputs.status }}. No executor dispatch this tick (fail-closed)."
