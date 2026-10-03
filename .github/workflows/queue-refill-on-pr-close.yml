@@ -1,0 +1,39 @@
+name: Queue Refill on PR Close
+
+# Issue #556 follow-up: event-driven primary refill signal.
+# A merged PR immediately asks the existing fail-closed Queue Auto-Promotion
+# Consumer to look for the next safe READY work. The scheduled consumer remains
+# the reconciliation fallback. This workflow performs no selection, lease,
+# implementation, PR creation, or merge itself and never targets Issue #79.
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: queue-refill-on-pr-close
+  cancel-in-progress: false
+
+jobs:
+  refill:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch fail-closed Queue Auto-Promotion Consumer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload=$(jq -nc --arg ref "main" '{ref:$ref}')
+          gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "repos/$REPO/actions/workflows/queue-auto-promotion-consumer.yml/dispatches" \
+            --input - <<<"$payload"
+          echo "Event-driven queue refill dispatched after merged PR #${{ github.event.pull_request.number }}."
