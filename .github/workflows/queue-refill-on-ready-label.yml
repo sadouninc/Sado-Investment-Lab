@@ -1,0 +1,42 @@
+name: Queue Refill on READY Label
+
+# Issue #556 follow-up: event-driven work-ingress signal.
+# When an open Issue receives READY_FOR_IMPLEMENTATION, immediately ask the
+# existing fail-closed Queue Auto-Promotion Consumer to evaluate the bounded
+# queue. Selection, authority/path/lease checks and protected Issue #79 remain
+# canonical in the consumer. The scheduled consumer remains reconciliation.
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: queue-refill-on-ready-label
+  cancel-in-progress: false
+
+jobs:
+  refill:
+    if: >-
+      github.event.issue.state == 'open' &&
+      github.event.label.name == 'READY_FOR_IMPLEMENTATION' &&
+      github.event.issue.number != 79
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch fail-closed Queue Auto-Promotion Consumer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload=$(jq -nc --arg ref "main" '{ref:$ref}')
+          gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "repos/$REPO/actions/workflows/queue-auto-promotion-consumer.yml/dispatches" \
+            --input - <<<"$payload"
+          echo "Event-driven queue refill dispatched after READY label on Issue #${{ github.event.issue.number }}."
