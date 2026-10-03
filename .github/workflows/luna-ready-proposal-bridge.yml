@@ -1,0 +1,87 @@
+name: Luna READY Proposal Bridge
+
+# Issue #802 / #556: turn a reviewed Product/Flow READY proposal into a
+# queue-visible READY label only when the Issue body already contains a valid,
+# autonomous Work Contract v1. This bridge does not synthesize contracts,
+# choose global priority, implement code, or dispatch an executor itself.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: luna-ready-proposal-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  validate-and-promote:
+    if: >-
+      github.event.issue.pull_request == null &&
+      github.event.issue.state == 'open' &&
+      github.event.issue.number != 79 &&
+      contains(github.event.comment.body, '<!-- LUNA_READY_PROPOSAL_V1 -->')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate existing Work Contract v1
+        id: validate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPO/issues/$ISSUE" > /tmp/issue.json
+
+          set +e
+          python -m scripts.work_contract_consumer_preflight \
+            --issue-json /tmp/issue.json \
+            --diagnostic-output /tmp/diagnostic.json \
+            --contract-output /tmp/contract.md \
+            --allowed-paths-output /tmp/allowed.txt \
+            --forbidden-paths-output /tmp/forbidden.txt
+          rc=$?
+          set -e
+
+          if [[ "$rc" -ne 0 ]]; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            cat /tmp/diagnostic.json
+            exit 0
+          fi
+
+          authority=$(jq -r '.contract.authority // ""' /tmp/diagnostic.json)
+          deps=$(jq -r '.contract.dependencies | length' /tmp/diagnostic.json)
+          status=$(jq -r '.contract.status // ""' /tmp/diagnostic.json)
+
+          if [[ "$authority" != "STANDARD" || "$deps" != "0" || "$status" != "READY_FOR_IMPLEMENTATION" ]]; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "Proposal remains non-executable for autonomous queue: authority=$authority dependencies=$deps status=$status"
+            exit 0
+          fi
+
+          echo "eligible=true" >> "$GITHUB_OUTPUT"
+
+      - name: Promote validated proposal to queue-visible READY
+        if: steps.validate.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          labels=$(gh api "repos/$REPO/issues/$ISSUE" --jq '[.labels[].name]')
+          if jq -e 'index("READY_FOR_IMPLEMENTATION") != null' <<<"$labels" >/dev/null; then
+            echo "READY_FOR_IMPLEMENTATION already present; no mutation required."
+            exit 0
+          fi
+          gh api --method POST "repos/$REPO/issues/$ISSUE/labels" \
+            -f 'labels[]=READY_FOR_IMPLEMENTATION' >/dev/null
+          echo "Validated Luna READY proposal promoted; READY label event will wake canonical Queue Consumer."
