@@ -20,6 +20,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Re-enable Queue Auto-Promotion Consumer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Issue #556 BLOCKED_ESCAPE: idempotently restore the workflow's
+          # activation state without manually dispatching the consumer.
+          gh api --method PUT "repos/$REPO/actions/workflows/queue-auto-promotion-consumer.yml/enable"
+          echo "Queue Auto-Promotion Consumer enable request accepted."
+
       - name: Discover Amazon Q PRs and dispatch missing preflight
         env:
           GH_TOKEN: ${{ github.token }}
