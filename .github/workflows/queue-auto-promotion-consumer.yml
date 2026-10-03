@@ -85,7 +85,7 @@ jobs:
           set -euo pipefail
           echo '{"copilot":"available"}' > /tmp/worker-state.json
           BASE_SHA="$(git rev-parse HEAD)"
-          python scripts/queue_auto_promotion_consumer.py \
+          python -m scripts.queue_auto_promotion_consumer \
             --issues /tmp/issues.json \
             --worker-state /tmp/worker-state.json \
             --active-owner-slices /tmp/active-owner-slices.json \

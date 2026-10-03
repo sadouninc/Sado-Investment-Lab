@@ -6,7 +6,7 @@ def _read(path): return path.read_text(encoding="utf-8")
 def test_triggers(): t=_read(CONSUMER); assert "schedule:" in t and "cron:" in t and "workflow_dispatch:" in t
 def test_never_79(): t=_read(CONSUMER); assert ".number != 79" in t and '[[ "$ISSUE_NUMBER" != "79" ]]' in t and "PROTECTED_ISSUE_79" in t
 def test_bounded_scan(): t=_read(CONSUMER); assert "READY_FOR_IMPLEMENTATION" in t and "per_page=20" in t and '(.pull_request // null) == null' in t
-def test_reuses_adapter(): t=_read(CONSUMER); assert "scripts/queue_auto_promotion_consumer.py" in t and "--active-owner-slices" in t and "--active-paths" in t
+def test_reuses_adapter(): t=_read(CONSUMER); assert "python -m scripts.queue_auto_promotion_consumer" in t and "--active-owner-slices" in t and "--active-paths" in t
 def test_duplicate_lease_guard(): t=_read(CONSUMER); assert "AUTO_ROUTER_DISPATCH lease_id=.* executor=COPILOT target_issue=" in t and "duplicate-active-lease fail-closed" in t
 def test_conflicting_pr_paths(): t=_read(CONSUMER); assert "pulls?state=open" in t and "/files?per_page=100" in t and "--active-paths /tmp/active-paths.json" in t
 def test_one_lease_and_canonical_dispatch():
