@@ -148,7 +148,7 @@ jobs:
         id: promotion-app-token
         uses: actions/create-github-app-token@v3
         with:
-          client-id: ${{ vars.PROMOTION_APP_CLIENT_ID }}
+          app-id: ${{ vars.PROMOTION_APP_ID }}
           private-key: ${{ secrets.PROMOTION_APP_PRIVATE_KEY }}
 
       - name: Create branch and PR or persist policy handoff
