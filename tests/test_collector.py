@@ -134,3 +134,76 @@ def test_sample_artifact_matches_basic_fixture():
     ) as source:
         sample = json.loads(source.readline())
     assert sample == expected
+
+
+def test_contract_adoption_present_valid_eligible():
+    metrics = tc.collect_from_fixture({
+        "contract_adoption": {
+            "contract_present": True,
+            "contract_status": "READY_FOR_IMPLEMENTATION",
+            "validation": {"valid": True},
+            "preflight": {"status": "ELIGIBLE", "executable": True, "reason_codes": []},
+        }
+    })["metrics"]
+    assert metrics["contract_present_count"] == 1
+    assert metrics["contract_valid_count"] == 1
+    assert metrics["preflight_rejected_count"] == 0
+    assert metrics["ready_but_unexecutable_count"] == 0
+
+
+def test_contract_adoption_invalid_and_explicitly_blocked():
+    metrics = tc.collect_from_fixture({
+        "contract_adoption": {
+            "contract_present": True,
+            "contract_status": "READY_FOR_IMPLEMENTATION",
+            "validation": {"valid": False},
+            "preflight": {"status": "BLOCKED", "executable": False, "reason_codes": ["INVALID_CONTRACT"]},
+        }
+    })["metrics"]
+    assert metrics["contract_present_count"] == 1
+    assert metrics["contract_valid_count"] == 0
+    assert metrics["preflight_rejected_count"] == 1
+    assert metrics["ready_but_unexecutable_count"] == 1
+
+
+def test_contract_adoption_valid_but_ready_unexecutable():
+    metrics = tc.collect_from_fixture({
+        "contract_adoption": {
+            "contract_present": True,
+            "contract_status": "READY_FOR_IMPLEMENTATION",
+            "validation": {"valid": True},
+            "preflight": {"status": "BLOCKED", "executable": False},
+        }
+    })["metrics"]
+    assert metrics["contract_valid_count"] == 1
+    assert metrics["preflight_rejected_count"] == 1
+    assert metrics["ready_but_unexecutable_count"] == 1
+
+
+def test_contract_adoption_explicit_absent_does_not_infer_other_metrics():
+    metrics = tc.collect_from_fixture({
+        "contract_adoption": {"contract_present": False}
+    })["metrics"]
+    assert metrics["contract_present_count"] == 0
+    assert "contract_valid_count" not in metrics
+    assert "preflight_rejected_count" not in metrics
+    assert "ready_but_unexecutable_count" not in metrics
+
+
+def test_contract_adoption_partial_or_inconsistent_preflight_is_omitted():
+    cases = [
+        {"preflight": {"status": "BLOCKED"}},
+        {"preflight": {"executable": False}},
+        {"preflight": {"status": "BLOCKED", "executable": "false"}},
+        {"preflight": {"status": "ELIGIBLE", "executable": False}},
+    ]
+    for adoption in cases:
+        metrics = tc.collect_from_fixture({"contract_adoption": adoption})["metrics"]
+        assert "preflight_rejected_count" not in metrics
+        assert "ready_but_unexecutable_count" not in metrics
+
+
+def test_contract_adoption_non_mapping_and_missing_preserve_legacy_shape():
+    baseline = tc.collect_from_fixture({})["metrics"]
+    assert tc.collect_from_fixture({"contract_adoption": "unknown"})["metrics"] == baseline
+    assert tc.collect_from_fixture({})["metrics"] == baseline

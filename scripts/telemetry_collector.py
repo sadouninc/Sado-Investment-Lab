@@ -100,6 +100,44 @@ def collect_review_routing_metrics(event: Mapping[str, Any]) -> Dict[str, Any]:
     }
 
 
+
+def collect_contract_adoption_metrics(event: Mapping[str, Any]) -> Dict[str, Any]:
+    """Project explicit contract-adoption evidence without inferring missing facts."""
+    adoption = event.get("contract_adoption")
+    if not isinstance(adoption, Mapping):
+        return {}
+
+    metrics: Dict[str, Any] = {}
+
+    present = adoption.get("contract_present")
+    if isinstance(present, bool):
+        metrics["contract_present_count"] = int(present)
+
+    validation = adoption.get("validation")
+    if isinstance(validation, Mapping):
+        valid = validation.get("valid")
+        if isinstance(valid, bool):
+            metrics["contract_valid_count"] = int(valid)
+
+    preflight = adoption.get("preflight")
+    rejected = None
+    if isinstance(preflight, Mapping):
+        status = preflight.get("status")
+        executable = preflight.get("executable")
+        if status == "BLOCKED" and executable is False:
+            rejected = True
+        elif status == "ELIGIBLE" and executable is True:
+            rejected = False
+        if rejected is not None:
+            metrics["preflight_rejected_count"] = int(rejected)
+
+    contract_status = adoption.get("contract_status")
+    if contract_status == "READY_FOR_IMPLEMENTATION" and rejected is not None:
+        metrics["ready_but_unexecutable_count"] = int(rejected)
+
+    return metrics
+
+
 def collect_operational_mode_metrics(event: Mapping[str, Any]) -> Dict[str, Any]:
     """Project optional #642 User Mode telemetry without inferring absent evidence."""
     operational = event.get("operational_mode")
@@ -140,6 +178,7 @@ def collect_from_fixture(event: Dict[str, Any]) -> Dict[str, Any]:
     }
     metrics.update(collect_flow_health_metrics(event))
     metrics.update(collect_review_routing_metrics(event))
+    metrics.update(collect_contract_adoption_metrics(event))
     metrics.update(collect_operational_mode_metrics(event))
 
     return {
