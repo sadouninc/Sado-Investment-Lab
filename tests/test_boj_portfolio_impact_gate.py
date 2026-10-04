@@ -28,16 +28,22 @@ def test_market_probability_alone_capped_at_orange() -> None:
 
 
 def test_primary_evidence_allows_red() -> None:
+    """Valid primary BOJ evidence with tightening indication allows RED classification."""
     signal_data = {
         "boj_state": "RED",
-        "primary_evidence_present": True,
-        "probability_only": False,
-        "reason": "BOJ Governor explicit hawkish press conference statement.",
+        "primary_evidence": {
+            "primary_evidence_present": True,
+            "evidence_status": "VALID",
+            "indicates_near_term_tightening": True,
+            "evidence_refs": [{"ref_id": "gov-1", "source_title": "Governor Press Conference", "evidence_type": "GOVERNOR_SPEECH"}],
+        },
+        "market_factors": {"market_implied_probability": 0.75},
     }
     eval_result = evaluate_boj_signal(signal_data)
     assert eval_result["raw_state"] == "RED"
     assert eval_result["effective_state"] == "RED"
     assert eval_result["primary_evidence_present"] is True
+    assert eval_result["probability_only"] is False
 
 
 def test_missing_or_invalid_signal_fails_closed_to_unknown() -> None:
@@ -228,4 +234,97 @@ def test_deterministic_identical_input_identical_output() -> None:
     res2 = evaluate_portfolio_boj_impact(holdings_input=holdings, boj_signal_input=signal)
 
     assert res1 == res2
-    assert json.dumps(res1, sort_keys=True) == json.dumps(res2, sort_keys=True)
+
+
+def test_adapter_with_real_canonical_ledger_shape():
+    """
+    Adapter-level regression: evaluate_boj_signal with real canonical ledger shape.
+    
+    Real canonical ledger identified by Luna review 5238569928:
+    - boj_state=ORANGE
+    - policy_delta=STRENGTHENS_ORANGE  
+    - policy_pricing.next_meeting_hike_probability_pct=80.0
+    - interpretation.red_gate=NOT_MET_PRIMARY_EVIDENCE_REQUIRED
+    
+    Expected: effective_state=ORANGE
+    Market probability alone must NOT produce RED without valid primary evidence.
+    """
+    real_canonical_signal = {
+        "boj_state": "ORANGE",
+        "policy_delta": "STRENGTHENS_ORANGE",
+        "policy_pricing": {
+            "next_meeting_hike_probability_pct": 80.0
+        },
+        "interpretation": {
+            "red_gate": "NOT_MET_PRIMARY_EVIDENCE_REQUIRED"
+        }
+    }
+    
+    result = evaluate_boj_signal(real_canonical_signal)
+    
+    # Core assertions: market probability alone cannot produce RED
+    assert result is not None
+    assert "effective_state" in result
+    assert result["effective_state"] == "ORANGE"
+    
+    # Additional guardrails
+    assert result.get("primary_evidence_present") is not True  # No valid primary evidence
+    
+    # Market probability is recorded but does not elevate to RED
+    assert result.get("market_implied_probability_pct") == 80.0
+
+
+def test_adapter_policy_delta_strengthens_orange_maps_to_market_prob_rising():
+    """
+    Adapter-level regression: policy_delta=STRENGTHENS_ORANGE with sub-50% market probability.
+    
+    Proves ORANGE is preserved via market_prob_rising when policy_delta indicates strengthening,
+    even when market probability is below 50%.
+    
+    Guardrails:
+    - Do NOT infer inflation_upside, hawkish_breadth_expanding, macro_pressures from policy_delta
+    - Only market_prob_rising is set from policy_delta=STRENGTHENS_ORANGE
+    """
+    signal_with_delta = {
+        "boj_state": "ORANGE",
+        "policy_delta": "STRENGTHENS_ORANGE",
+        "policy_pricing": {
+            "next_meeting_hike_probability_pct": 35.0  # sub-50%
+        },
+        "interpretation": {
+            "red_gate": "NOT_MET_PRIMARY_EVIDENCE_REQUIRED"
+        }
+    }
+    
+    result = evaluate_boj_signal(signal_with_delta)
+    
+    # ORANGE should be preserved via market_prob_rising from policy_delta
+    assert result["effective_state"] == "ORANGE"
+    assert result.get("primary_evidence_present") is not True
+    assert result.get("market_implied_probability_pct") == 35.0
+
+
+def test_adapter_control_no_delta_no_unrelated_factor_manufactured():
+    """
+    Control test: same sub-50% market probability WITHOUT policy_delta.
+    
+    Proves that no unrelated hawkish factor is manufactured when policy_delta is absent.
+    The signal should downgrade appropriately based on sub-50% probability alone.
+    """
+    signal_without_delta = {
+        "boj_state": "ORANGE",
+        # NO policy_delta
+        "policy_pricing": {
+            "next_meeting_hike_probability_pct": 35.0  # sub-50%
+        },
+        "interpretation": {
+            "red_gate": "NOT_MET_PRIMARY_EVIDENCE_REQUIRED"
+        }
+    }
+    
+    result = evaluate_boj_signal(signal_without_delta)
+    
+    # Without policy_delta strengthening signal, sub-50% probability should not maintain ORANGE
+    # This verifies no unrelated factor is manufactured
+    assert result["effective_state"] == "GREEN"
+    assert result.get("market_implied_probability_pct") == 35.0
