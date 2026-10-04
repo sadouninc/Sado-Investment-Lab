@@ -8,7 +8,18 @@ from build_intraday_market import main as build_intraday_market
 
 ROOT = Path(__file__).resolve().parents[2]
 REPORT = ROOT / "data" / "generated" / "public" / "morning-dataset.json"
+PERSISTED_REPORT = ROOT / "data" / "generated" / "diagnostics" / "openai" / "optimized-morning-dataset.json"
 SITE = ROOT / "site-src" / "research" / "morning-dataset"
+
+
+def resolve_report_file() -> Path:
+    if REPORT.is_file():
+        return REPORT
+    if PERSISTED_REPORT.is_file():
+        return PERSISTED_REPORT
+    raise FileNotFoundError(
+        f"Canonical Morning Dataset not found. Neither {REPORT} nor {PERSISTED_REPORT} exists."
+    )
 
 
 def esc(value: object) -> str:
@@ -194,12 +205,14 @@ permalink: /research/morning-dataset/
 
 
 def main() -> None:
-    if not REPORT.is_file():
-        raise FileNotFoundError(f"Morning Dataset not found: {REPORT}")
-    payload = json.loads(REPORT.read_text(encoding="utf-8"))
+    report_file = resolve_report_file()
+    payload = json.loads(report_file.read_text(encoding="utf-8"))
     SITE.mkdir(parents=True, exist_ok=True)
     (SITE / "index.md").write_text(build_page(payload), encoding="utf-8")
-    shutil.copyfile(REPORT, SITE / "morning-dataset.json")
+    shutil.copyfile(report_file, SITE / "morning-dataset.json")
+    if report_file != REPORT:
+        REPORT.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(report_file, REPORT)
     build_intraday_market()
 
 
