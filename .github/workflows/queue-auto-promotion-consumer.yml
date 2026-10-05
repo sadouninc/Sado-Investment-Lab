@@ -53,12 +53,39 @@ jobs:
               page=$((page + 1))
             done
             jq -s 'add // []' /tmp/comment-pages.jsonl > /tmp/comments.json
-            if jq -e --arg n "$number" \
-              'any(.[]; (.body // "") as $b | ($b | test("AUTO_ROUTER_DISPATCH lease_id=.* executor=COPILOT target_issue=" + $n + "\\b")))' \
-              /tmp/comments.json >/dev/null; then
-              echo "Issue #${number} already has an existing canonical lease marker; excluding from this tick (duplicate-active-lease fail-closed)."
-              continue
-            fi
+            # Canonical lease state is carried by flow-dispatch JSON events.
+            # A historical AUTO_ROUTER_DISPATCH marker alone is not an active lease.
+            # Latest relevant event wins; malformed/ambiguous active lease fails closed.
+            LEASE_STATE="$(jq -r --arg n "$number" '
+              def event:
+                (.body // "") as $b
+                | (try ($b | fromjson) catch null)
+                | select(type == "object")
+                | select((.work_ref // "") == ("issue:" + $n) or (.owner_slice // "") == ("issue-" + $n));
+              [ .[] | event ] | last // {} |
+              if ((.status // "") | IN("PROMOTION_DISPATCHED","PROMOTION_BRANCH_READY","PR_CREATE_REQUIRED","DUPLICATE_SUPERSEDED","PR_ALREADY_EXISTS","PR_ALREADY_EXISTS_RACE_RESOLVED")) then "TERMINALIZING"
+              elif ((.status // "") | IN("DISPATCH_LEASE_EXPIRED","COPILOT_RETRYABLE_FAILURE","RETRYABLE_FAILURE","FALLBACK_RETRYABLE_FAILURE","BLOCKED_BASE_DRIFT","BLOCKED_CONTRACT_REPLAY","FAIL_CLOSED")) then "RETRYABLE"
+              elif ((.status // "") | IN("ASSIGNED","ACKNOWLEDGED","FALLBACK_ASSIGNED")) then
+                if ((.lease_expires_at // "") == "") then "AMBIGUOUS"
+                elif ((try (.lease_expires_at | fromdateiso8601) catch null) == null) then "AMBIGUOUS"
+                elif ((.lease_expires_at | fromdateiso8601) > now) then "ACTIVE"
+                else "EXPIRED"
+                end
+              else "NONE"
+              end' /tmp/comments.json)"
+            case "$LEASE_STATE" in
+              ACTIVE|TERMINALIZING|AMBIGUOUS)
+                echo "Issue #${number} canonical lease state=${LEASE_STATE}; excluding this tick (fail-closed)."
+                continue
+                ;;
+              EXPIRED|RETRYABLE|NONE)
+                echo "Issue #${number} canonical lease state=${LEASE_STATE}; eligible for fresh preflight."
+                ;;
+              *)
+                echo "Issue #${number} unknown canonical lease state; excluding this tick (fail-closed)."
+                continue
+                ;;
+            esac
             ISSUE_ENTRY="$(jq --arg n "$number" '.[] | select(.number == ($n|tonumber))' /tmp/issues-candidates.json)"
             SAFE="$(jq -c --argjson entry "$ISSUE_ENTRY" '. + [$entry]' <<< "$SAFE")"
           done
