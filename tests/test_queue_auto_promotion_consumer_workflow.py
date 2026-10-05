@@ -7,7 +7,20 @@ def test_triggers(): t=_read(CONSUMER); assert "schedule:" in t and "cron:" in t
 def test_never_79(): t=_read(CONSUMER); assert ".number != 79" in t and '[[ "$ISSUE_NUMBER" != "79" ]]' in t and "PROTECTED_ISSUE_79" in t
 def test_bounded_scan(): t=_read(CONSUMER); assert "READY_FOR_IMPLEMENTATION" in t and "per_page=20" in t and '(.pull_request // null) == null' in t
 def test_reuses_adapter(): t=_read(CONSUMER); assert "python -m scripts.queue_auto_promotion_consumer" in t and "--active-owner-slices" in t and "--active-paths" in t
-def test_duplicate_lease_guard(): t=_read(CONSUMER); assert "AUTO_ROUTER_DISPATCH lease_id=.* executor=COPILOT target_issue=" in t and "duplicate-active-lease fail-closed" in t
+def test_canonical_lease_guard_uses_status_and_expiry_not_historical_marker():
+    t=_read(CONSUMER)
+    assert "lease_expires_at" in t and "fromdateiso8601" in t
+    assert 'ACTIVE|TERMINALIZING|AMBIGUOUS' in t
+    assert 'EXPIRED|RETRYABLE|NONE' in t
+    assert "historical AUTO_ROUTER_DISPATCH marker alone is not an active lease" in t
+    assert "already has an existing canonical lease marker" not in t
+
+def test_retryable_and_terminal_status_contract_is_explicit():
+    t=_read(CONSUMER)
+    for status in ("DISPATCH_LEASE_EXPIRED","COPILOT_RETRYABLE_FAILURE","RETRYABLE_FAILURE","FALLBACK_RETRYABLE_FAILURE","BLOCKED_BASE_DRIFT","BLOCKED_CONTRACT_REPLAY","FAIL_CLOSED"):
+        assert status in t
+    for status in ("PROMOTION_DISPATCHED","PROMOTION_BRANCH_READY","PR_CREATE_REQUIRED","DUPLICATE_SUPERSEDED","PR_ALREADY_EXISTS","PR_ALREADY_EXISTS_RACE_RESOLVED"):
+        assert status in t
 def test_conflicting_pr_paths(): t=_read(CONSUMER); assert "pulls?state=open" in t and "/files?per_page=100" in t and "--active-paths /tmp/active-paths.json" in t
 def test_one_lease_and_canonical_dispatch():
     t=_read(CONSUMER); d=_read(DISPATCH); assert "DISPATCH_READY" in t and "gh workflow run ai-production-dispatch.yml" in t and '-f issue_number="$ISSUE_NUMBER"' in t and '-f lease_id="$LEASE_ID"' in t and '^lease-[0-9a-f]{32}$' in d and '^lease-[0-9a-f]{32}$' in t
