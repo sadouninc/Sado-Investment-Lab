@@ -1,0 +1,629 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-10-06T03:20:02+00:00",
+  "as_of": "2026-10-06",
+  "data_quality": {
+    "status": "PARTIAL",
+    "completeness": 0.5,
+    "available_sources": 4,
+    "ok_sources": 4,
+    "usable_sources": 6,
+    "total_sources": 8,
+    "completeness_label": "4 / 8",
+    "source_counts": {
+      "OK": 4,
+      "PARTIAL": 0,
+      "STALE": 2,
+      "MISSING": 2
+    }
+  },
+  "warnings": [
+    "portfolio source is stale: portfolio snapshot is 59 days old (freshness limit 3)",
+    "capital source is missing: capital_snapshots table not found in canonical history database",
+    "events source is missing: event calendar contains no events and does not explicitly confirm complete empty coverage",
+    "watchlist source is stale: watchlist snapshot is 56 days old (freshness limit 3)"
+  ],
+  "source_status": [
+    {
+      "name": "market",
+      "source": "https://query1.finance.yahoo.com/v8/finance/chart/",
+      "source_reference": "https://query1.finance.yahoo.com/v8/finance/chart/",
+      "as_of": "2026-10-06T03:20:00+00:00",
+      "status": "OK",
+      "reason": null
+    },
+    {
+      "name": "portfolio",
+      "source": "data/portfolio/current.json",
+      "source_reference": "data/portfolio/current.json",
+      "as_of": "2026-08-08",
+      "status": "STALE",
+      "reason": "portfolio snapshot is 59 days old (freshness limit 3)"
+    },
+    {
+      "name": "capital",
+      "source": "data/database/history.db",
+      "source_reference": "data/database/history.db",
+      "as_of": null,
+      "status": "MISSING",
+      "reason": "capital_snapshots table not found in canonical history database"
+    },
+    {
+      "name": "candidates",
+      "source": "data/generated/public/candidate-selector.json",
+      "source_reference": "data/generated/public/candidate-selector.json",
+      "as_of": "2026-10-06",
+      "status": "OK",
+      "reason": null
+    },
+    {
+      "name": "investor_dna",
+      "source": "data/generated/public/investor-dna.json",
+      "source_reference": "data/generated/public/investor-dna.json",
+      "as_of": "2026-10-06T03:20:00+00:00",
+      "status": "OK",
+      "reason": null
+    },
+    {
+      "name": "events",
+      "source": "data/events/calendar.json",
+      "source_reference": "data/events/calendar.json",
+      "as_of": "2026-10-06",
+      "status": "MISSING",
+      "reason": "event calendar contains no events and does not explicitly confirm complete empty coverage"
+    },
+    {
+      "name": "watchlist",
+      "source": "Current_Status.md",
+      "source_reference": "Current_Status.md",
+      "as_of": "2026-08-11",
+      "status": "STALE",
+      "reason": "watchlist snapshot is 56 days old (freshness limit 3)"
+    },
+    {
+      "name": "sector_rotation",
+      "source": "data/generated/public/money-flow/sector-history.jsonl",
+      "source_reference": "data/generated/public/money-flow/sector-history.jsonl",
+      "as_of": "2026-10-02",
+      "status": "OK",
+      "reason": null
+    }
+  ],
+  "market": {
+    "phase": null,
+    "indices": {
+      "nikkei_225": {
+        "value": 70081.53125,
+        "previous_close": 69946.859375,
+        "change": 134.671875,
+        "change_pct": 0.19253455580899695,
+        "as_of": "2026-10-06T00:00:00+00:00",
+        "symbol": "^N225",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "topix": {
+        "value": 437.79998779296875,
+        "previous_close": 436.29998779296875,
+        "change": 1.5,
+        "change_pct": 0.34380014713907664,
+        "as_of": "2026-10-06T00:00:00+00:00",
+        "symbol": "1306.T",
+        "kind": "etf_proxy",
+        "proxy_for": "TOPIX",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "growth_250_proxy": {
+        "value": 654.7000122070312,
+        "previous_close": 645.0,
+        "change": 9.70001220703125,
+        "change_pct": 1.5038778615552326,
+        "as_of": "2026-10-06T00:00:00+00:00",
+        "symbol": "2516.T",
+        "kind": "etf_proxy",
+        "proxy_for": "TSE Growth Market 250",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "sp500": {
+        "value": 7773.9501953125,
+        "previous_close": 7722.72021484375,
+        "change": 51.22998046875,
+        "change_pct": 0.6633670396382023,
+        "as_of": "2026-10-05T13:30:00+00:00",
+        "symbol": "^GSPC",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "nasdaq": {
+        "value": 27477.310546875,
+        "previous_close": 27190.859375,
+        "change": 286.451171875,
+        "change_pct": 1.0534833339558618,
+        "as_of": "2026-10-05T13:30:00+00:00",
+        "symbol": "^IXIC",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "dow": {
+        "value": 51267.8984375,
+        "previous_close": 51176.9609375,
+        "change": 90.9375,
+        "change_pct": 0.177692262952186,
+        "as_of": "2026-10-05T13:30:00+00:00",
+        "symbol": "^DJI",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "sox": {
+        "value": 13172.736328125,
+        "previous_close": 13136.669921875,
+        "change": 36.06640625,
+        "change_pct": 0.27454755630224614,
+        "as_of": "2026-10-05T13:30:00+00:00",
+        "symbol": "^SOX",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
+      },
+      "vix": {
+        "value": 15.520000457763672,
+        "previous_close": 15.3100004196167,
+        "change": 0.21000003814697266,
+        "change_pct": 1.3716527262657658,
+        "as_of": "2026-10-05T07:00:00+00:00",
+        "symbol": "^VIX",
+        "kind": "index",
+        "source": "Yahoo Finance chart endpoint"
+      }
+    },
+    "breadth": null,
+    "sentiment": null,
+    "risk_state": null
+  },
+  "portfolio": {
+    "positions": [
+      {
+        "security_code": "1321",
+        "security_name": "ＮＥＸＴ ＦＵＮＤＳ 日経２２５連動型上場投信",
+        "position_type": "cash",
+        "account_type": "特定",
+        "quantity": 5
+      },
+      {
+        "security_code": "247A",
+        "security_name": "Ａｉロボティクス",
+        "position_type": "cash",
+        "account_type": "特定",
+        "quantity": 300
+      },
+      {
+        "security_code": "3110",
+        "security_name": "日東紡績",
+        "position_type": "margin_long",
+        "account_type": "特定",
+        "quantity": 900
+      },
+      {
+        "security_code": "3291",
+        "security_name": "飯田グループホールディングス",
+        "position_type": "margin_short",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "3687",
+        "security_name": "フィックスターズ",
+        "position_type": "margin_long",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "3778",
+        "security_name": "さくらインターネット",
+        "position_type": "margin_long",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "4063",
+        "security_name": "信越化学工業",
+        "position_type": "margin_long",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "4204",
+        "security_name": "積水化学工業",
+        "position_type": "margin_long",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "4588",
+        "security_name": "オンコリスバイオファーマ",
+        "position_type": "cash",
+        "account_type": "特定",
+        "quantity": 100
+      },
+      {
+        "security_code": "4592",
+        "security_name": "サンバイオ",
+        "position_type": "cash",
+        "account_type": "特定",
+        "quantity": 100
+      }
+    ],
+    "exposure": null,
+    "pnl": null
+  },
+  "capital": {
+    "cash_available": null,
+    "buying_power": null,
+    "margin_usage": null,
+    "target_reserve": null,
+    "capital_state": null
+  },
+  "candidates": [
+    {
+      "security_code": "2026",
+      "company_name": "データセンター電源・通信インフラ関連3社 比較レビュー",
+      "rank": 1,
+      "status": "CURRENT",
+      "total_priority": null,
+      "owner_pick": false,
+      "candidate_sources": [
+        "RESEARCH_INDEX"
+      ],
+      "selection_reason": "RESEARCH_INDEX: Company Research exists: 03_Companies/Infrastructure/AI_DC_Strong_Watch.md",
+      "last_researched_at": "2026-08-12"
+    },
+    {
+      "security_code": "3110",
+      "company_name": "日東紡",
+      "rank": 2,
+      "status": "CURRENT",
+      "total_priority": null,
+      "owner_pick": false,
+      "candidate_sources": [
+        "RESEARCH_INDEX"
+      ],
+      "selection_reason": "RESEARCH_INDEX: Company Research exists: 03_Companies/Semiconductor/3110_Nittobo.md",
+      "last_researched_at": "2026-08-06"
+    },
+    {
+      "security_code": "4063",
+      "company_name": "信越化学工業",
+      "rank": 3,
+      "status": "CURRENT",
+      "total_priority": null,
+      "owner_pick": false,
+      "candidate_sources": [
+        "PORTFOLIO",
+        "RESEARCH_INDEX"
+      ],
+      "selection_reason": "PORTFOLIO: Current portfolio holding (信用買い100株); RESEARCH_INDEX: Company Research exists: 03_Companies/Semiconductor/4063_ShinEtsu.md",
+      "last_researched_at": "2026-08-02"
+    },
+    {
+      "security_code": "6232",
+      "company_name": "ACSL",
+      "rank": 4,
+      "status": "CURRENT",
+      "total_priority": null,
+      "owner_pick": true,
+      "candidate_sources": [
+        "OWNER_PICK",
+        "RESEARCH_INDEX"
+      ],
+      "selection_reason": "OWNER_PICK: 防衛省の継続受注、SBIR/K Program政府資金、黒字化・資金繰り改善への転換点を重点監視; RESEARCH_INDEX: Company Research exists: 03_Companies/Mobility/6232_ACSL_vs_278A_Terra_Drone.md",
+      "last_researched_at": "2026-08-13"
+    },
+    {
+      "security_code": "6622",
+      "company_name": "ダイヘン",
+      "rank": 5,
+      "status": "CURRENT",
+      "total_priority": null,
+      "owner_pick": false,
+      "candidate_sources": [
+        "PORTFOLIO",
+        "RESEARCH_INDEX"
+      ],
+      "selection_reason": "PORTFOLIO: Current portfolio holding (信用買い100株); RESEARCH_INDEX: Company Research exists: 03_Companies/Infrastructure/6622_Daihen.md",
+      "last_researched_at": "2026-08-08"
+    },
+    {
+      "security_code": "6758",
+      "company_name": "Sony Group",
+      "rank": 6,
+      "status": "CURRENT",
+      "total_priority": null,
+      "owner_pick": false,
+      "candidate_sources": [
+        "RESEARCH_INDEX"
+      ],
+      "selection_reason": "RESEARCH_INDEX: Company Research exists: 03_Companies/AI/6758_Sony.md",
+      "last_researched_at": "2026-07-31"
+    }
+  ],
+  "investor_dna": {
+    "native_dna": {
+      "sample_count": 394,
+      "strengths": [
+        {
+          "key": "short_horizon_repeatability",
+          "score": 92.8,
+          "sample_count": 168,
+          "evidence": {
+            "win_rate": 0.869048,
+            "profit_factor": 7.837046966049794
+          }
+        },
+        {
+          "key": "repeated_security_execution",
+          "score": 77.92,
+          "sample_count": 394,
+          "evidence": {
+            "share_of_trades_in_repeated_securities": 0.779188
+          }
+        }
+      ],
+      "limitations": [
+        "High-volatility and trend-following fit require aligned market-price features; they are not inferred from P/L alone.",
+        "Native DNA measures historical repeatability separately from current execution constraints."
+      ]
+    },
+    "risk_patterns": [
+      {
+        "security_code": "7453",
+        "security_name": "良品計画",
+        "pattern_code": "TAIL_LOSS_DESTROYS_SMALL_WINS",
+        "severity": "CRITICAL",
+        "confidence": 0.6325,
+        "evidence": {
+          "win_rate": 0.875,
+          "profit_factor": 1.123,
+          "largest_loss": 410266.0,
+          "gross_profit": 460732.0,
+          "top1_loss_to_gross_profit": 0.890466,
+          "long_pnl": 50466.0,
+          "short_pnl": 0.0
+        },
+        "explanation": "High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge."
+      },
+      {
+        "security_code": "5803",
+        "security_name": "フジクラ",
+        "pattern_code": "TAIL_LOSS_DESTROYS_SMALL_WINS",
+        "severity": "CRITICAL",
+        "confidence": 0.7071,
+        "evidence": {
+          "win_rate": 0.9,
+          "profit_factor": 1.1709,
+          "largest_loss": 293558.0,
+          "gross_profit": 343715.0,
+          "top1_loss_to_gross_profit": 0.854074,
+          "long_pnl": 50157.0,
+          "short_pnl": 0.0
+        },
+        "explanation": "High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge."
+      },
+      {
+        "security_code": "9984",
+        "security_name": "ソフトバンクグループ",
+        "pattern_code": "TAIL_LOSS_DESTROYS_SMALL_WINS",
+        "severity": "CRITICAL",
+        "confidence": 0.6708,
+        "evidence": {
+          "win_rate": 0.777778,
+          "profit_factor": 1.0406,
+          "largest_loss": 419314.0,
+          "gross_profit": 439817.0,
+          "top1_loss_to_gross_profit": 0.953383,
+          "long_pnl": -22634.0,
+          "short_pnl": 39811.0
+        },
+        "explanation": "High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge."
+      },
+      {
+        "security_code": "4204",
+        "security_name": "積水化学工業",
+        "pattern_code": "TAIL_LOSS_DESTROYS_SMALL_WINS",
+        "severity": "WARNING",
+        "confidence": 0.4472,
+        "evidence": {
+          "win_rate": 0.75,
+          "profit_factor": 1.6931,
+          "largest_loss": 12695.0,
+          "gross_profit": 21494.0,
+          "top1_loss_to_gross_profit": 0.59063,
+          "long_pnl": 8799.0,
+          "short_pnl": 0.0
+        },
+        "explanation": "High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge."
+      },
+      {
+        "security_code": "9418",
+        "security_name": "Ｕ－ＮＥＸＴ ＨＯＬＤＩＮＧＳ",
+        "pattern_code": "TAIL_LOSS_DESTROYS_SMALL_WINS",
+        "severity": "WARNING",
+        "confidence": 0.4472,
+        "evidence": {
+          "win_rate": 0.75,
+          "profit_factor": 1.3435,
+          "largest_loss": 13141.0,
+          "gross_profit": 17655.0,
+          "top1_loss_to_gross_profit": 0.744322,
+          "long_pnl": 3519.0,
+          "short_pnl": 995.0
+        },
+        "explanation": "High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge."
+      },
+      {
+        "security_code": "5574",
+        "security_name": "ＡＢＥＪＡ",
+        "pattern_code": "TAIL_LOSS_DESTROYS_SMALL_WINS",
+        "severity": "CRITICAL",
+        "confidence": 0.6325,
+        "evidence": {
+          "win_rate": 0.75,
+          "profit_factor": 0.9334,
+          "largest_loss": 111501.0,
+          "gross_profit": 104092.0,
+          "top1_loss_to_gross_profit": 1.071177,
+          "long_pnl": -7432.0,
+          "short_pnl": 0.0
+        },
+        "explanation": "High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge."
+      },
+      {
+        "security_code": "6232",
+        "security_name": "ＡＣＳＬ",
+        "pattern_code": "TAIL_LOSS_DESTROYS_SMALL_WINS",
+        "severity": "CRITICAL",
+        "confidence": 0.5477,
+        "evidence": {
+          "win_rate": 0.833333,
+          "profit_factor": 0.7367,
+          "largest_loss": 83059.0,
+          "gross_profit": 61187.0,
+          "top1_loss_to_gross_profit": 1.357462,
+          "long_pnl": -21872.0,
+          "short_pnl": 0.0
+        },
+        "explanation": "High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge."
+      },
+      {
+        "security_code": "4519",
+        "security_name": "中外製薬",
+        "pattern_code": "TAIL_LOSS_DESTROYS_SMALL_WINS",
+        "severity": "CRITICAL",
+        "confidence": 0.3873,
+        "evidence": {
+          "win_rate": 0.666667,
+          "profit_factor": 0.6202,
+          "largest_loss": 84775.0,
+          "gross_profit": 52576.0,
+          "top1_loss_to_gross_profit": 1.612428,
+          "long_pnl": -32199.0,
+          "short_pnl": 0.0
+        },
+        "explanation": "High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge."
+      },
+      {
+        "security_code": "2269",
+        "security_name": "明治ホールディングス",
+        "pattern_code": "TAIL_LOSS_DESTROYS_SMALL_WINS",
+        "severity": "WARNING",
+        "confidence": 0.9487,
+        "evidence": {
+          "win_rate": 0.722222,
+          "profit_factor": 0.772,
+          "largest_loss": 114563.0,
+          "gross_profit": 144334.0,
+          "top1_loss_to_gross_profit": 0.793735,
+          "long_pnl": 0.0,
+          "short_pnl": -42627.0
+        },
+        "explanation": "High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge."
+      },
+      {
+        "security_code": "3993",
+        "security_name": "ＰＫＳＨＡ Ｔｅｃｈｎｏｌｏｇｙ",
+        "pattern_code": "TAIL_LOSS_DESTROYS_SMALL_WINS",
+        "severity": "CRITICAL",
+        "confidence": 0.6325,
+        "evidence": {
+          "win_rate": 0.75,
+          "profit_factor": 0.6313,
+          "largest_loss": 80678.0,
+          "gross_profit": 75821.0,
+          "top1_loss_to_gross_profit": 1.064059,
+          "long_pnl": -44280.0,
+          "short_pnl": 0.0
+        },
+        "explanation": "High win frequency is being offset by concentrated tail loss. Review position size, stop policy and long/short asymmetry rather than treating win rate alone as edge."
+      }
+    ]
+  },
+  "events": {
+    "earnings": null,
+    "economic": null,
+    "company": null
+  },
+  "watchlist": {
+    "items": [
+      {
+        "text": "信越化学の決算",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "信越化学の決算",
+        "priority": null
+      },
+      {
+        "text": "原子力",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "原子力",
+        "priority": null
+      },
+      {
+        "text": "送電網",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "送電網",
+        "priority": null
+      },
+      {
+        "text": "レアアース",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "レアアース",
+        "priority": null
+      },
+      {
+        "text": "トヨタ",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "トヨタ",
+        "priority": null
+      },
+      {
+        "text": "日東紡の誤発注による信用売り100株への対応",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "日東紡の誤発注による信用売り100株への対応",
+        "priority": null
+      },
+      {
+        "text": "富士通のAI関連受注、利益率、ガイダンス",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "富士通のAI関連受注、利益率、ガイダンス",
+        "priority": null
+      },
+      {
+        "text": "テラドローンの需給と事前エントリー条件",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "テラドローンの需給と事前エントリー条件",
+        "priority": null
+      },
+      {
+        "text": "ACSL（6232）：防衛省の継続受注、SBIR/K Program政府資金、黒字化・資金繰り改善、追加増資の有無を重点監視",
+        "security_code": null,
+        "name": null,
+        "theme": null,
+        "reason": "ACSL（6232）：防衛省の継続受注、SBIR/K Program政府資金、黒字化・資金繰り改善、追加増資の有無を重点監視",
+        "priority": null
+      }
+    ]
+  }
+}
