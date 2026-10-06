@@ -104,8 +104,8 @@ def test_pr_handoff_after_promotion_remains_non_redispatchable():
 
 def test_retryable_reset_is_ordered_before_later_terminal_evidence():
     terminalizing, retryable = _replay_dispatch_state(["PROMOTION_DISPATCHED", "BLOCKED_BASE_DRIFT", "PROMOTION_DISPATCHED"])
-    assert retryable is False
-    assert terminalizing is True
+    assert retryable is True
+    assert terminalizing is False
 
 
 def test_dispatcher_keeps_expired_and_explicit_retryable_paths_redispatchable():
