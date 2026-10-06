@@ -94,7 +94,8 @@ jobs:
           issue=int(os.environ['ISSUE_NUMBER']); comments=json.load(open('/tmp/comments.json')); now=dt.datetime.now(dt.timezone.utc)
           active_lease = False; terminalizing = False; recorded_branch = ''; retryable=False
           retryable_statuses={'DISPATCH_LEASE_EXPIRED','COPILOT_RETRYABLE_FAILURE','RETRYABLE_FAILURE','FALLBACK_RETRYABLE_FAILURE','BLOCKED_BASE_DRIFT','BLOCKED_CONTRACT_REPLAY'}
-          terminal_statuses={'PROMOTION_DISPATCHED','PROMOTION_BRANCH_READY','PR_CREATE_REQUIRED','DUPLICATE_SUPERSEDED','PR_ALREADY_EXISTS','PR_ALREADY_EXISTS_RACE_RESOLVED'}
+          terminal_statuses={'PROMOTION_BRANCH_READY','PR_CREATE_REQUIRED','DUPLICATE_SUPERSEDED','PR_ALREADY_EXISTS','PR_ALREADY_EXISTS_RACE_RESOLVED'}
+          promotion_dispatch_ttl = dt.timedelta(minutes=30)
           for comment in comments:
             body=comment.get('body') or ''
             for raw in re.findall(r'\{[^\n]*(?:"work_ref"|"issue_number"|"status"|"action"|"owner_slice")[^\n]*\}',body):
@@ -103,6 +104,14 @@ jobs:
               if ev.get('work_ref') not in (None,f'issue:{issue}') or ev.get('issue_number') not in (None,issue): continue
               status=ev.get('status') or ev.get('action')
               if status in retryable_statuses: retryable=True; terminalizing = False; active_lease = False; recorded_branch = ''; continue
+              if status == 'PROMOTION_DISPATCHED':
+                try: completed=dt.datetime.fromisoformat((ev.get('completed_at') or '').replace('Z','+00:00'))
+                except ValueError: completed=None
+                if completed and now - completed <= promotion_dispatch_ttl:
+                  terminalizing=True; retryable=False
+                else:
+                  retryable=True; terminalizing=False; active_lease=False; recorded_branch=''
+                continue
               if status in terminal_statuses: terminalizing=True; retryable=False; recorded_branch=ev.get('branch') or recorded_branch
               if ev.get('owner_slice') == f'issue-{issue}' and status in {'ASSIGNED','ACKNOWLEDGED','FALLBACK_ASSIGNED'}:
                 try: expiry=dt.datetime.fromisoformat((ev.get('lease_expires_at') or '').replace('Z','+00:00'))
