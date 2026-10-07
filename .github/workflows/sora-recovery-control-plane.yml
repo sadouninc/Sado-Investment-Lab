@@ -78,7 +78,7 @@ jobs:
           set -euo pipefail
           [[ "$ISSUE" != "79" ]] || exit 79
           marker="<!-- AUTO_ROUTER_DISPATCH lease_id=${LEASE} executor=SORA target_issue=${ISSUE} -->"
-          gh api "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments?per_page=100" > /tmp/comments.json
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments?per_page=100" | jq -s 'add // []' > /tmp/comments.json
           if jq -e --arg marker "$marker" 'any(.[]; (.body // "") | contains($marker))' /tmp/comments.json >/dev/null; then
             echo SORA_LEASE_ALREADY_PERSISTED
             exit 0
