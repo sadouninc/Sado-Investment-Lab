@@ -1,0 +1,92 @@
+name: Sora Recovery Control Plane
+
+# Issue #859: GitHub-side durable recovery ingress for Sora.
+# ChatGPT scheduled roles are non-writers by default. This workflow persists
+# a bounded SORA lease so Sora can discover recovery work by reading GitHub.
+# It never merges and Issue #79 is hard denied.
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Recovery issue number
+        required: true
+        type: string
+      lease_id:
+        description: Canonical recovery lease id
+        required: true
+        type: string
+  schedule:
+    - cron: "13,43 * * * *"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: sora-recovery-control-plane
+  cancel-in-progress: false
+
+jobs:
+  persist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Resolve explicit or pull-discovered recovery target
+        id: target
+        shell: bash
+        env:
+          INPUT_ISSUE: ${{ inputs.issue_number }}
+          INPUT_LEASE: ${{ inputs.lease_id }}
+        run: |
+          set -euo pipefail
+          issue="${INPUT_ISSUE:-}"
+          lease="${INPUT_LEASE:-}"
+          source="workflow_dispatch"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then
+            source="scheduled_pull"
+            # Pull fallback: bounded open-issue scan. Recovery contracts are
+            # deliberately explicit in title/body; newest P0/P1 contract wins.
+            gh api "repos/${GITHUB_REPOSITORY}/issues?state=open&per_page=30&sort=updated&direction=desc" > /tmp/issues.json
+            issue="$(jq -r '[.[] | select((.pull_request // null) == null and .number != 79) | select(((.title // "") + "\n" + (.body // "")) | test("Recovery Work Contract|P0 Recovery|P1 Recovery"; "i"))] | first | .number // empty' /tmp/issues.json)"
+            [[ -n "$issue" ]] || { echo NO_RECOVERY_TARGET; echo "found=false" >> "$GITHUB_OUTPUT"; exit 0; }
+            lease="lease-$(printf '%s' "sora-recovery:${issue}:$(date -u +%Y-%m-%dT%H)" | sha256sum | cut -c1-32)"
+          fi
+
+          [[ "$issue" =~ ^[1-9][0-9]*$ ]] || { echo INVALID_ISSUE_NUMBER; exit 78; }
+          [[ "$issue" != "79" ]] || { echo PROTECTED_ISSUE_79; exit 79; }
+          [[ "$lease" =~ ^lease-[0-9a-f]{32}$ ]] || { echo INVALID_LEASE_ID; exit 78; }
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}" >/tmp/issue.json
+          jq -e '.state == "open"' /tmp/issue.json >/dev/null || { echo RECOVERY_TARGET_NOT_OPEN; exit 78; }
+
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "issue=$issue" >> "$GITHUB_OUTPUT"
+          echo "lease=$lease" >> "$GITHUB_OUTPUT"
+          echo "source=$source" >> "$GITHUB_OUTPUT"
+
+      - name: Persist idempotent SORA recovery lease
+        if: steps.target.outputs.found == 'true'
+        env:
+          ISSUE: ${{ steps.target.outputs.issue }}
+          LEASE: ${{ steps.target.outputs.lease }}
+          SOURCE: ${{ steps.target.outputs.source }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ISSUE" != "79" ]] || exit 79
+          marker="<!-- AUTO_ROUTER_DISPATCH lease_id=${LEASE} executor=SORA target_issue=${ISSUE} -->"
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments?per_page=100" > /tmp/comments.json
+          if jq -e --arg marker "$marker" 'any(.[]; (.body // "") | contains($marker))' /tmp/comments.json >/dev/null; then
+            echo SORA_LEASE_ALREADY_PERSISTED
+            exit 0
+          fi
+
+          assigned="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          expires="$(date -u -d '+90 minutes' +%Y-%m-%dT%H:%M:%SZ)"
+          event="$(jq -nc --arg work_ref "issue:${ISSUE}" --arg lease "$LEASE" --arg assigned "$assigned" --arg expires "$expires" --arg source "$SOURCE" '{work_ref:$work_ref,owner_slice:("issue-"+($work_ref|split(":")[1])),executor:"SORA",canonical_lease_id:$lease,assigned_at:$assigned,lease_expires_at:$expires,status:"DISPATCHED",source:$source}')"
+          body="$(printf '%s\n%s\n\n%s\n%s' "$marker" "$event" '担当: 🌊ナギ / Recovery Control Plane' '種別: External Durable Writer / SORA Recovery Lease')"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments" -f body="$body" >/tmp/result.json
+          echo "SORA_LEASE_PERSISTED issue=${ISSUE} lease=${LEASE} run_id=${GITHUB_RUN_ID}"
