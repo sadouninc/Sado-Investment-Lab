@@ -75,6 +75,15 @@ def test_dispatcher_ignores_unrelated_json_when_reconstructing_state():
     assert state == {"active_lease": False, "terminalizing": False, "recorded_branch": "", "retryable": False}
 
 
+def test_promotion_dispatched_is_transient_not_permanent_terminal_status():
+    text = DISPATCH.read_text(encoding="utf-8")
+    terminal_statuses = _dispatch_status_set("terminal_statuses")
+    assert "PROMOTION_DISPATCHED" not in terminal_statuses
+    assert "promotion_dispatch_ttl = dt.timedelta(minutes=30)" in text
+    assert "now - completed <= promotion_dispatch_ttl" in text
+    assert "retryable=True; terminalizing=False; active_lease=False; recorded_branch=''" in text
+
+
 def test_base_drift_reopens_prior_promotion_for_fresh_dispatch():
     terminalizing, retryable = _replay_dispatch_state(["PROMOTION_DISPATCHED", "BLOCKED_BASE_DRIFT"])
     assert retryable is True
@@ -95,8 +104,8 @@ def test_pr_handoff_after_promotion_remains_non_redispatchable():
 
 def test_retryable_reset_is_ordered_before_later_terminal_evidence():
     terminalizing, retryable = _replay_dispatch_state(["PROMOTION_DISPATCHED", "BLOCKED_BASE_DRIFT", "PROMOTION_DISPATCHED"])
-    assert retryable is False
-    assert terminalizing is True
+    assert retryable is True
+    assert terminalizing is False
 
 
 def test_dispatcher_keeps_expired_and_explicit_retryable_paths_redispatchable():
