@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#11100d">
-  <meta name="description" content="">
-  <title>弱気・基準・強気シナリオと予想PER | 見方ガイド — Sado Investment Lab</title>
+  <meta name="description" content="Morning Datasetを分析した朝の市場・投資チェック">
+  <title>朝の市場レポート 2026-10-09 — Sado Investment Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;600;700&display=swap" rel="stylesheet">
@@ -156,67 +156,168 @@
     })();
   </script>
   <main class="book-shell">
-    <link rel="stylesheet" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-860/assets/design-system.css" />
+    <p class="breadcrumb"><a href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-860/reports/morning/index.html">朝の市場レポート</a> / 2026-10-09</p>
 
-<div class="codex-page-shell concept-guide--compact-title">
-  <header class="codex-page-header">
-    <span class="codex-instrument-icon" aria-hidden="true">◇</span>
-    <p class="codex-card-question">Sado Investment Codex / 5 判断する</p>
-    <span class="codex-status-chip" data-state="normal">見方ガイド</span>
-    <h1>弱気・基準・強気シナリオと予想PER</h1>
-    <p>一つの利益予想に固定せず、弱気・基準・強気の前提差と、その前提で見た評価水準を分けて確認するための見方です。</p>
-    <div class="codex-page-header__meta">
-      <span>最終確認: 2026-08-12</span>
-      <span>Concept contract: #313 / #308 / #320</span>
-    </div>
-  </header>
+<h1 id="ai-morning-report">AI Morning Report</h1>
+<h2 id="データ品質">データ品質</h2>
+<ul>
+  <li>ステータス: PARTIAL（4 / 8）。市場データはOK（Yahoo Finance）。sector_rotationは2026-10-02時点でOKだが本レポート内に詳細数値なし。</li>
+  <li>STALE: ポートフォリオ（62日前）、ウォッチリスト（59日前）。</li>
+  <li>MISSING: キャピタル情報（資金余力等）、イベント（経済/決算/企業カレンダー）。</li>
+  <li>影響: 保有状況・資金制約・本日のイベント把握に不確実性。セクターフローは参照不足。</li>
+</ul>
 
-  <section aria-labelledby="first-checks">
-    <h2 id="first-checks">最初の30秒で見るポイント</h2>
-    <div class="codex-summary-grid">
-<article class="codex-summary-card"><p class="codex-card-question">最初に見る 1</p><h3>Bear / Base / Bullで何の前提が違うか</h3></article>
-<article class="codex-summary-card"><p class="codex-card-question">最初に見る 2</p><h3>EPSの根拠とas_ofが揃っているか</h3></article>
-<article class="codex-summary-card"><p class="codex-card-question">最初に見る 3</p><h3>Forward PERがfresh priceと同じbasisで計算されているか</h3></article>
-    </div>
-  </section>
+<h2 id="市場概況">市場概況</h2>
+<ul>
+  <li>事実
+    <ul>
+      <li>日本（2026-10-09時点）
+        <ul>
+          <li>日経225: 68,512.30（-0.77%）</li>
+          <li>TOPIX proxy（1306.T）: 430.5（+0.23%）</li>
+          <li>グロース250 proxy（2516.T）: 637.5（+0.89%）</li>
+        </ul>
+      </li>
+      <li>米国（2026-10-08）
+        <ul>
+          <li>S&amp;P500: 7,765.36（-0.47%）</li>
+          <li>NASDAQ: 27,193.34（-1.25%）</li>
+          <li>ダウ: 51,231.64（+0.10%）</li>
+          <li>SOX（半導体）: 12,623.71（-3.39%）</li>
+          <li>VIX: 15.41（+2.19%）</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>解釈（参考）
+    <ul>
+      <li>海外はハイテク・半導体に逆風、ボラ上昇。日本はグロース優位、日経弱・TOPIX強で指数内訳に差。</li>
+    </ul>
+  </li>
+</ul>
 
-  <section aria-labelledby="why-it-matters">
-    <h2 id="why-it-matters">なぜ見るのか</h2>
-    <div class="codex-evidence"><strong>シナリオと評価を分離すると、株価が高い・安いという印象ではなく、どの業績前提を市場が織り込んでいるかを確認できます。</strong></div>
-  </section>
+<h2 id="前日の重要ポイント">前日の重要ポイント</h2>
+<ul>
+  <li>事実
+    <ul>
+      <li>米国でハイテク安：NASDAQ -1.25%、SOX -3.39%、VIX +2.19%。</li>
+    </ul>
+  </li>
+  <li>解釈（参考）
+    <ul>
+      <li>半導体主導の調整。短期でリスク許容度がやや低下。</li>
+    </ul>
+  </li>
+  <li>補足
+    <ul>
+      <li>イベントデータはMISSINGのため、個別材料の把握は不可。</li>
+    </ul>
+  </li>
+</ul>
 
-  <section aria-labelledby="state-meaning">
-    <h2 id="state-meaning">状態の意味</h2>
-    <p>UNKNOWN / UNAVAILABLE / STALEを正常値へ丸めず、確認できないこと自体を判断材料として残します。</p>
-<article class="codex-alert" data-state="unknown"><strong><span class="codex-status-chip" data-state="unknown">UNKNOWN</span></strong><p>シナリオ、EPS、価格basisのいずれかを確認できず、現在の評価を確定できません。</p></article>
-<article class="codex-alert" data-state="unavailable"><strong><span class="codex-status-chip" data-state="unavailable">UNAVAILABLE</span></strong><p>必要なシナリオまたは価格情報を利用できません。仮値でForward PERを作りません。</p></article>
-<article class="codex-alert" data-state="stale"><strong><span class="codex-status-chip" data-state="stale">STALE</span></strong><p>価格またはシナリオが古く、現在のForward PERとして扱えません。</p></article>
-  </section>
+<h2 id="今日の注目イベント">今日の注目イベント</h2>
+<p>データ不足のため判断保留</p>
 
-  <section aria-labelledby="next-actions">
-    <h2 id="next-actions">次に進む</h2>
-    <div class="codex-action-row">
-      <a class="codex-action codex-action--primary" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-860/decision-cockpit/daihen/index.html">Live Cockpitを開く</a>
-<a class="codex-action codex-action--secondary" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-860/decision-cockpit/daihen/index.html">Live Cockpitを開く</a>
-<a class="codex-action codex-action--secondary" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-860/companies/index.html">企業研究の根拠を見る</a>
-    </div>
-  </section>
+<h2 id="保有株へ影響しそうなテーマ">保有株へ影響しそうなテーマ</h2>
+<ul>
+  <li>前提: ポートフォリオはSTALE（62日前）につき不確実。以下は最後のスナップショット基準の観点。</li>
+  <li>半導体逆風（SOX -3.39%）
+    <ul>
+      <li>4063 信越化学、3110 日東紡（ガラスクロス等）に短期向かい風の可能性。</li>
+    </ul>
+  </li>
+  <li>グロース強含み（2516.T +0.89%）
+    <ul>
+      <li>3778 さくらインターネット、3687 フィックスターズなど中小型グロースの地合い支え。</li>
+    </ul>
+  </li>
+  <li>インデックス動向
+    <ul>
+      <li>1321 日経225連動ETFは日経マイナス影響大。</li>
+    </ul>
+  </li>
+  <li>ウォッチリスト論点（STALE）
+    <ul>
+      <li>「信越化学の決算」「送電網・原子力・レアアース」「ACSLの政府資金・受注・増資有無」等は引き続き注視（日時はイベントMISSINGのため未確認）。</li>
+    </ul>
+  </li>
+</ul>
 
-  <section aria-labelledby="evidence-links">
-    <h2 id="evidence-links">根拠を見る</h2>
-<div class="codex-evidence"><a class="codex-action codex-action--secondary" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-860/companies/index.html">企業研究の根拠を見る</a><div class="codex-evidence__meta">Canonical source / route truthを参照</div></div>
-<div class="codex-evidence"><a class="codex-action codex-action--secondary" href="/sadouninc/Sado-Investment-Lab/pages-previews/pr-860/framework/index.html">投資Frameworkを確認する</a><div class="codex-evidence__meta">Canonical source / route truthを参照</div></div>
-  </section>
+<h2 id="リスク要因">リスク要因</h2>
+<ul>
+  <li>データ面: ポートフォリオ/ウォッチリストがSTALE、キャピタルとイベントがMISSING。</li>
+  <li>市場面: 半導体急落とVIX上昇でボラティリティ上振れリスク。</li>
+  <li>実行面（Investor DNA）
+    <ul>
+      <li>「TAIL_LOSS_DESTROYS_SMALL_WINS」パターンが複数銘柄でCRITICAL/WARNING。</li>
+      <li>例: 4204 積水化学（WARNING, top1損失/総利益=0.59）、6232 ACSL（CRITICAL, 1.36）、9984 SBG（CRITICAL, 0.95）など。集中損失・ロング偏重・サイズ管理が課題。</li>
+      <li>備考: トレンド追随/高ボラ適合は相場特徴と整合が必要（DNAの制約事項）。</li>
+    </ul>
+  </li>
+</ul>
 
-  <details class="codex-disclosure">
-    <summary>この機能がしないこと</summary>
-    <div class="codex-disclosure__body"><ul>
-<li>Bear / Base / BullからBUY / SELLを自動決定しない</li>
-<li>欠損EPSや価格を推測してForward PERを生成しない</li>
-<li>株価とEPSのbasis不整合を正常値として扱わない</li>
-    </ul></div>
-  </details>
-</div>
+<h2 id="今日の戦略">今日の戦略</h2>
+<ul>
+  <li>前提: データPARTIAL。売買推奨ではありません。</li>
+  <li>方針案
+    <ul>
+      <li>半導体関連はSOXの続落/反発をトリガーに「守り→中立→攻め」を切替（板・出来高で確認）。</li>
+      <li>グロースは寄り天リスク管理（初動の出来高減速で利確優先、伸び続くなら押し目待ち）。</li>
+      <li>テールリスク対策の徹底（1トレード損失上限の厳守、逆指値の機械的運用、サイズ分散）。</li>
+      <li>データ更新まで新規レバレッジは慎重に（資金余力MISSINGのため）。</li>
+    </ul>
+  </li>
+  <li>観測指標
+    <ul>
+      <li>SOXの反発有無、VIXの上抜け（例: 16超）/反落（15割れ）。</li>
+      <li>日本はTOPIX proxy（前日比+0.23%）とグロースproxy（+0.89%）の持続性。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="注目銘柄">注目銘柄</h2>
+<ul>
+  <li>4063 信越化学工業（候補＋保有STALE）: 半導体地合いの逆風下での耐性確認。研究ノートあり。</li>
+  <li>3110 日東紡（候補＋保有STALE）: 電子材料需要の循環感応度。米半導体の弱さが短期需給に波及するか。</li>
+  <li>3778 さくらインターネット（保有STALE）: グロース強含み下のモメンタム継続性を確認。</li>
+  <li>6232 ACSL（OWNER_PICK）: 政府資金・受注・増資有無の進捗監視（イベントMISSINGにつき日程未確認）。</li>
+  <li>6622 ダイヘン（候補, ポートフォリオ連動言及はSTALEの可能性）: インフラ/送電網テーマ連想。</li>
+</ul>
+
+<h2 id="次回確認時に見る条件">次回確認時に見る条件</h2>
+<ul>
+  <li>データ更新: 最新ポートフォリオ、キャピタル、イベントカレンダーの復旧状況。</li>
+  <li>マクロ/地合い
+    <ul>
+      <li>SOXが反発に転じるか、続落で-3%超の下押しが継続するか。</li>
+      <li>VIXが16超でリスクオフ加速か、15割れで落ち着くか。</li>
+      <li>TOPIX proxy（1306.T）が前日比プラス維持、グロースproxy（2516.T）の相対強さ継続。</li>
+    </ul>
+  </li>
+  <li>個別（保有STALE前提）
+    <ul>
+      <li>4063/3110の寄り付きギャップと出来高。</li>
+      <li>3778/3687の初動（寄り後5〜15分の出来高推移）。</li>
+    </ul>
+  </li>
+  <li>テールリスク管理
+    <ul>
+      <li>最大損失/総利益の比率低下（特に警戒銘柄でのサイズコントロールと損切り遵守）。</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="api-diagnostics">API Diagnostics</h2>
+
+<ul>
+  <li>Model: <code class="language-plaintext highlighter-rouge">gpt-5-2025-08-07</code></li>
+  <li>Dataset status: <code class="language-plaintext highlighter-rouge">PARTIAL</code></li>
+  <li>Input tokens: <code class="language-plaintext highlighter-rouge">4500</code></li>
+  <li>Output tokens: <code class="language-plaintext highlighter-rouge">4990</code></li>
+  <li>Total tokens: <code class="language-plaintext highlighter-rouge">9490</code></li>
+  <li>Execution: <code class="language-plaintext highlighter-rouge">52.184 sec</code></li>
+  <li>Estimated cost USD: <code class="language-plaintext highlighter-rouge">None</code> (pricing_not_configured)</li>
+</ul>
 
   </main>
   <a class="back-to-top" href="#" aria-label="ページ上部へ戻る">↑</a>
