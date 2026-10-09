@@ -30,3 +30,20 @@ def test_scheduled_pull_can_discover_recovery_without_chatgpt_write():
     assert "per_page=100" in t
     assert "jq -s 'add // []'" in t
     assert 'contains("## Recovery Work Contract")' in t
+
+def test_lease_event_reader_uses_real_newlines():
+    """Regression: a literal backslash-n makes a valid JSON event invisible."""
+    t = text()
+    assert "printf '%s\\n' \"$body\"" in t
+    assert "split(\"\\n\")" in t
+    assert "printf '%s\\\\n' \"$body\"" not in t
+    assert "split(\"\\\\n\")" not in t
+
+
+def test_active_and_ambiguous_lease_fail_closed():
+    t = text()
+    assert "ACTIVE_SORA_LEASE_EXISTS" in t
+    assert "AMBIGUOUS_PRIOR_LEASE" in t
+    assert "expiry_epoch > now" in t
+    assert "INVALID_RECOVERY_CONTRACT" in t
+    assert "jq -s 'add // []'" in t
