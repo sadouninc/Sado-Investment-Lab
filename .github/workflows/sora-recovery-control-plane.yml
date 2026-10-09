@@ -88,6 +88,8 @@ jobs:
 
           # Fail closed on an active or ambiguous prior SORA lease for this issue.
           now="$(date -u +%s)"
+          # Validate the entire comment collection before processing; never hide jq errors in process substitution.
+          jq -r 'if type == "array" then .[] | (.body // "" | @base64) else error("invalid comments collection") end' /tmp/comments.json > /tmp/sora_comment_bodies.b64 || { echo INVALID_COMMENTS; exit 78; }
           while IFS= read -r encoded; do
             body="$(printf '%s' "$encoded" | base64 -d)"
             [[ "$body" == *"AUTO_ROUTER_DISPATCH"* && "$body" == *"executor=SORA"* ]] || continue
@@ -100,7 +102,7 @@ jobs:
               echo ACTIVE_SORA_LEASE_EXISTS
               exit 0
             fi
-          done < <(jq -r '.[].body // "" | @base64' /tmp/comments.json)
+          done < /tmp/sora_comment_bodies.b64
 
           assigned="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           expires="$(date -u -d '+90 minutes' +%Y-%m-%dT%H:%M:%SZ)"
