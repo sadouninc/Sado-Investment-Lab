@@ -29,7 +29,11 @@ def test_scheduled_pull_can_discover_recovery_without_chatgpt_write():
     assert "gh api --paginate" in t
     assert "per_page=100" in t
     assert "jq -s 'add // []'" in t
-    assert 'contains("## Recovery Work Contract")' in t
+    assert 'test("(?m)^## Recovery Work Contract' in t
+    assert 'Flow Authority:' in t
+    assert 'Recovery Engineer:' in t
+    assert 'P[01]' in t
+    assert 'contains("## Recovery Work Contract")' not in t
 
 def test_lease_event_reader_uses_real_newlines():
     """Regression: a literal backslash-n makes a valid JSON event invisible."""
@@ -73,3 +77,10 @@ def test_lease_event_extraction_behavior():
         input=extracted + "\n", text=True, capture_output=True, check=True
     )
     assert parsed.stdout.strip() == event["lease_expires_at"]
+
+
+def test_recovery_contract_is_checked_for_dispatch_and_scheduled_pull():
+    t = text()
+    assert t.count('test("(?m)^## Recovery Work Contract') == 2
+    assert t.count('Flow Authority:') >= 2
+    assert t.count('Recovery Engineer:') >= 2
