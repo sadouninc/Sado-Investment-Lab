@@ -47,3 +47,29 @@ def test_active_and_ambiguous_lease_fail_closed():
     assert "expiry_epoch > now" in t
     assert "INVALID_RECOVERY_CONTRACT" in t
     assert "jq -s 'add // []'" in t
+
+def test_lease_event_extraction_behavior():
+    """Exercise the exact jq extraction shape against a real multiline comment."""
+    import json
+    import shutil
+    import subprocess
+    import pytest
+
+    if not shutil.which("jq"):
+        pytest.skip("jq is required for the workflow parser")
+    event = {"canonical_lease_id": "lease-" + "a" * 32,
+             "lease_expires_at": "2030-01-01T00:00:00Z", "status": "DISPATCHED"}
+    comment = ("<!-- AUTO_ROUTER_DISPATCH lease_id=" + event["canonical_lease_id"]
+               + " executor=SORA target_issue=859 -->\\n"
+               + json.dumps(event) + "\\n\\n担当: ナギ")
+    jq_program = 'split("\\n") | map(select(startswith("{") and contains("lease_expires_at"))) | first // empty'
+    extracted = subprocess.run(
+        ["jq", "-Rrs", jq_program], input=comment + "\\n",
+        text=True, capture_output=True, check=True
+    ).stdout.strip()
+    assert json.loads(extracted) == json.dumps(event, ensure_ascii=False)
+    parsed = subprocess.run(
+        ["jq", "-er", "fromjson | .lease_expires_at | strings"],
+        input=extracted + "\\n", text=True, capture_output=True, check=True
+    )
+    assert parsed.stdout.strip() == event["lease_expires_at"]
