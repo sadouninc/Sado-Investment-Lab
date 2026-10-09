@@ -73,7 +73,7 @@ def test_lease_event_extraction_behavior():
     ).stdout.strip()
     assert json.loads(extracted) == event
     parsed = subprocess.run(
-        ["jq", "-er", "fromjson | .lease_expires_at | strings"],
+        ["jq", "-er", ".lease_expires_at | strings"],
         input=extracted + "\n", text=True, capture_output=True, check=True
     )
     assert parsed.stdout.strip() == event["lease_expires_at"]
