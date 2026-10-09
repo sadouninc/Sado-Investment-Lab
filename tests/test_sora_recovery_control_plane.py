@@ -26,4 +26,7 @@ def test_sora_lease_is_idempotent_and_attributable():
 def test_scheduled_pull_can_discover_recovery_without_chatgpt_write():
     t=text()
     assert 'cron: "13,43 * * * *"' in t
-    assert "Recovery Work Contract|P0 Recovery|P1 Recovery" in t
+    assert "gh api --paginate" in t
+    assert "per_page=100" in t
+    assert "jq -s 'add // []'" in t
+    assert 'contains("## Recovery Work Contract")' in t
