@@ -84,3 +84,34 @@ def test_recovery_contract_is_checked_for_dispatch_and_scheduled_pull():
     assert t.count('test("(?m)^## Recovery Work Contract') == 2
     assert t.count('Flow Authority:') >= 2
     assert t.count('Recovery Engineer:') >= 2
+
+def test_lease_expiry_cases_with_actual_jq_and_date():
+    """Active, expired and malformed expiry cases using the workflow's tools."""
+    import json
+    import shutil
+    import subprocess
+    import pytest
+
+    if not all(shutil.which(command) for command in ("jq", "date")):
+        pytest.skip("jq and GNU date are required")
+    cases = [
+        ("2999-01-01T00:00:00Z", "active"),
+        ("2000-01-01T00:00:00Z", "expired"),
+        ("not-a-timestamp", "ambiguous"),
+    ]
+    for expiry, expected in cases:
+        event = json.dumps({"lease_expires_at": expiry})
+        result = subprocess.run(
+            ["jq", "-er", ".lease_expires_at | strings"],
+            input=event, text=True, capture_output=True, check=True,
+        )
+        epoch = subprocess.run(
+            ["date", "-u", "-d", result.stdout.strip(), "+%s"],
+            text=True, capture_output=True,
+        )
+        if epoch.returncode != 0:
+            outcome = "ambiguous"
+        else:
+            now = int(subprocess.check_output(["date", "-u", "+%s"], text=True))
+            outcome = "active" if int(epoch.stdout.strip()) > now else "expired"
+        assert outcome == expected
