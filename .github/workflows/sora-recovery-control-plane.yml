@@ -62,7 +62,7 @@ jobs:
           [[ "$issue" != "79" ]] || { echo PROTECTED_ISSUE_79; exit 79; }
           [[ "$lease" =~ ^lease-[0-9a-f]{32}$ ]] || { echo INVALID_LEASE_ID; exit 78; }
           gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}" >/tmp/issue.json
-          jq -e '.state == "open"' /tmp/issue.json >/dev/null || { echo RECOVERY_TARGET_NOT_OPEN; exit 78; }
+          jq -e '.state == "open" and (.pull_request == null) and ((.body // "") | contains("## Recovery Work Contract"))' /tmp/issue.json >/dev/null || { echo INVALID_RECOVERY_CONTRACT; exit 78; }
 
           echo "found=true" >> "$GITHUB_OUTPUT"
           echo "issue=$issue" >> "$GITHUB_OUTPUT"
@@ -85,6 +85,29 @@ jobs:
             echo SORA_LEASE_ALREADY_PERSISTED
             exit 0
           fi
+
+          # Refuse a second live SORA lease even if its lease_id differs.
+          # Malformed prior lease evidence is ambiguous: fail closed.
+          now="$(date -u +%s)"
+          while IFS= read -r body; do
+            [[ "$body" == *"AUTO_ROUTER_DISPATCH"* && "$body" == *"executor=SORA"* ]] || continue
+            if [[ "$body" == *"target_issue=${ISSUE}"* ]]; then
+              prior="$(printf '%s\\n' "$body" | grep -E '^\\{.*"lease_expires_at".*\\}
+          expires="$(date -u -d '+90 minutes' +%Y-%m-%dT%H:%M:%SZ)"
+          event="$(jq -nc --arg work_ref "issue:${ISSUE}" --arg lease "$LEASE" --arg assigned "$assigned" --arg expires "$expires" --arg source "$SOURCE" '{work_ref:$work_ref,owner_slice:("issue-"+($work_ref|split(":")[1])),executor:"SORA",canonical_lease_id:$lease,assigned_at:$assigned,lease_expires_at:$expires,status:"DISPATCHED",source:$source}')"
+          body="$(printf '%s\n%s\n\n%s\n%s' "$marker" "$event" '担当: 🌊ナギ / Recovery Control Plane' '種別: External Durable Writer / SORA Recovery Lease')"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments" -f body="$body" >/tmp/result.json
+          echo "SORA_LEASE_PERSISTED issue=${ISSUE} lease=${LEASE} run_id=${GITHUB_RUN_ID}"
+ | head -1 || true)"
+              [[ -n "$prior" ]] || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
+              expiry="$(jq -er '.lease_expires_at | strings' <<<"$prior")" || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
+              expiry_epoch="$(date -u -d "$expiry" +%s 2>/dev/null)" || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
+              if (( expiry_epoch > now )); then
+                echo ACTIVE_SORA_LEASE_EXISTS
+                exit 0
+              fi
+            fi
+          done < <(jq -r '.[].body // ""' /tmp/comments.json)
 
           assigned="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           expires="$(date -u -d '+90 minutes' +%Y-%m-%dT%H:%M:%SZ)"
