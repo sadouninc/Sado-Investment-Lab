@@ -60,16 +60,16 @@ def test_lease_event_extraction_behavior():
     event = {"canonical_lease_id": "lease-" + "a" * 32,
              "lease_expires_at": "2030-01-01T00:00:00Z", "status": "DISPATCHED"}
     comment = ("<!-- AUTO_ROUTER_DISPATCH lease_id=" + event["canonical_lease_id"]
-               + " executor=SORA target_issue=859 -->\\n"
-               + json.dumps(event) + "\\n\\n担当: ナギ")
-    jq_program = 'split("\\n") | map(select(startswith("{") and contains("lease_expires_at"))) | first // empty'
+               + " executor=SORA target_issue=859 -->\n"
+               + json.dumps(event) + "\n\n担当: ナギ")
+    jq_program = 'split("\n") | map(select(startswith("{") and contains("lease_expires_at"))) | first // empty'
     extracted = subprocess.run(
-        ["jq", "-Rrs", jq_program], input=comment + "\\n",
+        ["jq", "-Rrs", jq_program], input=comment + "\n",
         text=True, capture_output=True, check=True
     ).stdout.strip()
-    assert json.loads(extracted) == json.dumps(event, ensure_ascii=False)
+    assert json.loads(json.loads(extracted)) == event
     parsed = subprocess.run(
         ["jq", "-er", "fromjson | .lease_expires_at | strings"],
-        input=extracted + "\\n", text=True, capture_output=True, check=True
+        input=extracted + "\n", text=True, capture_output=True, check=True
     )
     assert parsed.stdout.strip() == event["lease_expires_at"]
