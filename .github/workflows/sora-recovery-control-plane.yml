@@ -92,7 +92,7 @@ jobs:
             body="$(printf '%s' "$encoded" | base64 -d)"
             [[ "$body" == *"AUTO_ROUTER_DISPATCH"* && "$body" == *"executor=SORA"* ]] || continue
             [[ "$body" == *"target_issue=${ISSUE}"* ]] || continue
-            prior="$(printf '%s\\n' "$body" | jq -Rrs 'split("\\n") | map(select(startswith("{") and contains("lease_expires_at"))) | first // empty')"
+            prior="$(printf '%s\n' "$body" | jq -Rrs 'split("\n") | map(select(startswith("{") and contains("lease_expires_at"))) | first // empty')"
             [[ -n "$prior" ]] || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
             expiry="$(printf '%s' "$prior" | jq -er 'fromjson | .lease_expires_at | strings')" || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
             expiry_epoch="$(date -u -d "$expiry" +%s 2>/dev/null)" || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
