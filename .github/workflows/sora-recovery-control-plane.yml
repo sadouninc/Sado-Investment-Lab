@@ -50,8 +50,10 @@ jobs:
             source="scheduled_pull"
             # Pull fallback: bounded open-issue scan. Recovery contracts are
             # deliberately explicit in title/body; newest P0/P1 contract wins.
-            gh api "repos/${GITHUB_REPOSITORY}/issues?state=open&per_page=30&sort=updated&direction=desc" > /tmp/issues.json
-            issue="$(jq -r '[.[] | select((.pull_request // null) == null and .number != 79) | select(((.title // "") + "\n" + (.body // "")) | test("Recovery Work Contract|P0 Recovery|P1 Recovery"; "i"))] | first | .number // empty' /tmp/issues.json)"
+            # Fetch every page, not only the latest 30 updated issues.
+            # A busy repository must not starve an older P0 recovery contract.
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=open&per_page=100&sort=updated&direction=desc" | jq -s 'add // []' > /tmp/issues.json
+            issue="$(jq -r '[.[] | select((.pull_request // null) == null and .number != 79) | select((.body // "") | contains("## Recovery Work Contract"))] | first | .number // empty' /tmp/issues.json)"
             [[ -n "$issue" ]] || { echo NO_RECOVERY_TARGET; echo "found=false" >> "$GITHUB_OUTPUT"; exit 0; }
             lease="lease-$(printf '%s' "sora-recovery:${issue}:$(date -u +%Y-%m-%dT%H)" | sha256sum | cut -c1-32)"
           fi
