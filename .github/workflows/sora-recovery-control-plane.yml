@@ -53,7 +53,7 @@ jobs:
             # Fetch every page, not only the latest 30 updated issues.
             # A busy repository must not starve an older P0 recovery contract.
             gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=open&per_page=100&sort=updated&direction=desc" | jq -s 'add // []' > /tmp/issues.json
-            issue="$(jq -r '[.[] | select((.pull_request // null) == null and .number != 79) | select((.body // "") | contains("## Recovery Work Contract"))] | first | .number // empty' /tmp/issues.json)"
+            issue="$(jq -r '[.[] | select((.pull_request // null) == null and .number != 79) | select((.body // "") | test("(?m)^## Recovery Work Contract[^\\n]*$") and test("(?m)^\\*\\*Priority:\\*\\* P[01]\\b") and test("(?m)^\\*\\*Flow Authority:\\*\\* .*ナギ") and test("(?m)^\\*\\*Recovery Engineer:\\*\\* .*ソラ"))] | first | .number // empty' /tmp/issues.json)"
             [[ -n "$issue" ]] || { echo NO_RECOVERY_TARGET; echo "found=false" >> "$GITHUB_OUTPUT"; exit 0; }
             lease="lease-$(printf '%s' "sora-recovery:${issue}:$(date -u +%Y-%m-%dT%H)" | sha256sum | cut -c1-32)"
           fi
@@ -62,7 +62,7 @@ jobs:
           [[ "$issue" != "79" ]] || { echo PROTECTED_ISSUE_79; exit 79; }
           [[ "$lease" =~ ^lease-[0-9a-f]{32}$ ]] || { echo INVALID_LEASE_ID; exit 78; }
           gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}" >/tmp/issue.json
-          jq -e '.state == "open" and (.pull_request == null) and ((.body // "") | contains("## Recovery Work Contract"))' /tmp/issue.json >/dev/null || { echo INVALID_RECOVERY_CONTRACT; exit 78; }
+          jq -e '.state == "open" and (.pull_request == null) and ((.body // "") | test("(?m)^## Recovery Work Contract[^\\n]*$") and test("(?m)^\\*\\*Priority:\\*\\* P[01]\\b") and test("(?m)^\\*\\*Flow Authority:\\*\\* .*ナギ") and test("(?m)^\\*\\*Recovery Engineer:\\*\\* .*ソラ"))' /tmp/issue.json >/dev/null || { echo INVALID_RECOVERY_CONTRACT; exit 78; }
 
           echo "found=true" >> "$GITHUB_OUTPUT"
           echo "issue=$issue" >> "$GITHUB_OUTPUT"
