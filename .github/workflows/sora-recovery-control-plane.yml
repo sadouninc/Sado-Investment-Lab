@@ -1,0 +1,112 @@
+name: Sora Recovery Control Plane
+
+# Issue #859: GitHub-side durable recovery ingress for Sora.
+# ChatGPT scheduled roles are non-writers by default. This workflow persists
+# a bounded SORA lease so Sora can discover recovery work by reading GitHub.
+# It never merges and Issue #79 is hard denied.
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Recovery issue number
+        required: true
+        type: string
+      lease_id:
+        description: Canonical recovery lease id
+        required: true
+        type: string
+  schedule:
+    - cron: "13,43 * * * *"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: sora-recovery-control-plane
+  cancel-in-progress: false
+
+jobs:
+  persist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Resolve explicit or pull-discovered recovery target
+        id: target
+        shell: bash
+        env:
+          INPUT_ISSUE: ${{ inputs.issue_number }}
+          INPUT_LEASE: ${{ inputs.lease_id }}
+        run: |
+          set -euo pipefail
+          issue="${INPUT_ISSUE:-}"
+          lease="${INPUT_LEASE:-}"
+          source="workflow_dispatch"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then
+            source="scheduled_pull"
+            # Pull fallback: bounded open-issue scan. Recovery contracts are
+            # deliberately explicit in title/body; newest P0/P1 contract wins.
+            # Fetch every page, not only the latest 30 updated issues.
+            # A busy repository must not starve an older P0 recovery contract.
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=open&per_page=100&sort=updated&direction=desc" | jq -s 'add // []' > /tmp/issues.json
+            issue="$(jq -r '[.[] | select((.pull_request // null) == null and .number != 79) | select((.body // "") | test("(?m)^## Recovery Work Contract[^\\n]*$") and test("(?m)^\\*\\*Priority:\\*\\* P[01]\\b") and test("(?m)^\\*\\*Flow Authority:\\*\\* .*ナギ") and test("(?m)^\\*\\*Recovery Engineer:\\*\\* .*ソラ"))] | first | .number // empty' /tmp/issues.json)"
+            [[ -n "$issue" ]] || { echo NO_RECOVERY_TARGET; echo "found=false" >> "$GITHUB_OUTPUT"; exit 0; }
+            lease="lease-$(printf '%s' "sora-recovery:${issue}:$(date -u +%Y-%m-%dT%H)" | sha256sum | cut -c1-32)"
+          fi
+
+          [[ "$issue" =~ ^[1-9][0-9]*$ ]] || { echo INVALID_ISSUE_NUMBER; exit 78; }
+          [[ "$issue" != "79" ]] || { echo PROTECTED_ISSUE_79; exit 79; }
+          [[ "$lease" =~ ^lease-[0-9a-f]{32}$ ]] || { echo INVALID_LEASE_ID; exit 78; }
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}" >/tmp/issue.json
+          jq -e '.state == "open" and (.pull_request == null) and ((.body // "") | test("(?m)^## Recovery Work Contract[^\\n]*$") and test("(?m)^\\*\\*Priority:\\*\\* P[01]\\b") and test("(?m)^\\*\\*Flow Authority:\\*\\* .*ナギ") and test("(?m)^\\*\\*Recovery Engineer:\\*\\* .*ソラ"))' /tmp/issue.json >/dev/null || { echo INVALID_RECOVERY_CONTRACT; exit 78; }
+
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "issue=$issue" >> "$GITHUB_OUTPUT"
+          echo "lease=$lease" >> "$GITHUB_OUTPUT"
+          echo "source=$source" >> "$GITHUB_OUTPUT"
+
+      - name: Persist idempotent SORA recovery lease
+        if: steps.target.outputs.found == 'true'
+        env:
+          ISSUE: ${{ steps.target.outputs.issue }}
+          LEASE: ${{ steps.target.outputs.lease }}
+          SOURCE: ${{ steps.target.outputs.source }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ISSUE" != "79" ]] || exit 79
+          marker="<!-- AUTO_ROUTER_DISPATCH lease_id=${LEASE} executor=SORA target_issue=${ISSUE} -->"
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments?per_page=100" | jq -s 'add // []' > /tmp/comments.json
+          if jq -e --arg marker "$marker" 'any(.[]; (.body // "") | contains($marker))' /tmp/comments.json >/dev/null; then
+            echo SORA_LEASE_ALREADY_PERSISTED
+            exit 0
+          fi
+
+          # Fail closed on an active or ambiguous prior SORA lease for this issue.
+          now="$(date -u +%s)"
+          # Validate the entire comment collection before processing; never hide jq errors in process substitution.
+          jq -r 'if type == "array" then .[] | (.body // "" | @base64) else error("invalid comments collection") end' /tmp/comments.json > /tmp/sora_comment_bodies.b64 || { echo INVALID_COMMENTS; exit 78; }
+          while IFS= read -r encoded; do
+            body="$(printf '%s' "$encoded" | base64 -d)"
+            [[ "$body" == *"AUTO_ROUTER_DISPATCH"* && "$body" == *"executor=SORA"* ]] || continue
+            [[ "$body" == *"target_issue=${ISSUE}"* ]] || continue
+            prior="$(printf '%s\n' "$body" | jq -Rrs 'split("\n") | map(select(startswith("{") and contains("lease_expires_at"))) | first // empty')"
+            [[ -n "$prior" ]] || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
+            expiry="$(printf '%s' "$prior" | jq -er '.lease_expires_at | strings')" || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
+            expiry_epoch="$(date -u -d "$expiry" +%s 2>/dev/null)" || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
+            if (( expiry_epoch > now )); then
+              echo ACTIVE_SORA_LEASE_EXISTS
+              exit 0
+            fi
+          done < /tmp/sora_comment_bodies.b64
+
+          assigned="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          expires="$(date -u -d '+90 minutes' +%Y-%m-%dT%H:%M:%SZ)"
+          event="$(jq -nc --arg work_ref "issue:${ISSUE}" --arg lease "$LEASE" --arg assigned "$assigned" --arg expires "$expires" --arg source "$SOURCE" '{work_ref:$work_ref,owner_slice:("issue-"+($work_ref|split(":")[1])),executor:"SORA",canonical_lease_id:$lease,assigned_at:$assigned,lease_expires_at:$expires,status:"DISPATCHED",source:$source}')"
+          body="$(printf '%s\n%s\n\n%s\n%s' "$marker" "$event" '担当: 🌊ナギ / Recovery Control Plane' '種別: External Durable Writer / SORA Recovery Lease')"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments" -f body="$body" >/tmp/result.json
+          echo "SORA_LEASE_PERSISTED issue=${ISSUE} lease=${LEASE} run_id=${GITHUB_RUN_ID}"
