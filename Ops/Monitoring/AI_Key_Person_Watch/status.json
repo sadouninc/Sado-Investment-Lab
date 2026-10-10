@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-10T19:32:37+09:00",
-  "last_success_at": "2026-10-10T19:32:37+09:00",
+  "last_run_at": "2026-10-10T23:34:45+09:00",
+  "last_success_at": "2026-10-10T23:34:45+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-10T10:30:37+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-10T23:34:45+09:00",
   "news_persisted": false,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "Key Person news_delta=0; Consumer/Field Radar field_signal_delta=0; #861 Discovery 3 domains reviewed, no new independently validated evidence; MRAM重要差分なし; Kaede delegation checked|no-delta; Research write NOT_REQUIRED. Issue #79 untouched."
+  "note": "NVIDIA Oct 8 $1B US science commitment: news_delta=1, material_delta=0 for Japan listed earnings; Consumer/Field Radar field_signal_delta=0; #861 3-domain causal review, DC demand-response Reuters Oct 8 signal but Japan adoption/order UNKNOWN; MRAM重要差分なし; Kaede delegation checked|no-delta; Research write NOT_REQUIRED; Issue #79 untouched."
 }
