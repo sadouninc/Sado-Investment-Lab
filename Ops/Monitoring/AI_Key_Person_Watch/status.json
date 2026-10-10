@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-10T10:30:37+09:00",
-  "last_success_at": "2026-10-10T10:30:37+09:00",
+  "last_run_at": "2026-10-10T19:32:37+09:00",
+  "last_success_at": "2026-10-10T19:32:37+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-10T10:30:37+09:00",
-  "news_persisted": true,
+  "news_persisted": false,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "Key Person news_delta=0; Consumer/Field Radar material_delta=1 (TikTok Shop market observation). Research commit 3260153d2c0d9761dd43e0db2c277a5bb66a7a75 verified via update response; Kaede delegation checked|no-delta. #861 Discovery only; #831 human gate."
+  "note": "Key Person news_delta=0; Consumer/Field Radar field_signal_delta=0; #861 Discovery 3 domains reviewed, no new independently validated evidence; MRAM重要差分なし; Kaede delegation checked|no-delta; Research write NOT_REQUIRED. Issue #79 untouched."
 }
