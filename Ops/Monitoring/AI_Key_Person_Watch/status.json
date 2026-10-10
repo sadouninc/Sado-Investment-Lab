@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-11T02:33:18+09:00",
-  "last_success_at": "2026-10-11T02:33:18+09:00",
+  "last_run_at": "2026-10-11T08:30:45+09:00",
+  "last_success_at": "2026-10-11T08:30:45+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-10-10T23:34:45+09:00",
   "news_persisted": false,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "Startup Sync v2 VERIFIED through #99 comment 5857331590 (261/261); AWAY / AUTO_GREEN; news_delta=0 material_delta=0 field_signal_delta=0; #861 3-domain causal review continued, no newly validated conversion; MRAM重要差分なし; Kaede delegation checked|no-delta; Research NOT_REQUIRED; Issue #79 untouched."
+  "note": "Startup Sync v2 VERIFIED through #99 comment 5857331590 (261/261); AWAY / AUTO_GREEN; news_delta=0 material_delta=0 field_signal_delta=0; #861 three-domain causal review continued with no newly confirmed material conversion; MRAM重要差分なし; Kaede delegation checked|no-delta; this run Research NOT_REQUIRED; prior JX metals Research backlog PENDING; Issue #79 untouched."
 }
