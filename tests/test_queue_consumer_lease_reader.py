@@ -4,7 +4,6 @@ These tests exercise the actual workflow expression, not a reimplementation.
 Requires jq (available on ubuntu-latest).
 """
 import json
-import re
 import subprocess
 from pathlib import Path
 
@@ -13,12 +12,10 @@ WORKFLOW = Path(".github/workflows/queue-auto-promotion-consumer.yml")
 
 def lease_state(comments, issue="828"):
     source = WORKFLOW.read_text(encoding="utf-8")
-    match = re.search(
-        r'LEASE_STATE="\\$\\(jq -r --arg n "\\$number" \'\\n(.*?)\' /tmp/comments\\.json\\)"',
-        source,
-        re.DOTALL,
-    )
-    assert match, "Cannot find canonical jq Lease Reader in workflow"
+    prefix = 'LEASE_STATE="$(jq -r --arg n "$number" ' + chr(39) + "\n"
+    suffix = chr(39) + ' /tmp/comments.json)"'
+    assert prefix in source and suffix in source, "Cannot find canonical jq Lease Reader"
+    expression = source.split(prefix, 1)[1].split(suffix, 1)[0]
     result = subprocess.run(
         ["jq", "-r", "--arg", "n", issue, match.group(1)],
         input=json.dumps(comments),
