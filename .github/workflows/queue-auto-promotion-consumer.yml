@@ -59,7 +59,7 @@ jobs:
             LEASE_STATE="$(jq -r --arg n "$number" '
               def event:
                 (.body // "") as $b
-                | (try ($b | fromjson) catch null)
+                | ([ $b, ($b | split("\n")[]) ] | map(try (fromjson | select(type == "object")) catch empty) | first // null)
                 | select(type == "object")
                 | select((.work_ref // "") == ("issue:" + $n) or (.owner_slice // "") == ("issue-" + $n));
               [ .[] | event ] | last // {} |
