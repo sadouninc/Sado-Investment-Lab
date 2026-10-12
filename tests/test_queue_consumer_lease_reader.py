@@ -17,7 +17,7 @@ def lease_state(comments, issue="828"):
     assert prefix in source and suffix in source, "Cannot find canonical jq Lease Reader"
     expression = source.split(prefix, 1)[1].split(suffix, 1)[0]
     result = subprocess.run(
-        ["jq", "-r", "--arg", "n", issue, match.group(1)],
+        ["jq", "-r", "--arg", "n", issue, expression],
         input=json.dumps(comments),
         text=True,
         capture_output=True,
