@@ -7,7 +7,7 @@ def comment(payload, cid=42):
     return {"id": cid, "body": json.dumps(payload)}
 def event(**extra):
     return {"schema_version": 2, "work_id": WORK, "status": "DISPATCHED",
-            "attempt": 1, "lease_id": "lease-" + "a"*32, **extra}
+            "attempt": 1, "lease_id": "lease-" + "a"*32} | extra
 
 def test_attested_canonical_event():
     result = canonical_event(comment(event()), work_id=WORK, trusted_comment_ids={42})
