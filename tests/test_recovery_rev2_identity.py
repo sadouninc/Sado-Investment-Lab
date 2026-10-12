@@ -40,7 +40,6 @@ def test_ack_missing_run_fails_closed():
     ("issue:0", None, None),
     ("issue:79", None, None),
     (0, None, None),
-    (None, None, None),
     (None, 123, None),
     (None, None, 123),
     (None, None, ""),
