@@ -6,6 +6,7 @@ provenance and cannot authorize dispatch or merge.
 from __future__ import annotations
 from collections.abc import Mapping
 from datetime import datetime
+import json
 import re
 
 _SHA = re.compile(r"[0-9a-f]{40}\Z")
@@ -35,6 +36,12 @@ def attest_dispatch(*, work_id: str, comment: Mapping, run: Mapping,
         return _unknown("INVALID_EXPECTATIONS")
     body = comment.get("event")
     if not isinstance(body, Mapping):
+        raw_body = comment.get("body")
+        try:
+            body = json.loads(raw_body) if isinstance(raw_body, str) else None
+        except (ValueError, TypeError):
+            body = None
+    if not isinstance(body, Mapping):
         return _unknown("MISSING_CANONICAL_EVENT")
     if body.get("schema_version") != 2 or body.get("work_id") != work_id:
         return _unknown("WORK_MISMATCH")
@@ -42,7 +49,15 @@ def attest_dispatch(*, work_id: str, comment: Mapping, run: Mapping,
         return _unknown("COMMENT_ID_MISSING")
     if type(body.get("dispatch_run_id")) is not int or type(run.get("id")) is not int or body["dispatch_run_id"] != run["id"]:
         return _unknown("RUN_ID_MISMATCH")
-    if run.get("repository") != expected_repository or run.get("workflow") != expected_workflow:
+    repository = run.get("repository")
+    if isinstance(repository, Mapping):
+        repository = repository.get("full_name")
+        workflow_matches = (run.get("path") ==
+                            f".github/workflows/{expected_workflow}@main" and
+                            run.get("head_branch") == "main")
+    else:
+        workflow_matches = run.get("workflow") == expected_workflow
+    if repository != expected_repository or not workflow_matches:
         return _unknown("RUN_ORIGIN_MISMATCH")
     if run.get("event") not in {"schedule", "workflow_dispatch"} or run.get("conclusion") != "success":
         return _unknown("RUN_NOT_SUCCESSFUL")
