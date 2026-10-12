@@ -28,3 +28,12 @@ def test_fail_closed(): t=_read(CONSUMER); assert "No safe candidate this tick" 
 def test_no_duplicate_fallback_policy(): t=_read(CONSUMER); assert ("quota" not in t.lower() or "provider health are owned by the existing" in t) and "amazon_q_free" not in t and "ai-production-followup.yml" not in t
 def test_attributed_evidence(): t=_read(CONSUMER); assert "担当: 🌊ナギ" in t and "種別:" in t and "-F body=@/tmp/evidence-comment.md" in t
 def test_no_merge_or_team_docs(): t=_read(CONSUMER); assert "gh pr merge" not in t and "enable-auto-merge" not in t and "TEAM_RULES.md" not in t and "TEAM_STATE.md" not in t
+
+def test_adapter_exit_codes_are_not_silenced():
+    t=_read(CONSUMER)
+    assert "--output /tmp/packet.json || true" not in t
+    assert 'if [[ "$rc" -gt 1 ]]' in t
+    assert "QUEUE_CONSUMER_FAILED" in t
+    assert "QUEUE_CONSUMER_INVALID_PACKET" in t
+    assert "QUEUE_CONSUMER_EXIT_STATUS_MISMATCH" in t
+    assert "steps.scan.outputs.candidate_count" in t
