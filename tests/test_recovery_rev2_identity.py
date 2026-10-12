@@ -35,3 +35,25 @@ def test_ack_missing_run_fails_closed():
     ack = dict(lease_id=lid, work_id=WORK, executor="SORA",
                timestamp="2026-10-12T10:00:00Z", status="ACKNOWLEDGED")
     assert ack_schema(ack, work_id=WORK, lease=lid, executor="SORA")["status"] == "UNKNOWN"
+
+@pytest.mark.parametrize("bad_work,bad_lease,bad_executor", [
+    ("issue:0", None, None),
+    ("issue:79", None, None),
+    (0, None, None),
+    (None, None, None),
+    (None, 123, None),
+    (None, None, 123),
+    (None, None, ""),
+])
+def test_ack_invalid_identity_types_fail_closed(bad_work, bad_lease, bad_executor):
+    lid = lease_id(WORK, 123, 1)
+    ack = dict(lease_id=lid, work_id=WORK, executor="SORA",
+               run_id=456, timestamp="2026-10-12T10:00:00Z", status="ACKNOWLEDGED")
+    result = ack_schema(
+        ack,
+        work_id=WORK if bad_work is None else bad_work,
+        lease=lid if bad_lease is None else bad_lease,
+        executor="SORA" if bad_executor is None else bad_executor,
+    )
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "INVALID_IDENTITY"
