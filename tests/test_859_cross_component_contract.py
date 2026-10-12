@@ -13,7 +13,7 @@ MARKER = f"<!-- AUTO_ROUTER_DISPATCH lease_id={LEASE} executor=SORA target_issue
 
 
 def comment(*, with_writer_run_id=False):
-    # Mirrors the JSON event fields built by PR #860 workflow (no writer_run_id).
+    # Legacy fixture omits writer_run_id; current workflow emits it.
     event = dict(work_ref="issue:859", owner_slice="issue-859", executor="SORA",
                  canonical_lease_id=LEASE,
                  assigned_at="2026-10-12T08:00:00Z",
@@ -25,7 +25,7 @@ def comment(*, with_writer_run_id=False):
             "body": MARKER + "\n" + json.dumps(event) + "\n\n担当: 🌊ナギ"}
 
 
-def test_current_pr860_event_cannot_be_picked_up_by_readonly_consumer():
+def test_legacy_event_without_writer_run_id_fails_closed():
     assert discover_sora_pickup(issue_number=ISSUE, comments=[comment()], now=NOW)["status"] == "EVIDENCE_UNVERIFIED"
 
 
