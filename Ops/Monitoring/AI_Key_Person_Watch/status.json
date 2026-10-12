@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-11T15:35:05+09:00",
-  "last_success_at": "2026-10-11T15:35:05+09:00",
+  "last_run_at": "2026-10-12T20:34:40+09:00",
+  "last_success_at": "2026-10-12T20:34:40+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-11T15:35:05+09:00",
   "news_persisted": false,
   "persistence_status": "PENDING_PERSIST",
   "updated_by": "❤️レイ",
-  "note": "Startup Sync v2 VERIFIED through #99 comment 5857331590 (261/261); AWAY/AUTO_GREEN; 2026-10-09 Kioxia LD4 E1.L QLC SSD 15.36/30.72TB selective customer functional samples, 122.88TB architecture only, production/orders/revenue UNKNOWN; news_delta=1 material_delta=1 (newly identified dated primary evidence); field_signal_delta=0; #861 3-domain hypotheses maintained, no Watchlist promotion; MRAM重要差分なし; Kaede delegation checked|no-delta; JX Research backlog PENDING; #79 untouched."
+  "note": "Startup Sync v2 VERIFIED through #99 comment 5857331590 (261/261); TEAM_STATE AWAY/AUTO_GREEN; 2026-10-12 20:34 JST: checked Reuters 2026-10-12 TSMC forecast, Broadcom capital constraint, Everspin official news, Japan-origin overseas trend and #861 supply chain. No new material delta beyond 19:31 MRAM CXL Research commit 1e63dc710e439ea0d0ca7e62fb84d2f7456def35; news_delta=0, material_delta=0, field_signal_delta=0; no duplicate Research write. Existing JX research backlog remains PENDING_PERSIST. #79 untouched; Nagi Single Flow Authority."
 }
