@@ -1,0 +1,37 @@
+"""Read bridge regressions: never grant execution authority."""
+import json
+from scripts.recovery_rev2_read_bridge import project_attested_comments
+
+def c(status, cid, **fields):
+    body = {"schema_version": 2, "work_id": "issue:859",
+            "status": status, "attempt": 1,
+            "lease_id": "lease-" + "a"*32}
+    body.update(fields)
+    return {"id": cid, "body": json.dumps(body)}
+
+def project(comments, trusted, verified=True, work="issue:859"):
+    return project_attested_comments(work_id=work, comments=comments,
+                                     trusted_comment_ids=trusted,
+                                     provenance_verified=verified)
+
+def test_attested_ack_blocks_dispatch():
+    result = project([c("DISPATCHED", 10), c("ACKED", 11)], {10, 11})
+    assert result["status"] == "ACKED" and result["dispatch_allowed"] is False
+
+def test_unverified_provenance():
+    assert project([c("DISPATCHED", 10)], {10}, False)["status"] == "UNKNOWN"
+
+def test_attestation_set_mismatch():
+    assert project([c("DISPATCHED", 10)], {10, 11})["status"] == "UNKNOWN"
+
+def test_legacy_comment_fails_closed():
+    result = project([{"id": 10, "body": "<!-- AUTO_ROUTER_DISPATCH -->"}], {10})
+    assert result["status"] == "UNKNOWN"
+
+def test_pr_open_blocks_dispatch():
+    result = project([c("PR_OPEN", 10, pr_number=860)], {10})
+    assert result["status"] == "PR_OPEN" and result["dispatch_allowed"] is False
+
+def test_issue_79_hard_deny():
+    result = project([], set(), work="issue:79")
+    assert result["status"] == "BLOCKED" and result["dispatch_allowed"] is False
