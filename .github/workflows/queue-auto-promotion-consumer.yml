@@ -101,19 +101,34 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gh api "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=30" > /tmp/open-prs.json
+          # Fetch all open PRs; an incomplete conflict inventory must never dispatch.
+          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=100" | jq 'add // []' > /tmp/open-prs.json
           : > /tmp/active-paths.jsonl
           for pr in $(jq -r '.[].number' /tmp/open-prs.json); do
-            gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr}/files?per_page=100" | jq -r '.[].filename' >> /tmp/active-paths.jsonl
+            gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls/${pr}/files?per_page=100" \
+              | jq -r 'add // [] | .[].filename' >> /tmp/active-paths.jsonl
           done
           jq -R -s -c 'split("\n") | map(select(length > 0)) | unique' /tmp/active-paths.jsonl > /tmp/active-paths.json
-          echo '[]' > /tmp/active-owner-slices.json
+          # PR bodies are not a trustworthy canonical owner registry. Until an
+          # authoritative owner-slice reader is wired, block dispatch whenever
+          # any open PR exists rather than pretending the owner set is empty.
+          if [[ "$(jq 'length' /tmp/open-prs.json)" -gt 0 ]]; then
+            echo "::warning::OWNER_SLICE_INVENTORY_UNVERIFIED: open PRs present; dispatch disabled (fail-closed)"
+            echo '["__OWNER_SLICE_INVENTORY_UNVERIFIED__"]' > /tmp/active-owner-slices.json
+            echo "true" > /tmp/owner-inventory-blocked
+          else
+            echo '[]' > /tmp/active-owner-slices.json
+          fi
 
       - name: Compute one safe queue-consumer tick (no GitHub writes)
         id: tick
         shell: bash
         run: |
           set -euo pipefail
+          if [[ -f /tmp/owner-inventory-blocked ]]; then
+            echo "::error::OWNER_SLICE_INVENTORY_UNVERIFIED; refusing to dispatch"
+            exit 1
+          fi
           echo '{"copilot":"available"}' > /tmp/worker-state.json
           BASE_SHA="$(git rev-parse HEAD)"
           # Exit 1 is the adapter's documented no-dispatch outcome.
