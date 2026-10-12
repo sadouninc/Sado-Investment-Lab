@@ -35,14 +35,14 @@ def event(status, issue="828", **kwargs):
 
 
 def test_multiline_active_lease():
-    body = "<!-- AUTO_ROUTER_DISPATCH -->\\n" + event(
+    body = "<!-- AUTO_ROUTER_DISPATCH -->\n" + event(
         "ASSIGNED", lease_expires_at="2999-01-01T00:00:00Z"
-    ) + "\\n担当: 🌊ナギ"
+    ) + "\n担当: 🌊ナギ"
     assert lease_state([comment(body)]) == "ACTIVE"
 
 
 def test_unrelated_json_before_relevant_lease():
-    body = '{"unrelated":true}\\n' + event(
+    body = '{"unrelated":true}\n' + event(
         "ACKNOWLEDGED", lease_expires_at="2999-01-01T00:00:00Z"
     )
     assert lease_state([comment(body)]) == "ACTIVE"
