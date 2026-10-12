@@ -21,7 +21,7 @@ def ack_schema(ack: dict, *, work_id: str, lease: str, executor: str) -> dict:
     """Validate structure only, NEVER claim trusted ACK or authorize dispatch."""
     if not isinstance(ack, dict) or any(k not in ack for k in ("lease_id", "work_id", "executor", "run_id", "timestamp", "status")):
         return {"status": "UNKNOWN", "reason": "MISSING_FIELDS"}
-    if work_id == "issue:79" or not re.fullmatch(r"lease-[0-9a-f]{32}", lease):
+    if (type(work_id) is not str or not re.fullmatch(r"issue:[1-9][0-9]*", work_id) or work_id == "issue:79" or type(lease) is not str or not re.fullmatch(r"lease-[0-9a-f]{32}", lease) or type(executor) is not str or not executor):
         return {"status": "UNKNOWN", "reason": "INVALID_IDENTITY"}
     if (ack["lease_id"], ack["work_id"], ack["executor"]) != (lease, work_id, executor):
         return {"status": "UNKNOWN", "reason": "IDENTITY_MISMATCH"}
