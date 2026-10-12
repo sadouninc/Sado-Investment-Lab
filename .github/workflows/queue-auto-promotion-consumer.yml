@@ -59,9 +59,12 @@ jobs:
             LEASE_STATE="$(jq -r --arg n "$number" '
               def event:
                 (.body // "") as $b
-                | ([ $b, ($b | split("\n")[]) ] | map(try (fromjson | select(type == "object")) catch empty) | first // null)
-                | select(type == "object")
-                | select((.work_ref // "") == ("issue:" + $n) or (.owner_slice // "") == ("issue-" + $n));
+                | ([ $b, ($b | split("\n")[]) ]
+                   | map(try (fromjson | select(type == "object")) catch empty)
+                   | map(select((.work_ref // "") == ("issue:" + $n) or (.owner_slice // "") == ("issue-" + $n)))) as $events
+                | if ($events | length) > 0 then $events[]
+                  elif ($b | contains("AUTO_ROUTER_DISPATCH")) then {"status":"AMBIGUOUS_LEASE_EVENT"}
+                  else empty end;
               [ .[] | event ] | last // {} |
               if ((.status // "") | IN("PROMOTION_DISPATCHED","PROMOTION_BRANCH_READY","PR_CREATE_REQUIRED","DUPLICATE_SUPERSEDED","PR_ALREADY_EXISTS","PR_ALREADY_EXISTS_RACE_RESOLVED")) then "TERMINALIZING"
               elif ((.status // "") | IN("DISPATCH_LEASE_EXPIRED","COPILOT_RETRYABLE_FAILURE","RETRYABLE_FAILURE","FALLBACK_RETRYABLE_FAILURE","BLOCKED_BASE_DRIFT","BLOCKED_CONTRACT_REPLAY","FAIL_CLOSED")) then "RETRYABLE"
@@ -71,7 +74,8 @@ jobs:
                 elif ((.lease_expires_at | fromdateiso8601) > now) then "ACTIVE"
                 else "EXPIRED"
                 end
-              else "NONE"
+              elif (.status // "") == "" then "NONE"
+              else "AMBIGUOUS"
               end' /tmp/comments.json)"
             case "$LEASE_STATE" in
               ACTIVE|TERMINALIZING|AMBIGUOUS)
