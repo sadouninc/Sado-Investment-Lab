@@ -3,7 +3,7 @@ from scripts.recovery_rev2_state_reader import project_state
 
 def event(status, n, **extra):
     return {"work_id": "issue:859", "status": status, "comment_id": n,
-            "attempt": 1, "lease_id": "lease-" + "a"*32, **extra}
+            "attempt": 1, "lease_id": "lease-" + "a"*32} | extra
 
 def project(events, verified=True):
     return project_state(work_id="issue:859", events=events, evidence_verified=verified)
