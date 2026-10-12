@@ -115,3 +115,18 @@ def test_lease_expiry_cases_with_actual_jq_and_date():
             now = int(subprocess.check_output(["date", "-u", "+%s"], text=True))
             outcome = "active" if int(epoch.stdout.strip()) > now else "expired"
         assert outcome == expected
+
+
+def test_scheduled_priority_is_explicit_and_deterministic():
+    """P0 must precede a newer P1; tie-break is issue number, not update time."""
+    t = text()
+    assert 'sort_by((if (.body | test(' in t
+    assert 'Priority:' in t
+    assert 'then 0 else 1 end), .number)' in t
+    assert '| first | .number // empty' in t
+
+
+def test_scheduled_priority_does_not_select_protected_issue():
+    t = text()
+    assert '.number != 79' in t
+    assert '[[ "$issue" != "79" ]]' in t
