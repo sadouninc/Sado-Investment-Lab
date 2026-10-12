@@ -112,14 +112,31 @@ jobs:
           set -euo pipefail
           echo '{"copilot":"available"}' > /tmp/worker-state.json
           BASE_SHA="$(git rev-parse HEAD)"
+          # Exit 1 is the adapter's documented no-dispatch outcome.
+          # Any other nonzero exit or missing/invalid packet is an actual failure.
+          rc=0
           python -m scripts.queue_auto_promotion_consumer \
             --issues /tmp/issues.json \
             --worker-state /tmp/worker-state.json \
             --active-owner-slices /tmp/active-owner-slices.json \
             --active-paths /tmp/active-paths.json \
             --base-sha "$BASE_SHA" \
-            --output /tmp/packet.json || true
+            --output /tmp/packet.json || rc=$?
+          if [[ "$rc" -gt 1 ]]; then
+            echo "::error::QUEUE_CONSUMER_FAILED exit_code=$rc"
+            exit "$rc"
+          fi
+          if [[ ! -s /tmp/packet.json ]] || ! jq -e 'type == "object" and (.status | type == "string")' /tmp/packet.json >/dev/null; then
+            echo "::error::QUEUE_CONSUMER_INVALID_PACKET"
+            exit 1
+          fi
           status="$(jq -r '.status' /tmp/packet.json)"
+          if [[ "$rc" == 0 && "$status" != "DISPATCH_READY" ]] || [[ "$rc" == 1 && "$status" == "DISPATCH_READY" ]]; then
+            echo "::error::QUEUE_CONSUMER_EXIT_STATUS_MISMATCH rc=$rc status=$status"
+            exit 1
+          fi
+          echo "Queue preflight: candidate_count=${{ steps.scan.outputs.candidate_count }} status=$status"
+          jq -c '{status, metrics, selected_issue: (.selected.issue_number // null)}' /tmp/packet.json
           echo "status=$status" >> "$GITHUB_OUTPUT"
           echo "Queue consumer tick status: $status"
           if [[ "$status" == "DISPATCH_READY" ]]; then
