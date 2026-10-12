@@ -41,3 +41,38 @@ def test_no_workflow():
 
 def test_invalid_sha():
     assert call(run={**RUN, "head_sha": "xyz"})["status"] == "UNKNOWN"
+
+
+def native_comment(**overrides):
+    import json
+    result = {"id": 45, "created_at": COMMENT["created_at"],
+              "body": json.dumps(COMMENT["event"])}
+    result.update(overrides)
+    return result
+
+def native_run(**overrides):
+    result = {**RUN,
+              "repository": {"full_name": RUN["repository"]},
+              "path": ".github/workflows/sora-recovery-control-plane.yml@main",
+              "head_branch": "main"}
+    result.pop("workflow")
+    result.update(overrides)
+    return result
+
+def test_native_github_api_payload_consistent_but_unverified():
+    result = call(comment=native_comment(), run=native_run())
+    assert result["status"] == "METADATA_CONSISTENT_UNVERIFIED"
+    assert result["provenance_verified"] is False
+    assert result["dispatch_allowed"] is False
+
+def test_native_wrong_head_branch_fails_closed():
+    assert call(comment=native_comment(), run=native_run(head_branch="feature"))["status"] == "UNKNOWN"
+
+def test_native_wrong_workflow_path_fails_closed():
+    assert call(comment=native_comment(), run=native_run(path=".github/workflows/other.yml@main"))["status"] == "UNKNOWN"
+
+def test_native_malformed_comment_body_fails_closed():
+    assert call(comment=native_comment(body="<!-- legacy -->"), run=native_run())["status"] == "UNKNOWN"
+
+def test_native_wrong_repository_fails_closed():
+    assert call(comment=native_comment(), run=native_run(repository={"full_name": "attacker/repo"}))["status"] == "UNKNOWN"
