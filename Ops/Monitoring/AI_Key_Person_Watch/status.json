@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-13T21:42:00+09:00",
-  "last_success_at": "2026-10-13T21:42:00+09:00",
+  "last_run_at": "2026-10-14T05:36:31+09:00",
+  "last_success_at": "2026-10-14T05:36:31+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-11T15:35:05+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-14T05:36:31+09:00",
   "news_persisted": false,
   "persistence_status": "PENDING_PERSIST",
   "updated_by": "❤️レイ",
-  "note": "2026-10-13 21:42 JST: Startup Sync v2 verified TEAM_RULES, TEAM_STATE, Issue #99 broadcast-head comment_id=5857331590 (261/261). No newer To: ALL/Rei broadcast. Existing Discovery/Consumer/MRAM findings remain under review; no independently verified material news delta in this run and no Research mutation. Existing PENDING_PERSIST preserved. #79 untouched. Nagi retains Single Flow Authority. Direct GitHub connector heartbeat update attempted in this run; execution context not independently identified as scheduled."
+  "note": "2026-10-14 05:36 JST: Startup Sync v2 VERIFIED TEAM_RULES→TEAM_STATE→#99 authoritative broadcast-head=5857331590 (261/261), no new To: ALL/Rei. New material: Semtech/Tower 2026-10-13 dedicated SiGe manufacturing capacity investment covering US/Israel/Japan, Japanese allocation unknown; #861 causal hypothesis and falsification evaluated. Research update directly rejected by safety checks once, not retried; PENDING_PERSIST. MRAM no new commercial adoption; consumer signal unverified. #79 untouched; Nagi Single Flow Authority. Direct GitHub connector heartbeat mutation attempted once; tool outcome to be reported separately."
 }
