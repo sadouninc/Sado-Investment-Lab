@@ -29,8 +29,14 @@ def test_legacy_comment_fails_closed():
     assert result["status"] == "UNKNOWN"
 
 def test_pr_open_blocks_dispatch():
-    result = project([c("PR_OPEN", 10, pr_number=860)], {10})
+    # A valid PR_OPEN requires an attested DISPATCHED event for the same lease.
+    result = project([c("DISPATCHED", 10), c("PR_OPEN", 11, pr_number=860)], {10, 11})
     assert result["status"] == "PR_OPEN" and result["dispatch_allowed"] is False
+
+def test_orphan_pr_open_fails_closed():
+    # A PR_OPEN without the initial DISPATCHED is an invalid history.
+    result = project([c("PR_OPEN", 10, pr_number=860)], {10})
+    assert result["status"] == "UNKNOWN" and result["dispatch_allowed"] is False
 
 def test_issue_79_hard_deny():
     result = project([], set(), work="issue:79")
