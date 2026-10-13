@@ -98,7 +98,7 @@ def attest_legacy_sora_lease(comment: Mapping, *, work_id: str,
         actions_run.get("conclusion") != "success" or
         actions_run.get("name") != "Sora Recovery Control Plane"):
         return {"status": "UNKNOWN", "reason": "RUN_ATTESTATION_MISMATCH", "dispatch_allowed": False}
-    # A successful workflow run alone does not prove that its specific comment
+    # GitHub timestamp consistency is a necessary (not sufficient) check.\n    # The comment cannot precede the run or appear after its completion.\n    from datetime import datetime, timezone\n    def timestamp(value):\n        if not isinstance(value, str):\n            return None\n        try:\n            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))\n            return parsed.astimezone(timezone.utc) if parsed.tzinfo else None\n        except ValueError:\n            return None\n    created = timestamp(comment.get("created_at"))\n    started = timestamp(actions_run.get("run_started_at"))\n    updated = timestamp(actions_run.get("updated_at"))\n    if created is None or started is None or updated is None or not (started <= created <= updated):\n        return {"status": "UNKNOWN", "reason": "COMMENT_RUN_TIME_MISMATCH", "dispatch_allowed": False}\n    # A successful workflow run alone does not prove that its specific comment
     # was written by that run. Preserve the distinction in durable evidence.
     return {"status": "REPORTED_UNVERIFIED", "reason": "COMMENT_TO_RUN_LINK_NOT_PROVEN",
             "dispatch_allowed": False, "comment_id": inspection["comment_id"],
