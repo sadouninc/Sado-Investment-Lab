@@ -72,3 +72,27 @@ def test_missing_comment_timestamp_rejected():
     c, r = sample()
     del c["created_at"]
     assert check(c, r)["reason"] == "COMMENT_RUN_TIME_MISMATCH"
+
+
+def test_non_numeric_writer_run_id_rejected():
+    c, r = sample()
+    lines = c["body"].splitlines()
+    event = json.loads(lines[1])
+    event["writer_run_id"] = "123"
+    c["body"] = lines[0] + "\n" + json.dumps(event)
+    assert check(c, r)["reason"] == "EVENT_IDENTITY_MISMATCH"
+
+def test_invalid_run_timestamp_rejected():
+    c, r = sample()
+    r["run_started_at"] = "not-a-date"
+    assert check(c, r)["reason"] == "COMMENT_RUN_TIME_MISMATCH"
+
+def test_run_start_after_finish_rejected():
+    c, r = sample()
+    r["run_started_at"] = "2026-10-13T10:07:00Z"
+    assert check(c, r)["reason"] == "COMMENT_RUN_TIME_MISMATCH"
+
+def test_other_event_type_rejected():
+    c, r = sample()
+    r["event"] = "push"
+    assert check(c, r)["reason"] == "RUN_ATTESTATION_MISMATCH"
