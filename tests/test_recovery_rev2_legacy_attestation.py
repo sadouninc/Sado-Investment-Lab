@@ -8,9 +8,9 @@ def sample():
     event = {"work_ref": "issue:859", "canonical_lease_id": LEASE,
              "executor": "SORA", "status": "DISPATCHED", "writer_run_id": 123}
     comment = {"id": 42, "user": {"login": "github-actions[bot]"},
-               "body": f"<!-- AUTO_ROUTER_DISPATCH lease_id={LEASE} executor=SORA target_issue=859 -->\n" + json.dumps(event)}
+               "created_at": "2026-10-13T10:02:00Z",\n               "body": f"<!-- AUTO_ROUTER_DISPATCH lease_id={LEASE} executor=SORA target_issue=859 -->\n" + json.dumps(event)}
     run = {"id": 123, "name": "Sora Recovery Control Plane", "event": "schedule",
-           "status": "completed", "conclusion": "success",
+           "status": "completed", "conclusion": "success",\n           "run_started_at": "2026-10-13T10:00:00Z",\n           "updated_at": "2026-10-13T10:05:00Z",
            "repository": {"full_name": "sadouninc/Sado-Investment-Lab"}}
     return comment, run
 
@@ -54,3 +54,18 @@ def test_issue_79_hard_denied():
     result = attest_legacy_sora_lease(c, work_id="issue:79",
         actions_run=r, expected_repository="sadouninc/Sado-Investment-Lab")
     assert result["status"] == "BLOCKED" and result["dispatch_allowed"] is False
+
+def test_comment_before_run_rejected():
+    c, r = sample()
+    c["created_at"] = "2026-10-13T09:59:59Z"
+    assert check(c, r)["reason"] == "COMMENT_RUN_TIME_MISMATCH"
+
+def test_comment_after_run_rejected():
+    c, r = sample()
+    c["created_at"] = "2026-10-13T10:06:00Z"
+    assert check(c, r)["reason"] == "COMMENT_RUN_TIME_MISMATCH"
+
+def test_missing_comment_timestamp_rejected():
+    c, r = sample()
+    del c["created_at"]
+    assert check(c, r)["reason"] == "COMMENT_RUN_TIME_MISMATCH"
