@@ -8,9 +8,12 @@ def sample():
     event = {"work_ref": "issue:859", "canonical_lease_id": LEASE,
              "executor": "SORA", "status": "DISPATCHED", "writer_run_id": 123}
     comment = {"id": 42, "user": {"login": "github-actions[bot]"},
-               "created_at": "2026-10-13T10:02:00Z",\n               "body": f"<!-- AUTO_ROUTER_DISPATCH lease_id={LEASE} executor=SORA target_issue=859 -->\n" + json.dumps(event)}
+               "created_at": "2026-10-13T10:02:00Z",
+               "body": f"<!-- AUTO_ROUTER_DISPATCH lease_id={LEASE} executor=SORA target_issue=859 -->\n" + json.dumps(event)}
     run = {"id": 123, "name": "Sora Recovery Control Plane", "event": "schedule",
-           "status": "completed", "conclusion": "success",\n           "run_started_at": "2026-10-13T10:00:00Z",\n           "updated_at": "2026-10-13T10:05:00Z",
+           "status": "completed", "conclusion": "success",
+           "run_started_at": "2026-10-13T10:00:00Z",
+           "updated_at": "2026-10-13T10:05:00Z",
            "repository": {"full_name": "sadouninc/Sado-Investment-Lab"}}
     return comment, run
 
