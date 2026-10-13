@@ -72,3 +72,34 @@ def inspect_legacy_sora_lease(comment: Mapping, *, work_id: str) -> dict:
             "dispatch_allowed": False, "comment_id": cid,
             "writer_run_id": event["writer_run_id"],
             "lease_id": marker.group(1), "work_id": work_id}
+
+
+def attest_legacy_sora_lease(comment: Mapping, *, work_id: str,
+                             actions_run: Mapping, expected_repository: str) -> dict:
+    """Correlate legacy evidence with independently fetched GitHub metadata.
+
+    This is evidence attestation only, NOT Rev.2 event migration or permission
+    to dispatch. Callers must still verify PR/ACK/terminal and owner state.
+    """
+    inspection = inspect_legacy_sora_lease(comment, work_id=work_id)
+    if inspection.get("status") != "UNVERIFIED":
+        return inspection
+    if not isinstance(actions_run, Mapping) or not isinstance(expected_repository, str):
+        return {"status": "UNKNOWN", "reason": "RUN_METADATA_MISSING", "dispatch_allowed": False}
+    author = comment.get("user")
+    if not isinstance(author, Mapping) or author.get("login") != "github-actions[bot]":
+        return {"status": "UNKNOWN", "reason": "UNTRUSTED_COMMENT_AUTHOR", "dispatch_allowed": False}
+    repo = actions_run.get("repository")
+    if not isinstance(repo, Mapping) or repo.get("full_name") != expected_repository:
+        return {"status": "UNKNOWN", "reason": "REPOSITORY_MISMATCH", "dispatch_allowed": False}
+    if (actions_run.get("id") != inspection["writer_run_id"] or
+        actions_run.get("event") not in {"schedule", "workflow_dispatch"} or
+        actions_run.get("status") != "completed" or
+        actions_run.get("conclusion") != "success" or
+        actions_run.get("name") != "Sora Recovery Control Plane"):
+        return {"status": "UNKNOWN", "reason": "RUN_ATTESTATION_MISMATCH", "dispatch_allowed": False}
+    # A successful workflow run alone does not prove that its specific comment
+    # was written by that run. Preserve the distinction in durable evidence.
+    return {"status": "REPORTED_UNVERIFIED", "reason": "COMMENT_TO_RUN_LINK_NOT_PROVEN",
+            "dispatch_allowed": False, "comment_id": inspection["comment_id"],
+            "writer_run_id": inspection["writer_run_id"], "work_id": work_id}
