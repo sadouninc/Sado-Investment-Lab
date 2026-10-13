@@ -44,7 +44,10 @@ def test_protected_issue():
     assert result["status"] == "BLOCKED" and result["dispatch_allowed"] is False
 
 def test_retry_limit():
-    events = [event("DISPATCHED", i, attempt=i) for i in range(1, 5)]
-    events.append(event("EXPIRED", 5, attempt=4))
+    events = []
+    for i in range(1, 5):
+        lease = "lease-" + str(i)*32
+        events.extend([event("DISPATCHED", 2*i-1, attempt=i, lease_id=lease),
+                       event("EXPIRED", 2*i, attempt=i, lease_id=lease)])
     result = project(events)
     assert result["status"] == "BLOCKED" and result["reason"] == "RETRY_LIMIT"
