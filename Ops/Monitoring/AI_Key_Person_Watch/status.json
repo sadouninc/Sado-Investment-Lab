@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-14T05:36:31+09:00",
-  "last_success_at": "2026-10-14T05:36:31+09:00",
+  "last_run_at": "2026-10-15T00:28:02+09:00",
+  "last_success_at": "2026-10-15T00:28:02+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-14T05:36:31+09:00",
   "news_persisted": false,
-  "persistence_status": "PENDING_PERSIST",
+  "persistence_status": "NO_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-10-14 05:36 JST: Startup Sync v2 VERIFIED TEAM_RULES→TEAM_STATE→#99 authoritative broadcast-head=5857331590 (261/261), no new To: ALL/Rei. New material: Semtech/Tower 2026-10-13 dedicated SiGe manufacturing capacity investment covering US/Israel/Japan, Japanese allocation unknown; #861 causal hypothesis and falsification evaluated. Research update directly rejected by safety checks once, not retried; PENDING_PERSIST. MRAM no new commercial adoption; consumer signal unverified. #79 untouched; Nagi Single Flow Authority. Direct GitHub connector heartbeat mutation attempted once; tool outcome to be reported separately."
+  "note": "2026-10-15 00:28 JST: Startup Sync v2 TEAM_RULES→TEAM_STATE(AWAY)→#99 broadcast-head=6155755002 (262/262) VERIFIED. #861 AI/semiconductor causal-chain review: GF Japan-US fab announcement already recorded in 2026-10 Research at 22:29 JST, no duplicate save. New independent material evidence not established; MRAM mass-production and Consumer/Field review evidence unchanged. #79 untouched; Nagi Single Flow Authority. Normal heartbeat via direct GitHub connector; actual mutation result to be reported separately. No dummy/retry."
 }
