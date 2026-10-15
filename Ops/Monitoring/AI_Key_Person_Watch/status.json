@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-15T00:28:02+09:00",
-  "last_success_at": "2026-10-15T00:28:02+09:00",
+  "last_run_at": "2026-10-15T09:32:21+09:00",
+  "last_success_at": "2026-10-15T09:32:21+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-14T05:36:31+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-15T09:32:21+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_MATERIAL_DELTA",
+  "persistence_status": "PENDING_PERSIST",
   "updated_by": "❤️レイ",
-  "note": "2026-10-15 00:28 JST: Startup Sync v2 TEAM_RULES→TEAM_STATE(AWAY)→#99 broadcast-head=6155755002 (262/262) VERIFIED. #861 AI/semiconductor causal-chain review: GF Japan-US fab announcement already recorded in 2026-10 Research at 22:29 JST, no duplicate save. New independent material evidence not established; MRAM mass-production and Consumer/Field review evidence unchanged. #79 untouched; Nagi Single Flow Authority. Normal heartbeat via direct GitHub connector; actual mutation result to be reported separately. No dummy/retry."
+  "note": "2026-10-15 09:32 JST: Startup Sync v2 TEAM_RULES→TEAM_STATE(AWAY)→#99 broadcast-head=6155755002 (262/262) VERIFIED. #861 material discovery: Omron(6645) agreement to acquire OnLogic/Interlogic (official 10/12; newly found 10/15); Research append attempted once and TOOL_SAFETY_REJECTION, no retry. Consumer/Field independent evidence and MRAM new production adoption not confirmed. #79 untouched, Nagi Single Flow Authority. This heartbeat is a natural direct GitHub connector update, outcome to be reported separately; no dummy mutation."
 }
