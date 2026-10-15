@@ -86,23 +86,20 @@ jobs:
             exit 0
           fi
 
-          # Fail closed on an active or ambiguous prior SORA lease for this issue.
-          now="$(date -u +%s)"
-          # Validate the entire comment collection before processing; never hide jq errors in process substitution.
-          jq -r 'if type == "array" then .[] | (.body // "" | @base64) else error("invalid comments collection") end' /tmp/comments.json > /tmp/sora_comment_bodies.b64 || { echo INVALID_COMMENTS; exit 78; }
-          while IFS= read -r encoded; do
-            body="$(printf '%s' "$encoded" | base64 -d)"
-            [[ "$body" == *"AUTO_ROUTER_DISPATCH"* && "$body" == *"executor=SORA"* ]] || continue
-            [[ "$body" == *"target_issue=${ISSUE}"* ]] || continue
-            prior="$(printf '%s\n' "$body" | jq -Rrs 'split("\n") | map(select(startswith("{") and contains("lease_expires_at"))) | first // empty')"
-            [[ -n "$prior" ]] || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
-            expiry="$(printf '%s' "$prior" | jq -er '.lease_expires_at | strings')" || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
-            expiry_epoch="$(date -u -d "$expiry" +%s 2>/dev/null)" || { echo AMBIGUOUS_PRIOR_LEASE; exit 78; }
-            if (( expiry_epoch > now )); then
-              echo ACTIVE_SORA_LEASE_EXISTS
-              exit 0
-            fi
-          done < /tmp/sora_comment_bodies.b64
+          # Fail closed on ANY prior SORA dispatch until canonical ACK/PR/terminal
+          # reconciliation and retry authority are implemented. Expiry alone
+          # is NOT proof that the previous executor stopped. This temporary
+          # safety gate intentionally disables automatic redispatch.
+          # Do not treat quoted/historical marker mentions as authorization;
+          # conservative false positives require manual reconciliation.
+          if jq -e --arg issue "$ISSUE" '
+            any(.[]; (.body // "") | test("AUTO_ROUTER_DISPATCH") and
+              test("executor=SORA") and
+              test("target_issue=" + $issue + "([^0-9]|$)"))
+          ' /tmp/comments.json >/dev/null; then
+            echo PRIOR_SORA_DISPATCH_REQUIRES_CANONICAL_RECONCILIATION
+            exit 78
+          fi
 
           assigned="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           expires="$(date -u -d '+90 minutes' +%Y-%m-%dT%H:%M:%SZ)"
