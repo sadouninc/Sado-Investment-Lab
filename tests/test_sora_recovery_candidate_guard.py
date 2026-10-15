@@ -66,3 +66,19 @@ def test_duplicate_comment_ids_denied():
 
 def test_oversize_comment_denied():
     assert check_candidate(issue(), [{"id":1,"body":"x"*200001}], [])["status"] == "BLOCKED"
+
+
+def test_duplicate_pr_numbers_fail_closed():
+    pr = {"number": 861, "state": "closed", "title": "Unrelated", "body": "", "head": {"ref": "other"}}
+    result = check_candidate(issue(), [], [pr, dict(pr)])
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "DUPLICATE_PR_INVENTORY"
+
+
+def test_closed_related_pr_blocks_redispatch():
+    pr = {"number": 860, "state": "closed", "title": "Recovery writer", "body": "",
+          "head": {"ref": "nagi/859-sora-control-plane-writer"},
+          "merged_at": "2026-10-01T00:00:00Z"}
+    result = check_candidate(issue(), [], [pr])
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RELATED_PR_EXISTS"
