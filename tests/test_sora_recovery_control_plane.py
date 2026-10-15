@@ -35,22 +35,17 @@ def test_scheduled_pull_can_discover_recovery_without_chatgpt_write():
     assert 'P[01]' in t
     assert 'contains("## Recovery Work Contract")' not in t
 
-def test_lease_event_reader_uses_real_newlines():
-    """Regression: a literal backslash-n makes a valid JSON event invisible."""
+def test_prior_dispatch_requires_canonical_reconciliation():
+    """Expiry alone must never authorize another SORA lease."""
     t = text()
-    assert "printf '%s\\n' \"$body\"" in t
-    assert "split(\"\\n\")" in t
-    assert "printf '%s\\\\n' \"$body\"" not in t
-    assert "split(\"\\\\n\")" not in t
-
-
-def test_active_and_ambiguous_lease_fail_closed():
-    t = text()
-    assert "ACTIVE_SORA_LEASE_EXISTS" in t
-    assert "AMBIGUOUS_PRIOR_LEASE" in t
-    assert "expiry_epoch > now" in t
+    assert "PRIOR_SORA_DISPATCH_REQUIRES_CANONICAL_RECONCILIATION" in t
+    assert 'test("AUTO_ROUTER_DISPATCH")' in t
+    assert 'test("executor=SORA")' in t
+    assert 'test("target_issue=" + $issue + "([^0-9]|$)")' in t
+    assert "expiry_epoch > now" not in t
     assert "INVALID_RECOVERY_CONTRACT" in t
     assert "jq -s 'add // []'" in t
+
 
 def test_lease_event_extraction_behavior():
     """Exercise the exact jq extraction shape against a real multiline comment."""
