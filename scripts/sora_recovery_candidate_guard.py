@@ -79,9 +79,13 @@ def check_candidate(issue: Mapping, comments: list, prs: list) -> dict:
             return _block("UNRECONCILED_WORK_EVENT")
     issue_ref = re.compile(r"(?<!\d)#" + str(number) + r"(?!\d)")
     branch_ref = re.compile(r"(?:^|[/_-])(?:issue[-_])?" + str(number) + r"(?:$|[/_-])")
+    seen_pr_numbers: set[int] = set()
     for pr in prs:
         if not isinstance(pr, Mapping) or type(pr.get("number")) is not int or pr["number"] <= 0:
             return _block("INVALID_PR_INVENTORY")
+        if pr["number"] in seen_pr_numbers:
+            return _block("DUPLICATE_PR_INVENTORY")
+        seen_pr_numbers.add(pr["number"])
         if pr.get("state") not in ("open", "closed"):
             return _block("PR_STATE_UNKNOWN")
         if not isinstance(pr.get("title"), str) or (
