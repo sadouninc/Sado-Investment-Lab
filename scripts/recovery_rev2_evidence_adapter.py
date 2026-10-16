@@ -15,7 +15,30 @@ def canonical_event(comment: Mapping, *, work_id: str, trusted_comment_ids: set[
     body = comment.get("body")
     if not isinstance(body, str):
         return {"status": "UNKNOWN", "reason": "INVALID_BODY"}
-    # Writer comments can contain a marker, one JSON line, and human-readable\n    # metadata. Accept exactly one strict marker+JSON envelope; never parse\n    # arbitrary embedded JSON or quoted markers as canonical evidence.\n    import re\n    if body.startswith("<!-- AUTO_ROUTER_DISPATCH "):\n        lines = body.splitlines()\n        marker = re.fullmatch(\n            r"<!-- AUTO_ROUTER_DISPATCH lease_id=(lease-[0-9a-f]{32}) executor=SORA target_issue=([1-9][0-9]*) -->",\n            lines[0],\n        )\n        if not marker or "issue:" + marker.group(2) != work_id or len(lines) < 2:\n            return {"status": "UNKNOWN", "reason": "INVALID_DISPATCH_ENVELOPE"}\n        if sum("AUTO_ROUTER_DISPATCH" in line for line in lines) != 1:\n            return {"status": "UNKNOWN", "reason": "AMBIGUOUS_DISPATCH_MARKER"}\n        try:\n            embedded = json.loads(lines[1])\n        except (ValueError, TypeError):\n            return {"status": "UNKNOWN", "reason": "INVALID_DISPATCH_JSON"}\n        if not isinstance(embedded, dict) or embedded.get("canonical_lease_id") != marker.group(1):\n            return {"status": "UNKNOWN", "reason": "DISPATCH_LEASE_MISMATCH"}\n        # The legacy writer does not emit schema_version/attempt. Never\n        # silently upgrade legacy evidence into a trusted Rev.2 event.\n        return {"status": "UNKNOWN", "reason": "LEGACY_REQUIRES_ATTESTED_MIGRATION"}\n    try:
+    # Writer comments can contain a marker, one JSON line, and human-readable
+    # metadata. Accept exactly one strict marker+JSON envelope; never parse
+    # arbitrary embedded JSON or quoted markers as canonical evidence.
+    import re
+    if body.startswith("<!-- AUTO_ROUTER_DISPATCH "):
+        lines = body.splitlines()
+        marker = re.fullmatch(
+            r"<!-- AUTO_ROUTER_DISPATCH lease_id=(lease-[0-9a-f]{32}) executor=SORA target_issue=([1-9][0-9]*) -->",
+            lines[0],
+        )
+        if not marker or "issue:" + marker.group(2) != work_id or len(lines) < 2:
+            return {"status": "UNKNOWN", "reason": "INVALID_DISPATCH_ENVELOPE"}
+        if sum("AUTO_ROUTER_DISPATCH" in line for line in lines) != 1:
+            return {"status": "UNKNOWN", "reason": "AMBIGUOUS_DISPATCH_MARKER"}
+        try:
+            embedded = json.loads(lines[1])
+        except (ValueError, TypeError):
+            return {"status": "UNKNOWN", "reason": "INVALID_DISPATCH_JSON"}
+        if not isinstance(embedded, dict) or embedded.get("canonical_lease_id") != marker.group(1):
+            return {"status": "UNKNOWN", "reason": "DISPATCH_LEASE_MISMATCH"}
+        # The legacy writer does not emit schema_version/attempt. Never
+        # silently upgrade legacy evidence into a trusted Rev.2 event.
+        return {"status": "UNKNOWN", "reason": "LEGACY_REQUIRES_ATTESTED_MIGRATION"}
+    try:
         event = json.loads(body)
     except (ValueError, TypeError):
         return {"status": "UNKNOWN", "reason": "LEGACY_OR_INVALID_JSON"}
