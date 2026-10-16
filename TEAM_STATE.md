@@ -38,7 +38,7 @@ Mode transition uses the fail-closed CAS contract from #617 / PR #621: `expected
 
 ## Flow Authority / Role Boundary
 
-### 🌊ナギ — Single Flow Authority / Scrum Master
+### 🌙ルナ — Interim Single Flow Authority / Flow Manager
 
 Global flow work is centralized here to avoid duplicate cross-team scans:
 - global Issue / PR / WIP flow scan
@@ -57,7 +57,7 @@ Normal run:
 
 Do not perform a full global Issue/PR scan every run.
 
-During AWAY, ♦️ソラ receives temporary Delegated Flow Authority only when a traffic-control event occurs and 🌊ナギ is not executable:
+During AWAY, ♦️ソラ receives temporary Delegated Flow Authority only when a traffic-control event occurs and 🌙ルナ is not executable:
 - `QUEUE_STARVATION`
 - `OWNER_CONFLICT`
 - `NO_REROUTE_AFTER_BLOCKED_ESCAPE`
@@ -74,7 +74,7 @@ Ordinary implementation, CI waiting, or routine review checks are not delegation
 - meaningful Issue creation and READY-quality refinement
 - Product priority proposals
 
-Global routing and final cross-lane priority remain with 🌊ナギ.
+Global routing and final cross-lane priority remain with 🌙ルナ.
 
 ### Other specialist members
 
@@ -137,7 +137,7 @@ UNKNOWN never becomes PASS.
 - Default main executor: ♦️ソラ.
 - 🤖カイ is used when available and explicitly routed to an independent Single Owner slice.
 - Other members may implement within explicit delegation and Single Implementation Owner boundaries.
-- Current global priorities are maintained by 🌊ナギ through Issue #99 Current Active Board and current Issue/PR state.
+- Current global priorities are maintained by 🌙ルナ through Issue #99 Current Active Board and current Issue/PR state.
 - Do not rely on stale static priority lists when a newer Flow routing record exists.
 
 ### Active implementation WIP semantics — #645
@@ -225,4 +225,4 @@ Fallback: if this file is missing/stale/inconsistent with #99 or TEAM_RULES, use
 
 🌙ルナ owns drift detection among TEAM_STATE, TEAM_RULES, Issue #99, current IMPLEMENTING declarations, lane routing, and Authority state.
 
-During AWAY, ♦️ソラ does **not** run a periodic global Process Check. Delegated Flow Authority activates only for the explicit traffic-control triggers above when 🌊ナギ is unavailable.
+During AWAY, ♦️ソラ does **not** run a periodic global Process Check. Delegated Flow Authority activates only for the explicit traffic-control triggers above when 🌙ルナ is unavailable.
