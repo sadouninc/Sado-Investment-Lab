@@ -47,7 +47,7 @@ def test_multiline_writer_envelope_requires_attested_migration():
     marker = f"<!-- AUTO_ROUTER_DISPATCH lease_id={lease} executor=SORA target_issue=859 -->"
     payload = {"work_ref": WORK, "canonical_lease_id": lease, "status": "DISPATCHED",
                "writer_run_id": 38900000000}
-    body = marker + "\\n" + json.dumps(payload) + "\\n\\n担当: 🌙ルナ"
+    body = marker + "\n" + json.dumps(payload) + "\n\n担当: 🌙ルナ"
     result = canonical_event({"id": 42, "body": body}, work_id=WORK, trusted_comment_ids={42})
     assert result["status"] == "UNKNOWN"
     assert result["reason"] == "LEGACY_REQUIRES_ATTESTED_MIGRATION"
@@ -57,7 +57,7 @@ def test_multiline_writer_envelope_rejects_lease_conflict():
     lease = "lease-" + "a" * 32
     marker = f"<!-- AUTO_ROUTER_DISPATCH lease_id={lease} executor=SORA target_issue=859 -->"
     payload = {"work_ref": WORK, "canonical_lease_id": "lease-" + "b" * 32}
-    result = canonical_event({"id": 42, "body": marker + "\\n" + json.dumps(payload)},
+    result = canonical_event({"id": 42, "body": marker + "\n" + json.dumps(payload)},
                              work_id=WORK, trusted_comment_ids={42})
     assert result["reason"] == "DISPATCH_LEASE_MISMATCH"
 
@@ -65,6 +65,6 @@ def test_multiline_writer_envelope_rejects_lease_conflict():
 def test_multiline_writer_envelope_rejects_duplicate_marker():
     lease = "lease-" + "a" * 32
     marker = f"<!-- AUTO_ROUTER_DISPATCH lease_id={lease} executor=SORA target_issue=859 -->"
-    result = canonical_event({"id": 42, "body": marker + "\\n{}\\n" + marker},
+    result = canonical_event({"id": 42, "body": marker + "\n{}\n" + marker},
                              work_id=WORK, trusted_comment_ids={42})
     assert result["reason"] == "AMBIGUOUS_DISPATCH_MARKER"
