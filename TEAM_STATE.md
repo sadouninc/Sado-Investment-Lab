@@ -4,12 +4,12 @@
 > Permanent rules remain in `TEAM_RULES.md`. Broadcast history remains in Issue #99.
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
-Last updated: 2026-10-01  
+Last updated: 2026-10-17  
 Sources: Issue #99 Current Active Board; #602; #617; #625; #645; #556; #690; merged PR #605; merged PR #621; merged PR #627  
 
-## Owner-directed transition pending merge (2026-10-17)
+## Owner-directed Flow Authority transition (2026-10-17)
 
-👑サドは🌊ナギのSM任務終了、🌙ルナの進捗・Flow責任引継ぎを指示。現時点では本PRが未マージのため、運用変更は提案段階。マージ後のFlow authorityは🌙ルナ、Implementation Ownerは♦️ソラ（PR #860）を維持する。ナギは新規routingを承認しない。既存のAUTO_GREEN/Owner Gate/Issue #79 hard denyは変更しない。PR #860のマージ承認と混同しない。
+👑サドは🌊ナギのSM任務終了、🌙ルナの進捗・Flow責任引継ぎを指示。この文書のmain反映後、Flow authorityは🌙ルナ、Implementation Ownerは♦️ソラ（PR #860）を維持する。ナギは新規routingを承認しない。既存のAUTO_GREEN/Owner Gate/Issue #79 hard denyは変更しない。PR #860のマージ承認と混同しない。
 
 ## User Mode v2
 
@@ -17,7 +17,7 @@ Sources: Issue #99 Current Active Board; #602; #617; #625; #645; #556; #690; mer
 user_mode: AWAY
 presence: AWAY
 merge_policy: AUTO_GREEN
-flow_authority_primary: LUNA_PENDING_PR_MERGE
+flow_authority_primary: LUNA
 flow_authority_fallback: SORA_DELEGATED_ONLY_ON_EXPLICIT_BLOCKER
 ```
 
@@ -30,9 +30,9 @@ flow_authority_fallback: SORA_DELEGATED_ONLY_ON_EXPLICIT_BLOCKER
 
 | Mode | Presence | Merge policy | Default Flow Authority |
 | --- | --- | --- | --- |
-| `ACTIVE_MANUAL` | ACTIVE | MANUAL | 🌊ナギ |
-| `ACTIVE_AUTO` | ACTIVE | AUTO_GREEN | 🌊ナギ |
-| `AWAY` | AWAY | AUTO_GREEN | 🌊ナギ; event-driven ♦️ソラ fallback |
+| `ACTIVE_MANUAL` | ACTIVE | MANUAL | 🌙ルナ |
+| `ACTIVE_AUTO` | ACTIVE | AUTO_GREEN | 🌙ルナ |
+| `AWAY` | AWAY | AUTO_GREEN | 🌙ルナ; event-driven ♦️ソラ fallback |
 
 Mode transition uses the fail-closed CAS contract from #617 / PR #621: `expected_current_mode + target_mode + transition_id`.
 
@@ -223,6 +223,6 @@ Fallback: if this file is missing/stale/inconsistent with #99 or TEAM_RULES, use
 
 ## Maintenance Ownership
 
-🌊ナギ owns drift detection among TEAM_STATE, TEAM_RULES, Issue #99, current IMPLEMENTING declarations, lane routing, and Authority state.
+🌙ルナ owns drift detection among TEAM_STATE, TEAM_RULES, Issue #99, current IMPLEMENTING declarations, lane routing, and Authority state.
 
 During AWAY, ♦️ソラ does **not** run a periodic global Process Check. Delegated Flow Authority activates only for the explicit traffic-control triggers above when 🌊ナギ is unavailable.
