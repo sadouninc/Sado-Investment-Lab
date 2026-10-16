@@ -43,6 +43,13 @@ def project_state(*, work_id: str, events: Sequence[Mapping], evidence_verified:
     for item in events:
         if not isinstance(item, Mapping) or item.get("work_id") != work_id:
             return _unknown("IDENTITY_MISMATCH")
+        # Reject unauthenticated or contradictory canonical identity aliases.
+        # The caller must attach the actual GitHub comment ID after verifying
+        # author and run provenance; this reader never fabricates one.
+        if "work_ref" in item and item["work_ref"] != work_id:
+            return _unknown("CONFLICTING_WORK_REF")
+        if "canonical_lease_id" in item and item["canonical_lease_id"] != item.get("lease_id"):
+            return _unknown("CONFLICTING_LEASE_ALIAS")
         status = item.get("status")
         if status not in KNOWN:
             return _unknown("UNKNOWN_EVENT")
