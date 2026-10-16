@@ -7,14 +7,18 @@
 Last updated: 2026-10-01  
 Sources: Issue #99 Current Active Board; #602; #617; #625; #645; #556; #690; merged PR #605; merged PR #621; merged PR #627  
 
+## Owner-directed transition pending merge (2026-10-17)
+
+👑サドは🌊ナギのSM任務終了、🌙ルナの進捗・Flow責任引継ぎを指示。現時点では本PRが未マージのため、運用変更は提案段階。マージ後のFlow authorityは🌙ルナ、Implementation Ownerは♦️ソラ（PR #860）を維持する。ナギは新規routingを承認しない。既存のAUTO_GREEN/Owner Gate/Issue #79 hard denyは変更しない。PR #860のマージ承認と混同しない。
+
 ## User Mode v2
 
 ```yaml
 user_mode: AWAY
 presence: AWAY
 merge_policy: AUTO_GREEN
-flow_authority_primary: NAGI
-flow_authority_fallback: SORA_DELEGATED
+flow_authority_primary: LUNA_PENDING_PR_MERGE
+flow_authority_fallback: SORA_DELEGATED_ONLY_ON_EXPLICIT_BLOCKER
 ```
 
 - Current operational meaning remains **AWAY**: 👑サド is inactive for routine flow decisions.
