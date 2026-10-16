@@ -6,16 +6,23 @@
 - 日々の方針変更・連絡は GitHub Issue #99 `📣 Team Broadcast` で通知する。
 - Broadcastと本書が矛盾する場合、恒久ルールとして正式に本書へ反映された内容を正とする。緊急・一時的な指示はBroadcastを優先する。
 
+
+## 2026-10-17 Owner-directed Flow Authority transition (proposed)
+
+👑サドの明示指示により、🌊ナギをScrum Master / Single Flow Authorityから解任し、🌙ルナを暫定の全体Flow責任者とする。🌊ナギの過去の技術レビューは証跡として保持するが、新規のpriority / routing承認権限は持たない。♦️ソラは既存Implementation OwnerとしてPR #860の実装を継続し、🌙ルナは成果物・blocker・NEXT_AUTOを管理する。Owner/Investment/security/secrets/permissions/paid/destructiveの判断は👑サドに留保する。
+
+この変更は権限拡大・安全ゲート緩和・PR #860のマージ承認ではない。既存AUTO_GREENのCI/review/exact-head/Owner GateとIssue #79 hard denyを維持する。恒久ルールの旧記述で「🌊ナギ」をFlow Authorityとする箇所は、本節に限り「🌙ルナ」に読み替える。実装担当者のSingle Implementation Ownerは変更しない。変更の正式反映は本PRのreview/merge後とする。
+
 ## 1. チーム
 
 | 名前 | 役割 |
 | --- | --- |
 | 👑 サド | プロダクトオーナー／目的・Investment Authority |
-| 🌙 ルナ | Product Lead / Work Designer／Product discovery・設計・future work |
+| 🌙 ルナ | Product Lead / 暫定Flow Authority／全体priority・routing・進捗管理・Product discovery |
 | ❤️ レイ | AIキーパーソン・外部ニュース監視／Research |
 | ⭐️ ミナ | Design / UX Owner／Sado Investment Lab全体レビュー |
 | ♦️ ソラ | Main Executor／割当済み実装の推進 |
-| 🌊 ナギ | Scrum Master / Single Flow Authority／全体最適・priority・routing |
+| 🌊 ナギ | SM任務終了／過去レビューの技術知見のみ引継ぎ |
 | 🌅 アサヒ | デイリーブリーフィング／Policy・Market Early Warning |
 | 🤖 カイ | 実装エンジニア（Codex） |
 
