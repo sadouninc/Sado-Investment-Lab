@@ -7,11 +7,11 @@
 - Broadcastと本書が矛盾する場合、恒久ルールとして正式に本書へ反映された内容を正とする。緊急・一時的な指示はBroadcastを優先する。
 
 
-## 2026-10-17 Owner-directed Flow Authority transition (proposed)
+## 2026-10-17 Owner-directed Flow Authority transition
 
 👑サドの明示指示により、🌊ナギをScrum Master / Single Flow Authorityから解任し、🌙ルナを暫定の全体Flow責任者とする。🌊ナギの過去の技術レビューは証跡として保持するが、新規のpriority / routing承認権限は持たない。♦️ソラは既存Implementation OwnerとしてPR #860の実装を継続し、🌙ルナは成果物・blocker・NEXT_AUTOを管理する。Owner/Investment/security/secrets/permissions/paid/destructiveの判断は👑サドに留保する。
 
-この変更は権限拡大・安全ゲート緩和・PR #860のマージ承認ではない。既存AUTO_GREENのCI/review/exact-head/Owner GateとIssue #79 hard denyを維持する。恒久ルールの旧記述で「🌊ナギ」をFlow Authorityとする箇所は、本節に限り「🌙ルナ」に読み替える。実装担当者のSingle Implementation Ownerは変更しない。変更の正式反映は本PRのreview/merge後とする。
+この変更は権限拡大・安全ゲート緩和・PR #860のマージ承認ではない。既存AUTO_GREENのCI/review/exact-head/Owner GateとIssue #79 hard denyを維持する。旧Flow責任者の権限は本書の各節で🌙ルナへ移管する。実装担当者のSingle Implementation Ownerは変更しない。変更の正式反映は本PRのreview/merge後とする。
 
 ## 1. チーム
 
@@ -178,15 +178,15 @@ Broadcast checked through: comment_id=<最新確認済みcomment ID>
 
 ## 6. One Scrum Master / Distributed Expertise — 役割境界
 
-全体Flow判断を複数memberが重複して行うことを避けるため、通常時は **🌊ナギをSingle Flow Authority / Scrum Master** とする。
+全体Flow判断を複数memberが重複して行うことを避けるため、通常時は **🌙ルナを暫定Single Flow Authority / Flow Manager** とする。
 
-- 🌊ナギ: 全Issue/PR/WIPの横断Flow scan、global priority、`NOW / NEXT / RESERVE`、lane/formation/cadence、DIVERGENCE / CONVERGENCE / BALANCED判定、Queue starvation、rerouting、BLOCKED_ESCAPE後の交通整理を担当する。
-- 🌙ルナ: Product Lead / Work Designerとして、Goal、Authority、Acceptance Criteria、Product discovery、future work、Work Contract、priority proposalを担当する。全体routing・最終global priorityは原則ナギへ渡す。
+- 🌙ルナ: 全Issue/PR/WIPの横断Flow scan、global priority、`NOW / NEXT / RESERVE`、lane/formation/cadence、DIVERGENCE / CONVERGENCE / BALANCED判定、Queue starvation、rerouting、BLOCKED_ESCAPE後の交通整理を担当する。
+- 🌙ルナ: Product Lead / Flow Managerとして、Goal、Authority、Acceptance Criteria、Product discovery、future work、Work Contract、全体routing・最終global priorityを担当する。
 - ♦️ソラ: Main Executorとして、割当済み `NOW → NEXT → RESERVE` を実装・検証・PRへ進める。毎runの全Issue/Open PR横断scanを恒久責務としない。
 - 🤖カイ: Single Implementation Ownerとして割り当てられた実装・テスト・PRを担当する。既存owner scopeへ重複参入しない。
-- ❤️レイ / 🌅アサヒ / ⭐️ミナ / その他専門worker: 自分のlane内では新しい課題・Research・改善・meaningful Issueを積極的に発見し、priority proposalを出してよい。global routingは原則ナギへ返す。
+- ❤️レイ / 🌅アサヒ / ⭐️ミナ / その他専門worker: 自分のlane内では新しい課題・Research・改善・meaningful Issueを積極的に発見し、priority proposalを出してよい。global routingはルナへ返す。
 
-`local expertise / discovery / proposal → 🌊ナギ global optimization / routing`
+`local expertise / discovery / proposal → 🌙ルナ global optimization / routing`
 
 Issueを増やすこと・減らすこと自体をKPIにしない。意味のある発散と収束の両方を進め、**本質的なForward Progress**を優先する。
 
@@ -195,12 +195,12 @@ Issueを増やすこと・減らすこと自体をKPIにしない。意味のあ
 - workerは最小限のStartup Sync後、自分へ供給された `NOW → NEXT → RESERVE` を可能な限り同一runでDrainする。
 - 確認作業・global scanだけでrunを終えることを通常状態にしない。
 - Queueが枯れた場合はlane-local gapを探索し、意味のあるIssue/sliceを作成して同じrunで可能なところまで進めてよい。
-- global reprioritizationやowner/lane再配置が必要ならナギへproposalする。
-- ナギはproductive steps、durable outputs、zero-productive run、duplicate global scan、unlock effect等をEvidenceとしてformation/cadenceを継続改善する。
+- global reprioritizationやowner/lane再配置が必要ならルナが調整する。
+- ルナはproductive steps、durable outputs、zero-productive run、duplicate global scan、unlock effect等をEvidenceとしてformation/cadenceを継続改善する。
 
 ### AWAY時のDelegated Flow Authority
 
-AWAYでも通常は🌊ナギがglobal Flow Authorityを維持する。ナギが実行不能で交通整理が必要になった場合のみ、♦️ソラへ一時的にFlow Authorityを委譲できる。
+AWAYでも通常は🌙ルナがglobal Flow Authorityを維持する。ルナが実行不能で交通整理が必要になった場合のみ、♦️ソラへ一時的にFlow Authorityを委譲できる。
 
 代表trigger:
 - `QUEUE_STARVATION`
@@ -260,8 +260,8 @@ Issue本文・Acceptance Criteria・Definition of Doneで `Owner Acceptance` / `
 - 代行開始前に、可能な限りIssueコメントまたはBroadcastで代行を宣言する。
 - 代行であっても本書の変更フロー（branch → PR等）は維持する。
 - GitHub上の記録には実際に代行した担当者名を残し、可能であれば代行理由も明記する。
-- 本来の担当者が復帰した後、新規作業はナギのglobal routingで再配置する。すでに代行者が実装中のsliceは無理に途中交代しない。
-- 🌊ナギは役割重複を検出した際、利用制限・不在・明示的な代行理由・Single Owner宣言を確認して全体最適で調整する。
+- 本来の担当者が復帰した後、新規作業はルナのglobal routingで再配置する。すでに代行者が実装中のsliceは無理に途中交代しない。
+- 🌙ルナは役割重複を検出した際、利用制限・不在・明示的な代行理由・Single Owner宣言を確認して全体最適で調整する。
 
 例:
 
@@ -274,7 +274,7 @@ Issue本文・Acceptance Criteria・Definition of Doneで `Owner Acceptance` / `
 ## 8. 判断原則
 
 1. 👑サドがInvestment Labの目的・Investment Authority・重要Product判断を決定する。
-2. 🌊ナギはSingle Flow Authority / Scrum Masterとして、全体priority、lane、formation、routing、発散/収束の重点をEvidenceに基づいて調整する。
+2. 🌙ルナは暫定Single Flow Authority / Flow Managerとして、全体priority、lane、formation、routing、発散/収束の重点をEvidenceに基づいて調整する。
 3. 🌙ルナはProduct Lead / Work Designerとして、投資思想・研究・Product discovery・設計・future workを具体化し、priority proposalを行う。
 4. ⭐️ミナはユーザーが目にする成果物のDesign / UX Authorityを担い、見た目・情報設計・閲覧体験の一貫性を守る。
 5. ♦️ソラ / 🤖カイ等のSingle Implementation Ownerは、割当済みIssue/sliceを安全に実装・テスト・PRへ進める。
