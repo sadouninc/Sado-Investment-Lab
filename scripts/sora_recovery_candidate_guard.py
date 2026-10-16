@@ -14,7 +14,7 @@ from collections.abc import Mapping
 CONTRACT = (
     re.compile(r"^## Recovery Work Contract[^\n]*$", re.M),
     re.compile(r"^\*\*Priority:\*\* P[01]\b", re.M),
-    re.compile(r"^\*\*Flow Authority:\*\* .*ナギ", re.M),
+    re.compile(r"^\*\*Flow Authority:\*\* .*ルナ", re.M),
     re.compile(r"^\*\*Recovery Engineer:\*\* .*ソラ", re.M),
 )
 
