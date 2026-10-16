@@ -3,7 +3,7 @@ from scripts.sora_recovery_candidate_guard import check_candidate
 
 BODY = """## Recovery Work Contract — NAGI → SORA
 **Priority:** P0 Flow Recovery
-**Flow Authority:** 🌊ナギ remains Single Flow Authority
+**Flow Authority:** 🌙ルナ is Single Flow Authority
 **Recovery Engineer:** 🪐ソラ
 """
 
@@ -82,3 +82,11 @@ def test_closed_related_pr_blocks_redispatch():
     result = check_candidate(issue(), [], [pr])
     assert result["status"] == "BLOCKED"
     assert result["reason"] == "RELATED_PR_EXISTS"
+
+
+def test_old_flow_authority_rejected():
+    old = issue()
+    old["body"] = BODY.replace("🌙ルナ", "🌊ナギ")
+    result = check_candidate(old, [], [])
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RECOVERY_CONTRACT_MISSING"
