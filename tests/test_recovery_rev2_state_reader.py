@@ -51,3 +51,24 @@ def test_retry_limit():
                        event("EXPIRED", 2*i, attempt=i, lease_id=lease)])
     result = project(events)
     assert result["status"] == "BLOCKED" and result["reason"] == "RETRY_LIMIT"
+
+
+def test_conflicting_work_ref_fails_closed():
+    result = project([event("DISPATCHED", 1, work_ref="issue:999")])
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "CONFLICTING_WORK_REF"
+    assert result["dispatch_allowed"] is False
+
+
+def test_conflicting_lease_alias_fails_closed():
+    result = project([event("DISPATCHED", 1, canonical_lease_id="lease-" + "b"*32)])
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "CONFLICTING_LEASE_ALIAS"
+    assert result["dispatch_allowed"] is False
+
+
+def test_matching_canonical_aliases_remain_read_only():
+    result = project([event("DISPATCHED", 1, work_ref="issue:859",
+                            canonical_lease_id="lease-" + "a"*32)])
+    assert result["status"] == "DISPATCHED"
+    assert result["dispatch_allowed"] is False
