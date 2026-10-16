@@ -53,7 +53,7 @@ jobs:
             # Fetch every page, not only the latest 30 updated issues.
             # A busy repository must not starve an older P0 recovery contract.
             gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=open&per_page=100&sort=updated&direction=desc" | jq -s 'add // []' > /tmp/issues.json
-            issue="$(jq -r '[.[] | select((.pull_request // null) == null and .number != 79) | select((.body // "") | test("(?m)^## Recovery Work Contract[^\\n]*$") and test("(?m)^\\*\\*Priority:\\*\\* P[01]\\b") and test("(?m)^\\*\\*Flow Authority:\\*\\* .*ナギ") and test("(?m)^\\*\\*Recovery Engineer:\\*\\* .*ソラ"))] | sort_by((if (.body | test("(?m)^\\*\\*Priority:\\*\\* P0\\b")) then 0 else 1 end), .number) | first | .number // empty' /tmp/issues.json)"
+            issue="$(jq -r '[.[] | select((.pull_request // null) == null and .number != 79) | select((.body // "") | test("(?m)^## Recovery Work Contract[^\\n]*$") and test("(?m)^\\*\\*Priority:\\*\\* P[01]\\b") and test("(?m)^\\*\\*Flow Authority:\\*\\* .*ルナ") and test("(?m)^\\*\\*Recovery Engineer:\\*\\* .*ソラ"))] | sort_by((if (.body | test("(?m)^\\*\\*Priority:\\*\\* P0\\b")) then 0 else 1 end), .number) | first | .number // empty' /tmp/issues.json)"
             [[ -n "$issue" ]] || { echo NO_RECOVERY_TARGET; echo "found=false" >> "$GITHUB_OUTPUT"; exit 0; }
             lease="lease-$(printf '%s' "sora-recovery:${issue}:$(date -u +%Y-%m-%dT%H)" | sha256sum | cut -c1-32)"
           fi
@@ -62,7 +62,7 @@ jobs:
           [[ "$issue" != "79" ]] || { echo PROTECTED_ISSUE_79; exit 79; }
           [[ "$lease" =~ ^lease-[0-9a-f]{32}$ ]] || { echo INVALID_LEASE_ID; exit 78; }
           gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}" >/tmp/issue.json
-          jq -e '.state == "open" and (.pull_request == null) and ((.body // "") | test("(?m)^## Recovery Work Contract[^\\n]*$") and test("(?m)^\\*\\*Priority:\\*\\* P[01]\\b") and test("(?m)^\\*\\*Flow Authority:\\*\\* .*ナギ") and test("(?m)^\\*\\*Recovery Engineer:\\*\\* .*ソラ"))' /tmp/issue.json >/dev/null || { echo INVALID_RECOVERY_CONTRACT; exit 78; }
+          jq -e '.state == "open" and (.pull_request == null) and ((.body // "") | test("(?m)^## Recovery Work Contract[^\\n]*$") and test("(?m)^\\*\\*Priority:\\*\\* P[01]\\b") and test("(?m)^\\*\\*Flow Authority:\\*\\* .*ルナ") and test("(?m)^\\*\\*Recovery Engineer:\\*\\* .*ソラ"))' /tmp/issue.json >/dev/null || { echo INVALID_RECOVERY_CONTRACT; exit 78; }
 
           echo "found=true" >> "$GITHUB_OUTPUT"
           echo "issue=$issue" >> "$GITHUB_OUTPUT"
@@ -104,7 +104,7 @@ jobs:
           assigned="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           expires="$(date -u -d '+90 minutes' +%Y-%m-%dT%H:%M:%SZ)"
           event="$(jq -nc --arg work_ref "issue:${ISSUE}" --arg lease "$LEASE" --arg assigned "$assigned" --arg expires "$expires" --arg source "$SOURCE" --argjson writer_run_id "$GITHUB_RUN_ID" '{writer_run_id:$writer_run_id,work_ref:$work_ref,owner_slice:("issue-"+($work_ref|split(":")[1])),executor:"SORA",canonical_lease_id:$lease,assigned_at:$assigned,lease_expires_at:$expires,status:"DISPATCHED",source:$source}')"
-          body="$(printf '%s\n%s\n\n%s\n%s' "$marker" "$event" '担当: 🌊ナギ / Recovery Control Plane' '種別: External Durable Writer / SORA Recovery Lease')"
+          body="$(printf '%s\n%s\n\n%s\n%s' "$marker" "$event" '担当: 🌙ルナ / Recovery Control Plane' '種別: External Durable Writer / SORA Recovery Lease')"
           gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments" -f body="$body" >/tmp/result.json
           echo "SORA_LEASE_PERSISTED issue=${ISSUE} lease=${LEASE} run_id=${GITHUB_RUN_ID}"
 
