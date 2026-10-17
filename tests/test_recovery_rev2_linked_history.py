@@ -123,3 +123,14 @@ def test_unverified_history_cannot_be_used_as_retry_permission():
         result = project(items)
         assert result["status"] == "UNKNOWN"
         assert result["dispatch_allowed"] is False
+
+
+def test_noncanonical_lease_rejected_by_projection_and_reconciliation():
+    observed = [{"lease_id": LEASE, "writer_run_id": 123}]
+    for invalid in ("", "lease-wrong", "lease-" + "A" * 32, "lease-" + "0" * 31):
+        assert project([dispatch(lease_id=invalid)])["status"] == "UNKNOWN"
+        assert not matches_complete_dispatch_evidence(
+            observed=[{"lease_id": invalid, "writer_run_id": 123}],
+            authenticated=[dispatch(lease_id=invalid)], complete=True)
+        assert not matches_complete_dispatch_evidence(
+            observed=observed, authenticated=[dispatch(lease_id=invalid)], complete=True)
