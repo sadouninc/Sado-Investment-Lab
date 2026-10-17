@@ -1,4 +1,4 @@
-from scripts.sora_recovery_dispatch_gate import decide_dispatch
+from scripts.sora_recovery_dispatch_gate import decide_dispatch, attach_verified_stop_evidence
 
 
 def inputs():
@@ -144,3 +144,47 @@ def test_owner_approval_requires_comment_identity():
     data = inputs()
     data["owner_gate"]["owner_comment_id"] = None
     assert decide_dispatch(**data)["post_authorized"] is False
+
+
+def test_attach_verified_stop_to_expired_reader():
+    data = inputs()
+    projection = {**data["projection"], "status": "EXPIRED",
+                  "attempt": 1, "prior_dispatch_count": 1}
+    stop = {"verified": True, "work_id": "issue:859",
+            "prior_dispatch_count": 1, "all_prior_executors_stopped": True,
+            "stop_comment_ids": [42]}
+    updated = attach_verified_stop_evidence(projection=projection, stop_result=stop)
+    assert updated["stop_attestation"] == stop
+    assert updated["dispatch_allowed"] is False
+    data["projection"] = updated
+    assert decide_dispatch(**data)["post_authorized"] is True
+
+
+def test_stop_count_mismatch_remains_held():
+    projection = {"status": "EXPIRED", "work_id": "issue:859",
+                  "attempt": 2, "prior_dispatch_count": 2, "dispatch_allowed": False}
+    stop = {"verified": True, "work_id": "issue:859",
+            "prior_dispatch_count": 1, "all_prior_executors_stopped": True,
+            "stop_comment_ids": [42]}
+    updated = attach_verified_stop_evidence(projection=projection, stop_result=stop)
+    assert "stop_attestation" not in updated
+
+
+def test_unknown_reader_cannot_be_upgraded_by_owner_stop():
+    projection = {"status": "UNKNOWN", "dispatch_allowed": False,
+                  "reason": "PROVENANCE_UNVERIFIED"}
+    stop = {"verified": True, "work_id": "issue:859",
+            "prior_dispatch_count": 1, "all_prior_executors_stopped": True,
+            "stop_comment_ids": [42]}
+    assert "stop_attestation" not in attach_verified_stop_evidence(
+        projection=projection, stop_result=stop)
+
+
+def test_inconsistent_stop_ids_cannot_be_attached():
+    projection = {"status": "EXPIRED", "work_id": "issue:859",
+                  "attempt": 2, "prior_dispatch_count": 2, "dispatch_allowed": False}
+    stop = {"verified": True, "work_id": "issue:859",
+            "prior_dispatch_count": 2, "all_prior_executors_stopped": True,
+            "stop_comment_ids": [42, 42]}
+    assert "stop_attestation" not in attach_verified_stop_evidence(
+        projection=projection, stop_result=stop)
