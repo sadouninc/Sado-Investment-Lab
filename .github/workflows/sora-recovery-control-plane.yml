@@ -238,4 +238,12 @@ jobs:
                  (.body | contains("lease_id=" + $lease)) and
                  (.user.login == "github-actions[bot]")' >/dev/null
           echo "SORA_LEASE_PERSISTED issue=${ISSUE} lease=${LEASE} run_id=${GITHUB_RUN_ID} comment_id=${comment_id}"
+      - name: Preserve run-owned dispatch linkage
+        if: steps.target.outputs.found == 'true' && steps.guard.outputs.post_authorized == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sora-dispatch-linkage-${{ github.run_id }}
+          path: /tmp/sora-dispatch-linkage.json
+          if-no-files-found: error
+          retention-days: 90
 
