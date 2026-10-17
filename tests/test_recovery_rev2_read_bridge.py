@@ -69,3 +69,19 @@ def test_untrusted_event_author_fails_closed():
     assert result["status"] == "UNKNOWN"
     assert result["reason"] == "UNTRUSTED_EVENT_AUTHOR"
     assert result["dispatch_allowed"] is False
+
+
+def test_cross_issue_attested_comment_fails_closed():
+    comment = c("DISPATCHED", 10)
+    comment["issue_url"] = "https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/860"
+    result = project([comment], {10})
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "COMMENT_ISSUE_MISMATCH"
+
+
+def test_matching_issue_url_stays_read_only():
+    comment = c("DISPATCHED", 10)
+    comment["issue_url"] = "https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/859"
+    result = project([comment], {10})
+    assert result["status"] == "DISPATCHED"
+    assert result["dispatch_allowed"] is False
