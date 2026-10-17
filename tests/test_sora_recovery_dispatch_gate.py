@@ -188,3 +188,30 @@ def test_inconsistent_stop_ids_cannot_be_attached():
             "stop_comment_ids": [42, 42]}
     assert "stop_attestation" not in attach_verified_stop_evidence(
         projection=projection, stop_result=stop)
+
+
+def test_boolean_owner_comment_id_does_not_authorize():
+    data = inputs()
+    data["owner_gate"]["owner_comment_id"] = True
+    assert decide_dispatch(**data)["post_authorized"] is False
+
+
+def test_stop_evidence_requires_positive_integer_unique_comment_ids():
+    projection = {"status": "EXPIRED", "work_id": "issue:859",
+                  "attempt": 2, "prior_dispatch_count": 2, "dispatch_allowed": False}
+    for ids in ([True, 43], [0, 43], [-1, 43], ["42", 43], [42, 42]):
+        stop = {"verified": True, "work_id": "issue:859",
+                "prior_dispatch_count": 2, "all_prior_executors_stopped": True,
+                "stop_comment_ids": ids}
+        result = attach_verified_stop_evidence(projection=projection, stop_result=stop)
+        assert "stop_attestation" not in result
+
+
+def test_stop_evidence_cannot_attach_to_mismatched_attempt():
+    projection = {"status": "EXPIRED", "work_id": "issue:859",
+                  "attempt": 1, "prior_dispatch_count": 2, "dispatch_allowed": False}
+    stop = {"verified": True, "work_id": "issue:859",
+            "prior_dispatch_count": 2, "all_prior_executors_stopped": True,
+            "stop_comment_ids": [42, 43]}
+    result = attach_verified_stop_evidence(projection=projection, stop_result=stop)
+    assert "stop_attestation" not in result
