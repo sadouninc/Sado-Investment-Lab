@@ -330,7 +330,7 @@ class ProgressDashboardBuildTest(unittest.TestCase):
         self.assertFalse((build_site.SITE / "ops" / "progress").exists())
 
     def test_existing_source_is_published_without_touching_home(self) -> None:
-        content = "---\\nlayout: site\\npermalink: /ops/progress/\\n---\\n# Progress\\n"
+        content = "---\nlayout: site\npermalink: /ops/progress/\n---\n# Progress\n"
         (build_site.PAGES / "progress-dashboard.md").write_text(
             content, encoding="utf-8"
         )
