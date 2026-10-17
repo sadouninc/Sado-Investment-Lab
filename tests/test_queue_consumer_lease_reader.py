@@ -118,6 +118,14 @@ def test_multiple_competing_events_in_one_comment_fail_closed():
     assert lease_state([comment(body)]) == "AMBIGUOUS"
 
 
+def test_expired_then_active_events_in_one_comment_fail_closed():
+    """Amazon Q regression: event order must not select the later ACTIVE lease."""
+    body = event("DISPATCH_LEASE_EXPIRED") + "\n" + event(
+        "ASSIGNED", lease_expires_at="2999-01-01T00:00:00Z"
+    )
+    assert lease_state([comment(body)]) == "AMBIGUOUS"
+
+
 def test_unknown_status_fails_closed():
     assert lease_state([comment(event("UNKNOWN_NEW_STATUS"))]) == "AMBIGUOUS"
 
