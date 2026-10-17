@@ -188,6 +188,14 @@ def verify_run_owned_dispatch_linkage(*, linkage: Mapping, comment: Mapping,
             or actions_run.get("status") != "completed"
             or actions_run.get("conclusion") != "success"):
         return {"status": "UNKNOWN", "reason": "LINKAGE_RUN_MISMATCH", "dispatch_allowed": False}
+    # Reuse strict legacy run/comment timestamp and identity validation;
+    # the artifact is additional evidence, not a replacement for it.
+    prior = attest_legacy_sora_lease(
+        comment, work_id=f"issue:{issue}", actions_run=actions_run,
+        expected_repository=expected_repository)
+    if prior.get("status") != "REPORTED_UNVERIFIED":
+        return {"status": "UNKNOWN", "reason": "LINKAGE_LEGACY_ATTESTATION_FAILED",
+                "dispatch_allowed": False}
     inspection = inspect_legacy_sora_lease(comment, work_id=f"issue:{issue}")
     if (inspection.get("status") != "UNVERIFIED"
             or inspection.get("writer_run_id") != run_id
