@@ -137,3 +137,30 @@ def test_run_owned_linkage_wrong_workflow_path_rejected():
         expected_repository="sadouninc/Sado-Investment-Lab", artifact_run_id=123)
     assert result["status"] == "UNKNOWN"
     assert result["reason"] == "LINKAGE_WORKFLOW_PATH_MISMATCH"
+
+
+def test_run_owned_linkage_rejects_comment_outside_run_window():
+    comment, run = sample()
+    comment["issue_url"] = "https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/859"
+    comment["created_at"] = "2026-10-13T10:07:00Z"
+    linkage = {"schema_version": 2, "comment_id": 42, "writer_run_id": 123,
+               "issue_number": "859", "canonical_lease_id": LEASE,
+               "repository": "sadouninc/Sado-Investment-Lab"}
+    result = verify_run_owned_dispatch_linkage(
+        linkage=linkage, comment=comment, actions_run=run,
+        expected_repository="sadouninc/Sado-Investment-Lab", artifact_run_id=123)
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "LINKAGE_LEGACY_ATTESTATION_FAILED"
+    assert result["dispatch_allowed"] is False
+
+
+def test_run_owned_linkage_rejects_issue_79():
+    comment, run = sample()
+    linkage = {"schema_version": 2, "comment_id": 42, "writer_run_id": 123,
+               "issue_number": "79", "canonical_lease_id": LEASE,
+               "repository": "sadouninc/Sado-Investment-Lab"}
+    result = verify_run_owned_dispatch_linkage(
+        linkage=linkage, comment=comment, actions_run=run,
+        expected_repository="sadouninc/Sado-Investment-Lab", artifact_run_id=123)
+    assert result["status"] == "BLOCKED"
+    assert result["dispatch_allowed"] is False
