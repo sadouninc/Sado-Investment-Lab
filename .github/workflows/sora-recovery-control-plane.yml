@@ -1,0 +1,493 @@
+name: Sora Recovery Control Plane
+
+# Issue #859: GitHub-side durable recovery ingress for Sora.
+# ChatGPT scheduled roles are non-writers by default. This workflow persists
+# a bounded SORA lease so Sora can discover recovery work by reading GitHub.
+# It never merges and Issue #79 is hard denied.
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Recovery issue number
+        required: true
+        type: string
+      lease_id:
+        description: Canonical recovery lease id
+        required: true
+        type: string
+  schedule:
+    - cron: "13,43 * * * *"
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: sora-recovery-control-plane
+  cancel-in-progress: false
+
+jobs:
+  persist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Resolve explicit or pull-discovered recovery target
+        id: target
+        shell: bash
+        env:
+          INPUT_ISSUE: ${{ inputs.issue_number }}
+          INPUT_LEASE: ${{ inputs.lease_id }}
+        run: |
+          set -euo pipefail
+          issue="${INPUT_ISSUE:-}"
+          lease="${INPUT_LEASE:-}"
+          source="workflow_dispatch"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "schedule" ]]; then
+            source="scheduled_pull"
+            # Pull fallback: bounded open-issue scan. Recovery contracts are
+            # deliberately explicit in title/body; newest P0/P1 contract wins.
+            # Fetch every page, not only the latest 30 updated issues.
+            # A busy repository must not starve an older P0 recovery contract.
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues?state=open&per_page=100&sort=updated&direction=desc" | jq -s 'add // []' > /tmp/issues.json
+            issue="$(jq -r '[.[] | select((.pull_request // null) == null and .number != 79) | select((.body // "") | test("(?m)^## Recovery Work Contract[^\\n]*$") and test("(?m)^\\*\\*Priority:\\*\\* P[01]\\b") and test("(?m)^\\*\\*Flow Authority:\\*\\* .*ルナ") and test("(?m)^\\*\\*Recovery Engineer:\\*\\* .*ソラ"))] | sort_by((if (.body | test("(?m)^\\*\\*Priority:\\*\\* P0\\b")) then 0 else 1 end), .number) | first | .number // empty' /tmp/issues.json)"
+            [[ -n "$issue" ]] || { echo NO_RECOVERY_TARGET; echo "found=false" >> "$GITHUB_OUTPUT"; exit 0; }
+            lease="lease-$(printf '%s' "sora-recovery:${issue}:$(date -u +%Y-%m-%dT%H)" | sha256sum | cut -c1-32)"
+          fi
+
+          [[ "$issue" =~ ^[1-9][0-9]*$ ]] || { echo INVALID_ISSUE_NUMBER; exit 78; }
+          [[ "$issue" != "79" ]] || { echo PROTECTED_ISSUE_79; exit 79; }
+          [[ "$lease" =~ ^lease-[0-9a-f]{32}$ ]] || { echo INVALID_LEASE_ID; exit 78; }
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${issue}" >/tmp/issue.json
+          jq -e '.state == "open" and (.pull_request == null) and ((.body // "") | test("(?m)^## Recovery Work Contract[^\\n]*$") and test("(?m)^\\*\\*Priority:\\*\\* P[01]\\b") and test("(?m)^\\*\\*Flow Authority:\\*\\* .*ルナ") and test("(?m)^\\*\\*Recovery Engineer:\\*\\* .*ソラ"))' /tmp/issue.json >/dev/null || { echo INVALID_RECOVERY_CONTRACT; exit 78; }
+
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "issue=$issue" >> "$GITHUB_OUTPUT"
+          echo "lease=$lease" >> "$GITHUB_OUTPUT"
+          echo "source=$source" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout read-only guard implementation
+        if: steps.target.outputs.found == 'true'
+        uses: actions/checkout@v4
+
+      # The guard is a hold-only preflight. It cannot grant dispatch authority.
+      # Every comment and PR page must be available before considering a write.
+      - name: Read-only candidate guard before issue-comment POST
+        id: guard
+        if: steps.target.outputs.found == 'true'
+        shell: bash
+        env:
+          ISSUE: ${{ steps.target.outputs.issue }}
+          LEASE_FOR_OWNER_GATE: ${{ steps.target.outputs.lease }}
+        run: |
+          set -euo pipefail
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments?per_page=100" | jq -s 'add // []' > /tmp/comments.json
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls?state=all&per_page=100" | jq -s 'add // []' > /tmp/prs.json
+          # A preliminary pass never authorizes a mutation. Hold the POST
+          # without turning expected safety holds into workflow failures.
+          guard_rc=0
+          python -m scripts.sora_recovery_candidate_guard \
+            --issue-json /tmp/issue.json \
+            --comments-json /tmp/comments.json \
+            --prs-json /tmp/prs.json || guard_rc=$?
+          if [[ "$guard_rc" == "0" ]]; then
+            echo CANDIDATE_PREFLIGHT_ONLY
+          elif [[ "$guard_rc" == "78" ]]; then
+            echo CANDIDATE_GUARD_HOLD
+          else
+            echo "CANDIDATE_GUARD_EXECUTION_ERROR rc=$guard_rc" >&2
+            exit "$guard_rc"
+          fi
+          # Correlate any legacy dispatch comment with independently fetched
+          # Actions run metadata. Correlation is NOT comment-to-run proof and
+          # cannot upgrade a legacy event or authorize redispatch.
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          from scripts.recovery_rev2_evidence_adapter import attest_legacy_sora_lease
+          from scripts.recovery_rev2_linked_history import project_linked_dispatch_history
+          linked_dispatches = []
+          all_dispatches_linked = True
+          with open("/tmp/comments.json", encoding="utf-8") as f:
+              comments = json.load(f)
+          with open("/tmp/issue.json", encoding="utf-8") as f:
+              issue = json.load(f)
+          work_id = f"issue:{issue['number']}"
+          for comment in comments:
+              body = comment.get("body", "")
+              if not isinstance(body, str) or not body.startswith("<!-- AUTO_ROUTER_DISPATCH "):
+                  continue
+              lines = body.splitlines()
+              try:
+                  event = json.loads(lines[1])
+                  run_id = event.get("writer_run_id")
+              except (IndexError, ValueError, TypeError, AttributeError):
+                  run_id = None
+              run = {}
+              if type(run_id) is int and run_id > 0:
+                  try:
+                      response = subprocess.run(
+                          ["gh", "api", f"repos/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{run_id}"],
+                          check=True, capture_output=True, text=True,
+                      )
+                      run = json.loads(response.stdout)
+                  except (subprocess.CalledProcessError, ValueError, OSError):
+                      pass
+              result = attest_legacy_sora_lease(
+                  comment, work_id=work_id, actions_run=run,
+                  expected_repository=os.environ["GITHUB_REPOSITORY"],
+              )
+              # Retrieve the exact run-owned artifact, not an arbitrary
+              # self-declared writer_run_id. Missing/expired artifacts remain
+              # unverified. This read-only path never authorizes a POST.
+              if run and type(run_id) is int:
+                  from scripts.recovery_rev2_evidence_adapter import verify_run_owned_dispatch_linkage
+                  import io
+                  import zipfile
+                  try:
+                      listing = subprocess.run(
+                          ["gh", "api",
+                           f"repos/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{run_id}/artifacts?per_page=100"],
+                          check=True, capture_output=True, text=True)
+                      page = json.loads(listing.stdout)
+                      if page.get("total_count", 0) > len(page.get("artifacts", [])):
+                          raise ValueError("INCOMPLETE_RUN_ARTIFACT_INVENTORY")
+                      artifacts = page.get("artifacts", [])
+                      named = [a for a in artifacts
+                               if a.get("name") == f"sora-dispatch-linkage-{run_id}"
+                               and a.get("expired") is False]
+                      if len(named) != 1:
+                          raise ValueError("MISSING_OR_AMBIGUOUS_RUN_ARTIFACT")
+                      archive = subprocess.run(
+                          ["gh", "api", "-H", "Accept: application/vnd.github+json",
+                           f"repos/{os.environ['GITHUB_REPOSITORY']}/actions/artifacts/{named[0]['id']}/zip"],
+                          check=True, capture_output=True)
+                      with zipfile.ZipFile(io.BytesIO(archive.stdout)) as zf:
+                          if zf.namelist() != ["sora-dispatch-linkage.json"]:
+                              raise ValueError("INVALID_ARTIFACT_ARCHIVE")
+                          linkage = json.loads(zf.read("sora-dispatch-linkage.json"))
+                      checked = verify_run_owned_dispatch_linkage(
+                          linkage=linkage, comment=comment, actions_run=run,
+                          expected_repository=os.environ["GITHUB_REPOSITORY"],
+                          artifact_run_id=run_id)
+                      if checked.get("status") == "ATTESTED_LINKAGE":
+                          linked_dispatches.append(checked)
+                      else:
+                          all_dispatches_linked = False
+                      print("RUN_OWNED_LINKAGE=" + json.dumps({
+                          "comment_id": comment.get("id"),
+                          "status": checked.get("status"),
+                          "reason": checked.get("reason"),
+                      }, sort_keys=True))
+                  except (subprocess.CalledProcessError, ValueError, KeyError,
+                          OSError, zipfile.BadZipFile, TypeError) as exc:
+                      all_dispatches_linked = False
+                      print("RUN_OWNED_LINKAGE_UNVERIFIED=" + type(exc).__name__)
+              if not run or type(run_id) is not int:
+                  all_dispatches_linked = False
+              print("LEGACY_ATTESTATION=" + json.dumps({
+                  "comment_id": comment.get("id"),
+                  "status": result.get("status"),
+                  "reason": result.get("reason"),
+              }, sort_keys=True))
+              if result.get("status") == "REPORTED_UNVERIFIED":
+                  print("LEGACY_COMMENT_TO_RUN_LINK_UNPROVEN")
+              elif result.get("status") in {"UNKNOWN", "BLOCKED"}:
+                  print("LEGACY_EVIDENCE_REQUIRES_RECONCILIATION")
+              assert result.get("dispatch_allowed") is False
+          from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
+          observed_dispatches = []
+          for comment in comments:
+              body = comment.get("body")
+              if not isinstance(body, str) or not body.startswith("<!-- AUTO_ROUTER_DISPATCH "):
+                  continue
+              try:
+                  event = json.loads(body.splitlines()[1])
+                  observed_dispatches.append({
+                      "comment_id": comment.get("id"),
+                      "lease_id": event.get("canonical_lease_id"),
+                      "writer_run_id": event.get("writer_run_id"),
+                  })
+              except (IndexError, ValueError, TypeError, AttributeError):
+                  all_dispatches_linked = False
+          linked_projection = project_authenticated_artifact_inventory(
+              work_id=work_id, observed=observed_dispatches,
+              authenticated=linked_dispatches,
+              # Never treat missing artifacts or partial pagination as READY.
+              complete=all_dispatches_linked and bool(linked_dispatches))
+          print("LINKED_LEGACY_PROJECTION=" + json.dumps(linked_projection, sort_keys=True))
+          print("ARTIFACT_READER_AUDIT=" + json.dumps({
+              "work_id": work_id,
+              "observed_count": len(observed_dispatches),
+              "authenticated_count": len(linked_dispatches),
+              "inventory_complete": all_dispatches_linked and bool(linked_dispatches),
+              "reader_status": linked_projection.get("status"),
+              "reader_reason": linked_projection.get("reason"),
+              "dispatch_allowed": linked_projection.get("dispatch_allowed"),
+          }, sort_keys=True))
+          # Durable, human-readable read-only audit in the workflow run summary.
+          # Never interpret this summary as an authorization or dispatch event.
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("### Sora Recovery Artifact Reader (observation only)\n\n")
+              summary.write("| Evidence | Value |\n|---|---|\n")
+              summary.write(f"| Work ID | {work_id} |\n")
+              summary.write(f"| Observed comments | {len(observed_dispatches)} |\n")
+              summary.write(f"| Authenticated artifacts | {len(linked_dispatches)} |\n")
+              summary.write(f"| Inventory complete | {all_dispatches_linked and bool(linked_dispatches)} |\n")
+              summary.write(f"| Reader status | {linked_projection.get('status')} |\n")
+              summary.write("| POST authorized | False (hold-only) |\n")
+          assert linked_projection.get("dispatch_allowed") is False
+          with open("/tmp/linked-legacy-projection.json", "w", encoding="utf-8") as f:
+              json.dump(linked_projection, f, sort_keys=True)
+          with open("/tmp/linked-dispatch-evidence.json", "w", encoding="utf-8") as f:
+              json.dump({"complete": all_dispatches_linked and bool(linked_dispatches),
+                         "dispatches": linked_dispatches}, f, sort_keys=True)
+          PY
+          # Project the complete candidate evidence through the Rev.2 reader.
+          # Comment-to-run provenance remains unproven, so fail closed.
+          python - <<'PY'
+          import json
+          from scripts.recovery_rev2_read_bridge import project_attested_comments
+          with open("/tmp/comments.json", encoding="utf-8") as f:
+              comments = json.load(f)
+          with open("/tmp/issue.json", encoding="utf-8") as f:
+              issue = json.load(f)
+          result = project_attested_comments(
+              work_id=f"issue:{issue['number']}",
+              comments=comments,
+              trusted_comment_ids=set(),
+              provenance_verified=False,
+          )
+          print("CANONICAL_READER_PROJECTION=" + json.dumps(result, sort_keys=True))
+          if result.get("status") not in {"UNKNOWN", "BLOCKED", "READY", "DISPATCHED", "ACKED", "RUNNING", "PR_OPEN", "MERGED", "DONE", "EXPIRED"}:
+              raise SystemExit("UNRECOGNIZED_READER_STATUS")
+          if result.get("dispatch_allowed") is not False:
+              raise SystemExit("UNAUTHORIZED_READER_DISPATCH")
+          # This checkpoint has no independently proven comment-to-run link.
+          # Never treat an empty/unverified projection as authorization.
+          if result.get("status") != "UNKNOWN" or result.get("reason") != "PROVENANCE_UNVERIFIED":
+              raise SystemExit("UNEXPECTED_UNATTESTED_READER_PROJECTION")
+          if result.get("status") == "UNKNOWN":
+              print("READER_HOLD_UNVERIFIED_PROVENANCE")
+          elif result.get("status") in {"ACKED", "RUNNING", "PR_OPEN"}:
+              print("READER_HOLD_ACTIVE_EXECUTION")
+          elif result.get("status") in {"DONE", "MERGED"}:
+              print("READER_HOLD_TERMINAL")
+          elif result.get("status") == "EXPIRED":
+              print("READER_HOLD_EXPIRY_NOT_STOP_PROOF")
+          else:
+              print("READER_HOLD_OWNER_AND_PATH_ATTESTATION_REQUIRED")
+          PY
+          # Evaluate the actual conservative gate against this run's observed
+          # candidate and reader state. Neither an empty Owner approval nor an
+          # unauthenticated reader projection can enable the POST.
+          python - <<'PY'
+          import json
+          import os
+          from scripts.sora_recovery_candidate_guard import check_candidate
+          from scripts.recovery_rev2_read_bridge import project_attested_comments
+          from scripts.sora_recovery_dispatch_gate import decide_dispatch
+          from scripts.sora_recovery_owner_attestation import inspect_owner_approval
+          with open("/tmp/issue.json", encoding="utf-8") as f:
+              issue = json.load(f)
+          with open("/tmp/comments.json", encoding="utf-8") as f:
+              comments = json.load(f)
+          with open("/tmp/prs.json", encoding="utf-8") as f:
+              prs = json.load(f)
+          candidate = check_candidate(issue, comments, prs)
+          projection = project_attested_comments(
+              work_id=f"issue:{issue['number']}", comments=comments,
+              trusted_comment_ids=set(), provenance_verified=False)
+          # Use the independently checked linked legacy history for
+          # observation only. Never replace UNKNOWN with an empty READY.
+          with open("/tmp/linked-legacy-projection.json", encoding="utf-8") as f:
+              linked_projection = json.load(f)
+          if linked_projection.get("status") != "UNKNOWN" and linked_projection.get("status") != "BLOCKED":
+              if linked_projection.get("prior_dispatch_count", 0) > 0:
+                  projection = linked_projection
+          print("FINAL_GATE_READER_STATE=" + json.dumps(projection, sort_keys=True))
+          # Compare the listed approval with a separate GitHub API fetch.
+          # The repo owner must be an actual User; org ownership cannot
+          # establish an individual approver without an explicit owner list.
+          import subprocess
+          from scripts.sora_recovery_owner_attestation import verify_owner_comment_snapshot
+          repo_name = os.environ["GITHUB_REPOSITORY"]
+          repo_result = subprocess.run(["gh", "api", f"repos/{repo_name}"],
+                                       capture_output=True, text=True, check=True)
+          repo = json.loads(repo_result.stdout)
+          approval_markers = [c for c in comments if isinstance(c.get("body"), str)
+                              and c["body"].startswith("<!-- SORA_RECOVERY_OWNER_APPROVAL ")]
+          approvals = []
+          for item in approval_markers:
+              cid = item.get("id")
+              if type(cid) is not int or cid <= 0:
+                  raise SystemExit("INVALID_OWNER_APPROVAL_COMMENT_ID")
+              fresh = subprocess.run(
+                  ["gh", "api", f"repos/{repo_name}/issues/comments/{cid}"],
+                  capture_output=True, text=True, check=True)
+              attestation = verify_owner_comment_snapshot(
+                  listed_comment=item, fetched_comment=json.loads(fresh.stdout),
+                  repository=repo, expected_repository=repo_name)
+              approval = inspect_owner_approval(
+                  comment=item, issue_number=issue["number"],
+                  lease_id=os.environ.get("LEASE_FOR_OWNER_GATE", ""),
+                  expected_owner_login=attestation.get("owner_login", ""),
+                  independently_verified_author=attestation.get("verified") is True)
+              approvals.append(approval)
+          # Independently re-fetch the owner's STOP comments. A completed
+          # Actions writer run is not proof that the external executor stopped.
+          # This observation is intentionally NOT promoted to dispatch authority.
+          from scripts.sora_recovery_stop_attestation import verify_stop_attestation
+          import re
+          stop_markers = [c for c in comments if isinstance(c.get("body"), str)
+                          and c["body"].startswith("<!-- SORA_RECOVERY_EXECUTOR_STOP ")]
+          trusted_stops = []
+          owner_login = repo.get("owner", {}).get("login", "")
+          for item in stop_markers:
+              cid = item.get("id")
+              if type(cid) is not int or cid <= 0:
+                  raise SystemExit("INVALID_STOP_COMMENT_ID")
+              fresh = subprocess.run(
+                  ["gh", "api", f"repos/{repo_name}/issues/comments/{cid}"],
+                  capture_output=True, text=True, check=True)
+              attested = verify_owner_comment_snapshot(
+                  listed_comment=item, fetched_comment=json.loads(fresh.stdout),
+                  repository=repo, expected_repository=repo_name)
+              if not attested.get("verified"):
+                  print("STOP_COMMENT_UNVERIFIED=" + str(cid))
+                  continue
+              trusted_stops.append(item)
+          # Only exact, correctly formed dispatch envelopes can participate
+          # in history. Ambiguous legacy records still block any authorization.
+          previous = []
+          runs = {}
+          history_ambiguous = False
+          for comment in comments:
+              body = comment.get("body")
+              if not isinstance(body, str) or not body.startswith("<!-- AUTO_ROUTER_DISPATCH "):
+                  continue
+              parts = body.splitlines()
+              try:
+                  event = json.loads(parts[1])
+                  issue_ref = f"issue:{issue['number']}"
+                  if not isinstance(event, dict) or event.get("work_ref") != issue_ref:
+                      history_ambiguous = True
+                      continue
+                  lease = event.get("canonical_lease_id")
+                  run_id = event.get("writer_run_id")
+                  if (not isinstance(lease, str) or re.fullmatch(r"lease-[0-9a-f]{32}", lease) is None
+                          or type(run_id) is not int or run_id <= 0):
+                      history_ambiguous = True
+                      continue
+                  previous.append({"lease_id": lease, "writer_run_id": run_id})
+                  response = subprocess.run(
+                      ["gh", "api", f"repos/{repo_name}/actions/runs/{run_id}"],
+                      capture_output=True, text=True, check=True)
+                  runs[run_id] = json.loads(response.stdout)
+              except (IndexError, ValueError, KeyError, subprocess.CalledProcessError):
+                  history_ambiguous = True
+          with open("/tmp/linked-dispatch-evidence.json", encoding="utf-8") as f:
+              linked_evidence = json.load(f)
+          from scripts.recovery_rev2_linked_history import matches_complete_dispatch_evidence
+          authenticated = linked_evidence.get("dispatches", [])
+          if (not history_ambiguous
+                  and matches_complete_dispatch_evidence(
+                      observed=previous, authenticated=authenticated,
+                      complete=linked_evidence.get("complete"))):
+              stop_result = verify_stop_attestation(
+                  issue_number=issue["number"], previous_leases=previous,
+                  owner_comments=trusted_stops, actions_runs=runs,
+                  expected_owner_login=owner_login,
+                  owner_identity_verified=repo.get("owner", {}).get("type") == "User")
+          else:
+              stop_result = {"verified": False, "reason":
+                             "AMBIGUOUS_OR_EMPTY_DISPATCH_HISTORY"}
+          print("STOP_ATTESTATION_OBSERVATION=" + json.dumps(stop_result, sort_keys=True))
+          from scripts.sora_recovery_dispatch_gate import attach_verified_stop_evidence
+          projection = attach_verified_stop_evidence(
+              projection=projection, stop_result=stop_result)
+          print("RECONCILED_READER_PROJECTION=" + json.dumps(projection, sort_keys=True))
+          print("OWNER_APPROVAL_OBSERVATIONS=" + json.dumps(approvals, sort_keys=True))
+          valid_approvals = [a for a in approvals if a.get("verified") is True]
+          owner_gate = (valid_approvals[0] if len(valid_approvals) == 1
+                        else {"status": "UNKNOWN", "verified": False})
+          decision = decide_dispatch(
+              issue_number=issue["number"],
+              lease_id=os.environ.get("LEASE_FOR_OWNER_GATE", ""),
+              candidate=candidate,
+              projection=projection,
+              owner_gate=owner_gate,
+              evidence_complete=False)
+          print("DISPATCH_GATE_DECISION=" + json.dumps(decision, sort_keys=True))
+          if decision.get("post_authorized") is not False:
+              raise SystemExit("UNAUTHORIZED_DISPATCH_GATE")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write("post_authorized=false\n")
+          PY
+
+      - name: Persist idempotent SORA recovery lease
+        if: steps.target.outputs.found == 'true' && steps.guard.outputs.post_authorized == 'true'
+        env:
+          ISSUE: ${{ steps.target.outputs.issue }}
+          LEASE: ${{ steps.target.outputs.lease }}
+          SOURCE: ${{ steps.target.outputs.source }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ISSUE" != "79" ]] || exit 79
+          marker="<!-- AUTO_ROUTER_DISPATCH lease_id=${LEASE} executor=SORA target_issue=${ISSUE} -->"
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments?per_page=100" | jq -s 'add // []' > /tmp/comments.json
+          if jq -e --arg marker "$marker" 'any(.[]; (.body // "") | contains($marker))' /tmp/comments.json >/dev/null; then
+            echo SORA_LEASE_ALREADY_PERSISTED
+            exit 0
+          fi
+
+          # Fail closed on ANY prior SORA dispatch until canonical ACK/PR/terminal
+          # reconciliation and retry authority are implemented. Expiry alone
+          # is NOT proof that the previous executor stopped. This temporary
+          # safety gate intentionally disables automatic redispatch.
+          # Do not treat quoted/historical marker mentions as authorization;
+          # conservative false positives require manual reconciliation.
+          if jq -e --arg issue "$ISSUE" '
+            any(.[]; (.body // "") | test("AUTO_ROUTER_DISPATCH") and
+              test("executor=SORA") and
+              test("target_issue=" + $issue + "([^0-9]|$)"))
+          ' /tmp/comments.json >/dev/null; then
+            echo PRIOR_SORA_DISPATCH_REQUIRES_CANONICAL_RECONCILIATION
+            exit 78
+          fi
+
+          assigned="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          expires="$(date -u -d '+90 minutes' +%Y-%m-%dT%H:%M:%SZ)"
+          event="$(jq -nc --arg work_ref "issue:${ISSUE}" --arg lease "$LEASE" --arg assigned "$assigned" --arg expires "$expires" --arg source "$SOURCE" --argjson writer_run_id "$GITHUB_RUN_ID" '{writer_run_id:$writer_run_id,work_ref:$work_ref,owner_slice:("issue-"+($work_ref|split(":")[1])),executor:"SORA",canonical_lease_id:$lease,assigned_at:$assigned,lease_expires_at:$expires,status:"DISPATCHED",source:$source}')"
+          body="$(printf '%s\n%s\n\n%s\n%s' "$marker" "$event" '担当: 🌙ルナ / Recovery Control Plane' '種別: External Durable Writer / SORA Recovery Lease')"
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments" -f body="$body" >/tmp/result.json
+          # Persist a durable, run-owned linkage artifact. The comment body
+          # alone is self-asserted and must never be treated as proof.
+          comment_id="$(jq -er '.id | select(type == "number" and . > 0)' /tmp/result.json)"
+          jq -nc --argjson comment_id "$comment_id" \
+            --argjson writer_run_id "$GITHUB_RUN_ID" \
+            --arg issue "$ISSUE" --arg lease "$LEASE" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            '{schema_version:2,comment_id:$comment_id,writer_run_id:$writer_run_id,issue_number:$issue,canonical_lease_id:$lease,repository:$repository}' \
+            > /tmp/sora-dispatch-linkage.json
+          gh api "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}" \
+            | jq -e --arg issue "$ISSUE" --arg lease "$LEASE" \
+                '(.issue_url | endswith("/issues/" + $issue)) and
+                 (.body | contains("lease_id=" + $lease)) and
+                 (.user.login == "github-actions[bot]")' >/dev/null
+          echo "SORA_LEASE_PERSISTED issue=${ISSUE} lease=${LEASE} run_id=${GITHUB_RUN_ID} comment_id=${comment_id}"
+      - name: Preserve run-owned dispatch linkage
+        if: steps.target.outputs.found == 'true' && steps.guard.outputs.post_authorized == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sora-dispatch-linkage-${{ github.run_id }}
+          path: /tmp/sora-dispatch-linkage.json
+          if-no-files-found: error
+          retention-days: 90
+
