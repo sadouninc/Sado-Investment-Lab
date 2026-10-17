@@ -72,6 +72,7 @@ jobs:
       # The guard is a hold-only preflight. It cannot grant dispatch authority.
       # Every comment and PR page must be available before considering a write.
       - name: Read-only candidate guard before issue-comment POST
+        id: guard
         if: steps.target.outputs.found == 'true'
         shell: bash
         env:
@@ -80,17 +81,21 @@ jobs:
           set -euo pipefail
           gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments?per_page=100" | jq -s 'add // []' > /tmp/comments.json
           gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls?state=all&per_page=100" | jq -s 'add // []' > /tmp/prs.json
-          # ALLOW_PRELIMINARY is not authorization. For now hold ALL candidates
-          # until an independently attested Reader/Owner gate is wired in.
-          python -m scripts.sora_recovery_candidate_guard \
+          # A preliminary pass never authorizes a mutation. Hold the POST
+          # without turning expected safety holds into workflow failures.
+          if python -m scripts.sora_recovery_candidate_guard \
             --issue-json /tmp/issue.json \
             --comments-json /tmp/comments.json \
-            --prs-json /tmp/prs.json
+            --prs-json /tmp/prs.json; then
+            echo CANDIDATE_PREFLIGHT_ONLY
+          else
+            echo CANDIDATE_GUARD_HOLD
+          fi
           echo CANONICAL_READER_AND_OWNER_AUTHORITY_NOT_WIRED
-          exit 78
+          echo "post_authorized=false" >> "$GITHUB_OUTPUT"
 
       - name: Persist idempotent SORA recovery lease
-        if: steps.target.outputs.found == 'true'
+        if: steps.target.outputs.found == 'true' && steps.guard.outputs.post_authorized == 'true'
         env:
           ISSUE: ${{ steps.target.outputs.issue }}
           LEASE: ${{ steps.target.outputs.lease }}
