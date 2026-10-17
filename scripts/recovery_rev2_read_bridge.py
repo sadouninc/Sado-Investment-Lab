@@ -36,6 +36,15 @@ def project_attested_comments(*, work_id: str, comments: Sequence[Mapping],
         if not isinstance(author, Mapping) or author.get("login") != "github-actions[bot]":
             return {"status": "UNKNOWN", "reason": "UNTRUSTED_EVENT_AUTHOR",
                     "dispatch_allowed": False}
+        # A GitHub bot identity is necessary, never sufficient. The caller's
+        # provenance_verified flag must mean that each event was linked to a
+        # specific authenticated run, not just that its author looks correct.
+        if comment.get("issue_url") is not None:
+            expected_suffix = "/issues/" + work_id.split(":", 1)[1]
+            issue_url = comment.get("issue_url")
+            if not isinstance(issue_url, str) or not issue_url.endswith(expected_suffix):
+                return {"status": "UNKNOWN", "reason": "COMMENT_ISSUE_MISMATCH",
+                        "dispatch_allowed": False}
     events = []
     for comment in comments:
         event = canonical_event(comment, work_id=work_id,
