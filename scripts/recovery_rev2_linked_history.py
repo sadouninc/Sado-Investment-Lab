@@ -98,6 +98,16 @@ def project_authenticated_artifact_inventory(*, work_id: str,
     if not matches_complete_dispatch_evidence(
             observed=observed, authenticated=authenticated, complete=True):
         return unknown("ARTIFACT_INVENTORY_MISMATCH")
+    # Bind each observed comment to its run-owned artifact, not just lease/run.
+    observed_ids = [item.get("comment_id") for item in observed]
+    authenticated_ids = [item.get("comment_id") for item in authenticated]
+    if (any(type(cid) is not int or cid <= 0 for cid in observed_ids + authenticated_ids)
+            or len(set(observed_ids)) != len(observed_ids)
+            or set(observed_ids) != set(authenticated_ids)):
+        return unknown("ARTIFACT_COMMENT_ID_MISMATCH")
+    if {(item["comment_id"], item["lease_id"], item["writer_run_id"]) for item in observed} != {
+            (item["comment_id"], item["lease_id"], item["writer_run_id"]) for item in authenticated}:
+        return unknown("ARTIFACT_COMMENT_LINKAGE_MISMATCH")
     if any(item.get("work_id") != work_id for item in authenticated):
         return unknown("ARTIFACT_WORK_ID_MISMATCH")
     return project_linked_dispatch_history(
