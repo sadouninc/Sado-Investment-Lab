@@ -82,6 +82,7 @@ jobs:
         shell: bash
         env:
           ISSUE: ${{ steps.target.outputs.issue }}
+          LEASE_FOR_OWNER_GATE: ${{ steps.target.outputs.lease }}
         run: |
           set -euo pipefail
           gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments?per_page=100" | jq -s 'add // []' > /tmp/comments.json
@@ -259,7 +260,9 @@ jobs:
           ]
           print("OWNER_APPROVAL_OBSERVATIONS=" + json.dumps(approvals, sort_keys=True))
           decision = decide_dispatch(
-              issue_number=issue["number"], candidate=candidate,
+              issue_number=issue["number"],
+              lease_id=os.environ.get("LEASE_FOR_OWNER_GATE", ""),
+              candidate=candidate,
               projection=projection,
               owner_gate={"status": "UNKNOWN", "verified": False},
               evidence_complete=False)
