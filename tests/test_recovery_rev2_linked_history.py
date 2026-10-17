@@ -1,4 +1,4 @@
-from scripts.recovery_rev2_linked_history import project_linked_dispatch_history
+from scripts.recovery_rev2_linked_history import project_linked_dispatch_history, matches_complete_dispatch_evidence
 
 LEASE = "lease-" + "a" * 32
 
@@ -56,3 +56,39 @@ def test_boolean_writer_run_id_is_rejected():
     result = project([dispatch(writer_run_id=True)])
     assert result["status"] == "UNKNOWN"
     assert result["dispatch_allowed"] is False
+
+
+def test_complete_attested_history_required_for_stop_reconciliation():
+    observed = [{"lease_id": LEASE, "writer_run_id": 123}]
+    assert matches_complete_dispatch_evidence(
+        observed=observed, authenticated=[dispatch()], complete=True)
+    assert not matches_complete_dispatch_evidence(
+        observed=observed, authenticated=[dispatch()], complete=False)
+
+
+def test_self_asserted_or_missing_linkage_cannot_clear_prior_lease():
+    observed = [{"lease_id": LEASE, "writer_run_id": 123}]
+    assert not matches_complete_dispatch_evidence(
+        observed=observed, authenticated=[dispatch(status="REPORTED_UNVERIFIED")], complete=True)
+    assert not matches_complete_dispatch_evidence(
+        observed=observed, authenticated=[], complete=True)
+    assert not matches_complete_dispatch_evidence(
+        observed=observed, authenticated=[dispatch(writer_run_id=124)], complete=True)
+
+
+def test_duplicate_or_unmatched_history_never_reconciles():
+    observed = [{"lease_id": LEASE, "writer_run_id": 123}] * 2
+    assert not matches_complete_dispatch_evidence(
+        observed=observed, authenticated=[dispatch(), dispatch()], complete=True)
+    assert not matches_complete_dispatch_evidence(
+        observed=[{"lease_id": LEASE, "writer_run_id": 123}],
+        authenticated=[dispatch(lease_id="lease-" + "b" * 32)], complete=True)
+
+
+def test_two_distinct_attested_dispatches_match_regardless_of_order():
+    other = "lease-" + "b" * 32
+    observed = [{"lease_id": LEASE, "writer_run_id": 123},
+                {"lease_id": other, "writer_run_id": 124}]
+    authenticated = [dispatch(lease_id=other, writer_run_id=124, comment_id=43), dispatch()]
+    assert matches_complete_dispatch_evidence(
+        observed=observed, authenticated=authenticated, complete=True)
