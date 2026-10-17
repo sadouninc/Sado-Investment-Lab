@@ -80,7 +80,7 @@ def check_candidate(issue: Mapping, comments: list, prs: list) -> dict:
         # Malformed related JSON must not masquerade as an empty event history.
         if ("AUTO_ROUTER_DISPATCH" in text or "canonical_lease_id" in text) and (
             f"issue:{number}" in text or f"issue-{number}" in text or
-            re.search(r"target_issue\\s*=\\s*" + str(number) + r"\\b", text)
+            re.search(r"target_issue\s*=\s*" + str(number) + r"\b", text)
         ):
             return _block("AMBIGUOUS_RELATED_EVENT")
     issue_ref = re.compile(r"(?<!\d)#" + str(number) + r"(?!\d)")
