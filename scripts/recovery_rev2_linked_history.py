@@ -71,3 +71,35 @@ def matches_complete_dispatch_evidence(*, observed: Sequence[Mapping],
             and len(set(seen)) == len(seen)
             and len(set(verified)) == len(verified)
             and set(seen) == set(verified))
+
+
+def project_authenticated_artifact_inventory(*, work_id: str,
+                                              observed: Sequence[Mapping],
+                                              authenticated: Sequence[Mapping],
+                                              complete: bool) -> dict:
+    """Bridge independently fetched inventory to the read-only Reader.
+
+    The caller must independently authenticate each run-owned artifact via
+    GitHub Actions API and supply verify_run_owned_dispatch_linkage results.
+    A missing or partially matched inventory is UNKNOWN, never READY.
+    No event is upgraded to verified by this function.
+    """
+    def unknown(reason: str) -> dict:
+        return {"status": "UNKNOWN", "reason": reason, "dispatch_allowed": False}
+
+    if work_id == "issue:79":
+        return {"status": "BLOCKED", "reason": "PROTECTED_ISSUE_79",
+                "dispatch_allowed": False}
+    if complete is not True or not isinstance(observed, (list, tuple)) or not isinstance(authenticated, (list, tuple)):
+        return unknown("INCOMPLETE_ARTIFACT_INVENTORY")
+    if not observed or not authenticated:
+        # An empty artifact list is not proof that no dispatch occurred.
+        return unknown("NO_ATTESTED_ARTIFACT_INVENTORY")
+    if not matches_complete_dispatch_evidence(
+            observed=observed, authenticated=authenticated, complete=True):
+        return unknown("ARTIFACT_INVENTORY_MISMATCH")
+    if any(item.get("work_id") != work_id for item in authenticated):
+        return unknown("ARTIFACT_WORK_ID_MISMATCH")
+    return project_linked_dispatch_history(
+        work_id=work_id, linked_dispatches=authenticated,
+        complete_history=True)
