@@ -134,3 +134,36 @@ def test_noncanonical_lease_rejected_by_projection_and_reconciliation():
             authenticated=[dispatch(lease_id=invalid)], complete=True)
         assert not matches_complete_dispatch_evidence(
             observed=observed, authenticated=[dispatch(lease_id=invalid)], complete=True)
+
+
+def test_attested_legacy_dispatch_remains_nonretryable_in_final_gate():
+    from scripts.sora_recovery_dispatch_gate import decide_dispatch
+    projection = project([dispatch()])
+    result = decide_dispatch(
+        issue_number=859, lease_id="lease-" + "b" * 32,
+        candidate={"status": "ALLOW_PRELIMINARY", "issue_number": 859},
+        projection=projection,
+        owner_gate={"status": "APPROVED", "issue_number": 859,
+                    "scope": "sora_recovery_dispatch", "verified": True,
+                    "owner_comment_id": 99, "lease_id": "lease-" + "b" * 32},
+        evidence_complete=True,
+    )
+    assert projection["status"] == "DISPATCHED"
+    assert result["post_authorized"] is False
+    assert result["reason"] == "PRIOR_DISPATCH_NOT_RETRYABLE"
+
+
+def test_authentication_failure_cannot_be_hidden_in_linked_history():
+    from scripts.sora_recovery_dispatch_gate import decide_dispatch
+    projection = project([dispatch(status="REPORTED_UNVERIFIED")])
+    result = decide_dispatch(
+        issue_number=859, lease_id="lease-" + "b" * 32,
+        candidate={"status": "ALLOW_PRELIMINARY", "issue_number": 859},
+        projection=projection,
+        owner_gate={"status": "APPROVED", "issue_number": 859,
+                    "scope": "sora_recovery_dispatch", "verified": True,
+                    "owner_comment_id": 99, "lease_id": "lease-" + "b" * 32},
+        evidence_complete=True,
+    )
+    assert projection["status"] == "UNKNOWN"
+    assert result["post_authorized"] is False
