@@ -46,3 +46,40 @@ def inspect_owner_approval(*, comment: Mapping, issue_number: int,
     return {"status": "APPROVED", "issue_number": issue_number,
             "scope": "sora_recovery_dispatch", "lease_id": lease_id,
             "owner_comment_id": comment["id"], "verified": True}
+
+
+def verify_owner_comment_snapshot(*, listed_comment: Mapping,
+                                  fetched_comment: Mapping,
+                                  repository: Mapping,
+                                  expected_repository: str) -> dict:
+    """Bind a listed approval to a separately fetched comment and user owner.
+
+    This does not prove owner intent in the absence of an explicit scoped
+    approval marker; inspect_owner_approval must still validate that marker.
+    """
+    def fail(reason: str) -> dict:
+        return {"verified": False, "reason": reason}
+    if not all(isinstance(x, Mapping) for x in (listed_comment, fetched_comment, repository)):
+        return fail("INVALID_GITHUB_SNAPSHOT")
+    owner = repository.get("owner")
+    if (repository.get("full_name") != expected_repository
+            or not isinstance(owner, Mapping) or owner.get("type") != "User"
+            or not isinstance(owner.get("login"), str)
+            or not owner["login"] or owner["login"].endswith("[bot]")):
+        return fail("UNVERIFIABLE_REPOSITORY_OWNER")
+    cid = listed_comment.get("id")
+    if type(cid) is not int or cid <= 0 or cid != fetched_comment.get("id"):
+        return fail("OWNER_COMMENT_ID_MISMATCH")
+    expected_url = f"https://api.github.com/repos/{expected_repository}/issues/comments/{cid}"
+    if fetched_comment.get("url") != expected_url:
+        return fail("OWNER_COMMENT_URL_MISMATCH")
+    if (listed_comment.get("body") != fetched_comment.get("body")
+            or listed_comment.get("issue_url") != fetched_comment.get("issue_url")):
+        return fail("OWNER_COMMENT_CHANGED")
+    author = fetched_comment.get("user")
+    if (not isinstance(author, Mapping) or author.get("login") != owner["login"]
+            or not isinstance(listed_comment.get("user"), Mapping)
+            or listed_comment["user"].get("login") != owner["login"]):
+        return fail("OWNER_AUTHOR_MISMATCH")
+    return {"verified": True, "owner_login": owner["login"],
+            "comment_id": cid}
