@@ -167,3 +167,29 @@ def test_authentication_failure_cannot_be_hidden_in_linked_history():
     )
     assert projection["status"] == "UNKNOWN"
     assert result["post_authorized"] is False
+
+
+def test_artifact_inventory_bridge_projects_only_complete_linked_history():
+    from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
+    observed = [{"lease_id": LEASE, "writer_run_id": 123}]
+    ok = project_authenticated_artifact_inventory(
+        work_id="issue:859", observed=observed, authenticated=[dispatch()],
+        complete=True)
+    assert ok["status"] == "DISPATCHED"
+    assert ok["dispatch_allowed"] is False
+    for trusted, complete in (([], True), ([dispatch()], False),
+                              ([dispatch(work_id="issue:860")], True),
+                              ([dispatch(status="REPORTED_UNVERIFIED")], True)):
+        result = project_authenticated_artifact_inventory(
+            work_id="issue:859", observed=observed,
+            authenticated=trusted, complete=complete)
+        assert result["status"] == "UNKNOWN"
+        assert result["dispatch_allowed"] is False
+
+
+def test_artifact_inventory_bridge_never_assumes_empty_means_ready():
+    from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
+    result = project_authenticated_artifact_inventory(
+        work_id="issue:859", observed=[], authenticated=[], complete=True)
+    assert result["status"] == "UNKNOWN"
+    assert result["dispatch_allowed"] is False
