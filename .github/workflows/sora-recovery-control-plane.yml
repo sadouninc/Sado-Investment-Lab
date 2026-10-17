@@ -146,10 +146,13 @@ jobs:
                   import zipfile
                   try:
                       listing = subprocess.run(
-                          ["gh", "api", "--paginate",
+                          ["gh", "api",
                            f"repos/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{run_id}/artifacts?per_page=100"],
                           check=True, capture_output=True, text=True)
-                      artifacts = json.loads(listing.stdout).get("artifacts", [])
+                      page = json.loads(listing.stdout)
+                      if page.get("total_count", 0) > len(page.get("artifacts", [])):
+                          raise ValueError("INCOMPLETE_RUN_ARTIFACT_INVENTORY")
+                      artifacts = page.get("artifacts", [])
                       named = [a for a in artifacts
                                if a.get("name") == f"sora-dispatch-linkage-{run_id}"
                                and a.get("expired") is False]
