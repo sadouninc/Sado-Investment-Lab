@@ -137,6 +137,44 @@ jobs:
                   comment, work_id=work_id, actions_run=run,
                   expected_repository=os.environ["GITHUB_REPOSITORY"],
               )
+              # Retrieve the exact run-owned artifact, not an arbitrary
+              # self-declared writer_run_id. Missing/expired artifacts remain
+              # unverified. This read-only path never authorizes a POST.
+              if run and type(run_id) is int:
+                  from scripts.recovery_rev2_evidence_adapter import verify_run_owned_dispatch_linkage
+                  import io
+                  import zipfile
+                  try:
+                      listing = subprocess.run(
+                          ["gh", "api", "--paginate",
+                           f"repos/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{run_id}/artifacts?per_page=100"],
+                          check=True, capture_output=True, text=True)
+                      artifacts = json.loads(listing.stdout).get("artifacts", [])
+                      named = [a for a in artifacts
+                               if a.get("name") == f"sora-dispatch-linkage-{run_id}"
+                               and a.get("expired") is False]
+                      if len(named) != 1:
+                          raise ValueError("MISSING_OR_AMBIGUOUS_RUN_ARTIFACT")
+                      archive = subprocess.run(
+                          ["gh", "api", "-H", "Accept: application/vnd.github+json",
+                           f"repos/{os.environ['GITHUB_REPOSITORY']}/actions/artifacts/{named[0]['id']}/zip"],
+                          check=True, capture_output=True)
+                      with zipfile.ZipFile(io.BytesIO(archive.stdout)) as zf:
+                          if zf.namelist() != ["sora-dispatch-linkage.json"]:
+                              raise ValueError("INVALID_ARTIFACT_ARCHIVE")
+                          linkage = json.loads(zf.read("sora-dispatch-linkage.json"))
+                      checked = verify_run_owned_dispatch_linkage(
+                          linkage=linkage, comment=comment, actions_run=run,
+                          expected_repository=os.environ["GITHUB_REPOSITORY"],
+                          artifact_run_id=run_id)
+                      print("RUN_OWNED_LINKAGE=" + json.dumps({
+                          "comment_id": comment.get("id"),
+                          "status": checked.get("status"),
+                          "reason": checked.get("reason"),
+                      }, sort_keys=True))
+                  except (subprocess.CalledProcessError, ValueError, KeyError,
+                          OSError, zipfile.BadZipFile, TypeError) as exc:
+                      print("RUN_OWNED_LINKAGE_UNVERIFIED=" + type(exc).__name__)
               print("LEGACY_ATTESTATION=" + json.dumps({
                   "comment_id": comment.get("id"),
                   "status": result.get("status"),
