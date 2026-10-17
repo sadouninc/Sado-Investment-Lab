@@ -257,3 +257,18 @@ def test_final_gate_rejects_malformed_stop_comment_id_inventory():
             },
         })
         assert decide_dispatch(**data)["post_authorized"] is False
+
+
+def test_boolean_stop_attempt_count_cannot_pass_final_gate():
+    data = inputs()
+    data["projection"].update({
+        "status": "EXPIRED", "attempt": 1, "prior_dispatch_count": 1,
+        "stop_attestation": {"verified": True, "work_id": "issue:859",
+                             "prior_dispatch_count": True,
+                             "all_prior_executors_stopped": True,
+                             "stop_comment_ids": [42]}})
+    assert decide_dispatch(**data)["post_authorized"] is False
+    projection = dict(data["projection"])
+    projection.pop("stop_attestation")
+    assert "stop_attestation" not in attach_verified_stop_evidence(
+        projection=projection, stop_result=data["projection"]["stop_attestation"])
