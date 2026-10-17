@@ -24,6 +24,7 @@ def decide_dispatch(*, issue_number: int, lease_id: str, candidate: Mapping,
     if evidence_complete is not True:
         return hold("INCOMPLETE_EVIDENCE")
     if (candidate.get("status") != "ALLOW_PRELIMINARY"
+            or type(candidate.get("issue_number")) is not int
             or candidate.get("issue_number") != issue_number):
         return hold("CANDIDATE_NOT_ELIGIBLE")
     # The canonical Reader is deliberately read-only: it NEVER emits
@@ -54,6 +55,7 @@ def decide_dispatch(*, issue_number: int, lease_id: str, candidate: Mapping,
                 or stop.get("all_prior_executors_stopped") is not True):
             return hold("PRIOR_DISPATCH_REQUIRES_STOP_ATTESTATION")
     if (owner_gate.get("status") != "APPROVED"
+            or type(owner_gate.get("issue_number")) is not int
             or owner_gate.get("issue_number") != issue_number
             or owner_gate.get("scope") != "sora_recovery_dispatch"
             or owner_gate.get("verified") is not True
@@ -84,6 +86,7 @@ def attach_verified_stop_evidence(*, projection: Mapping,
             or not isinstance(stop_result, Mapping)
             or stop_result.get("verified") is not True
             or stop_result.get("all_prior_executors_stopped") is not True
+            or not isinstance(result.get("work_id"), str)
             or stop_result.get("work_id") != result.get("work_id")
             or stop_result.get("prior_dispatch_count") != prior
             or type(result.get("attempt")) is not int or result["attempt"] != prior
