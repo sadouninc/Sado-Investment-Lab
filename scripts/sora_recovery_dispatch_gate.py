@@ -57,7 +57,7 @@ def decide_dispatch(*, issue_number: int, lease_id: str, candidate: Mapping,
             or owner_gate.get("issue_number") != issue_number
             or owner_gate.get("scope") != "sora_recovery_dispatch"
             or owner_gate.get("verified") is not True
-            or not isinstance(owner_gate.get("owner_comment_id"), int)
+            or type(owner_gate.get("owner_comment_id")) is not int
             or owner_gate["owner_comment_id"] <= 0
             or owner_gate.get("lease_id") != lease_id):
         return hold("OWNER_APPROVAL_NOT_VERIFIED")
@@ -86,8 +86,10 @@ def attach_verified_stop_evidence(*, projection: Mapping,
             or stop_result.get("all_prior_executors_stopped") is not True
             or stop_result.get("work_id") != result.get("work_id")
             or stop_result.get("prior_dispatch_count") != prior
+            or type(result.get("attempt")) is not int or result["attempt"] != prior
             or not isinstance(stop_result.get("stop_comment_ids"), list)
             or len(stop_result["stop_comment_ids"]) != prior
+            or any(type(cid) is not int or cid <= 0 for cid in stop_result["stop_comment_ids"])
             or len(set(stop_result["stop_comment_ids"])) != prior):
         return result
     result["stop_attestation"] = dict(stop_result)
