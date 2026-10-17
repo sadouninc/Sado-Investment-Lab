@@ -3,8 +3,8 @@
   "preview": true,
   "not_production": true,
   "pull_request": 870,
-  "head_sha": "4e3852b65c403dc81310f6ac0936c03ae5757923",
-  "built_at": "2026-10-17T12:02:16Z",
+  "head_sha": "66713f184606ee2bce32e83dd78b78875bb0e1f5",
+  "built_at": "2026-10-17T12:09:10Z",
   "namespace": "pr-870",
   "html_files": 113
 }
