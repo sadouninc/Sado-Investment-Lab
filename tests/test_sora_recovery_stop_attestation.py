@@ -72,3 +72,32 @@ def test_wrong_owner_rejected():
     x = fixtures()
     x["owner_comments"][0]["user"]["login"] = "other-user"
     assert verify_stop_attestation(**x)["verified"] is False
+
+
+def test_two_prior_runs_need_two_distinct_owner_stops():
+    x = fixtures()
+    second_lease = "lease-" + "b" * 32
+    x["previous_leases"].append({"lease_id": second_lease, "writer_run_id": 124})
+    x["actions_runs"][124] = {**x["actions_runs"][123], "id": 124}
+    x["owner_comments"].append({
+        "id": 43, "user": {"login": OWNER}, "issue_url": REPO,
+        "body": f"<!-- SORA_RECOVERY_EXECUTOR_STOP issue=859 lease={second_lease} writer_run=124 decision=ALL_EXECUTORS_STOPPED -->",
+    })
+    result = verify_stop_attestation(**x)
+    assert result["verified"] is True
+    assert result["prior_dispatch_count"] == 2
+    assert result["stop_comment_ids"] == [42, 43]
+
+
+def test_stop_record_cannot_claim_another_run():
+    x = fixtures()
+    x["owner_comments"][0]["body"] = x["owner_comments"][0]["body"].replace(
+        "writer_run=123", "writer_run=999")
+    assert verify_stop_attestation(**x)["verified"] is False
+
+
+def test_failed_writer_run_alone_does_not_clear_a_lease():
+    x = fixtures()
+    x["actions_runs"][123]["conclusion"] = "failure"
+    x["owner_comments"] = []
+    assert verify_stop_attestation(**x)["verified"] is False
