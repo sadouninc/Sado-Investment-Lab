@@ -29,8 +29,17 @@ def decide_dispatch(*, issue_number: int, candidate: Mapping,
         return hold("READER_NOT_AUTHORIZED")
     # A lease expiry or a terminal label alone is not proof that an
     # executor stopped. Never authorize another attempt from these states.
-    if projection.get("prior_dispatch_count", 0) != 0:
-        return hold("PRIOR_DISPATCH_REQUIRES_STOP_ATTESTATION")
+    prior = projection.get("prior_dispatch_count", 0)
+    if type(prior) is not int or prior < 0:
+        return hold("INVALID_DISPATCH_HISTORY")
+    if prior:
+        stop = projection.get("stop_attestation")
+        if (not isinstance(stop, Mapping)
+                or stop.get("verified") is not True
+                or stop.get("work_id") != f"issue:{issue_number}"
+                or stop.get("prior_dispatch_count") != prior
+                or stop.get("all_prior_executors_stopped") is not True):
+            return hold("PRIOR_DISPATCH_REQUIRES_STOP_ATTESTATION")
     if (owner_gate.get("status") != "APPROVED"
             or owner_gate.get("issue_number") != issue_number
             or owner_gate.get("scope") != "sora_recovery_dispatch"
