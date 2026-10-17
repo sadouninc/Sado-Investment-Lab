@@ -53,7 +53,10 @@ def decide_dispatch(*, issue_number: int, candidate: Mapping,
     if (owner_gate.get("status") != "APPROVED"
             or owner_gate.get("issue_number") != issue_number
             or owner_gate.get("scope") != "sora_recovery_dispatch"
-            or owner_gate.get("verified") is not True):
+            or owner_gate.get("verified") is not True
+            or not isinstance(owner_gate.get("owner_comment_id"), int)
+            or owner_gate["owner_comment_id"] <= 0
+            or owner_gate.get("lease_id") != projection.get("next_lease_id")):
         return hold("OWNER_APPROVAL_NOT_VERIFIED")
     return {"status": "ELIGIBLE", "reason": "ALL_INDEPENDENT_GATES_PASSED",
             "post_authorized": True}
