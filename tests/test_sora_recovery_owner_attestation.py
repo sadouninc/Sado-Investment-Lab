@@ -1,4 +1,4 @@
-from scripts.sora_recovery_owner_attestation import inspect_owner_approval
+from scripts.sora_recovery_owner_attestation import inspect_owner_approval, verify_owner_comment_snapshot
 
 LEASE = "lease-" + "a" * 32
 OWNER = "authorized-human"
@@ -56,3 +56,44 @@ def test_extra_instruction_rejected():
 
 def test_bot_approval_rejected():
     assert check(sample(), expected_owner_login="github-actions[bot]")["verified"] is False
+
+
+def owner_snapshots():
+    listed = sample()
+    fetched = {**listed, "url": "https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/comments/123"}
+    repo = {"full_name": "sadouninc/Sado-Investment-Lab",
+            "owner": {"login": OWNER, "type": "User"}}
+    return listed, fetched, repo
+
+
+def test_independent_owner_snapshot_is_valid():
+    listed, fetched, repo = owner_snapshots()
+    result = verify_owner_comment_snapshot(
+        listed_comment=listed, fetched_comment=fetched, repository=repo,
+        expected_repository="sadouninc/Sado-Investment-Lab")
+    assert result["verified"] is True
+    assert result["owner_login"] == OWNER
+
+
+def test_changed_comment_body_fails_owner_snapshot():
+    listed, fetched, repo = owner_snapshots()
+    fetched["body"] = "changed"
+    assert verify_owner_comment_snapshot(
+        listed_comment=listed, fetched_comment=fetched, repository=repo,
+        expected_repository="sadouninc/Sado-Investment-Lab")["verified"] is False
+
+
+def test_organization_owner_does_not_imply_human_approval():
+    listed, fetched, repo = owner_snapshots()
+    repo["owner"]["type"] = "Organization"
+    assert verify_owner_comment_snapshot(
+        listed_comment=listed, fetched_comment=fetched, repository=repo,
+        expected_repository="sadouninc/Sado-Investment-Lab")["verified"] is False
+
+
+def test_cross_repo_owner_snapshot_rejected():
+    listed, fetched, repo = owner_snapshots()
+    repo["full_name"] = "someone/other"
+    assert verify_owner_comment_snapshot(
+        listed_comment=listed, fetched_comment=fetched, repository=repo,
+        expected_repository="sadouninc/Sado-Investment-Lab")["verified"] is False
