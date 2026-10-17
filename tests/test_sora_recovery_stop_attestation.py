@@ -101,3 +101,11 @@ def test_failed_writer_run_alone_does_not_clear_a_lease():
     x["actions_runs"][123]["conclusion"] = "failure"
     x["owner_comments"] = []
     assert verify_stop_attestation(**x)["verified"] is False
+
+
+def test_duplicate_stop_comment_ids_are_rejected_before_lease_matching():
+    x = fixtures()
+    x["owner_comments"].append({**x["owner_comments"][0]})
+    result = verify_stop_attestation(**x)
+    assert result["verified"] is False
+    assert result["reason"] == "DUPLICATE_OR_INVALID_STOP_COMMENT_IDS"
