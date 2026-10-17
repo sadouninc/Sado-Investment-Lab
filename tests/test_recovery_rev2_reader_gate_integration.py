@@ -81,3 +81,32 @@ def test_protected_issue_79_cannot_pass_integrated_reader_gate():
                     "scope": "sora_recovery_dispatch", "verified": True,
                     "owner_comment_id": 51, "lease_id": NEW},
         evidence_complete=True)["post_authorized"] is False
+
+
+def test_artifact_to_reader_to_final_gate_is_hold_only():
+    """Synthetic linked artifact cannot grant a retry while lease is active."""
+    from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
+    observed = [{"comment_id": 41, "lease_id": OLD, "writer_run_id": 123}]
+    authenticated = [{
+        "status": "ATTESTED_LINKAGE", "work_id": WORK,
+        "comment_id": 41, "lease_id": OLD, "writer_run_id": 123,
+        "dispatch_allowed": False,
+    }]
+    projection = project_authenticated_artifact_inventory(
+        work_id=WORK, observed=observed, authenticated=authenticated,
+        complete=True)
+    assert projection["status"] == "DISPATCHED"
+    assert projection["dispatch_allowed"] is False
+    assert decision(projection)["post_authorized"] is False
+    assert decision(attach_verified_stop_evidence(
+        projection=projection, stop_result=stop_result()))["post_authorized"] is False
+
+
+def test_partial_artifact_inventory_cannot_be_rescued_by_owner_approval():
+    from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
+    projection = project_authenticated_artifact_inventory(
+        work_id=WORK,
+        observed=[{"comment_id": 41, "lease_id": OLD, "writer_run_id": 123}],
+        authenticated=[], complete=False)
+    assert projection["status"] == "UNKNOWN"
+    assert decision(projection)["post_authorized"] is False
