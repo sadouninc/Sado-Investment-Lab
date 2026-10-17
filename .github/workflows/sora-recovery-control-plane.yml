@@ -246,25 +246,44 @@ jobs:
           projection = project_attested_comments(
               work_id=f"issue:{issue['number']}", comments=comments,
               trusted_comment_ids=set(), provenance_verified=False)
-          # A real GitHub issue comment is inspected, not assumed to be an
-          # Owner authorization. Owner login needs an owner-controlled trust
-          # source; until then even an exact marker stays unverified.
+          # Compare the listed approval with a separate GitHub API fetch.
+          # The repo owner must be an actual User; org ownership cannot
+          # establish an individual approver without an explicit owner list.
+          import subprocess
+          from scripts.sora_recovery_owner_attestation import verify_owner_comment_snapshot
+          repo_name = os.environ["GITHUB_REPOSITORY"]
+          repo_result = subprocess.run(["gh", "api", f"repos/{repo_name}"],
+                                       capture_output=True, text=True, check=True)
+          repo = json.loads(repo_result.stdout)
           approval_markers = [c for c in comments if isinstance(c.get("body"), str)
                               and c["body"].startswith("<!-- SORA_RECOVERY_OWNER_APPROVAL ")]
-          approvals = [
-              inspect_owner_approval(
-                  comment=c, issue_number=issue["number"],
+          approvals = []
+          for item in approval_markers:
+              cid = item.get("id")
+              if type(cid) is not int or cid <= 0:
+                  raise SystemExit("INVALID_OWNER_APPROVAL_COMMENT_ID")
+              fresh = subprocess.run(
+                  ["gh", "api", f"repos/{repo_name}/issues/comments/{cid}"],
+                  capture_output=True, text=True, check=True)
+              attestation = verify_owner_comment_snapshot(
+                  listed_comment=item, fetched_comment=json.loads(fresh.stdout),
+                  repository=repo, expected_repository=repo_name)
+              approval = inspect_owner_approval(
+                  comment=item, issue_number=issue["number"],
                   lease_id=os.environ.get("LEASE_FOR_OWNER_GATE", ""),
-                  expected_owner_login="", independently_verified_author=False)
-              for c in approval_markers
-          ]
+                  expected_owner_login=attestation.get("owner_login", ""),
+                  independently_verified_author=attestation.get("verified") is True)
+              approvals.append(approval)
           print("OWNER_APPROVAL_OBSERVATIONS=" + json.dumps(approvals, sort_keys=True))
+          valid_approvals = [a for a in approvals if a.get("verified") is True]
+          owner_gate = (valid_approvals[0] if len(valid_approvals) == 1
+                        else {"status": "UNKNOWN", "verified": False})
           decision = decide_dispatch(
               issue_number=issue["number"],
               lease_id=os.environ.get("LEASE_FOR_OWNER_GATE", ""),
               candidate=candidate,
               projection=projection,
-              owner_gate={"status": "UNKNOWN", "verified": False},
+              owner_gate=owner_gate,
               evidence_complete=False)
           print("DISPATCH_GATE_DECISION=" + json.dumps(decision, sort_keys=True))
           if decision.get("post_authorized") is not False:
