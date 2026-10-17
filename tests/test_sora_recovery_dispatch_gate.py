@@ -51,3 +51,23 @@ def test_cross_issue_owner_denied():
     data = inputs()
     data["owner_gate"]["issue_number"] = 860
     assert decide_dispatch(**data)["post_authorized"] is False
+
+
+def test_prior_dispatch_requires_stop_attestation():
+    data = inputs()
+    data["projection"]["prior_dispatch_count"] = 1
+    assert decide_dispatch(**data)["reason"] == "PRIOR_DISPATCH_REQUIRES_STOP_ATTESTATION"
+
+
+def test_expired_lease_is_not_dispatch_authority():
+    data = inputs()
+    data["projection"]["status"] = "EXPIRED"
+    data["projection"]["prior_dispatch_count"] = 1
+    assert decide_dispatch(**data)["post_authorized"] is False
+
+
+def test_terminal_lease_is_not_dispatch_authority():
+    data = inputs()
+    data["projection"]["status"] = "DONE"
+    data["projection"]["prior_dispatch_count"] = 1
+    assert decide_dispatch(**data)["post_authorized"] is False
