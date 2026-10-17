@@ -87,13 +87,18 @@ jobs:
           gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls?state=all&per_page=100" | jq -s 'add // []' > /tmp/prs.json
           # A preliminary pass never authorizes a mutation. Hold the POST
           # without turning expected safety holds into workflow failures.
-          if python -m scripts.sora_recovery_candidate_guard \
+          guard_rc=0
+          python -m scripts.sora_recovery_candidate_guard \
             --issue-json /tmp/issue.json \
             --comments-json /tmp/comments.json \
-            --prs-json /tmp/prs.json; then
+            --prs-json /tmp/prs.json || guard_rc=$?
+          if [[ "$guard_rc" == "0" ]]; then
             echo CANDIDATE_PREFLIGHT_ONLY
-          else
+          elif [[ "$guard_rc" == "78" ]]; then
             echo CANDIDATE_GUARD_HOLD
+          else
+            echo "CANDIDATE_GUARD_EXECUTION_ERROR rc=$guard_rc" >&2
+            exit "$guard_rc"
           fi
           # Project the complete candidate evidence through the Rev.2 reader.
           # No comment-to-Actions-run attestation is established here, so
