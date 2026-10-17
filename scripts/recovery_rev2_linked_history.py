@@ -32,8 +32,13 @@ def project_linked_dispatch_history(*, work_id: str,
     if item.get("work_id") != work_id or item.get("dispatch_allowed") is not False:
         return unknown("DISPATCH_LINKAGE_IDENTITY_MISMATCH")
     cid, lease = item.get("comment_id"), item.get("lease_id")
+    run_id = item.get("writer_run_id")
     if type(cid) is not int or cid <= 0:
         return unknown("INVALID_LINKED_COMMENT_ID")
+    # Correlation to a specific, independently authenticated Actions run is
+    # mandatory. Do not promote a comment-only dispatch to canonical history.
+    if type(run_id) is not int or run_id <= 0:
+        return unknown("MISSING_LINKED_WRITER_RUN")
     if not isinstance(lease, str):
         return unknown("INVALID_LINKED_LEASE")
     event = {"work_id": work_id, "status": "DISPATCHED",
