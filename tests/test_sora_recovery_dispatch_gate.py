@@ -215,3 +215,20 @@ def test_stop_evidence_cannot_attach_to_mismatched_attempt():
             "stop_comment_ids": [42, 43]}
     result = attach_verified_stop_evidence(projection=projection, stop_result=stop)
     assert "stop_attestation" not in result
+
+
+def test_ambiguous_candidate_and_owner_issue_identities_fail_closed():
+    for key in ("candidate", "owner_gate"):
+        for invalid in (True, "859", None):
+            data = inputs()
+            data[key]["issue_number"] = invalid
+            assert decide_dispatch(**data)["post_authorized"] is False
+
+
+def test_missing_reader_work_id_cannot_accept_stop_attestation():
+    projection = {"status": "EXPIRED", "attempt": 1,
+                  "prior_dispatch_count": 1, "dispatch_allowed": False}
+    stop = {"verified": True, "prior_dispatch_count": 1,
+            "all_prior_executors_stopped": True, "stop_comment_ids": [42]}
+    assert "stop_attestation" not in attach_verified_stop_evidence(
+        projection=projection, stop_result=stop)
