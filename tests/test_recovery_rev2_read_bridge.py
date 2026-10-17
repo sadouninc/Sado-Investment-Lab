@@ -41,3 +41,22 @@ def test_orphan_pr_open_fails_closed():
 def test_issue_79_hard_deny():
     result = project([], set(), work="issue:79")
     assert result["status"] == "BLOCKED" and result["dispatch_allowed"] is False
+
+
+def test_duplicate_attested_comment_ids_fail_closed():
+    result = project([c("DISPATCHED", 10), c("ACKED", 10)], {10})
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "ATTESTATION_SET_MISMATCH" or result["reason"] == "INVALID_ATTESTED_COMMENT_INVENTORY"
+    assert result["dispatch_allowed"] is False
+
+
+def test_out_of_order_attested_comments_fail_closed():
+    result = project([c("ACKED", 11), c("DISPATCHED", 10)], {10, 11})
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "INVALID_ATTESTED_COMMENT_INVENTORY"
+
+
+def test_invalid_comment_id_fails_closed():
+    result = project([c("DISPATCHED", True)], {True})
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "INVALID_ATTESTED_COMMENT_INVENTORY"
