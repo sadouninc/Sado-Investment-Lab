@@ -200,11 +200,25 @@ jobs:
               elif result.get("status") in {"UNKNOWN", "BLOCKED"}:
                   print("LEGACY_EVIDENCE_REQUIRES_RECONCILIATION")
               assert result.get("dispatch_allowed") is False
-          linked_projection = project_linked_dispatch_history(
-              work_id=work_id, linked_dispatches=linked_dispatches,
-              # Any missing or ambiguous event must hold. This is only an
-              # observation, never a feed into POST authorization.
-              complete_history=all_dispatches_linked and bool(linked_dispatches))
+          from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
+          observed_dispatches = []
+          for comment in comments:
+              body = comment.get("body")
+              if not isinstance(body, str) or not body.startswith("<!-- AUTO_ROUTER_DISPATCH "):
+                  continue
+              try:
+                  event = json.loads(body.splitlines()[1])
+                  observed_dispatches.append({
+                      "lease_id": event.get("canonical_lease_id"),
+                      "writer_run_id": event.get("writer_run_id"),
+                  })
+              except (IndexError, ValueError, TypeError, AttributeError):
+                  all_dispatches_linked = False
+          linked_projection = project_authenticated_artifact_inventory(
+              work_id=work_id, observed=observed_dispatches,
+              authenticated=linked_dispatches,
+              # Never treat missing artifacts or partial pagination as READY.
+              complete=all_dispatches_linked and bool(linked_dispatches))
           print("LINKED_LEGACY_PROJECTION=" + json.dumps(linked_projection, sort_keys=True))
           assert linked_projection.get("dispatch_allowed") is False
           with open("/tmp/linked-legacy-projection.json", "w", encoding="utf-8") as f:
