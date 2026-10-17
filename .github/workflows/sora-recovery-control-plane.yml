@@ -110,6 +110,9 @@ jobs:
           import os
           import subprocess
           from scripts.recovery_rev2_evidence_adapter import attest_legacy_sora_lease
+          from scripts.recovery_rev2_linked_history import project_linked_dispatch_history
+          linked_dispatches = []
+          all_dispatches_linked = True
           with open("/tmp/comments.json", encoding="utf-8") as f:
               comments = json.load(f)
           with open("/tmp/issue.json", encoding="utf-8") as f:
@@ -172,6 +175,10 @@ jobs:
                           linkage=linkage, comment=comment, actions_run=run,
                           expected_repository=os.environ["GITHUB_REPOSITORY"],
                           artifact_run_id=run_id)
+                      if checked.get("status") == "ATTESTED_LINKAGE":
+                          linked_dispatches.append(checked)
+                      else:
+                          all_dispatches_linked = False
                       print("RUN_OWNED_LINKAGE=" + json.dumps({
                           "comment_id": comment.get("id"),
                           "status": checked.get("status"),
@@ -179,7 +186,10 @@ jobs:
                       }, sort_keys=True))
                   except (subprocess.CalledProcessError, ValueError, KeyError,
                           OSError, zipfile.BadZipFile, TypeError) as exc:
+                      all_dispatches_linked = False
                       print("RUN_OWNED_LINKAGE_UNVERIFIED=" + type(exc).__name__)
+              if not run or type(run_id) is not int:
+                  all_dispatches_linked = False
               print("LEGACY_ATTESTATION=" + json.dumps({
                   "comment_id": comment.get("id"),
                   "status": result.get("status"),
@@ -190,6 +200,13 @@ jobs:
               elif result.get("status") in {"UNKNOWN", "BLOCKED"}:
                   print("LEGACY_EVIDENCE_REQUIRES_RECONCILIATION")
               assert result.get("dispatch_allowed") is False
+          linked_projection = project_linked_dispatch_history(
+              work_id=work_id, linked_dispatches=linked_dispatches,
+              # Any missing or ambiguous event must hold. This is only an
+              # observation, never a feed into POST authorization.
+              complete_history=all_dispatches_linked and bool(linked_dispatches))
+          print("LINKED_LEGACY_PROJECTION=" + json.dumps(linked_projection, sort_keys=True))
+          assert linked_projection.get("dispatch_allowed") is False
           PY
           # Project the complete candidate evidence through the Rev.2 reader.
           # Comment-to-run provenance remains unproven, so fail closed.
