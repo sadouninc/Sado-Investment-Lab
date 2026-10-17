@@ -8,7 +8,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 
-def decide_dispatch(*, issue_number: int, candidate: Mapping,
+def decide_dispatch(*, issue_number: int, lease_id: str, candidate: Mapping,
                     projection: Mapping, owner_gate: Mapping,
                     evidence_complete: bool) -> dict:
     def hold(reason: str) -> dict:
@@ -16,6 +16,9 @@ def decide_dispatch(*, issue_number: int, candidate: Mapping,
 
     if type(issue_number) is not int or issue_number <= 0 or issue_number == 79:
         return hold("INVALID_OR_PROTECTED_ISSUE")
+    import re
+    if not isinstance(lease_id, str) or re.fullmatch(r"lease-[0-9a-f]{32}", lease_id) is None:
+        return hold("INVALID_REQUESTED_LEASE")
     if not all(isinstance(x, Mapping) for x in (candidate, projection, owner_gate)):
         return hold("INVALID_GATE_INPUT")
     if evidence_complete is not True:
@@ -56,7 +59,7 @@ def decide_dispatch(*, issue_number: int, candidate: Mapping,
             or owner_gate.get("verified") is not True
             or not isinstance(owner_gate.get("owner_comment_id"), int)
             or owner_gate["owner_comment_id"] <= 0
-            or owner_gate.get("lease_id") != projection.get("next_lease_id")):
+            or owner_gate.get("lease_id") != lease_id):
         return hold("OWNER_APPROVAL_NOT_VERIFIED")
     return {"status": "ELIGIBLE", "reason": "ALL_INDEPENDENT_GATES_PASSED",
             "post_authorized": True}
