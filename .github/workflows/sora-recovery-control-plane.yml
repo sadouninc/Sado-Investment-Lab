@@ -209,6 +209,9 @@ jobs:
           assert linked_projection.get("dispatch_allowed") is False
           with open("/tmp/linked-legacy-projection.json", "w", encoding="utf-8") as f:
               json.dump(linked_projection, f, sort_keys=True)
+          with open("/tmp/linked-dispatch-evidence.json", "w", encoding="utf-8") as f:
+              json.dump({"complete": all_dispatches_linked and bool(linked_dispatches),
+                         "dispatches": linked_dispatches}, f, sort_keys=True)
           PY
           # Project the complete candidate evidence through the Rev.2 reader.
           # Comment-to-run provenance remains unproven, so fail closed.
@@ -353,7 +356,17 @@ jobs:
                   runs[run_id] = json.loads(response.stdout)
               except (IndexError, ValueError, KeyError, subprocess.CalledProcessError):
                   history_ambiguous = True
-          if previous and not history_ambiguous:
+          with open("/tmp/linked-dispatch-evidence.json", encoding="utf-8") as f:
+              linked_evidence = json.load(f)
+          authenticated = linked_evidence.get("dispatches", [])
+          authenticated_pairs = [
+              (x.get("lease_id"), x.get("writer_run_id")) for x in authenticated
+          ]
+          observed_pairs = [(x["lease_id"], x["writer_run_id"]) for x in previous]
+          if (previous and not history_ambiguous
+                  and linked_evidence.get("complete") is True
+                  and len(authenticated_pairs) == len(observed_pairs)
+                  and sorted(authenticated_pairs) == sorted(observed_pairs)):
               stop_result = verify_stop_attestation(
                   issue_number=issue["number"], previous_leases=previous,
                   owner_comments=trusted_stops, actions_runs=runs,
