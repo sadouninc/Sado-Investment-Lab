@@ -108,6 +108,12 @@ def project_authenticated_artifact_inventory(*, work_id: str,
     if {(item["comment_id"], item["lease_id"], item["writer_run_id"]) for item in observed} != {
             (item["comment_id"], item["lease_id"], item["writer_run_id"]) for item in authenticated}:
         return unknown("ARTIFACT_COMMENT_LINKAGE_MISMATCH")
+    # Each writer run is allowed to substantiate one dispatch only. A single
+    # run reused across multiple leases is ambiguous even with distinct IDs.
+    if len({item["writer_run_id"] for item in authenticated}) != len(authenticated):
+        return unknown("REUSED_WRITER_RUN_ID")
+    if len({item["lease_id"] for item in authenticated}) != len(authenticated):
+        return unknown("REUSED_LEASE_ID")
     if any(item.get("work_id") != work_id for item in authenticated):
         return unknown("ARTIFACT_WORK_ID_MISMATCH")
     return project_linked_dispatch_history(
