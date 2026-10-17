@@ -7,6 +7,7 @@ This migration does not authorize a retry or prove executor termination.
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+import re
 from scripts.recovery_rev2_state_reader import project_state
 
 
@@ -39,7 +40,7 @@ def project_linked_dispatch_history(*, work_id: str,
     # mandatory. Do not promote a comment-only dispatch to canonical history.
     if type(run_id) is not int or run_id <= 0:
         return unknown("MISSING_LINKED_WRITER_RUN")
-    if not isinstance(lease, str):
+    if not isinstance(lease, str) or re.fullmatch(r"lease-[0-9a-f]{32}", lease) is None:
         return unknown("INVALID_LINKED_LEASE")
     event = {"work_id": work_id, "status": "DISPATCHED",
              "comment_id": cid, "attempt": 1, "lease_id": lease}
@@ -58,7 +59,8 @@ def matches_complete_dispatch_evidence(*, observed: Sequence[Mapping],
         if not isinstance(item, Mapping):
             return None
         lease, run = item.get("lease_id"), item.get("writer_run_id")
-        if (not isinstance(lease, str) or type(run) is not int or run <= 0
+        if (not isinstance(lease, str) or re.fullmatch(r"lease-[0-9a-f]{32}", lease) is None
+                or type(run) is not int or run <= 0
                 or trusted and (item.get("status") != "ATTESTED_LINKAGE"
                                 or item.get("dispatch_allowed") is not False)):
             return None
