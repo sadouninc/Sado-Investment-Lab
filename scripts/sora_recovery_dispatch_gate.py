@@ -63,3 +63,32 @@ def decide_dispatch(*, issue_number: int, lease_id: str, candidate: Mapping,
         return hold("OWNER_APPROVAL_NOT_VERIFIED")
     return {"status": "ELIGIBLE", "reason": "ALL_INDEPENDENT_GATES_PASSED",
             "post_authorized": True}
+
+
+def attach_verified_stop_evidence(*, projection: Mapping,
+                                  stop_result: Mapping) -> dict:
+    """Add checked stop evidence to a read-only EXPIRED projection.
+
+    Caller must independently authenticate full event history and all
+    previous lease/run identities. This never changes dispatch_allowed.
+    """
+    if not isinstance(projection, Mapping):
+        return {"status": "UNKNOWN", "reason": "INVALID_READER_PROJECTION",
+                "dispatch_allowed": False}
+    result = dict(projection)
+    result.pop("stop_attestation", None)
+    prior = result.get("prior_dispatch_count")
+    if (result.get("status") != "EXPIRED"
+            or result.get("dispatch_allowed") is not False
+            or type(prior) is not int or not 1 <= prior <= 3
+            or not isinstance(stop_result, Mapping)
+            or stop_result.get("verified") is not True
+            or stop_result.get("all_prior_executors_stopped") is not True
+            or stop_result.get("work_id") != result.get("work_id")
+            or stop_result.get("prior_dispatch_count") != prior
+            or not isinstance(stop_result.get("stop_comment_ids"), list)
+            or len(stop_result["stop_comment_ids"]) != prior
+            or len(set(stop_result["stop_comment_ids"])) != prior):
+        return result
+    result["stop_attestation"] = dict(stop_result)
+    return result
