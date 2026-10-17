@@ -20,7 +20,7 @@ def test_all_independent_gates_required():
 def test_unknown_reader_holds():
     data = inputs()
     data["projection"] = {"status": "UNKNOWN", "dispatch_allowed": False}
-    assert decide_dispatch(**data)["reason"] == "READER_NOT_AUTHORIZED"
+    assert decide_dispatch(**data)["reason"] == "INVALID_READER_PROJECTION"
 
 
 def test_owner_approval_must_be_verified():
@@ -75,7 +75,7 @@ def test_terminal_lease_is_not_dispatch_authority():
 
 def test_verified_stop_attestation_allows_gate_to_proceed():
     data = inputs()
-    data["projection"]["prior_dispatch_count"] = 1
+    data["projection"].update({"status": "EXPIRED", "prior_dispatch_count": 1, "attempt": 1})
     data["projection"]["stop_attestation"] = {
         "verified": True, "work_id": "issue:859",
         "prior_dispatch_count": 1, "all_prior_executors_stopped": True}
