@@ -358,15 +358,12 @@ jobs:
                   history_ambiguous = True
           with open("/tmp/linked-dispatch-evidence.json", encoding="utf-8") as f:
               linked_evidence = json.load(f)
+          from scripts.recovery_rev2_linked_history import matches_complete_dispatch_evidence
           authenticated = linked_evidence.get("dispatches", [])
-          authenticated_pairs = [
-              (x.get("lease_id"), x.get("writer_run_id")) for x in authenticated
-          ]
-          observed_pairs = [(x["lease_id"], x["writer_run_id"]) for x in previous]
-          if (previous and not history_ambiguous
-                  and linked_evidence.get("complete") is True
-                  and len(authenticated_pairs) == len(observed_pairs)
-                  and sorted(authenticated_pairs) == sorted(observed_pairs)):
+          if (not history_ambiguous
+                  and matches_complete_dispatch_evidence(
+                      observed=previous, authenticated=authenticated,
+                      complete=linked_evidence.get("complete"))):
               stop_result = verify_stop_attestation(
                   issue_number=issue["number"], previous_leases=previous,
                   owner_comments=trusted_stops, actions_runs=runs,
