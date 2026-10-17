@@ -35,6 +35,11 @@ def verify_stop_attestation(*, issue_number: int, previous_leases: Sequence[Mapp
     if (owner_identity_verified is not True or not isinstance(expected_owner_login, str)
             or not expected_owner_login or expected_owner_login.endswith("[bot]")):
         return hold("OWNER_NOT_AUTHENTICATED")
+    comment_ids = [c.get("id") if isinstance(c, Mapping) else None
+                   for c in owner_comments]
+    if (any(type(cid) is not int or cid <= 0 for cid in comment_ids)
+            or len(comment_ids) != len(set(comment_ids))):
+        return hold("DUPLICATE_OR_INVALID_STOP_COMMENT_IDS")
     seen_leases = set()
     seen_runs = set()
     seen_comments = set()
@@ -59,8 +64,8 @@ def verify_stop_attestation(*, issue_number: int, previous_leases: Sequence[Mapp
             if not isinstance(comment, Mapping):
                 return hold("INVALID_STOP_COMMENT")
             cid = comment.get("id")
-            if type(cid) is not int or cid <= 0 or cid in seen_comments:
-                return hold("INVALID_OR_REUSED_STOP_COMMENT")
+            if type(cid) is not int or cid <= 0:
+                return hold("INVALID_STOP_COMMENT")
             body = comment.get("body")
             marker = _STOP.fullmatch(body.strip()) if isinstance(body, str) else None
             if not marker or marker["issue"] != str(issue_number):
@@ -75,6 +80,8 @@ def verify_stop_attestation(*, issue_number: int, previous_leases: Sequence[Mapp
             matching.append(comment)
         if len(matching) != 1:
             return hold("MISSING_OR_DUPLICATE_STOP_ATTESTATION")
+        if matching[0]["id"] in seen_comments:
+            return hold("REUSED_STOP_COMMENT")
         seen_comments.add(matching[0]["id"])
     return {"verified": True, "work_id": f"issue:{issue_number}",
             "prior_dispatch_count": len(previous_leases),
