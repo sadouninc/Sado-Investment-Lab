@@ -3,10 +3,10 @@ from scripts.sora_recovery_dispatch_gate import decide_dispatch
 
 def inputs():
     return {
-        "issue_number": 859,
+        "issue_number": 859, "lease_id": "lease-" + "a" * 32,
         "candidate": {"status": "ALLOW_PRELIMINARY", "issue_number": 859,
                       "dispatch_authorized": False},
-        "projection": {"status": "READY", "dispatch_allowed": False, "work_id": "issue:859", "prior_dispatch_count": 0, "attempt": 0, "next_lease_id": "lease-" + "a" * 32},
+        "projection": {"status": "READY", "dispatch_allowed": False, "work_id": "issue:859", "prior_dispatch_count": 0, "attempt": 0},
         "owner_gate": {"status": "APPROVED", "issue_number": 859,
                        "scope": "sora_recovery_dispatch", "verified": True,
                        "owner_comment_id": 42, "lease_id": "lease-" + "a" * 32},
