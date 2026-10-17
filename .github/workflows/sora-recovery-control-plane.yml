@@ -168,6 +168,10 @@ jobs:
               raise SystemExit("UNRECOGNIZED_READER_STATUS")
           if result.get("dispatch_allowed") is not False:
               raise SystemExit("UNAUTHORIZED_READER_DISPATCH")
+          # This checkpoint has no independently proven comment-to-run link.
+          # Never treat an empty/unverified projection as authorization.
+          if result.get("status") != "UNKNOWN" or result.get("reason") != "PROVENANCE_UNVERIFIED":
+              raise SystemExit("UNEXPECTED_UNATTESTED_READER_PROJECTION")
           if result.get("status") == "UNKNOWN":
               print("READER_HOLD_UNVERIFIED_PROVENANCE")
           elif result.get("status") in {"ACKED", "RUNNING", "PR_OPEN"}:
