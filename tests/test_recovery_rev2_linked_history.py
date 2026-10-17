@@ -225,3 +225,22 @@ def test_workflow_preflight_runs_recovery_suite():
     from pathlib import Path
     preflight = Path(".github/workflows/pr-preflight.yml").read_text(encoding="utf-8")
     assert "python3 -m pytest tests -q" in preflight
+
+
+def test_artifact_inventory_rejects_reused_writer_run_across_leases():
+    from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
+    other = "lease-" + "b" * 32
+    observed = [
+        {"comment_id": 42, "lease_id": LEASE, "writer_run_id": 123},
+        {"comment_id": 43, "lease_id": other, "writer_run_id": 123},
+    ]
+    authenticated = [
+        dispatch(),
+        dispatch(comment_id=43, lease_id=other),
+    ]
+    result = project_authenticated_artifact_inventory(
+        work_id="issue:859", observed=observed,
+        authenticated=authenticated, complete=True)
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "REUSED_WRITER_RUN_ID"
+    assert result["dispatch_allowed"] is False
