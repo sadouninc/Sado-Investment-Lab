@@ -221,6 +221,15 @@ jobs:
               # Never treat missing artifacts or partial pagination as READY.
               complete=all_dispatches_linked and bool(linked_dispatches))
           print("LINKED_LEGACY_PROJECTION=" + json.dumps(linked_projection, sort_keys=True))
+          print("ARTIFACT_READER_AUDIT=" + json.dumps({
+              "work_id": work_id,
+              "observed_count": len(observed_dispatches),
+              "authenticated_count": len(linked_dispatches),
+              "inventory_complete": all_dispatches_linked and bool(linked_dispatches),
+              "reader_status": linked_projection.get("status"),
+              "reader_reason": linked_projection.get("reason"),
+              "dispatch_allowed": linked_projection.get("dispatch_allowed"),
+          }, sort_keys=True))
           assert linked_projection.get("dispatch_allowed") is False
           with open("/tmp/linked-legacy-projection.json", "w", encoding="utf-8") as f:
               json.dump(linked_projection, f, sort_keys=True)
