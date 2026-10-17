@@ -32,7 +32,8 @@ def project_state(*, work_id: str, events: Sequence[Mapping], evidence_verified:
     if evidence_verified is not True or not isinstance(events, (list, tuple)):
         return _unknown("PROVENANCE_UNVERIFIED")
     if not events:
-        return {"status": "READY", "dispatch_allowed": False, "reason": "PREFLIGHT_REQUIRED"}
+        return {"status": "READY", "dispatch_allowed": False, "reason": "PREFLIGHT_REQUIRED",
+                "work_id": work_id, "prior_dispatch_count": 0, "attempt": 0}
 
     last = None
     last_comment_id = 0
@@ -104,6 +105,9 @@ def project_state(*, work_id: str, events: Sequence[Mapping], evidence_verified:
         last = status
 
     if last == "EXPIRED" and attempt_number == 4:
-        return {"status": "BLOCKED", "reason": "RETRY_LIMIT", "dispatch_allowed": False}
+        return {"status": "BLOCKED", "reason": "RETRY_LIMIT", "dispatch_allowed": False,
+                "work_id": work_id, "prior_dispatch_count": attempt_number, "attempt": attempt_number}
     return {"status": last, "dispatch_allowed": False,
+            "work_id": work_id, "prior_dispatch_count": attempt_number,
+            "attempt": attempt_number, "current_lease": current_lease,
             "reason": "RECOVERY_AUTHORITY_REQUIRED" if last in {"EXPIRED", "BLOCKED"} else "STATE_OBSERVED"}
