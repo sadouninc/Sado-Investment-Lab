@@ -77,6 +77,12 @@ def check_candidate(issue: Mapping, comments: list, prs: list) -> dict:
             return _block("PRIOR_DISPATCH_REQUIRES_RECONCILIATION")
         if _related_event(text, number):
             return _block("UNRECONCILED_WORK_EVENT")
+        # Malformed related JSON must not masquerade as an empty event history.
+        if ("AUTO_ROUTER_DISPATCH" in text or "canonical_lease_id" in text) and (
+            f"issue:{number}" in text or f"issue-{number}" in text or
+            re.search(r"target_issue\\s*=\\s*" + str(number) + r"\\b", text)
+        ):
+            return _block("AMBIGUOUS_RELATED_EVENT")
     issue_ref = re.compile(r"(?<!\d)#" + str(number) + r"(?!\d)")
     branch_ref = re.compile(r"(?:^|[/_-])(?:issue[-_])?" + str(number) + r"(?:$|[/_-])")
     seen_pr_numbers: set[int] = set()
