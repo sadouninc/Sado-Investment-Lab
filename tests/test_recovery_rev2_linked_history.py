@@ -171,7 +171,7 @@ def test_authentication_failure_cannot_be_hidden_in_linked_history():
 
 def test_artifact_inventory_bridge_projects_only_complete_linked_history():
     from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
-    observed = [{"lease_id": LEASE, "writer_run_id": 123}]
+    observed = [{"comment_id": 42, "lease_id": LEASE, "writer_run_id": 123}]
     ok = project_authenticated_artifact_inventory(
         work_id="issue:859", observed=observed, authenticated=[dispatch()],
         complete=True)
@@ -191,5 +191,14 @@ def test_artifact_inventory_bridge_never_assumes_empty_means_ready():
     from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
     result = project_authenticated_artifact_inventory(
         work_id="issue:859", observed=[], authenticated=[], complete=True)
+    assert result["status"] == "UNKNOWN"
+    assert result["dispatch_allowed"] is False
+
+
+def test_artifact_bridge_rejects_wrong_comment_even_with_matching_lease_and_run():
+    from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
+    observed = [{"comment_id": 99, "lease_id": LEASE, "writer_run_id": 123}]
+    result = project_authenticated_artifact_inventory(
+        work_id="issue:859", observed=observed, authenticated=[dispatch()], complete=True)
     assert result["status"] == "UNKNOWN"
     assert result["dispatch_allowed"] is False
