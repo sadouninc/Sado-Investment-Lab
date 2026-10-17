@@ -90,3 +90,16 @@ def test_old_flow_authority_rejected():
     result = check_candidate(old, [], [])
     assert result["status"] == "BLOCKED"
     assert result["reason"] == "RECOVERY_CONTRACT_MISSING"
+
+
+def test_malformed_related_lease_event_fails_closed():
+    body = '{"canonical_lease_id":"lease-' + 'a'*32 + '","work_ref":"issue:859",'
+    result = check_candidate(issue(), [{"id": 11, "body": body}], [])
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "AMBIGUOUS_RELATED_EVENT"
+
+
+def test_malformed_unrelated_lease_event_does_not_block():
+    body = '{"canonical_lease_id":"lease-' + 'a'*32 + '","work_ref":"issue:860",'
+    result = check_candidate(issue(), [{"id": 11, "body": body}], [])
+    assert result["status"] == "ALLOW_PRELIMINARY"
