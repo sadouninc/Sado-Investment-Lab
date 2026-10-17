@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-17T09:30:48+09:00",
-  "last_success_at": "2026-10-17T09:30:48+09:00",
+  "last_run_at": "2026-10-17T13:31:07+09:00",
+  "last_success_at": "2026-10-17T13:31:07+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-16T06:35:13.091+09:00",
+  "news_delta": 4,
+  "last_news_delta_at": "2026-10-17T13:31:07+09:00",
   "news_persisted": false,
   "persistence_status": "PENDING_PERSIST",
   "updated_by": "❤️レイ",
-  "note": "2026-10-17 09:30 JST: Natural scheduled heartbeat; Startup Sync v2 TEAM_RULES sha=89f8b8a→TEAM_STATE(AWAY/LUNA Flow Authority)→#99 broadcast-head=6220426869 (263/263) VERIFIED. Fresh AI Key Person / #861 financing / glass-TGV / MRAM / consumer overseas scan: no independently verified material NEW delta beyond earlier reports; no Research append. Previous 2026-10-16 Research PENDING_PERSIST remains unresolved (not re-attempted). #79 untouched. Direct GitHub connector mutation evidence must be reported separately with actual result; no dummy mutation."
+  "note": "2026-10-17 13:31 JST: Startup Sync v2 TEAM_RULES→TEAM_STATE(AWAY/LUNA Flow Authority)→#99 head=6220426869 (263/263) VERIFIED. Material evidence: TSMC 3Q26 official growth vs CoreWeave credit stress; Anthropic/Blackstone reported financing (unverified terms); China AI technology export-control proposal and temporary registration. #861 causal chain verified as hypothesis, not Japan equity orders. Research append direct GitHub tool REJECTED by actual safety response; no retry. Consumer/Field and MRAM: no additional independently verified adoption delta. #79 untouched. GitHub heartbeat result must be evidenced by commit SHA separately."
 }
