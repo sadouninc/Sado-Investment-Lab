@@ -52,7 +52,11 @@ def decide_dispatch(*, issue_number: int, lease_id: str, candidate: Mapping,
                 or stop.get("verified") is not True
                 or stop.get("work_id") != f"issue:{issue_number}"
                 or stop.get("prior_dispatch_count") != prior
-                or stop.get("all_prior_executors_stopped") is not True):
+                or stop.get("all_prior_executors_stopped") is not True
+                or not isinstance(stop.get("stop_comment_ids"), list)
+                or len(stop["stop_comment_ids"]) != prior
+                or any(type(cid) is not int or cid <= 0 for cid in stop["stop_comment_ids"])
+                or len(set(stop["stop_comment_ids"])) != prior):
             return hold("PRIOR_DISPATCH_REQUIRES_STOP_ATTESTATION")
     if (owner_gate.get("status") != "APPROVED"
             or type(owner_gate.get("issue_number")) is not int
