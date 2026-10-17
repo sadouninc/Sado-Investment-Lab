@@ -175,6 +175,12 @@ def verify_run_owned_dispatch_linkage(*, linkage: Mapping, comment: Mapping,
             or not isinstance(comment.get("user"), Mapping)
             or comment["user"].get("login") != "github-actions[bot]"):
         return {"status": "UNKNOWN", "reason": "LINKAGE_IDENTITY_MISMATCH", "dispatch_allowed": False}
+    # A matching run name/ID is insufficient when the run originates from an
+    # unexpected workflow file or branch. Authenticate immutable workflow path.
+    workflow_path = actions_run.get("path")
+    if workflow_path != ".github/workflows/sora-recovery-control-plane.yml":
+        return {"status": "UNKNOWN", "reason": "LINKAGE_WORKFLOW_PATH_MISMATCH",
+                "dispatch_allowed": False}
     if (not isinstance(actions_run.get("repository"), Mapping)
             or actions_run["repository"].get("full_name") != expected_repository
             or actions_run.get("name") != "Sora Recovery Control Plane"
