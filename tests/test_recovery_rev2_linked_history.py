@@ -244,3 +244,35 @@ def test_artifact_inventory_rejects_reused_writer_run_across_leases():
     assert result["status"] == "UNKNOWN"
     assert result["reason"] == "REUSED_WRITER_RUN_ID"
     assert result["dispatch_allowed"] is False
+
+
+def test_artifact_inventory_rejects_reused_lease_across_writer_runs():
+    from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
+    observed = [
+        {"comment_id": 42, "lease_id": LEASE, "writer_run_id": 123},
+        {"comment_id": 43, "lease_id": LEASE, "writer_run_id": 124},
+    ]
+    authenticated = [dispatch(), dispatch(comment_id=43, writer_run_id=124)]
+    result = project_authenticated_artifact_inventory(
+        work_id="issue:859", observed=observed,
+        authenticated=authenticated, complete=True)
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "REUSED_LEASE_ID"
+    assert result["dispatch_allowed"] is False
+
+
+def test_artifact_inventory_rejects_more_than_four_attempts():
+    from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
+    observed = []
+    authenticated = []
+    for index in range(5):
+        lease = "lease-" + format(index + 1, "032x")
+        observed.append({"comment_id": 42 + index, "lease_id": lease,
+                         "writer_run_id": 123 + index})
+        authenticated.append(dispatch(comment_id=42 + index, lease_id=lease,
+                                      writer_run_id=123 + index))
+    result = project_authenticated_artifact_inventory(
+        work_id="issue:859", observed=observed,
+        authenticated=authenticated, complete=True)
+    assert result["status"] == "UNKNOWN"
+    assert result["dispatch_allowed"] is False
