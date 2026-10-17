@@ -304,5 +304,48 @@ class TradeJournalBuildTest(unittest.TestCase):
             self.assertIn(expected, page)
 
 
+
+class ProgressDashboardBuildTest(unittest.TestCase):
+    """Optional dashboard must not break the existing Pages build."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.old_pages, self.old_site = build_site.PAGES, build_site.SITE
+        self.addCleanup(setattr, build_site, "PAGES", self.old_pages)
+        self.addCleanup(setattr, build_site, "SITE", self.old_site)
+        root = Path(self.tmp.name)
+        build_site.PAGES = root / "pages"
+        build_site.SITE = root / "site"
+        build_site.PAGES.mkdir()
+        build_site.SITE.mkdir()
+        (build_site.SITE / "index.md").write_text("existing home", encoding="utf-8")
+
+    def test_missing_source_skips_without_touching_existing_pages(self) -> None:
+        build_site.build_progress_dashboard()
+        self.assertEqual(
+            (build_site.SITE / "index.md").read_text(encoding="utf-8"),
+            "existing home",
+        )
+        self.assertFalse((build_site.SITE / "ops" / "progress").exists())
+
+    def test_existing_source_is_published_without_touching_home(self) -> None:
+        content = "---\\nlayout: site\\npermalink: /ops/progress/\\n---\\n# Progress\\n"
+        (build_site.PAGES / "progress-dashboard.md").write_text(
+            content, encoding="utf-8"
+        )
+        build_site.build_progress_dashboard()
+        self.assertEqual(
+            (build_site.SITE / "ops" / "progress" / "index.md").read_text(
+                encoding="utf-8"
+            ),
+            content,
+        )
+        self.assertEqual(
+            (build_site.SITE / "index.md").read_text(encoding="utf-8"),
+            "existing home",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
