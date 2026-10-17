@@ -207,6 +207,8 @@ jobs:
               complete_history=all_dispatches_linked and bool(linked_dispatches))
           print("LINKED_LEGACY_PROJECTION=" + json.dumps(linked_projection, sort_keys=True))
           assert linked_projection.get("dispatch_allowed") is False
+          with open("/tmp/linked-legacy-projection.json", "w", encoding="utf-8") as f:
+              json.dump(linked_projection, f, sort_keys=True)
           PY
           # Project the complete candidate evidence through the Rev.2 reader.
           # Comment-to-run provenance remains unproven, so fail closed.
@@ -263,6 +265,14 @@ jobs:
           projection = project_attested_comments(
               work_id=f"issue:{issue['number']}", comments=comments,
               trusted_comment_ids=set(), provenance_verified=False)
+          # Use the independently checked linked legacy history for
+          # observation only. Never replace UNKNOWN with an empty READY.
+          with open("/tmp/linked-legacy-projection.json", encoding="utf-8") as f:
+              linked_projection = json.load(f)
+          if linked_projection.get("status") != "UNKNOWN" and linked_projection.get("status") != "BLOCKED":
+              if linked_projection.get("prior_dispatch_count", 0) > 0:
+                  projection = linked_projection
+          print("FINAL_GATE_READER_STATE=" + json.dumps(projection, sort_keys=True))
           # Compare the listed approval with a separate GitHub API fetch.
           # The repo owner must be an actual User; org ownership cannot
           # establish an individual approver without an explicit owner list.
