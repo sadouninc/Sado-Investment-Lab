@@ -4,7 +4,7 @@ LEASE = "lease-" + "a" * 32
 
 def dispatch(**overrides):
     value = {"status": "ATTESTED_LINKAGE", "work_id": "issue:859",
-             "comment_id": 42, "lease_id": LEASE, "dispatch_allowed": False}
+             "comment_id": 42, "lease_id": LEASE, "writer_run_id": 123, "dispatch_allowed": False}
     value.update(overrides)
     return value
 
@@ -44,3 +44,15 @@ def test_protected_issue_stays_denied():
     result = project_linked_dispatch_history(
         work_id="issue:79", linked_dispatches=[], complete_history=True)
     assert result["status"] == "BLOCKED"
+
+
+def test_missing_writer_run_cannot_be_promoted():
+    result = project([dispatch(writer_run_id=None)])
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "MISSING_LINKED_WRITER_RUN"
+
+
+def test_boolean_writer_run_id_is_rejected():
+    result = project([dispatch(writer_run_id=True)])
+    assert result["status"] == "UNKNOWN"
+    assert result["dispatch_allowed"] is False
