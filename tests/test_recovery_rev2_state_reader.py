@@ -106,3 +106,28 @@ def test_terminal_done_cannot_be_followed_by_redispatch():
                       event("DISPATCHED", 3, attempt=2, lease_id="lease-" + "b"*32)])
     assert result["status"] == "UNKNOWN"
     assert result["dispatch_allowed"] is False
+
+
+def test_empty_attested_projection_reports_zero_attempts():
+    result = project([])
+    assert result["work_id"] == "issue:859"
+    assert result["attempt"] == 0
+    assert result["prior_dispatch_count"] == 0
+    assert result["dispatch_allowed"] is False
+
+
+def test_expired_projection_reports_previous_dispatch_for_stop_gate():
+    result = project([event("DISPATCHED", 1), event("EXPIRED", 2)])
+    assert result["work_id"] == "issue:859"
+    assert result["attempt"] == 1
+    assert result["prior_dispatch_count"] == 1
+    assert result["current_lease"] == "lease-" + "a" * 32
+    assert result["dispatch_allowed"] is False
+
+
+def test_second_attempt_projection_counts_both_dispatches():
+    result = project([event("DISPATCHED", 1), event("EXPIRED", 2),
+                      event("DISPATCHED", 3, attempt=2, lease_id="lease-" + "b"*32)])
+    assert result["attempt"] == 2
+    assert result["prior_dispatch_count"] == 2
+    assert result["dispatch_allowed"] is False
