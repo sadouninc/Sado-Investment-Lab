@@ -209,6 +209,7 @@ jobs:
               try:
                   event = json.loads(body.splitlines()[1])
                   observed_dispatches.append({
+                      "comment_id": comment.get("id"),
                       "lease_id": event.get("canonical_lease_id"),
                       "writer_run_id": event.get("writer_run_id"),
                   })
