@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-17T13:31:07+09:00",
-  "last_success_at": "2026-10-17T13:31:07+09:00",
+  "last_run_at": "2026-10-17T17:28:06+09:00",
+  "last_success_at": "2026-10-17T17:28:06+09:00",
   "last_status": "OK",
-  "news_delta": 4,
-  "last_news_delta_at": "2026-10-17T13:31:07+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-17T17:28:06+09:00",
   "news_persisted": false,
   "persistence_status": "PENDING_PERSIST",
   "updated_by": "❤️レイ",
-  "note": "2026-10-17 13:31 JST: Startup Sync v2 TEAM_RULES→TEAM_STATE(AWAY/LUNA Flow Authority)→#99 head=6220426869 (263/263) VERIFIED. Material evidence: TSMC 3Q26 official growth vs CoreWeave credit stress; Anthropic/Blackstone reported financing (unverified terms); China AI technology export-control proposal and temporary registration. #861 causal chain verified as hypothesis, not Japan equity orders. Research append direct GitHub tool REJECTED by actual safety response; no retry. Consumer/Field and MRAM: no additional independently verified adoption delta. #79 untouched. GitHub heartbeat result must be evidenced by commit SHA separately."
+  "note": "2026-10-17 17:28 JST: Startup Sync v2 TEAM_RULES→TEAM_STATE(AWAY/LUNA)→#99 broadcast-head=6220426869 263/263 VERIFIED. New material research: SemiAnalysis 2026-10-15 reported ASML hybrid-bonder development hypothesis (unconfirmed by ASML), Reuters 2026-10-16 corroborated market reaction; Japanese exposure SHIBAURA MECHATRONICS TFC-6700/6800 and Tokyo Electron Synapse Si confirmed by official product pages. Distinguish chip-to-wafer from wafer-to-wafer; no new customer order or revenue verified. Research monthly append remains PENDING_PERSIST; avoid repeating previously rejected research mutation without condition change. Consumer/Field and MRAM: no independently verified new adoption delta. #861 hypothesis only, #79 untouched. GitHub write path evidence must be separately verified."
 }
