@@ -202,3 +202,26 @@ def test_artifact_bridge_rejects_wrong_comment_even_with_matching_lease_and_run(
         work_id="issue:859", observed=observed, authenticated=[dispatch()], complete=True)
     assert result["status"] == "UNKNOWN"
     assert result["dispatch_allowed"] is False
+
+
+def test_artifact_bridge_rejects_swapped_comment_linkage_between_runs():
+    from scripts.recovery_rev2_linked_history import project_authenticated_artifact_inventory
+    second = "lease-" + "b" * 32
+    observed = [
+        {"comment_id": 42, "lease_id": LEASE, "writer_run_id": 123},
+        {"comment_id": 43, "lease_id": second, "writer_run_id": 124},
+    ]
+    attested = [dispatch(comment_id=43),
+                dispatch(comment_id=42, lease_id=second, writer_run_id=124)]
+    result = project_authenticated_artifact_inventory(
+        work_id="issue:859", observed=observed,
+        authenticated=attested, complete=True)
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "ARTIFACT_COMMENT_LINKAGE_MISMATCH"
+    assert result["dispatch_allowed"] is False
+
+
+def test_workflow_preflight_runs_recovery_suite():
+    from pathlib import Path
+    preflight = Path(".github/workflows/pr-preflight.yml").read_text(encoding="utf-8")
+    assert "python3 -m pytest tests -q" in preflight
