@@ -274,6 +274,68 @@ jobs:
                   expected_owner_login=attestation.get("owner_login", ""),
                   independently_verified_author=attestation.get("verified") is True)
               approvals.append(approval)
+          # Independently re-fetch the owner's STOP comments. A completed
+          # Actions writer run is not proof that the external executor stopped.
+          # This observation is intentionally NOT promoted to dispatch authority.
+          from scripts.sora_recovery_stop_attestation import verify_stop_attestation
+          import re
+          stop_markers = [c for c in comments if isinstance(c.get("body"), str)
+                          and c["body"].startswith("<!-- SORA_RECOVERY_EXECUTOR_STOP ")]
+          trusted_stops = []
+          owner_login = repo.get("owner", {}).get("login", "")
+          for item in stop_markers:
+              cid = item.get("id")
+              if type(cid) is not int or cid <= 0:
+                  raise SystemExit("INVALID_STOP_COMMENT_ID")
+              fresh = subprocess.run(
+                  ["gh", "api", f"repos/{repo_name}/issues/comments/{cid}"],
+                  capture_output=True, text=True, check=True)
+              attested = verify_owner_comment_snapshot(
+                  listed_comment=item, fetched_comment=json.loads(fresh.stdout),
+                  repository=repo, expected_repository=repo_name)
+              if not attested.get("verified"):
+                  print("STOP_COMMENT_UNVERIFIED=" + str(cid))
+                  continue
+              trusted_stops.append(item)
+          # Only exact, correctly formed dispatch envelopes can participate
+          # in history. Ambiguous legacy records still block any authorization.
+          previous = []
+          runs = {}
+          history_ambiguous = False
+          for comment in comments:
+              body = comment.get("body")
+              if not isinstance(body, str) or not body.startswith("<!-- AUTO_ROUTER_DISPATCH "):
+                  continue
+              parts = body.splitlines()
+              try:
+                  event = json.loads(parts[1])
+                  issue_ref = f"issue:{issue['number']}"
+                  if not isinstance(event, dict) or event.get("work_ref") != issue_ref:
+                      history_ambiguous = True
+                      continue
+                  lease = event.get("canonical_lease_id")
+                  run_id = event.get("writer_run_id")
+                  if (not isinstance(lease, str) or re.fullmatch(r"lease-[0-9a-f]{32}", lease) is None
+                          or type(run_id) is not int or run_id <= 0):
+                      history_ambiguous = True
+                      continue
+                  previous.append({"lease_id": lease, "writer_run_id": run_id})
+                  response = subprocess.run(
+                      ["gh", "api", f"repos/{repo_name}/actions/runs/{run_id}"],
+                      capture_output=True, text=True, check=True)
+                  runs[run_id] = json.loads(response.stdout)
+              except (IndexError, ValueError, KeyError, subprocess.CalledProcessError):
+                  history_ambiguous = True
+          if previous and not history_ambiguous:
+              stop_result = verify_stop_attestation(
+                  issue_number=issue["number"], previous_leases=previous,
+                  owner_comments=trusted_stops, actions_runs=runs,
+                  expected_owner_login=owner_login,
+                  owner_identity_verified=repo.get("owner", {}).get("type") == "User")
+          else:
+              stop_result = {"verified": False, "reason":
+                             "AMBIGUOUS_OR_EMPTY_DISPATCH_HISTORY"}
+          print("STOP_ATTESTATION_OBSERVATION=" + json.dumps(stop_result, sort_keys=True))
           print("OWNER_APPROVAL_OBSERVATIONS=" + json.dumps(approvals, sort_keys=True))
           valid_approvals = [a for a in approvals if a.get("verified") is True]
           owner_gate = (valid_approvals[0] if len(valid_approvals) == 1
