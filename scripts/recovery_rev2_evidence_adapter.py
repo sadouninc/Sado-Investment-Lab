@@ -203,4 +203,4 @@ def verify_run_owned_dispatch_linkage(*, linkage: Mapping, comment: Mapping,
         return {"status": "UNKNOWN", "reason": "LINKAGE_COMMENT_MISMATCH", "dispatch_allowed": False}
     return {"status": "ATTESTED_LINKAGE", "reason": "RUN_OWNED_ARTIFACT_CORRELATED",
             "comment_id": cid, "writer_run_id": run_id, "work_id": f"issue:{issue}",
-            "dispatch_allowed": False}
+            "lease_id": lease, "dispatch_allowed": False}
