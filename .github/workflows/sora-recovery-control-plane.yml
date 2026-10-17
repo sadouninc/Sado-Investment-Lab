@@ -100,10 +100,52 @@ jobs:
             echo "CANDIDATE_GUARD_EXECUTION_ERROR rc=$guard_rc" >&2
             exit "$guard_rc"
           fi
+          # Correlate any legacy dispatch comment with independently fetched
+          # Actions run metadata. Correlation is NOT comment-to-run proof and
+          # cannot upgrade a legacy event or authorize redispatch.
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          from scripts.recovery_rev2_evidence_adapter import attest_legacy_sora_lease
+          with open("/tmp/comments.json", encoding="utf-8") as f:
+              comments = json.load(f)
+          with open("/tmp/issue.json", encoding="utf-8") as f:
+              issue = json.load(f)
+          work_id = f"issue:{issue['number']}"
+          for comment in comments:
+              body = comment.get("body", "")
+              if not isinstance(body, str) or not body.startswith("<!-- AUTO_ROUTER_DISPATCH "):
+                  continue
+              lines = body.splitlines()
+              try:
+                  event = json.loads(lines[1])
+                  run_id = event.get("writer_run_id")
+              except (IndexError, ValueError, TypeError, AttributeError):
+                  run_id = None
+              run = {}
+              if type(run_id) is int and run_id > 0:
+                  try:
+                      response = subprocess.run(
+                          ["gh", "api", f"repos/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{run_id}"],
+                          check=True, capture_output=True, text=True,
+                      )
+                      run = json.loads(response.stdout)
+                  except (subprocess.CalledProcessError, ValueError, OSError):
+                      pass
+              result = attest_legacy_sora_lease(
+                  comment, work_id=work_id, actions_run=run,
+                  expected_repository=os.environ["GITHUB_REPOSITORY"],
+              )
+              print("LEGACY_ATTESTATION=" + json.dumps({
+                  "comment_id": comment.get("id"),
+                  "status": result.get("status"),
+                  "reason": result.get("reason"),
+              }, sort_keys=True))
+              assert result.get("dispatch_allowed") is False
+          PY
           # Project the complete candidate evidence through the Rev.2 reader.
-          # No comment-to-Actions-run attestation is established here, so
-          # provenance_verified MUST remain false. The reader cannot authorize
-          # a POST; this is an observable, fail-closed integration checkpoint.
+          # Comment-to-run provenance remains unproven, so fail closed.
           python - <<'PY'
           import json
           from scripts.recovery_rev2_read_bridge import project_attested_comments
