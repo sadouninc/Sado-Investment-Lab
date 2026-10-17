@@ -79,7 +79,7 @@ def test_verified_stop_attestation_allows_gate_to_proceed():
     data["projection"].update({"status": "EXPIRED", "prior_dispatch_count": 1, "attempt": 1})
     data["projection"]["stop_attestation"] = {
         "verified": True, "work_id": "issue:859",
-        "prior_dispatch_count": 1, "all_prior_executors_stopped": True}
+        "prior_dispatch_count": 1, "all_prior_executors_stopped": True, "stop_comment_ids": [42]}
     assert decide_dispatch(**data)["post_authorized"] is True
 
 
@@ -88,7 +88,7 @@ def test_stale_stop_attestation_cannot_authorize():
     data["projection"].update({"status": "EXPIRED", "prior_dispatch_count": 2, "attempt": 2})
     data["projection"]["stop_attestation"] = {
         "verified": True, "work_id": "issue:859",
-        "prior_dispatch_count": 1, "all_prior_executors_stopped": True}
+        "prior_dispatch_count": 1, "all_prior_executors_stopped": True, "stop_comment_ids": [42]}
     assert decide_dispatch(**data)["post_authorized"] is False
 
 
@@ -97,7 +97,7 @@ def test_unverified_stop_attestation_cannot_authorize():
     data["projection"]["prior_dispatch_count"] = 1
     data["projection"]["stop_attestation"] = {
         "verified": False, "work_id": "issue:859",
-        "prior_dispatch_count": 1, "all_prior_executors_stopped": True}
+        "prior_dispatch_count": 1, "all_prior_executors_stopped": True, "stop_comment_ids": [42]}
     assert decide_dispatch(**data)["post_authorized"] is False
 
 
@@ -112,7 +112,7 @@ def test_expired_retry_requires_all_previous_stops():
     data["projection"].update({"status": "EXPIRED", "prior_dispatch_count": 2, "attempt": 2})
     data["projection"]["stop_attestation"] = {
         "verified": True, "work_id": "issue:859",
-        "prior_dispatch_count": 2, "all_prior_executors_stopped": True}
+        "prior_dispatch_count": 2, "all_prior_executors_stopped": True, "stop_comment_ids": [42, 43]}
     assert decide_dispatch(**data)["post_authorized"] is True
 
 
@@ -130,7 +130,7 @@ def test_active_ack_cannot_redispatch_even_with_stop_attestation():
     data["projection"].update({"status": "ACKED", "prior_dispatch_count": 1, "attempt": 1})
     data["projection"]["stop_attestation"] = {
         "verified": True, "work_id": "issue:859",
-        "prior_dispatch_count": 1, "all_prior_executors_stopped": True}
+        "prior_dispatch_count": 1, "all_prior_executors_stopped": True, "stop_comment_ids": [42]}
     assert decide_dispatch(**data)["post_authorized"] is False
 
 
@@ -232,3 +232,13 @@ def test_missing_reader_work_id_cannot_accept_stop_attestation():
             "all_prior_executors_stopped": True, "stop_comment_ids": [42]}
     assert "stop_attestation" not in attach_verified_stop_evidence(
         projection=projection, stop_result=stop)
+
+
+def test_final_gate_rejects_self_asserted_stop_without_comment_proof():
+    data = inputs()
+    data["projection"].update({"status": "EXPIRED", "prior_dispatch_count": 1,
+                               "attempt": 1, "stop_attestation": {
+                                   "verified": True, "work_id": "issue:859",
+                                   "prior_dispatch_count": 1,
+                                   "all_prior_executors_stopped": True}})
+    assert decide_dispatch(**data)["post_authorized"] is False
