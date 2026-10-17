@@ -234,6 +234,7 @@ jobs:
           from scripts.sora_recovery_candidate_guard import check_candidate
           from scripts.recovery_rev2_read_bridge import project_attested_comments
           from scripts.sora_recovery_dispatch_gate import decide_dispatch
+          from scripts.sora_recovery_owner_attestation import inspect_owner_approval
           with open("/tmp/issue.json", encoding="utf-8") as f:
               issue = json.load(f)
           with open("/tmp/comments.json", encoding="utf-8") as f:
@@ -244,6 +245,19 @@ jobs:
           projection = project_attested_comments(
               work_id=f"issue:{issue['number']}", comments=comments,
               trusted_comment_ids=set(), provenance_verified=False)
+          # A real GitHub issue comment is inspected, not assumed to be an
+          # Owner authorization. Owner login needs an owner-controlled trust
+          # source; until then even an exact marker stays unverified.
+          approval_markers = [c for c in comments if isinstance(c.get("body"), str)
+                              and c["body"].startswith("<!-- SORA_RECOVERY_OWNER_APPROVAL ")]
+          approvals = [
+              inspect_owner_approval(
+                  comment=c, issue_number=issue["number"],
+                  lease_id=os.environ.get("LEASE_FOR_OWNER_GATE", ""),
+                  expected_owner_login="", independently_verified_author=False)
+              for c in approval_markers
+          ]
+          print("OWNER_APPROVAL_OBSERVATIONS=" + json.dumps(approvals, sort_keys=True))
           decision = decide_dispatch(
               issue_number=issue["number"], candidate=candidate,
               projection=projection,
