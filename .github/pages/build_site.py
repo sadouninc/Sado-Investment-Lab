@@ -998,6 +998,8 @@ def main() -> None:
     build_trade_journal()
     build_trade_analysis_v2()
     build_market_compass_page()
+    # Read-only weekly progress UI; no recovery/control-plane dependencies.
+    shutil.copy2(PAGES / "progress-dashboard.md", SITE / "ops" / "progress" / "index.md") if (SITE / "ops" / "progress").mkdir(parents=True, exist_ok=True) is None else None
 
 
 if __name__ == "__main__":
