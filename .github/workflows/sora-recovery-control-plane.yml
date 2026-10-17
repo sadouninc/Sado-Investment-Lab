@@ -223,5 +223,19 @@ jobs:
           event="$(jq -nc --arg work_ref "issue:${ISSUE}" --arg lease "$LEASE" --arg assigned "$assigned" --arg expires "$expires" --arg source "$SOURCE" --argjson writer_run_id "$GITHUB_RUN_ID" '{writer_run_id:$writer_run_id,work_ref:$work_ref,owner_slice:("issue-"+($work_ref|split(":")[1])),executor:"SORA",canonical_lease_id:$lease,assigned_at:$assigned,lease_expires_at:$expires,status:"DISPATCHED",source:$source}')"
           body="$(printf '%s\n%s\n\n%s\n%s' "$marker" "$event" '担当: 🌙ルナ / Recovery Control Plane' '種別: External Durable Writer / SORA Recovery Lease')"
           gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments" -f body="$body" >/tmp/result.json
-          echo "SORA_LEASE_PERSISTED issue=${ISSUE} lease=${LEASE} run_id=${GITHUB_RUN_ID}"
+          # Persist a durable, run-owned linkage artifact. The comment body
+          # alone is self-asserted and must never be treated as proof.
+          comment_id="$(jq -er '.id | select(type == "number" and . > 0)' /tmp/result.json)"
+          jq -nc --argjson comment_id "$comment_id" \
+            --argjson writer_run_id "$GITHUB_RUN_ID" \
+            --arg issue "$ISSUE" --arg lease "$LEASE" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            '{schema_version:2,comment_id:$comment_id,writer_run_id:$writer_run_id,issue_number:$issue,canonical_lease_id:$lease,repository:$repository}' \
+            > /tmp/sora-dispatch-linkage.json
+          gh api "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}" \
+            | jq -e --arg issue "$ISSUE" --arg lease "$LEASE" \
+                '(.issue_url | endswith("/issues/" + $issue)) and
+                 (.body | contains("lease_id=" + $lease)) and
+                 (.user.login == "github-actions[bot]")' >/dev/null
+          echo "SORA_LEASE_PERSISTED issue=${ISSUE} lease=${LEASE} run_id=${GITHUB_RUN_ID} comment_id=${comment_id}"
 
