@@ -164,7 +164,20 @@ jobs:
               provenance_verified=False,
           )
           print("CANONICAL_READER_PROJECTION=" + json.dumps(result, sort_keys=True))
-          assert result["dispatch_allowed"] is False
+          if result.get("status") not in {"UNKNOWN", "BLOCKED", "READY", "DISPATCHED", "ACKED", "RUNNING", "PR_OPEN", "MERGED", "DONE", "EXPIRED"}:
+              raise SystemExit("UNRECOGNIZED_READER_STATUS")
+          if result.get("dispatch_allowed") is not False:
+              raise SystemExit("UNAUTHORIZED_READER_DISPATCH")
+          if result.get("status") == "UNKNOWN":
+              print("READER_HOLD_UNVERIFIED_PROVENANCE")
+          elif result.get("status") in {"ACKED", "RUNNING", "PR_OPEN"}:
+              print("READER_HOLD_ACTIVE_EXECUTION")
+          elif result.get("status") in {"DONE", "MERGED"}:
+              print("READER_HOLD_TERMINAL")
+          elif result.get("status") == "EXPIRED":
+              print("READER_HOLD_EXPIRY_NOT_STOP_PROOF")
+          else:
+              print("READER_HOLD_OWNER_AND_PATH_ATTESTATION_REQUIRED")
           PY
           echo CANONICAL_READER_AND_OWNER_AUTHORITY_NOT_WIRED
           echo "post_authorized=false" >> "$GITHUB_OUTPUT"
