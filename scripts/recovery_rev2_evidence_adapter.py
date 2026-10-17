@@ -144,3 +144,49 @@ def attest_legacy_sora_lease(comment: Mapping, *, work_id: str,
     return {"status": "REPORTED_UNVERIFIED", "reason": "COMMENT_TO_RUN_LINK_NOT_PROVEN",
             "dispatch_allowed": False, "comment_id": inspection["comment_id"],
             "writer_run_id": inspection["writer_run_id"], "work_id": work_id}
+
+
+def verify_run_owned_dispatch_linkage(*, linkage: Mapping, comment: Mapping,
+                                      actions_run: Mapping,
+                                      expected_repository: str,
+                                      artifact_run_id: int) -> dict:
+    """Check a linkage record retrieved from the named Actions run artifact.
+
+    The caller MUST independently authenticate artifact provenance using the
+    GitHub Actions API. Matching fields alone never authorize dispatch.
+    """
+    if not all(isinstance(x, Mapping) for x in (linkage, comment, actions_run)):
+        return {"status": "UNKNOWN", "reason": "INVALID_LINKAGE_INPUT", "dispatch_allowed": False}
+    cid = linkage.get("comment_id")
+    run_id = linkage.get("writer_run_id")
+    issue = linkage.get("issue_number")
+    lease = linkage.get("canonical_lease_id")
+    if (linkage.get("schema_version") != 2 or type(cid) is not int or cid <= 0
+            or type(run_id) is not int or run_id <= 0
+            or not isinstance(issue, str) or not issue.isdecimal()
+            or not isinstance(lease, str) or not __import__("re").fullmatch(r"lease-[0-9a-f]{32}", lease)
+            or linkage.get("repository") != expected_repository):
+        return {"status": "UNKNOWN", "reason": "INVALID_LINKAGE_SCHEMA", "dispatch_allowed": False}
+    if issue == "79":
+        return {"status": "BLOCKED", "reason": "PROTECTED_ISSUE_79", "dispatch_allowed": False}
+    if (run_id != artifact_run_id or actions_run.get("id") != run_id
+            or comment.get("id") != cid
+            or comment.get("issue_url") != f"https://api.github.com/repos/{expected_repository}/issues/{issue}"
+            or not isinstance(comment.get("user"), Mapping)
+            or comment["user"].get("login") != "github-actions[bot]"):
+        return {"status": "UNKNOWN", "reason": "LINKAGE_IDENTITY_MISMATCH", "dispatch_allowed": False}
+    if (not isinstance(actions_run.get("repository"), Mapping)
+            or actions_run["repository"].get("full_name") != expected_repository
+            or actions_run.get("name") != "Sora Recovery Control Plane"
+            or actions_run.get("event") not in {"schedule", "workflow_dispatch"}
+            or actions_run.get("status") != "completed"
+            or actions_run.get("conclusion") != "success"):
+        return {"status": "UNKNOWN", "reason": "LINKAGE_RUN_MISMATCH", "dispatch_allowed": False}
+    inspection = inspect_legacy_sora_lease(comment, work_id=f"issue:{issue}")
+    if (inspection.get("status") != "UNVERIFIED"
+            or inspection.get("writer_run_id") != run_id
+            or inspection.get("lease_id") != lease):
+        return {"status": "UNKNOWN", "reason": "LINKAGE_COMMENT_MISMATCH", "dispatch_allowed": False}
+    return {"status": "ATTESTED_LINKAGE", "reason": "RUN_OWNED_ARTIFACT_CORRELATED",
+            "comment_id": cid, "writer_run_id": run_id, "work_id": f"issue:{issue}",
+            "dispatch_allowed": False}
