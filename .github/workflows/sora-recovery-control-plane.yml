@@ -69,6 +69,10 @@ jobs:
           echo "lease=$lease" >> "$GITHUB_OUTPUT"
           echo "source=$source" >> "$GITHUB_OUTPUT"
 
+      - name: Checkout read-only guard implementation
+        if: steps.target.outputs.found == 'true'
+        uses: actions/checkout@v4
+
       # The guard is a hold-only preflight. It cannot grant dispatch authority.
       # Every comment and PR page must be available before considering a write.
       - name: Read-only candidate guard before issue-comment POST
