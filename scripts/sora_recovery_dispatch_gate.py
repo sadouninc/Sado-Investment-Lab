@@ -23,15 +23,25 @@ def decide_dispatch(*, issue_number: int, candidate: Mapping,
     if (candidate.get("status") != "ALLOW_PRELIMINARY"
             or candidate.get("issue_number") != issue_number):
         return hold("CANDIDATE_NOT_ELIGIBLE")
-    if (projection.get("status") != "READY"
-            or projection.get("dispatch_allowed") is not True
-            or projection.get("work_id") != f"issue:{issue_number}"):
-        return hold("READER_NOT_AUTHORIZED")
-    # A lease expiry or a terminal label alone is not proof that an
-    # executor stopped. Never authorize another attempt from these states.
-    prior = projection.get("prior_dispatch_count", 0)
-    if type(prior) is not int or prior < 0:
-        return hold("INVALID_DISPATCH_HISTORY")
+    # The canonical Reader is deliberately read-only: it NEVER emits
+    # dispatch_allowed=True. The final gate must assess observed state
+    # independently rather than requesting impossible Reader authorization.
+    prior = projection.get("prior_dispatch_count")
+    attempt = projection.get("attempt")
+    status = projection.get("status")
+    if (projection.get("dispatch_allowed") is not False
+            or projection.get("work_id") != f"issue:{issue_number}"
+            or type(prior) is not int or not 0 <= prior <= 4
+            or type(attempt) is not int or attempt != prior):
+        return hold("INVALID_READER_PROJECTION")
+    if prior == 0:
+        if status != "READY":
+            return hold("READER_NOT_READY")
+    else:
+        if status != "EXPIRED" or prior >= 4:
+            return hold("PRIOR_DISPATCH_NOT_RETRYABLE")
+    # Expiry never proves an executor stopped: independently verified stop
+    # attestation covering ALL prior attempts is mandatory for any retry.
     if prior:
         stop = projection.get("stop_attestation")
         if (not isinstance(stop, Mapping)
