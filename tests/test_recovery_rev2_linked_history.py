@@ -92,3 +92,34 @@ def test_two_distinct_attested_dispatches_match_regardless_of_order():
     authenticated = [dispatch(lease_id=other, writer_run_id=124, comment_id=43), dispatch()]
     assert matches_complete_dispatch_evidence(
         observed=observed, authenticated=authenticated, complete=True)
+
+
+def test_incomplete_or_malformed_stop_inventory_fails_closed():
+    observed = [{"lease_id": LEASE, "writer_run_id": 123}]
+    for malformed in (None, {}, "wrong", [{"lease_id": LEASE}], 
+                      [{"lease_id": LEASE, "writer_run_id": True}],
+                      [{"lease_id": LEASE, "writer_run_id": 0}]):
+        assert not matches_complete_dispatch_evidence(
+            observed=malformed, authenticated=[dispatch()], complete=True)
+    assert not matches_complete_dispatch_evidence(
+        observed=observed, authenticated=[dispatch()], complete=1)
+
+
+def test_unverified_writer_run_or_lease_never_projects_dispatch():
+    for invalid in (0, -1, "123", False):
+        result = project([dispatch(writer_run_id=invalid)])
+        assert result["status"] == "UNKNOWN"
+        assert result["dispatch_allowed"] is False
+    for invalid in (None, 17, False):
+        result = project([dispatch(lease_id=invalid)])
+        assert result["status"] == "UNKNOWN"
+        assert result["dispatch_allowed"] is False
+
+
+def test_unverified_history_cannot_be_used_as_retry_permission():
+    for items in ([dispatch(dispatch_allowed=True)],
+                  [dispatch(status="UNKNOWN")],
+                  [dispatch(comment_id=0)]):
+        result = project(items)
+        assert result["status"] == "UNKNOWN"
+        assert result["dispatch_allowed"] is False
