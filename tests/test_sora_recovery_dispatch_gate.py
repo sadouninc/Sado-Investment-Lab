@@ -242,3 +242,18 @@ def test_final_gate_rejects_self_asserted_stop_without_comment_proof():
                                    "prior_dispatch_count": 1,
                                    "all_prior_executors_stopped": True}})
     assert decide_dispatch(**data)["post_authorized"] is False
+
+
+def test_final_gate_rejects_malformed_stop_comment_id_inventory():
+    # Exercise decide_dispatch directly, not only attach_verified_stop_evidence.
+    for ids in ([], [True], [0], [-1], ["42"], [42, 42]):
+        data = inputs()
+        data["projection"].update({
+            "status": "EXPIRED", "prior_dispatch_count": 1, "attempt": 1,
+            "stop_attestation": {
+                "verified": True, "work_id": "issue:859",
+                "prior_dispatch_count": 1, "all_prior_executors_stopped": True,
+                "stop_comment_ids": ids,
+            },
+        })
+        assert decide_dispatch(**data)["post_authorized"] is False
