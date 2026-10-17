@@ -142,6 +142,10 @@ jobs:
                   "status": result.get("status"),
                   "reason": result.get("reason"),
               }, sort_keys=True))
+              if result.get("status") == "REPORTED_UNVERIFIED":
+                  print("LEGACY_COMMENT_TO_RUN_LINK_UNPROVEN")
+              elif result.get("status") in {"UNKNOWN", "BLOCKED"}:
+                  print("LEGACY_EVIDENCE_REQUIRES_RECONCILIATION")
               assert result.get("dispatch_allowed") is False
           PY
           # Project the complete candidate evidence through the Rev.2 reader.
