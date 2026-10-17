@@ -51,6 +51,7 @@ def decide_dispatch(*, issue_number: int, lease_id: str, candidate: Mapping,
         if (not isinstance(stop, Mapping)
                 or stop.get("verified") is not True
                 or stop.get("work_id") != f"issue:{issue_number}"
+                or type(stop.get("prior_dispatch_count")) is not int
                 or stop.get("prior_dispatch_count") != prior
                 or stop.get("all_prior_executors_stopped") is not True
                 or not isinstance(stop.get("stop_comment_ids"), list)
@@ -92,6 +93,7 @@ def attach_verified_stop_evidence(*, projection: Mapping,
             or stop_result.get("all_prior_executors_stopped") is not True
             or not isinstance(result.get("work_id"), str)
             or stop_result.get("work_id") != result.get("work_id")
+            or type(stop_result.get("prior_dispatch_count")) is not int
             or stop_result.get("prior_dispatch_count") != prior
             or type(result.get("attempt")) is not int or result["attempt"] != prior
             or not isinstance(stop_result.get("stop_comment_ids"), list)
