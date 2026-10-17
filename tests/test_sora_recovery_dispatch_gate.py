@@ -6,9 +6,10 @@ def inputs():
         "issue_number": 859,
         "candidate": {"status": "ALLOW_PRELIMINARY", "issue_number": 859,
                       "dispatch_authorized": False},
-        "projection": {"status": "READY", "dispatch_allowed": False, "work_id": "issue:859", "prior_dispatch_count": 0, "attempt": 0},
+        "projection": {"status": "READY", "dispatch_allowed": False, "work_id": "issue:859", "prior_dispatch_count": 0, "attempt": 0, "next_lease_id": "lease-" + "a" * 32},
         "owner_gate": {"status": "APPROVED", "issue_number": 859,
-                       "scope": "sora_recovery_dispatch", "verified": True},
+                       "scope": "sora_recovery_dispatch", "verified": True,
+                       "owner_comment_id": 42, "lease_id": "lease-" + "a" * 32},
         "evidence_complete": True,
     }
 
@@ -130,4 +131,16 @@ def test_active_ack_cannot_redispatch_even_with_stop_attestation():
     data["projection"]["stop_attestation"] = {
         "verified": True, "work_id": "issue:859",
         "prior_dispatch_count": 1, "all_prior_executors_stopped": True}
+    assert decide_dispatch(**data)["post_authorized"] is False
+
+
+def test_owner_approval_for_different_lease_is_rejected():
+    data = inputs()
+    data["owner_gate"]["lease_id"] = "lease-" + "b" * 32
+    assert decide_dispatch(**data)["reason"] == "OWNER_APPROVAL_NOT_VERIFIED"
+
+
+def test_owner_approval_requires_comment_identity():
+    data = inputs()
+    data["owner_gate"]["owner_comment_id"] = None
     assert decide_dispatch(**data)["post_authorized"] is False
