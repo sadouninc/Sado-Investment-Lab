@@ -72,3 +72,37 @@ def test_matching_canonical_aliases_remain_read_only():
                             canonical_lease_id="lease-" + "a"*32)])
     assert result["status"] == "DISPATCHED"
     assert result["dispatch_allowed"] is False
+
+
+def test_attested_expiry_is_observation_not_retry_authority():
+    result = project([event("DISPATCHED", 1), event("EXPIRED", 2)])
+    assert result["status"] == "EXPIRED"
+    assert result["reason"] == "RECOVERY_AUTHORITY_REQUIRED"
+    assert result["dispatch_allowed"] is False
+
+
+def test_next_attempt_after_expiry_remains_read_only():
+    result = project([event("DISPATCHED", 1), event("EXPIRED", 2),
+                      event("DISPATCHED", 3, attempt=2, lease_id="lease-" + "b"*32)])
+    assert result["status"] == "DISPATCHED"
+    assert result["dispatch_allowed"] is False
+
+
+def test_retry_before_expiry_fails_closed():
+    result = project([event("DISPATCHED", 1),
+                      event("DISPATCHED", 2, attempt=2, lease_id="lease-" + "b"*32)])
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "RETRY_WITHOUT_ATTESTED_EXPIRY"
+
+
+def test_ack_then_expiry_is_not_accepted_as_executor_stopped():
+    result = project([event("DISPATCHED", 1), event("ACKED", 2), event("EXPIRED", 3)])
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "CONTRADICTORY_EXPIRY"
+
+
+def test_terminal_done_cannot_be_followed_by_redispatch():
+    result = project([event("DISPATCHED", 1), event("DONE", 2, dod_verified=True),
+                      event("DISPATCHED", 3, attempt=2, lease_id="lease-" + "b"*32)])
+    assert result["status"] == "UNKNOWN"
+    assert result["dispatch_allowed"] is False
