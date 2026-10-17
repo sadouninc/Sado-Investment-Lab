@@ -27,6 +27,15 @@ def project_attested_comments(*, work_id: str, comments: Sequence[Mapping],
             or set(ids) != trusted_comment_ids):
         return {"status": "UNKNOWN", "reason": "INVALID_ATTESTED_COMMENT_INVENTORY",
                 "dispatch_allowed": False}
+    # Do not accept arbitrary comment JSON merely because the caller supplied
+    # a matching ID set. Canonical Rev.2 events must be authored by the
+    # expected GitHub Actions identity; independent run provenance is still
+    # mandatory at the caller boundary.
+    for comment in comments:
+        author = comment.get("user")
+        if not isinstance(author, Mapping) or author.get("login") != "github-actions[bot]":
+            return {"status": "UNKNOWN", "reason": "UNTRUSTED_EVENT_AUTHOR",
+                    "dispatch_allowed": False}
     events = []
     for comment in comments:
         event = canonical_event(comment, work_id=work_id,
