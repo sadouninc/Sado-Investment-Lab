@@ -1,6 +1,6 @@
 """GitHub metadata correlation never substitutes for durable comment-to-run proof."""
 import json
-from scripts.recovery_rev2_evidence_adapter import attest_legacy_sora_lease
+from scripts.recovery_rev2_evidence_adapter import attest_legacy_sora_lease, verify_run_owned_dispatch_linkage
 
 LEASE = "lease-" + "a" * 32
 
@@ -96,3 +96,29 @@ def test_other_event_type_rejected():
     c, r = sample()
     r["event"] = "push"
     assert check(c, r)["reason"] == "RUN_ATTESTATION_MISMATCH"
+
+
+def test_run_owned_linkage_matches_but_never_authorizes():
+    comment, run = sample()
+    comment["issue_url"] = "https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/859"
+    linkage = {"schema_version": 2, "comment_id": 42, "writer_run_id": 123,
+               "issue_number": "859", "canonical_lease_id": LEASE,
+               "repository": "sadouninc/Sado-Investment-Lab"}
+    result = verify_run_owned_dispatch_linkage(
+        linkage=linkage, comment=comment, actions_run=run,
+        expected_repository="sadouninc/Sado-Investment-Lab", artifact_run_id=123)
+    assert result["status"] == "ATTESTED_LINKAGE"
+    assert result["dispatch_allowed"] is False
+
+
+def test_run_owned_linkage_wrong_artifact_run_rejected():
+    comment, run = sample()
+    comment["issue_url"] = "https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/859"
+    linkage = {"schema_version": 2, "comment_id": 42, "writer_run_id": 123,
+               "issue_number": "859", "canonical_lease_id": LEASE,
+               "repository": "sadouninc/Sado-Investment-Lab"}
+    result = verify_run_owned_dispatch_linkage(
+        linkage=linkage, comment=comment, actions_run=run,
+        expected_repository="sadouninc/Sado-Investment-Lab", artifact_run_id=999)
+    assert result["status"] == "UNKNOWN"
+    assert result["dispatch_allowed"] is False
