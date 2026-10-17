@@ -225,8 +225,36 @@ jobs:
           else:
               print("READER_HOLD_OWNER_AND_PATH_ATTESTATION_REQUIRED")
           PY
-          echo CANONICAL_READER_AND_OWNER_AUTHORITY_NOT_WIRED
-          echo "post_authorized=false" >> "$GITHUB_OUTPUT"
+          # Evaluate the actual conservative gate against this run's observed
+          # candidate and reader state. Neither an empty Owner approval nor an
+          # unauthenticated reader projection can enable the POST.
+          python - <<'PY'
+          import json
+          import os
+          from scripts.sora_recovery_candidate_guard import check_candidate
+          from scripts.recovery_rev2_read_bridge import project_attested_comments
+          from scripts.sora_recovery_dispatch_gate import decide_dispatch
+          with open("/tmp/issue.json", encoding="utf-8") as f:
+              issue = json.load(f)
+          with open("/tmp/comments.json", encoding="utf-8") as f:
+              comments = json.load(f)
+          with open("/tmp/prs.json", encoding="utf-8") as f:
+              prs = json.load(f)
+          candidate = check_candidate(issue, comments, prs)
+          projection = project_attested_comments(
+              work_id=f"issue:{issue['number']}", comments=comments,
+              trusted_comment_ids=set(), provenance_verified=False)
+          decision = decide_dispatch(
+              issue_number=issue["number"], candidate=candidate,
+              projection=projection,
+              owner_gate={"status": "UNKNOWN", "verified": False},
+              evidence_complete=False)
+          print("DISPATCH_GATE_DECISION=" + json.dumps(decision, sort_keys=True))
+          if decision.get("post_authorized") is not False:
+              raise SystemExit("UNAUTHORIZED_DISPATCH_GATE")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write("post_authorized=false\\n".replace("\\\\n", "\\n"))
+          PY
 
       - name: Persist idempotent SORA recovery lease
         if: steps.target.outputs.found == 'true' && steps.guard.outputs.post_authorized == 'true'
