@@ -95,6 +95,26 @@ jobs:
           else
             echo CANDIDATE_GUARD_HOLD
           fi
+          # Project the complete candidate evidence through the Rev.2 reader.
+          # No comment-to-Actions-run attestation is established here, so
+          # provenance_verified MUST remain false. The reader cannot authorize
+          # a POST; this is an observable, fail-closed integration checkpoint.
+          python - <<'PY'
+          import json
+          from scripts.recovery_rev2_read_bridge import project_attested_comments
+          with open("/tmp/comments.json", encoding="utf-8") as f:
+              comments = json.load(f)
+          with open("/tmp/issue.json", encoding="utf-8") as f:
+              issue = json.load(f)
+          result = project_attested_comments(
+              work_id=f"issue:{issue['number']}",
+              comments=comments,
+              trusted_comment_ids=set(),
+              provenance_verified=False,
+          )
+          print("CANONICAL_READER_PROJECTION=" + json.dumps(result, sort_keys=True))
+          assert result["dispatch_allowed"] is False
+          PY
           echo CANONICAL_READER_AND_OWNER_AUTHORITY_NOT_WIRED
           echo "post_authorized=false" >> "$GITHUB_OUTPUT"
 
