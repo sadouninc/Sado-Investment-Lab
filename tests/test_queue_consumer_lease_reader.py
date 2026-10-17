@@ -7,6 +7,8 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+
 WORKFLOW = Path(".github/workflows/queue-auto-promotion-consumer.yml")
 
 
@@ -41,6 +43,13 @@ def test_multiline_active_lease():
     assert lease_state([comment(body)]) == "ACTIVE"
 
 
+def test_multiline_acknowledged_lease():
+    body = "<!-- flow-dispatch-lease -->\n" + event(
+        "ACKNOWLEDGED", lease_expires_at="2999-01-01T00:00:00Z"
+    ) + "\n担当: 🤖カイ"
+    assert lease_state([comment(body)]) == "ACTIVE"
+
+
 def test_unrelated_json_before_relevant_lease():
     body = '{"unrelated":true}\n' + event(
         "ACKNOWLEDGED", lease_expires_at="2999-01-01T00:00:00Z"
@@ -56,14 +65,57 @@ def test_later_terminal_event_wins():
     assert lease_state(comments) == "TERMINALIZING"
 
 
+@pytest.mark.parametrize(
+    "status",
+    [
+        "PROMOTION_DISPATCHED",
+        "PROMOTION_BRANCH_READY",
+        "PR_CREATE_REQUIRED",
+        "DUPLICATE_SUPERSEDED",
+        "PR_ALREADY_EXISTS",
+        "PR_ALREADY_EXISTS_RACE_RESOLVED",
+    ],
+)
+def test_terminal_events(status):
+    assert lease_state([comment(event(status))]) == "TERMINALIZING"
+
+
 def test_expired_lease():
     assert lease_state([comment(event(
         "ASSIGNED", lease_expires_at="2000-01-01T00:00:00Z"
     ))]) == "EXPIRED"
 
 
+def test_canonical_expired_event_is_retryable():
+    assert lease_state([comment(event("DISPATCH_LEASE_EXPIRED"))]) == "RETRYABLE"
+
+
 def test_malformed_dispatch_marker_fails_closed():
     assert lease_state([comment("<!-- AUTO_ROUTER_DISPATCH broken -->")]) == "AMBIGUOUS"
+
+
+def test_malformed_canonical_json_fails_closed():
+    body = '<!-- flow-dispatch-lease -->\n{"work_ref":"issue:828","status":'
+    assert lease_state([comment(body)]) == "AMBIGUOUS"
+
+
+def test_malformed_target_json_without_marker_fails_closed():
+    body = '{"work_ref":"issue:828","status":'
+    assert lease_state([comment(body)]) == "AMBIGUOUS"
+
+
+def test_valid_event_plus_malformed_json_fails_closed():
+    body = "<!-- flow-dispatch-lease -->\n" + event(
+        "ASSIGNED", lease_expires_at="2999-01-01T00:00:00Z"
+    ) + '\n{"work_ref":"issue:828","status":'
+    assert lease_state([comment(body)]) == "AMBIGUOUS"
+
+
+def test_multiple_competing_events_in_one_comment_fail_closed():
+    body = "<!-- flow-dispatch-lease -->\n" + event(
+        "ASSIGNED", lease_expires_at="2999-01-01T00:00:00Z"
+    ) + "\n" + event("DISPATCH_LEASE_EXPIRED")
+    assert lease_state([comment(body)]) == "AMBIGUOUS"
 
 
 def test_unknown_status_fails_closed():

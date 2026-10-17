@@ -5,7 +5,11 @@ DISPATCH=ROOT/".github/workflows/ai-production-dispatch.yml"
 def _read(path): return path.read_text(encoding="utf-8")
 def test_triggers(): t=_read(CONSUMER); assert "schedule:" in t and "cron:" in t and "workflow_dispatch:" in t
 def test_never_79(): t=_read(CONSUMER); assert ".number != 79" in t and '[[ "$ISSUE_NUMBER" != "79" ]]' in t and "PROTECTED_ISSUE_79" in t
-def test_bounded_scan(): t=_read(CONSUMER); assert "READY_FOR_IMPLEMENTATION" in t and "per_page=20" in t and '(.pull_request // null) == null' in t
+def test_bounded_scan():
+    t=_read(CONSUMER)
+    assert "READY_FOR_IMPLEMENTATION" in t and "per_page=100" in t
+    assert "gh api --paginate --slurp" in t and "add // []" in t
+    assert '(.pull_request // null) == null' in t and "[:20]" in t
 def test_reuses_adapter(): t=_read(CONSUMER); assert "python -m scripts.queue_auto_promotion_consumer" in t and "--active-owner-slices" in t and "--active-paths" in t
 def test_canonical_lease_guard_uses_status_and_expiry_not_historical_marker():
     t=_read(CONSUMER)
@@ -22,6 +26,13 @@ def test_retryable_and_terminal_status_contract_is_explicit():
     for status in ("PROMOTION_DISPATCHED","PROMOTION_BRANCH_READY","PR_CREATE_REQUIRED","DUPLICATE_SUPERSEDED","PR_ALREADY_EXISTS","PR_ALREADY_EXISTS_RACE_RESOLVED"):
         assert status in t
 def test_conflicting_pr_paths(): t=_read(CONSUMER); assert "pulls?state=open" in t and "/files?per_page=100" in t and "--active-paths /tmp/active-paths.json" in t
+def test_pr_inventory_is_paginated_and_empty_owner_inventory_is_explicit():
+    t=_read(CONSUMER)
+    assert 'pulls?state=open&per_page=100' in t
+    assert 'pulls/${pr}/files?per_page=100' in t
+    assert "gh api --paginate --slurp" in t
+    assert "OWNER_SLICE_INVENTORY_UNVERIFIED" in t
+    assert "echo '[]' > /tmp/active-owner-slices.json" in t
 def test_one_lease_and_canonical_dispatch():
     t=_read(CONSUMER); d=_read(DISPATCH); assert "DISPATCH_READY" in t and "gh workflow run ai-production-dispatch.yml" in t and '-f issue_number="$ISSUE_NUMBER"' in t and '-f lease_id="$LEASE_ID"' in t and '^lease-[0-9a-f]{32}$' in d and '^lease-[0-9a-f]{32}$' in t
 def test_fail_closed(): t=_read(CONSUMER); assert "No safe candidate this tick" in t and "No executor dispatch this tick (fail-closed)" in t
