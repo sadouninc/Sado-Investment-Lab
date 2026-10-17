@@ -7,7 +7,7 @@ def c(status, cid, **fields):
             "status": status, "attempt": 1,
             "lease_id": "lease-" + "a"*32}
     body.update(fields)
-    return {"id": cid, "body": json.dumps(body)}
+    return {"id": cid, "body": json.dumps(body), "user": {"login": "github-actions[bot]"}}
 
 def project(comments, trusted, verified=True, work="issue:859"):
     return project_attested_comments(work_id=work, comments=comments,
@@ -60,3 +60,12 @@ def test_invalid_comment_id_fails_closed():
     result = project([c("DISPATCHED", True)], {True})
     assert result["status"] == "UNKNOWN"
     assert result["reason"] == "INVALID_ATTESTED_COMMENT_INVENTORY"
+
+
+def test_untrusted_event_author_fails_closed():
+    comment = c("DISPATCHED", 10)
+    comment["user"]["login"] = "untrusted-user"
+    result = project([comment], {10})
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "UNTRUSTED_EVENT_AUTHOR"
+    assert result["dispatch_allowed"] is False
