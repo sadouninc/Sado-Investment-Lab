@@ -14,7 +14,8 @@ def sample():
            "status": "completed", "conclusion": "success",
            "run_started_at": "2026-10-13T10:00:00Z",
            "updated_at": "2026-10-13T10:05:00Z",
-           "repository": {"full_name": "sadouninc/Sado-Investment-Lab"}}
+           "repository": {"full_name": "sadouninc/Sado-Investment-Lab"},
+           "path": ".github/workflows/sora-recovery-control-plane.yml"}
     return comment, run
 
 def check(comment, run):
@@ -122,3 +123,17 @@ def test_run_owned_linkage_wrong_artifact_run_rejected():
         expected_repository="sadouninc/Sado-Investment-Lab", artifact_run_id=999)
     assert result["status"] == "UNKNOWN"
     assert result["dispatch_allowed"] is False
+
+
+def test_run_owned_linkage_wrong_workflow_path_rejected():
+    comment, run = sample()
+    comment["issue_url"] = "https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/859"
+    run["path"] = ".github/workflows/other.yml"
+    linkage = {"schema_version": 2, "comment_id": 42, "writer_run_id": 123,
+               "issue_number": "859", "canonical_lease_id": LEASE,
+               "repository": "sadouninc/Sado-Investment-Lab"}
+    result = verify_run_owned_dispatch_linkage(
+        linkage=linkage, comment=comment, actions_run=run,
+        expected_repository="sadouninc/Sado-Investment-Lab", artifact_run_id=123)
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "LINKAGE_WORKFLOW_PATH_MISMATCH"
