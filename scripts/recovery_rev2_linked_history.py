@@ -44,3 +44,28 @@ def project_linked_dispatch_history(*, work_id: str,
     event = {"work_id": work_id, "status": "DISPATCHED",
              "comment_id": cid, "attempt": 1, "lease_id": lease}
     return project_state(work_id=work_id, events=[event], evidence_verified=True)
+
+
+def matches_complete_dispatch_evidence(*, observed: Sequence[Mapping],
+                                       authenticated: Sequence[Mapping],
+                                       complete: bool) -> bool:
+    """Stop reconciliation must use the exact run-owned artifact inventory."""
+    if complete is not True or not isinstance(observed, (list, tuple)) or not isinstance(authenticated, (list, tuple)):
+        return False
+    if not observed or len(observed) != len(authenticated) or len(observed) > 4:
+        return False
+    def identity(item, trusted):
+        if not isinstance(item, Mapping):
+            return None
+        lease, run = item.get("lease_id"), item.get("writer_run_id")
+        if (not isinstance(lease, str) or type(run) is not int or run <= 0
+                or trusted and (item.get("status") != "ATTESTED_LINKAGE"
+                                or item.get("dispatch_allowed") is not False)):
+            return None
+        return lease, run
+    seen = [identity(i, False) for i in observed]
+    verified = [identity(i, True) for i in authenticated]
+    return (all(item is not None for item in seen + verified)
+            and len(set(seen)) == len(seen)
+            and len(set(verified)) == len(verified)
+            and set(seen) == set(verified))
