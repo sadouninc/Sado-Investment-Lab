@@ -36,3 +36,30 @@ def test_artifact_reader_audit_exposes_reconciliation_without_authorizing_post()
         assert field in source
     assert 'assert linked_projection.get("dispatch_allowed") is False' in source
     assert 'f.write("post_authorized=false' in source
+
+
+def test_github_actions_summary_uses_real_newline_escapes():
+    """An escaped backslash-n collapses Markdown into one line."""
+    import ast
+    source = WORKFLOW.read_text(encoding="utf-8")
+    lines = [line.strip() for line in source.splitlines()
+             if line.strip().startswith("summary.write(")]
+    assert len(lines) == 8
+    assert all("\\\\n" not in line for line in lines)
+    # Evaluate the literal heading/table header and require actual line breaks.
+    heading = ast.literal_eval(lines[0].removeprefix("summary.write(").removesuffix(")"))
+    header = ast.literal_eval(lines[1].removeprefix("summary.write(").removesuffix(")"))
+    assert heading.endswith("\n\n")
+    assert header == "| Evidence | Value |\n|---|---|\n"
+    assert all(r"\n" in line for line in lines)
+
+
+def test_github_output_writes_single_newline_delimited_hold_value():
+    import ast
+    source = WORKFLOW.read_text(encoding="utf-8")
+    lines = [line.strip() for line in source.splitlines()
+             if line.strip().startswith('f.write("post_authorized=')]
+    assert len(lines) == 1
+    assert "\\\\n" not in lines[0]
+    output = ast.literal_eval(lines[0].removeprefix("f.write(").removesuffix(")"))
+    assert output == "post_authorized=false\n"
