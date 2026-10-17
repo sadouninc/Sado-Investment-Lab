@@ -233,14 +233,14 @@ jobs:
           # Durable, human-readable read-only audit in the workflow run summary.
           # Never interpret this summary as an authorization or dispatch event.
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
-              summary.write("### Sora Recovery Artifact Reader (observation only)\\n\\n")
-              summary.write("| Evidence | Value |\\n|---|---|\\n")
-              summary.write(f"| Work ID | {work_id} |\\n")
-              summary.write(f"| Observed comments | {len(observed_dispatches)} |\\n")
-              summary.write(f"| Authenticated artifacts | {len(linked_dispatches)} |\\n")
-              summary.write(f"| Inventory complete | {all_dispatches_linked and bool(linked_dispatches)} |\\n")
-              summary.write(f"| Reader status | {linked_projection.get('status')} |\\n")
-              summary.write("| POST authorized | False (hold-only) |\\n")
+              summary.write("### Sora Recovery Artifact Reader (observation only)\n\n")
+              summary.write("| Evidence | Value |\n|---|---|\n")
+              summary.write(f"| Work ID | {work_id} |\n")
+              summary.write(f"| Observed comments | {len(observed_dispatches)} |\n")
+              summary.write(f"| Authenticated artifacts | {len(linked_dispatches)} |\n")
+              summary.write(f"| Inventory complete | {all_dispatches_linked and bool(linked_dispatches)} |\n")
+              summary.write(f"| Reader status | {linked_projection.get('status')} |\n")
+              summary.write("| POST authorized | False (hold-only) |\n")
           assert linked_projection.get("dispatch_allowed") is False
           with open("/tmp/linked-legacy-projection.json", "w", encoding="utf-8") as f:
               json.dump(linked_projection, f, sort_keys=True)
@@ -427,7 +427,7 @@ jobs:
           if decision.get("post_authorized") is not False:
               raise SystemExit("UNAUTHORIZED_DISPATCH_GATE")
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
-              f.write("post_authorized=false\\n")
+              f.write("post_authorized=false\n")
           PY
 
       - name: Persist idempotent SORA recovery lease
