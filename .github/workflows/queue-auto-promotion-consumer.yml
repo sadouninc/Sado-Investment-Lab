@@ -37,8 +37,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gh api "repos/${GITHUB_REPOSITORY}/issues?state=open&labels=READY_FOR_IMPLEMENTATION&per_page=20" > /tmp/issues-raw.json
-          jq '[.[] | select((.pull_request // null) == null and .number != 79) | {number, title, state, body}]' /tmp/issues-raw.json > /tmp/issues-candidates.json
+          # Read every API page before applying the bounded candidate limit. The
+          # issues endpoint also returns PRs, so limiting the first page can hide
+          # READY Issues behind unrelated PR entries.
+          gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/issues?state=open&labels=READY_FOR_IMPLEMENTATION&per_page=100" \
+            | jq 'add // []' > /tmp/issues-raw.json
+          jq '[.[] | select((.pull_request // null) == null and .number != 79) | {number, title, state, body}][:20]' /tmp/issues-raw.json > /tmp/issues-candidates.json
           echo "Bounded candidate pool: $(jq 'length' /tmp/issues-candidates.json) open READY_FOR_IMPLEMENTATION issue(s) (Issue #79 excluded)."
 
           SAFE='[]'
@@ -57,12 +62,26 @@ jobs:
             # A historical AUTO_ROUTER_DISPATCH marker alone is not an active lease.
             # Latest relevant event wins; malformed/ambiguous active lease fails closed.
             LEASE_STATE="$(jq -r --arg n "$number" '
-              def event:
+              def comment_event:
                 (.body // "") as $b
-                | (try ($b | fromjson) catch null)
-                | select(type == "object")
-                | select((.work_ref // "") == ("issue:" + $n) or (.owner_slice // "") == ("issue-" + $n));
-              [ .[] | event ] | last // {} |
+                | (try ($b | fromjson | select(type == "object")) catch null) as $whole
+                | (if $whole != null then [$whole]
+                   else [$b | split("\n")[] | try (fromjson | select(type == "object")) catch empty]
+                   end) as $objects
+                | ($objects
+                   | map(select((.work_ref // "") == ("issue:" + $n) or (.owner_slice // "") == ("issue-" + $n)))) as $events
+                | ($b | split("\n")
+                   | map(select(test("^\\s*[\\{\\[]")) | try fromjson catch null)
+                   | any(. == null)) as $malformed_json_line
+                | ($b | contains("flow-dispatch-lease") or contains("AUTO_ROUTER_DISPATCH")) as $lease_marker
+                | ($b | contains("\"work_ref\":\"issue:" + $n + "\"")
+                   or contains("\"owner_slice\":\"issue-" + $n + "\"")) as $target_hint
+                | if ($events | length) > 1 then {"status":"AMBIGUOUS_LEASE_EVENT"}
+                  elif ($lease_marker or $target_hint) and $malformed_json_line then {"status":"AMBIGUOUS_LEASE_EVENT"}
+                  elif ($events | length) == 1 then $events[0]
+                  elif $lease_marker then {"status":"AMBIGUOUS_LEASE_EVENT"}
+                  else empty end;
+              [ .[] | comment_event ] | last // {} |
               if ((.status // "") | IN("PROMOTION_DISPATCHED","PROMOTION_BRANCH_READY","PR_CREATE_REQUIRED","DUPLICATE_SUPERSEDED","PR_ALREADY_EXISTS","PR_ALREADY_EXISTS_RACE_RESOLVED")) then "TERMINALIZING"
               elif ((.status // "") | IN("DISPATCH_LEASE_EXPIRED","COPILOT_RETRYABLE_FAILURE","RETRYABLE_FAILURE","FALLBACK_RETRYABLE_FAILURE","BLOCKED_BASE_DRIFT","BLOCKED_CONTRACT_REPLAY","FAIL_CLOSED")) then "RETRYABLE"
               elif ((.status // "") | IN("ASSIGNED","ACKNOWLEDGED","FALLBACK_ASSIGNED")) then
@@ -71,7 +90,8 @@ jobs:
                 elif ((.lease_expires_at | fromdateiso8601) > now) then "ACTIVE"
                 else "EXPIRED"
                 end
-              else "NONE"
+              elif (.status // "") == "" then "NONE"
+              else "AMBIGUOUS"
               end' /tmp/comments.json)"
             case "$LEASE_STATE" in
               ACTIVE|TERMINALIZING|AMBIGUOUS)
@@ -97,19 +117,34 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gh api "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=30" > /tmp/open-prs.json
+          # Fetch all open PRs; an incomplete conflict inventory must never dispatch.
+          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=100" | jq 'add // []' > /tmp/open-prs.json
           : > /tmp/active-paths.jsonl
           for pr in $(jq -r '.[].number' /tmp/open-prs.json); do
-            gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr}/files?per_page=100" | jq -r '.[].filename' >> /tmp/active-paths.jsonl
+            gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls/${pr}/files?per_page=100" \
+              | jq -r 'add // [] | .[].filename' >> /tmp/active-paths.jsonl
           done
           jq -R -s -c 'split("\n") | map(select(length > 0)) | unique' /tmp/active-paths.jsonl > /tmp/active-paths.json
-          echo '[]' > /tmp/active-owner-slices.json
+          # PR bodies are not a trustworthy canonical owner registry. Until an
+          # authoritative owner-slice reader is wired, block dispatch whenever
+          # any open PR exists rather than pretending the owner set is empty.
+          if [[ "$(jq 'length' /tmp/open-prs.json)" -gt 0 ]]; then
+            echo "::warning::OWNER_SLICE_INVENTORY_UNVERIFIED: open PRs present; dispatch disabled (fail-closed)"
+            echo '["__OWNER_SLICE_INVENTORY_UNVERIFIED__"]' > /tmp/active-owner-slices.json
+            echo "true" > /tmp/owner-inventory-blocked
+          else
+            echo '[]' > /tmp/active-owner-slices.json
+          fi
 
       - name: Compute one safe queue-consumer tick (no GitHub writes)
         id: tick
         shell: bash
         run: |
           set -euo pipefail
+          if [[ -f /tmp/owner-inventory-blocked ]]; then
+            echo "::error::OWNER_SLICE_INVENTORY_UNVERIFIED; refusing to dispatch"
+            exit 1
+          fi
           echo '{"copilot":"available"}' > /tmp/worker-state.json
           BASE_SHA="$(git rev-parse HEAD)"
           # Exit 1 is the adapter's documented no-dispatch outcome.
