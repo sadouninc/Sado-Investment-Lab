@@ -336,6 +336,10 @@ jobs:
               stop_result = {"verified": False, "reason":
                              "AMBIGUOUS_OR_EMPTY_DISPATCH_HISTORY"}
           print("STOP_ATTESTATION_OBSERVATION=" + json.dumps(stop_result, sort_keys=True))
+          from scripts.sora_recovery_dispatch_gate import attach_verified_stop_evidence
+          projection = attach_verified_stop_evidence(
+              projection=projection, stop_result=stop_result)
+          print("RECONCILED_READER_PROJECTION=" + json.dumps(projection, sort_keys=True))
           print("OWNER_APPROVAL_OBSERVATIONS=" + json.dumps(approvals, sort_keys=True))
           valid_approvals = [a for a in approvals if a.get("verified") is True]
           owner_gate = (valid_approvals[0] if len(valid_approvals) == 1
