@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-18T16:33:25+09:00",
-  "last_success_at": "2026-10-18T16:33:25+09:00",
+  "last_run_at": "2026-10-18T18:34:30+09:00",
+  "last_success_at": "2026-10-18T18:34:30+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-18T16:33:25+09:00",
   "news_persisted": false,
   "persistence_status": "PENDING_PERSIST",
   "updated_by": "❤️レイ",
-  "note": "2026-10-18 16:33 JST scheduled. Startup Sync TEAM_RULES→TEAM_STATE AWAY/LUNA→#99 head 6235488874 267/267, no new To: ALL/レイ. #861 new PJM 2026-10-15 24/7 DC load maintenance constraint plus FT 2026-10-18 project execution/finance risks. Research append via direct GitHub update_file REJECTED actual safety response, no retry; pending persist. Consumer/Field independent reviews and MRAM new commercial adoption not confirmed. Issue #79 untouched."
+  "note": "2026-10-18 18:34 JST scheduled. Startup Sync TEAM_RULES→TEAM_STATE AWAY/LUNA→#99 head 6235488874 (267 comments), no new To: ALL/レイ. Research scan: TSMC Texas exploratory discussions (2026-10-15/16) remain non-binding; GlobalFoundries Japan-US fabs already recorded; no independently verified material incremental adoption/revenue evidence for MRAM or Consumer/Field. No new Research write (no forced duplicate). Existing PENDING_PERSIST remains. Issue #79 untouched. Direct GitHub heartbeat mutation attempted once."
 }
