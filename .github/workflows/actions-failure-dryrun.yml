@@ -39,6 +39,28 @@ jobs:
             echo "::error::Collector produced invalid JSON; no issue created."
             exit 1
           fi
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+          try:
+              result = json.loads(Path("actions-failure-result.json").read_text())
+              if not isinstance(result, dict):
+                  raise ValueError("invalid result")
+              decision = result.get("decision", "HOLD_MISSING_DECISION")
+              reason = result.get("reason", "")
+              run_id = result.get("source_run_id", "")
+              clean = lambda v: re.sub(r"[^A-Za-z0-9_ .-]", "_", str(v))[:160]
+              print("DRYRUN_DECISION=" + clean(decision))
+              print("DRYRUN_REASON=" + clean(reason))
+              print("DRYRUN_SOURCE_RUN_ID=" + clean(run_id))
+              print("DRYRUN_ISSUE_POST=DISABLED")
+              print("DRYRUN_READY_DISPATCH=DISABLED")
+          except (OSError, ValueError, TypeError):
+              print("DRYRUN_DECISION=HOLD_INVALID_OUTPUT")
+              print("DRYRUN_ISSUE_POST=DISABLED")
+              print("DRYRUN_READY_DISPATCH=DISABLED")
+          PY
           if [ "$rc" -ne 0 ]; then
             echo "::warning::Failure discovery returned HOLD; no issue created."
           fi
@@ -64,7 +86,7 @@ jobs:
                   f.write("## Actions Failure Analysis — read-only dry run\n\n")
                   for key in ("decision", "reason", "source_run_id"):
                       if key in result:
-                          value = re.sub(r"[<>\r\n\t`|]", " ", str(result[key]))[:300]
+                          value = re.sub(r"[^A-Za-z0-9_ .-]", "_", str(result[key]))[:160]
                           f.write(f"- {key}: {value}\n")
                   f.write("- issue_post: disabled\n- ready_dispatch: disabled\n")
           PY
