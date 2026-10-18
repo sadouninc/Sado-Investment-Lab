@@ -347,5 +347,44 @@ class ProgressDashboardBuildTest(unittest.TestCase):
         )
 
 
+    def test_progress_dashboard_contract_preserves_unknown_and_all_tasks(self) -> None:
+        """Snapshot must not claim completion when canonical evidence is absent."""
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "scope_version",
+            "newly_passed",
+            "regressed",
+            "new_blockers",
+            "resolved_blockers",
+            "remaining_blockers",
+            "scope_delta",
+            "UNKNOWN",
+            "criteria PASS / 確定総数",
+            "完全成功セット",
+            "work_ref",
+            "lease_id",
+            "PV867-T",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+        self.assertIn("i<9?'マージ前候補':'後続候補'", source)
+        self.assertIn("taskNames.forEach", source)
+        self.assertIn("loopNames.forEach", source)
+        self.assertIn("進捗率は確定母数がないためUNKNOWN", source)
+        self.assertIn("過去headのCI成功は現在headのPASSに流用しません", source)
+        self.assertNotIn("30%", source)
+
+    def test_progress_dashboard_declares_manual_snapshot_not_live_api(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("静的な手動スナップショット", source)
+        self.assertIn("追加2セットは推奨", source)
+        self.assertIn("本番実証とは別", source)
+        self.assertNotIn("fetch(", source)
+
+
 if __name__ == "__main__":
     unittest.main()
