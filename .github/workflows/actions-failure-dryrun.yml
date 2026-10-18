@@ -50,7 +50,7 @@ jobs:
               decision = result.get("decision", "HOLD_MISSING_DECISION")
               reason = result.get("reason", "")
               run_id = result.get("source_run_id", "")
-              clean = lambda v: re.sub(r"[^A-Za-z0-9_ .:/()-]", "_", str(v))[:160]
+              clean = lambda v: re.sub(r"[^A-Za-z0-9_ .-]", "_", str(v))[:160]
               print("DRYRUN_DECISION=" + clean(decision))
               print("DRYRUN_REASON=" + clean(reason))
               print("DRYRUN_SOURCE_RUN_ID=" + clean(run_id))
@@ -86,7 +86,7 @@ jobs:
                   f.write("## Actions Failure Analysis — read-only dry run\n\n")
                   for key in ("decision", "reason", "source_run_id"):
                       if key in result:
-                          value = re.sub(r"[<>\r\n\t`|]", " ", str(result[key]))[:300]
+                          value = re.sub(r"[^A-Za-z0-9_ .-]", "_", str(result[key]))[:160]
                           f.write(f"- {key}: {value}\n")
                   f.write("- issue_post: disabled\n- ready_dispatch: disabled\n")
           PY
