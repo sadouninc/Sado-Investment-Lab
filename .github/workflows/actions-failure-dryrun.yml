@@ -12,7 +12,7 @@ permissions:
   issues: read
 
 concurrency:
-  group: actions-failure-dryrun
+  group: actions-failure-dryrun-${{ github.event_name }}-${{ github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -32,13 +32,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          set +e
-          PYTHONPATH=. python -m scripts.actions_failure_collector --max-age-hours 24 > actions-failure-result.json
-          rc=$?
-          set -e
-          cat actions-failure-result.json
-          python -m json.tool actions-failure-result.json >/dev/null
+          rc=0
+          PYTHONPATH=. python -m scripts.actions_failure_collector --max-age-hours 24 > actions-failure-result.json 2> actions-failure-stderr.log || rc=$?
           echo "collector_exit_code=$rc" >> "$GITHUB_OUTPUT"
+          if ! python -m json.tool actions-failure-result.json >/dev/null 2>&1; then
+            echo "::error::Collector produced invalid JSON; no issue created."
+            exit 1
+          fi
           if [ "$rc" -ne 0 ]; then
             echo "::warning::Failure discovery returned HOLD; no issue created."
           fi
