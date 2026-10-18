@@ -70,3 +70,40 @@ def test_invalid_repository_and_identifiers_are_rejected():
 
 def test_no_failure_requires_no_issue():
     assert decide_issue_action(None, [], inventory_complete=True) == "NO_FAILURE"
+
+
+def test_missing_run_and_job_ids_fail_with_value_error():
+    import pytest
+    with pytest.raises(ValueError):
+        analyze(run(id=None))
+    with pytest.raises(ValueError):
+        analyze(j=[{"name": "test", "conclusion": "failure", "steps": []}])
+    with pytest.raises(ValueError):
+        analyze(run(id="not-an-integer"))
+
+
+def test_missing_step_name_is_empty_not_literal_none():
+    item = analyze(j=[{"id": 5678, "name": "test", "conclusion": "failure",
+                       "steps": [{"conclusion": "failure"}]}])
+    assert item["failing_step"] == ""
+    assert item["error_class"] == "UNCLASSIFIED_JOB_FAILURE"
+    assert "None" not in build_issue_draft(item)["body"]
+
+
+def test_untrusted_issue_evidence_and_fields_are_sanitized():
+    item = analyze()
+    item["reproduction_evidence"] = "https://example.invalid/path\n<injected>|\x60"
+    item["workflow_name"] = "CI\n<injected>"
+    item["failing_step"] = "step\n<injected>"
+    draft = build_issue_draft(item)
+    assert "<injected>" not in draft["body"]
+    assert "\x60" not in draft["body"]
+    assert "https://example.invalid/path" in draft["body"]
+
+
+def test_invalid_request_marker_rejected_in_issue_draft():
+    import pytest
+    item = analyze()
+    item["request_id"] = "malicious -->\nunsafe"
+    with pytest.raises(ValueError):
+        build_issue_draft(item)
