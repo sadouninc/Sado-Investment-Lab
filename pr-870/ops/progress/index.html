@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #870 · NOT PRODUCTION</strong>
-  <span>Head 08ea2b609680 · Built 2026-10-17T12:25:56Z</span>
+  <span>Head c77e55f51cd3 · Built 2026-10-18T04:53:03Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -175,9 +175,42 @@
 <div class="section"><h2>直近の検証記録</h2><div class="card"><strong>CIで構文エラーを検出</strong><p>報告されたhead: <code>7ab5cfe2c4648bcc875a78ecc76ccc762e85fb91</code>。Actions run <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/actions/runs/38955714503">38955714503</a>、<a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/actions/runs/38955714434">38955714434</a> は失敗報告。<code>scripts/recovery_rev2_evidence_adapter.py:20</code> のSyntaxError。修正後の最新head/CIは未確認です。<a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/pull/860#issuecomment-6223216216">診断証跡</a></p><p><strong>merge SHA:</strong> PR #860は未確認（OPEN時点）。<strong>次:</strong> ソラの修正commitとCI再検証。</p></div></div>
 <div class="section"><h2>自然closed-loopの証明</h2><p>READY → lease/comment ID → ACK → 実装commit → PR → CI/review → merge SHA → NEXT_AUTO を同一workで連続照合する必要があります。現時点では全区間を結ぶ証跡が未確認のため<strong>未実証</strong>です。</p></div>
 <p class="small sub">根拠: <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/issues/867#issuecomment-6214081524">9+2 baseline</a> / <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/issues/867#issuecomment-6231862060">Design Contract v0.2</a>。課題名はbaselineを日本語要約した表示名で、正式IDの新設ではありません。</p>
+
+<div class="section" id="pv-contract" aria-label="受入条件台帳">
+<h2>定量進捗・受入条件台帳（暫定）</h2>
+<p class="warn">この台帳は静的な手動スナップショットです。11課題の正式criterion分解・合否・母数は🌙ルナの証跡判定待ちです。UNKNOWNはPASSではありません。暫定task_idはこのスナップショット内で固定し、canonical IDの承認を意味しません。</p>
+<div class="cards">
+<div class="card"><div class="metric">UNKNOWN</div><div>実装 criteria PASS / 確定総数</div></div>
+<div class="card"><div class="metric">UNKNOWN</div><div>検証 criteria PASS / 確定総数</div></div>
+<div class="card"><div class="metric">UNKNOWN</div><div>本番実証 criteria PASS / 確定総数</div></div>
+<div class="card"><div class="metric">UNKNOWN</div><div>同一scope前回差分</div></div>
+</div>
+<p class="small">as_of: 2026-10-18 JST（台帳仕様追加時点）。scope_version: <code>PROVISIONAL-867-v1</code>。source: <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/issues/867">#867</a>、<a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/pull/870">#870</a>。#860の最新head SHA・実績の自動取得は行いません。進捗率は確定母数がないためUNKNOWNです。</p>
+<p class="small">delta（同一scope_versionのみ）: newly_passed UNKNOWN / regressed UNKNOWN / new_blockers UNKNOWN / resolved_blockers UNKNOWN / remaining_blockers UNKNOWN。scope_delta（追加・削除）: UNKNOWN。過去headのCI成功は現在headのPASSに流用しません。</p>
+<div id="pv-criteria"></div>
+</div>
+<div class="section" aria-label="自然実行9工程">
+<h2>自然closed-loop 9工程：同一workの連続証跡</h2>
+<p>確認済み工程 <strong>0/9（PASS証跡未登録）</strong> ／ 完全成功セット <strong>0/1（未実証）</strong>。0/9は「未検証9項目」の表示であり、失敗9件を意味しません。公式最低目標は完全1セット。追加2セットは推奨であり必須Gateではありません。</p>
+<p class="small">work_ref: UNKNOWN ／ lease_id: UNKNOWN ／ source/head SHA: UNKNOWN ／ 実行時刻: UNKNOWN。異なるworkの証跡を合算しません。</p>
+<ol id="pv-loop"></ol>
+<p class="small">#860のArtifact→Reader→Guard→POST技術統合・安全性テスト・CIは、この自然closed-loop本番実証とは別の受入条件です。#79 hard deny、Owner Gate、AUTO_GREENを変更しません。</p>
+</div>
 </section>
 <script>
 (function(){
+
+const taskNames=["Writer→Readerのイベント形式統一","GitHubコメント証跡の照合","POST前のReader接続","POST前のGuard接続","担当・競合・終端状態の再検証","P0/P1候補の継続探索","安全性回帰テスト","最新head CIとOwner Gate","差分全体の未発見Blocker調査","期限切れ後の安全な自動再配車","高度なRecovery監視・最適化"];
+const criterionRoot=document.getElementById('pv-criteria');
+taskNames.forEach(function(name,i){
+ const taskId='PV867-T'+String(i+1).padStart(2,'0');
+ const d=document.createElement('details');const summary=document.createElement('summary');summary.textContent=taskId+' '+name+' — UNKNOWN / 確定母数 UNKNOWN';d.append(summary);
+ const p=document.createElement('p');p.textContent='区分: '+(i<9?'マージ前候補':'後続候補')+' ／ 担当: '+(i<9?'🪐ソラ（暫定、T08/T09は🌙ルナ共同）':'未割当')+' ／ criterion_id: UNKNOWN（分解待ち） ／ 状態: UNKNOWN ／ required evidence: commit SHA / Actions run ID / review ID / merge SHA / 本番event ID（該当するものをルナが確定） ／ 残Blocker: 証跡と受入条件の未確定 ／ NEXT: #860の同一head証跡とcanonical criterionを照合';d.append(p);
+ const a=document.createElement('a');a.href='https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/pull/860';a.textContent='証跡候補 PR #860（PASS認定ではありません）';d.append(a);criterionRoot.append(d);
+});
+const loopNames=['READY検出','lease発行','ACK','実装commit','PR','最新head CI','review/安全Gate','merge SHA','NEXT_AUTO'];
+const loopRoot=document.getElementById('pv-loop');
+loopNames.forEach(function(name,i){const li=document.createElement('li');li.textContent=String(i+1)+'. '+name+' — UNKNOWN（work_ref・lease_id・個別evidence URL未確認）';loopRoot.append(li)});
 const rows=[["01","Writer→Readerのイベント形式統一","🪐ソラ","work/lease/attemptの整合と曖昧入力拒否"],["02","GitHubコメント証跡の照合","🪐ソラ","comment ID・run ID・全履歴の真正性"],["03","POST前のReader接続","🪐ソラ","workflow内でReader実行の証跡"],["04","POST前のGuard接続","🪐ソラ","関連Issue/PR/コメントの完全取得"],["05","担当・競合・終端状態の再検証","🪐ソラ","UNKNOWN時の配車禁止"],["06","P0/P1候補の継続探索","🪐ソラ","先頭候補不適格でも次候補へ"],["07","安全性回帰テスト","🪐ソラ","ACK/PR/MERGED/不正入力/#79を検証"],["08","最新head CIとOwner Gate","🪐ソラ・🌙ルナ","CI・レビュー・マージ権限の証跡"],["09","差分全体の未発見Blocker調査","🌙ルナ・🪐ソラ","全変更ファイルとreviewの照合"],["10","期限切れ後の安全な自動再配車","未割当","後続候補・Ownerのscope判断待ち"],["11","高度なRecovery監視・最適化","未割当","後続候補・Ownerのscope判断待ち"]];
 const list=document.getElementById('pv-list');
 rows.forEach(function(row,i){
