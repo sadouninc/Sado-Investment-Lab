@@ -45,17 +45,26 @@ jobs:
       - name: Publish non-mutating summary
         if: always()
         run: |
-          if [ -f actions-failure-result.json ]; then
-            python - <<'PY'
+          python - <<'PY'
           import json
+          import os
+          import re
           from pathlib import Path
-          result = json.loads(Path("actions-failure-result.json").read_text())
-          allowed = ("decision", "reason", "source_run_id")
-          with open(__import__("os").environ["GITHUB_STEP_SUMMARY"], "a") as f:
-              f.write("## Actions Failure Analysis — read-only dry run\n\n")
-              for key in allowed:
-                  if key in result:
-                      f.write(f"- {key}: {str(result[key])[:300]}\n")
-              f.write("- issue_post: disabled\n- ready_dispatch: disabled\n")
+
+          path = Path("actions-failure-result.json")
+          try:
+              result = json.loads(path.read_text()) if path.exists() else {}
+              if not isinstance(result, dict):
+                  raise ValueError("invalid result shape")
+          except (OSError, ValueError):
+              result = {"decision": "HOLD_INVALID_OUTPUT"}
+          summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary:
+              with open(summary, "a", encoding="utf-8") as f:
+                  f.write("## Actions Failure Analysis — read-only dry run\\n\\n")
+                  for key in ("decision", "reason", "source_run_id"):
+                      if key in result:
+                          value = re.sub(r"[<>\\r\\n\\t`|]", " ", str(result[key]))[:300]
+                          f.write(f"- {key}: {value}\\n")
+                  f.write("- issue_post: disabled\\n- ready_dispatch: disabled\\n")
           PY
-          fi
