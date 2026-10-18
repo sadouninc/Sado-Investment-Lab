@@ -1,0 +1,61 @@
+name: Actions Failure Analysis Dry Run (#873)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 */6 * * *'
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+  issues: read
+
+concurrency:
+  group: actions-failure-dryrun
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read-only failure discovery
+        id: analyze
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set +e
+          PYTHONPATH=. python -m scripts.actions_failure_collector --max-age-hours 24 > actions-failure-result.json
+          rc=$?
+          set -e
+          cat actions-failure-result.json
+          python -m json.tool actions-failure-result.json >/dev/null
+          echo "collector_exit_code=$rc" >> "$GITHUB_OUTPUT"
+          if [ "$rc" -ne 0 ]; then
+            echo "::warning::Failure discovery returned HOLD; no issue created."
+          fi
+      - name: Publish non-mutating summary
+        if: always()
+        run: |
+          if [ -f actions-failure-result.json ]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path("actions-failure-result.json").read_text())
+          allowed = ("decision", "reason", "source_run_id")
+          with open(__import__("os").environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write("## Actions Failure Analysis — read-only dry run\n\n")
+              for key in allowed:
+                  if key in result:
+                      f.write(f"- {key}: {str(result[key])[:300]}\n")
+              f.write("- issue_post: disabled\n- ready_dispatch: disabled\n")
+          PY
+          fi
