@@ -24,9 +24,12 @@ def _safe_text(value: Any, limit: int = 120) -> str:
 
 
 def _positive_int(value: Any) -> int:
-    if isinstance(value, bool):
+    if value is None or isinstance(value, bool):
         raise ValueError("identifier must be a positive integer")
-    number = int(value)
+    try:
+        number = int(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("identifier must be a positive integer") from exc
     if number < 1:
         raise ValueError("identifier must be a positive integer")
     return number
@@ -50,7 +53,7 @@ def analyze_completed_failure(
     job_id = _positive_int(job.get("id"))
     failing_steps = [s for s in (job.get("steps") or []) if s.get("conclusion") == "failure"]
     step = failing_steps[0] if failing_steps else None
-    step_name = _safe_text(step.get("name") if step else "")
+    step_name = _safe_text(step.get("name", "") if step else "")
     error_class = "UNCLASSIFIED_JOB_FAILURE"
     next_fix = "失敗ジョブのログを取得し、根因を確認する"
     for category, names, recommendation in _RULES:
@@ -96,20 +99,23 @@ def decide_issue_action(
 
 def build_issue_draft(analysis: Mapping[str, Any]) -> dict[str, str]:
     """Produce a draft only; never apply READY labels or perform a mutation."""
-    error_class = str(analysis["error_class"])
-    marker = f"<!-- {analysis['request_id']} -->"
-    title = f"[Actions障害] {error_class} / run {analysis['source_run_id']}"
+    error_class = _safe_text(analysis["error_class"])
+    request_id = str(analysis["request_id"])
+    if not re.fullmatch(r"actions-failure-[0-9a-f]{20}", request_id):
+        raise ValueError("invalid request identifier")
+    marker = f"<!-- {request_id} -->"
+    title = f"[Actions障害] {error_class} / run {_positive_int(analysis['source_run_id'])}"
     body = "\n".join((
         "担当: 🌙ルナ（解析） / 実装Owner未確定",
         "種別: GitHub Actions障害 / 要トリアージ",
         marker,
-        f"- 実行証跡: {analysis['reproduction_evidence']}",
-        f"- workflow: {analysis['workflow_name']}",
-        f"- job_id: {analysis['job_id']}",
-        f"- failure step: {analysis['failing_step'] or 'UNKNOWN'}",
+        f"- 実行証跡: {_safe_text(analysis['reproduction_evidence'], 300)}",
+        f"- workflow: {_safe_text(analysis['workflow_name'])}",
+        f"- job_id: {_positive_int(analysis['job_id'])}",
+        f"- failure step: {_safe_text(analysis['failing_step']) or 'UNKNOWN'}",
         f"- 分類: {error_class}",
-        f"- 原因候補: {analysis['candidate_root_cause']}",
-        f"- 最小の次アクション: {analysis['next_minimal_fix']}",
+        f"- 原因候補: {_safe_text(analysis['candidate_root_cause'], 240)}",
+        f"- 最小の次アクション: {_safe_text(analysis['next_minimal_fix'], 240)}",
         "- Acceptance Criteria: 実ログで根因を特定し、修正PRのCI成功を確認する。",
         "- 状態: TRIAGE_REQUIRED。READY_FOR_IMPLEMENTATIONには自動昇格しない。",
         "- 安全: #79変更禁止。権限・秘密情報・有料・破壊的操作はOwner判断待ち。",
