@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #870 · NOT PRODUCTION</strong>
-  <span>Head d912371977ff · Built 2026-10-19T14:57:11Z</span>
+  <span>Head 8aa8f3482f4c · Built 2026-10-19T16:35:16Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -215,11 +215,42 @@
 const taskNames=["Writer→Readerのイベント形式統一","GitHubコメント証跡の照合","POST前のReader接続","POST前のGuard接続","担当・競合・終端状態の再検証","P0/P1候補の継続探索","安全性回帰テスト","最新head CIとOwner Gate","差分全体の未発見Blocker調査","期限切れ後の安全な自動再配車","高度なRecovery監視・最適化"];
 // Provisional data contract. All criteria remain unfinalized until Luna approval.
 const snapshot={scope_version:'PROVISIONAL-867-v1',criteria:[],previous:null,work_ref:null,lease_id:null};
+function validateSnapshot(data){
+ if(!data||typeof data.scope_version!=='string'||!data.scope_version)
+  throw new Error('missing scope_version');
+ if(!Array.isArray(data.criteria))throw new Error('criteria must be a list');
+ const seen=new Set();
+ data.criteria.forEach(function(c){
+  if(!c||typeof c!=='object'||typeof c.criterion_id!=='string'||!c.criterion_id)
+   throw new Error('missing criterion_id');
+  if(seen.has(c.criterion_id))throw new Error('duplicate criterion_id');
+  seen.add(c.criterion_id);
+  if(!['implementation','verification','production'].includes(c.dimension))
+   throw new Error('invalid dimension');
+  if(!['PASS','FAIL','BLOCKED','UNKNOWN'].includes(c.state))
+   throw new Error('invalid state');
+  if(typeof c.finalized!=='boolean')throw new Error('finalized must be boolean');
+  if(c.evidence_url!=null&&(typeof c.evidence_url!=='string'||!c.evidence_url.startsWith('https://')))
+   throw new Error('invalid evidence_url');
+ });
+ return data;
+}
+let snapshotValid=true;
+try{validateSnapshot(snapshot)}catch(error){snapshotValid=false;console.error('Progress snapshot invalid:',error.message)}
+function latestHeadCI(evidenceHead,currentHead,conclusion,runId){
+ if(!evidenceHead||!currentHead||!runId)return {status:'UNKNOWN',reason:'MISSING_EVIDENCE'};
+ if(evidenceHead!==currentHead)return {status:'UNKNOWN',reason:'STALE_HEAD'};
+ if(conclusion==='success')return {status:'PASS',reason:'LATEST_HEAD_SUCCESS'};
+ if(['failure','timed_out','cancelled','action_required'].includes(conclusion))
+  return {status:'FAIL',reason:'LATEST_HEAD_NOT_SUCCESS'};
+ return {status:'UNKNOWN',reason:'RUN_NOT_COMPLETE'};
+}
 function metricFor(dimension){
  const entries=snapshot.criteria.filter(function(c){return c.dimension===dimension});
  if(!entries.length||entries.some(function(c){return !c.finalized}))return 'UNKNOWN';
  const ids=entries.map(function(c){return c.criterion_id});
- if(new Set(ids).size!==ids.length)return 'UNKNOWN';
+ if(new Set(ids).size!==ids.length)throw new Error('duplicate criterion_id');
+ if(entries.some(function(c){return !['PASS','FAIL','BLOCKED','UNKNOWN'].includes(c.state)}))throw new Error('invalid state');
  const passed=entries.filter(function(c){return c.state==='PASS'&&Boolean(c.evidence_url)}).length;
  return passed+'/'+entries.length+' ('+(100*passed/entries.length).toFixed(1)+'%)';
 }
@@ -243,8 +274,8 @@ function deltaFor(previous,current){
   remaining_blockers:changed(function(oldItem,newItem){return blocked(newItem)})};
 }
 const metrics=document.querySelectorAll('#pv-contract .cards .metric');
-['implementation','verification','production'].forEach(function(dimension,i){metrics[i].textContent=metricFor(dimension)});
-const delta=deltaFor(snapshot.previous,snapshot);
+['implementation','verification','production'].forEach(function(dimension,i){metrics[i].textContent=snapshotValid?metricFor(dimension):'UNKNOWN'});
+const delta=snapshotValid?deltaFor(snapshot.previous,snapshot):{status:'UNKNOWN'};
 metrics[3].textContent=delta.status==='COMPARABLE'?'PASS増加 '+delta.newly_passed.length+' / 後退 '+delta.regressed.length:delta.status==='SCOPE_CHANGED'?'SCOPE_CHANGED':'UNKNOWN';
 const criterionRoot=document.getElementById('pv-criteria');
 taskNames.forEach(function(name,i){
