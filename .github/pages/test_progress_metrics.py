@@ -1,7 +1,7 @@
 """Contract tests for the provisional progress dashboard calculation rules."""
 import unittest
 
-from progress_metrics import STEPS, closed_loop, compare_snapshots, summarize
+from progress_metrics import STEPS, closed_loop, compare_snapshots, latest_head_ci, summarize
 
 
 def criterion(cid, state="UNKNOWN", evidence=None, dimension="implementation", finalized=True):
@@ -92,6 +92,20 @@ class ProgressMetricsTest(unittest.TestCase):
         self.assertEqual(closed_loop(steps), {"passed": 8, "total": 9, "complete": 0})
         steps[5]["evidence_url"] = "https://example.org/ci"
         self.assertEqual(closed_loop(steps), {"passed": 9, "total": 9, "complete": 1})
+
+
+    def test_latest_head_ci_requires_matching_sha_and_run(self):
+        self.assertEqual(latest_head_ci(None, "new", "success", 10)["status"], "UNKNOWN")
+        self.assertEqual(latest_head_ci("new", "new", "success", None)["status"], "UNKNOWN")
+        self.assertEqual(latest_head_ci("old", "new", "success", 10),
+                         {"status": "UNKNOWN", "reason": "STALE_HEAD"})
+        self.assertEqual(latest_head_ci("new", "new", "success", 10)["status"], "PASS")
+
+    def test_latest_head_ci_failure_and_pending_are_not_pass(self):
+        self.assertEqual(latest_head_ci("new", "new", "failure", 10)["status"], "FAIL")
+        self.assertEqual(latest_head_ci("new", "new", "cancelled", 10)["status"], "FAIL")
+        self.assertEqual(latest_head_ci("new", "new", None, 10)["status"], "UNKNOWN")
+        self.assertEqual(latest_head_ci("new", "new", "queued", 10)["status"], "UNKNOWN")
 
 
 if __name__ == "__main__":
