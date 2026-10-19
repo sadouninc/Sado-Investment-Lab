@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-18T23:30:10+09:00",
+  "last_run_at": "2026-10-20T00:14:00+09:00",
   "last_success_at": "2026-10-18T23:30:10+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-18T23:30:10+09:00",
   "news_persisted": false,
   "persistence_status": "PENDING_PERSIST",
   "updated_by": "❤️レイ",
-  "note": "2026-10-18 23:30 JST scheduled. Startup Sync TEAM_RULES→TEAM_STATE (AWAY/LUNA Flow Authority)→#99 head 6235488874 (267/267) VERIFIED; no new To: ALL/レイ. #861 verified TDK(6762)/QDレーザ(6613) retinal-projection smart-glasses prototype (TDK 10/02,10/06) + independent CEATEC field hands-on (Gizmodo 10/15); historical evidence newly discovered, no mass adoption/revenue proof. MRAM new commercial adoption unverified. Monthly Research direct GitHub update_file REJECTED by actual tool safety response, no retry; PENDING_PERSIST. Issue #79 untouched. Heartbeat direct GitHub update_file attempted once."
+  "note": "2026-10-20 00:14 JST routine heartbeat. Startup Sync TEAM_RULES/TEAM_STATE and Issue #99 head 6235488874 verified; Luna Flow Authority; Issue #79 untouched. No newly independently verified material research in this run; no Research mutation. Prior pending research remains unpersisted. Direct GitHub heartbeat write attempted once."
 }
