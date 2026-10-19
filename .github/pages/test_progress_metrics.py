@@ -1,7 +1,7 @@
 """Contract tests for the provisional progress dashboard calculation rules."""
 import unittest
 
-from progress_metrics import STEPS, closed_loop, compare_snapshots, latest_head_ci, summarize
+from progress_metrics import STEPS, closed_loop, compare_snapshots, latest_head_ci, summarize, validate_snapshot
 
 
 def criterion(cid, state="UNKNOWN", evidence=None, dimension="implementation", finalized=True):
@@ -106,6 +106,31 @@ class ProgressMetricsTest(unittest.TestCase):
         self.assertEqual(latest_head_ci("new", "new", "cancelled", 10)["status"], "FAIL")
         self.assertEqual(latest_head_ci("new", "new", None, 10)["status"], "UNKNOWN")
         self.assertEqual(latest_head_ci("new", "new", "queued", 10)["status"], "UNKNOWN")
+
+
+    def test_snapshot_schema_accepts_provisional_unknown(self):
+        snapshot = {"scope_version": "PROVISIONAL-867-v1", "criteria": [
+            criterion("PV867-T01-C01", "UNKNOWN", None, finalized=False)]}
+        self.assertIs(validate_snapshot(snapshot), snapshot)
+        self.assertEqual(summarize(snapshot["criteria"], "implementation")["status"], "UNKNOWN")
+
+    def test_snapshot_schema_rejects_bad_ids_and_evidence(self):
+        valid = criterion("a", "PASS", "https://example.org/run/1")
+        for items in ([valid, valid], [criterion("")],
+                      [criterion("a", "PASS", "http://example.org/unsafe")],
+                      [criterion("a", "PASS", "not-a-url")],
+                      [dict(valid, finalized="yes")],
+                      [dict(valid, dimension="other")]):
+            with self.subTest(items=items):
+                with self.assertRaises(ValueError):
+                    validate_snapshot({"scope_version": "v1", "criteria": items})
+
+    def test_snapshot_schema_requires_scope_and_list(self):
+        for snapshot in ({}, {"scope_version": "", "criteria": []},
+                         {"scope_version": "v1", "criteria": None}):
+            with self.subTest(snapshot=snapshot):
+                with self.assertRaises(ValueError):
+                    validate_snapshot(snapshot)
 
 
 if __name__ == "__main__":
