@@ -23,7 +23,7 @@ class IssueGateTests(unittest.TestCase):
 
     def check_rejected(self, result=None, issues=None, complete=True):
         with self.assertRaises(IssuePostRejected):
-            validate_issue_proposal(result or self.result, issues or [], inventory_complete=complete)
+            validate_issue_proposal(self.result if result is None else result, [] if issues is None else issues, inventory_complete=complete)
 
     def test_valid_proposal(self):
         payload = validate_issue_proposal(self.result, [], inventory_complete=True)
@@ -38,6 +38,14 @@ class IssueGateTests(unittest.TestCase):
 
     def test_noneligible_decision(self):
         self.check_rejected(result={**self.result, "decision": "HOLD_INCOMPLETE_INVENTORY"})
+
+    def test_empty_result_rejected(self):
+        self.check_rejected(result={})
+
+    def test_conflicting_state_rejected(self):
+        draft = self.result["issue_draft"]
+        body = draft["body"] + "\n- 状態: READY_FOR_IMPLEMENTATION"
+        self.check_rejected(result={**self.result, "issue_draft": {**draft, "body": body}})
 
     def test_missing_draft(self):
         self.check_rejected(result={**self.result, "issue_draft": None})
