@@ -7,8 +7,8 @@ from typing import Any
 
 from scripts.actions_failure_analyzer import decide_issue_action
 
-_REQUEST_ID = re.compile(r"actions-failure-[0-9a-f]{20}\Z")
-_RUN_URL = re.compile(r"https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/actions/runs/[1-9][0-9]*/job/[1-9][0-9]*\Z")
+_REQUEST_ID = re.compile(r"\Aactions-failure-[0-9a-f]{20}\Z")
+_RUN_URL = re.compile(r"\Ahttps://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/actions/runs/[1-9][0-9]*/job/[1-9][0-9]*\Z")
 
 
 class IssuePostRejected(ValueError):
@@ -48,6 +48,8 @@ def validate_issue_proposal(
         raise IssuePostRejected("invalid body")
     if body.count(f"<!-- {request_id} -->") != 1:
         raise IssuePostRejected("missing or duplicate request marker")
-    if "READY_FOR_IMPLEMENTATION" not in body or "TRIAGE_REQUIRED" not in body:
-        raise IssuePostRejected("missing triage guard")
+    if body.count("- 状態: TRIAGE_REQUIRED。READY_FOR_IMPLEMENTATIONには自動昇格しない。") != 1:
+        raise IssuePostRejected("missing canonical triage guard")
+    if re.search(r"(?m)^- 状態: (?!TRIAGE_REQUIRED。)", body):
+        raise IssuePostRejected("conflicting state declaration")
     return {"title": title, "body": body}
