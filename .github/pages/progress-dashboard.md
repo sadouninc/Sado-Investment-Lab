@@ -83,7 +83,8 @@ function validateSnapshot(data){
  });
  return data;
 }
-validateSnapshot(snapshot);
+let snapshotValid=true;
+try{validateSnapshot(snapshot)}catch(error){snapshotValid=false;console.error('Progress snapshot invalid:',error.message)}
 function latestHeadCI(evidenceHead,currentHead,conclusion,runId){
  if(!evidenceHead||!currentHead||!runId)return {status:'UNKNOWN',reason:'MISSING_EVIDENCE'};
  if(evidenceHead!==currentHead)return {status:'UNKNOWN',reason:'STALE_HEAD'};
@@ -121,8 +122,8 @@ function deltaFor(previous,current){
   remaining_blockers:changed(function(oldItem,newItem){return blocked(newItem)})};
 }
 const metrics=document.querySelectorAll('#pv-contract .cards .metric');
-['implementation','verification','production'].forEach(function(dimension,i){metrics[i].textContent=metricFor(dimension)});
-const delta=deltaFor(snapshot.previous,snapshot);
+['implementation','verification','production'].forEach(function(dimension,i){metrics[i].textContent=snapshotValid?metricFor(dimension):'UNKNOWN'});
+const delta=snapshotValid?deltaFor(snapshot.previous,snapshot):{status:'UNKNOWN'};
 metrics[3].textContent=delta.status==='COMPARABLE'?'PASS増加 '+delta.newly_passed.length+' / 後退 '+delta.regressed.length:delta.status==='SCOPE_CHANGED'?'SCOPE_CHANGED':'UNKNOWN';
 const criterionRoot=document.getElementById('pv-criteria');
 taskNames.forEach(function(name,i){
