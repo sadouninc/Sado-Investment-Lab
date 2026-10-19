@@ -55,6 +55,22 @@ def compare_snapshots(previous, current):
     }
 
 
+def latest_head_ci(evidence_head_sha, current_head_sha, conclusion, run_id):
+    """Accept CI only for an explicit matching head and run ID.
+
+    A missing or stale run is UNKNOWN, never a verified PASS.
+    """
+    if not evidence_head_sha or not current_head_sha or not run_id:
+        return {"status": "UNKNOWN", "reason": "MISSING_EVIDENCE"}
+    if evidence_head_sha != current_head_sha:
+        return {"status": "UNKNOWN", "reason": "STALE_HEAD"}
+    if conclusion == "success":
+        return {"status": "PASS", "reason": "LATEST_HEAD_SUCCESS"}
+    if conclusion in {"failure", "timed_out", "cancelled", "action_required"}:
+        return {"status": "FAIL", "reason": "LATEST_HEAD_NOT_SUCCESS"}
+    return {"status": "UNKNOWN", "reason": "RUN_NOT_COMPLETE"}
+
+
 STEPS = ("READY", "LEASE", "ACK", "COMMIT", "PR", "LATEST_HEAD_CI",
          "REVIEW_GATE", "MERGE_SHA", "NEXT_AUTO")
 
