@@ -25,6 +25,9 @@ def main(argv=None):
         and os.environ.get("GITHUB_REF") == "refs/heads/main"
         and os.environ.get("ISSUE_POST_CONFIRM") == "ISSUE873_CREATE_ONE"
     )
+    if not repo or not token:
+        print(json.dumps({"decision": "HOLD_MISSING_ENV", "issue_post": "DISABLED"}, sort_keys=True))
+        return 2
     try:
         client = GitHubReadOnlyClient(repo, token)
         result = collect_current_failure(client, as_of=datetime.now(timezone.utc), max_age_hours=args.max_age_hours)
@@ -38,7 +41,7 @@ def main(argv=None):
         # Fresh all-state inventory after proposal creation, immediately before POST.
         issues = client.all_pages("issues", None, {"state": "all"})
         created = post_validated_issue(repo, token, result, issues, inventory_complete=True, enable_post=True)
-        print(json.dumps({"decision": "ISSUE_CREATED", "issue_number": created["number"], "request_id": created["request_id"]}, sort_keys=True))
+        print(json.dumps({"decision": "ISSUE_CREATED", "issue_number": created.get("number"), "request_id": result["analysis"]["request_id"]}, sort_keys=True))
         return 0
     except Exception as exc:
         # Do not print API payloads or tokens; never automatically retry an uncertain POST.
