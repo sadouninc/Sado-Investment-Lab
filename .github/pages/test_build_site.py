@@ -466,12 +466,14 @@ class ProgressDashboardBuildTest(unittest.TestCase):
             "throw new Error('invalid state')",
             "throw new Error('finalized must be boolean')",
             "throw new Error('invalid evidence_url')",
-            "validateSnapshot(snapshot);",
+            "try{validateSnapshot(snapshot)}catch(error)",
+            "snapshotValid=false",
+            "snapshotValid?metricFor(dimension):'UNKNOWN'",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, source)
         self.assertLess(
-            source.index("validateSnapshot(snapshot);"),
+            source.index("try{validateSnapshot(snapshot)}catch(error)"),
             source.index("const metrics=document.querySelectorAll"),
         )
 
