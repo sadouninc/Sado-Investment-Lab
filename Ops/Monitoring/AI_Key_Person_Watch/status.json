@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-20T02:36:18+09:00",
-  "last_success_at": "2026-10-20T02:36:18+09:00",
+  "last_run_at": "2026-10-20T07:36:36+09:00",
+  "last_success_at": "2026-10-20T07:36:36+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-20T02:36:18+09:00",
+  "last_news_delta_at": "2026-10-20T07:36:36+09:00",
   "news_persisted": false,
   "persistence_status": "PENDING_PERSIST",
   "updated_by": "❤️レイ",
-  "note": "2026-10-20 02:36 JST chatgpt_scheduled. Startup Sync TEAM_RULES→TEAM_STATE→#99 latest comment 6235488874 (267/267), AWAY/LUNA; no new To ALL/レイ. #861 Consumer/Field Signal: 10/13 Ray-Ban Meta unprompted audio recording user reports; Meta said resolved, root cause/independent fix unverified (Android Authority 10/13, Ars Technica 10/16). Research update_file attempted once and REJECTED by OpenAI safety checks; no retry; PENDING_PERSIST. MRAM commercial adoption unverified. Issue #79 untouched."
+  "note": "2026-10-20 07:36 JST chatgpt_scheduled. TEAM_RULES→TEAM_STATE→#99 head 6235488874 (267/267) VERIFIED, AWAY/LUNA Flow Authority, no new To ALL/レイ. #861 verified TSMC Q3 2nm wafer revenue 8%, gross-margin ramp dilution (10/15 primary sources), not new-day announcement; MRAM new customer adoption unverified; Consumer/Field no material new verified delta. Research update_file REJECTED once by OpenAI safety checks, no retry, PENDING_PERSIST. Issue #79 untouched. Routine heartbeat direct update_file once."
 }
