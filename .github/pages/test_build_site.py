@@ -397,7 +397,7 @@ class ProgressDashboardBuildTest(unittest.TestCase):
             "return 'UNKNOWN'",
             "c.state==='PASS'&&Boolean(c.evidence_url)",
             "previous.scope_version!==current.scope_version",
-            "return 'SCOPE_CHANGED'",
+            "status:'SCOPE_CHANGED',scope_delta:",
             "metrics[i].textContent=metricFor(dimension)",
         ):
             with self.subTest(marker=marker):
