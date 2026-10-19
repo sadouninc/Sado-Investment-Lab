@@ -63,6 +63,27 @@ permalink: /ops/progress/
 const taskNames=["Writer→Readerのイベント形式統一","GitHubコメント証跡の照合","POST前のReader接続","POST前のGuard接続","担当・競合・終端状態の再検証","P0/P1候補の継続探索","安全性回帰テスト","最新head CIとOwner Gate","差分全体の未発見Blocker調査","期限切れ後の安全な自動再配車","高度なRecovery監視・最適化"];
 // Provisional data contract. All criteria remain unfinalized until Luna approval.
 const snapshot={scope_version:'PROVISIONAL-867-v1',criteria:[],previous:null,work_ref:null,lease_id:null};
+function validateSnapshot(data){
+ if(!data||typeof data.scope_version!=='string'||!data.scope_version)
+  throw new Error('missing scope_version');
+ if(!Array.isArray(data.criteria))throw new Error('criteria must be a list');
+ const seen=new Set();
+ data.criteria.forEach(function(c){
+  if(!c||typeof c!=='object'||typeof c.criterion_id!=='string'||!c.criterion_id)
+   throw new Error('missing criterion_id');
+  if(seen.has(c.criterion_id))throw new Error('duplicate criterion_id');
+  seen.add(c.criterion_id);
+  if(!['implementation','verification','production'].includes(c.dimension))
+   throw new Error('invalid dimension');
+  if(!['PASS','FAIL','BLOCKED','UNKNOWN'].includes(c.state))
+   throw new Error('invalid state');
+  if(typeof c.finalized!=='boolean')throw new Error('finalized must be boolean');
+  if(c.evidence_url!=null&&(typeof c.evidence_url!=='string'||!c.evidence_url.startsWith('https://')))
+   throw new Error('invalid evidence_url');
+ });
+ return data;
+}
+validateSnapshot(snapshot);
 function latestHeadCI(evidenceHead,currentHead,conclusion,runId){
  if(!evidenceHead||!currentHead||!runId)return {status:'UNKNOWN',reason:'MISSING_EVIDENCE'};
  if(evidenceHead!==currentHead)return {status:'UNKNOWN',reason:'STALE_HEAD'};
