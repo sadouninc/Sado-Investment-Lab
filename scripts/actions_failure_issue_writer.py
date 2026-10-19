@@ -36,11 +36,12 @@ def post_validated_issue(
     """
     if not enable_post:
         raise IssueWriteError("issue POST disabled by default")
-    if not _REPO.fullmatch(repository):
+    if not _REPO.fullmatch(repository) or any(part in {".", ".."} for part in repository.split("/")):
         raise IssueWriteError("invalid repository")
     if not token:
         raise IssueWriteError("missing write token")
     payload = validate_issue_proposal(result, existing_issues, inventory_complete=inventory_complete)
+    request_id = result["analysis"]["request_id"]  # validated before POST
     data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     request = Request(
         f"https://api.github.com/repos/{repository}/issues",
@@ -56,8 +57,9 @@ def post_validated_issue(
     )
     try:
         with urlopen(request, timeout=15) as response:
+            # HTTPError covers non-2xx; reject unexpected successful 2xx too.
             if response.status != 201:
-                raise IssueWriteError("unexpected issue creation response")
+                raise IssueWriteError("unexpected successful HTTP status; do not retry")
             raw = response.read(1_000_001)
             if len(raw) > 1_000_000:
                 raise IssueWriteError("oversized issue response")
@@ -68,4 +70,4 @@ def post_validated_issue(
         raise IssueWriteError("unverified issue POST response; do not retry automatically")
     if created["number"] == 79:
         raise IssueWriteError("protected issue number returned; investigate manually")
-    return {"number": created["number"], "html_url": created.get("html_url"), "request_id": result["analysis"]["request_id"]}
+    return {"number": created["number"], "html_url": created.get("html_url"), "request_id": request_id}
