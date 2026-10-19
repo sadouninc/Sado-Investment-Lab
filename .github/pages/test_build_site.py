@@ -398,7 +398,7 @@ class ProgressDashboardBuildTest(unittest.TestCase):
             "c.state==='PASS'&&Boolean(c.evidence_url)",
             "previous.scope_version!==current.scope_version",
             "status:'SCOPE_CHANGED',scope_delta:",
-            "metrics[i].textContent=metricFor(dimension)",
+            "metrics[i].textContent=snapshotValid?metricFor(dimension):'UNKNOWN'",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, source)
