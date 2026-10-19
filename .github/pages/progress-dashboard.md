@@ -63,6 +63,14 @@ permalink: /ops/progress/
 const taskNames=["Writer→Readerのイベント形式統一","GitHubコメント証跡の照合","POST前のReader接続","POST前のGuard接続","担当・競合・終端状態の再検証","P0/P1候補の継続探索","安全性回帰テスト","最新head CIとOwner Gate","差分全体の未発見Blocker調査","期限切れ後の安全な自動再配車","高度なRecovery監視・最適化"];
 // Provisional data contract. All criteria remain unfinalized until Luna approval.
 const snapshot={scope_version:'PROVISIONAL-867-v1',criteria:[],previous:null,work_ref:null,lease_id:null};
+function latestHeadCI(evidenceHead,currentHead,conclusion,runId){
+ if(!evidenceHead||!currentHead||!runId)return {status:'UNKNOWN',reason:'MISSING_EVIDENCE'};
+ if(evidenceHead!==currentHead)return {status:'UNKNOWN',reason:'STALE_HEAD'};
+ if(conclusion==='success')return {status:'PASS',reason:'LATEST_HEAD_SUCCESS'};
+ if(['failure','timed_out','cancelled','action_required'].includes(conclusion))
+  return {status:'FAIL',reason:'LATEST_HEAD_NOT_SUCCESS'};
+ return {status:'UNKNOWN',reason:'RUN_NOT_COMPLETE'};
+}
 function metricFor(dimension){
  const entries=snapshot.criteria.filter(function(c){return c.dimension===dimension});
  if(!entries.length||entries.some(function(c){return !c.finalized}))return 'UNKNOWN';
