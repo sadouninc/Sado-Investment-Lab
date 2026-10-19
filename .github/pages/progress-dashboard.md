@@ -20,7 +20,7 @@ permalink: /ops/progress/
 </div>
 <p class="small">※ 「未集計」は0件ではありません。#867の週内merge SHA照合が必要です。</p>
 <div class="section"><h2>PR #860の進捗と残Blocker</h2><p>課題を開くと完了条件・担当・証跡を確認できます。先頭9件はマージ前の検証対象、最後2件は後続候補です。</p><div id="pv-list"></div></div>
-<div class="section"><h2>直近の検証記録</h2><div class="card"><strong>CIで構文エラーを検出</strong><p>報告されたhead: <code>7ab5cfe2c4648bcc875a78ecc76ccc762e85fb91</code>。Actions run <a href="https://github.com/sadouninc/Sado-Investment-Lab/actions/runs/38955714503">38955714503</a>、<a href="https://github.com/sadouninc/Sado-Investment-Lab/actions/runs/38955714434">38955714434</a> は失敗報告。<code>scripts/recovery_rev2_evidence_adapter.py:20</code> のSyntaxError。修正後の最新head/CIは未確認です。<a href="https://github.com/sadouninc/Sado-Investment-Lab/pull/860#issuecomment-6223216216">診断証跡</a></p><p><strong>merge SHA:</strong> PR #860は未確認（OPEN時点）。<strong>次:</strong> ソラの修正commitとCI再検証。</p></div></div>
+<div class="section"><h2>直近の検証記録</h2><div class="card"><strong>CIで構文エラーを検出</strong><p>報告されたhead: <code>7ab5cfe2c4648bcc875a78ecc76ccc762e85fb91</code>。Actions run <a href="https://github.com/sadouninc/Sado-Investment-Lab/actions/runs/38955714503">38955714503</a>、<a href="https://github.com/sadouninc/Sado-Investment-Lab/actions/runs/38955714434">38955714434</a> は失敗報告。<code>scripts/recovery_rev2_evidence_adapter.py:20</code> のSyntaxError。この記録は過去headの失敗であり、現在headのCI状態を示しません。現在headのSHA・CI結果はこのスナップショットではUNKNOWNです。<a href="https://github.com/sadouninc/Sado-Investment-Lab/pull/860#issuecomment-6223216216">診断証跡</a></p><p><strong>merge SHA:</strong> PR #860は未確認（OPEN時点）。<strong>次:</strong> ソラの修正commitとCI再検証。</p></div></div>
 <div class="section"><h2>自然closed-loopの証明</h2><p>READY → lease/comment ID → ACK → 実装commit → PR → CI/review → merge SHA → NEXT_AUTO を同一workで連続照合する必要があります。現時点では全区間を結ぶ証跡が未確認のため<strong>未実証</strong>です。</p></div>
 <p class="small sub">根拠: <a href="https://github.com/sadouninc/Sado-Investment-Lab/issues/867#issuecomment-6214081524">9+2 baseline</a> / <a href="https://github.com/sadouninc/Sado-Investment-Lab/issues/867#issuecomment-6231862060">Design Contract v0.2</a>。課題名はbaselineを日本語要約した表示名で、正式IDの新設ではありません。</p>
 
@@ -36,6 +36,18 @@ permalink: /ops/progress/
 <p class="small">as_of: 2026-10-18 JST（台帳仕様追加時点）。scope_version: <code>PROVISIONAL-867-v1</code>。source: <a href="https://github.com/sadouninc/Sado-Investment-Lab/issues/867">#867</a>、<a href="https://github.com/sadouninc/Sado-Investment-Lab/pull/870">#870</a>。#860の最新head SHA・実績の自動取得は行いません。進捗率は確定母数がないためUNKNOWNです。</p>
 <p class="small">delta（同一scope_versionのみ）: newly_passed UNKNOWN / regressed UNKNOWN / new_blockers UNKNOWN / resolved_blockers UNKNOWN / remaining_blockers UNKNOWN。scope_delta（追加・削除）: UNKNOWN。過去headのCI成功は現在headのPASSに流用しません。</p>
 <div id="pv-criteria"></div>
+</div>
+<div class="section" aria-label="スナップショット更新手順">
+<h2>スナップショット更新・判定手順</h2>
+<p class="small">この画面はGitHubの情報を自動取得しません。SSoTは <a href="https://github.com/sadouninc/Sado-Investment-Lab/issues/867">Issue #867</a>・<a href="https://github.com/sadouninc/Sado-Investment-Lab/pull/860">PR #860</a>・対応するActions runとreviewの原本です。ダッシュボードは証跡の写しであり、承認やマージ権限を持ちません。</p>
+<ol class="small">
+<li>🌙ルナがcanonical task_id・atomic criterion_id・担当・区分・確定母数・scope_versionを原本に基づき承認する。未承認はUNKNOWNのまま。</li>
+<li>各criterionに必要なcommit SHA、run ID、review ID、merge SHA、production event IDを紐づけ、証跡URLと同一headを照合する。過去headの成功は現在headのPASSにしない。</li>
+<li>前回と今回のsnapshotを同じscope_versionで比較する。基準の追加・削除はscope_deltaとして別管理し、進捗deltaに混ぜない。</li>
+<li>as_of（JST）、source/head SHA、更新担当、確認済みPASS/FAIL/BLOCKED/UNKNOWNを記録し、静的ページを再生成してCIとプレビューを確認する。</li>
+<li>自然closed-loopは同一work_ref・lease_idの9工程を個別に照合し、完全1セットの成立を別判定する。追加2セットは任意。</li>
+</ol>
+<p class="small">更新担当: ⭐️ミナ（画面反映）／証跡とscope判定: 🌙ルナ（Product受入）／本番操作: Owner Gate準拠。正式母数未確定の間は百分率を出しません。</p>
 </div>
 <div class="section" aria-label="自然実行9工程">
 <h2>自然closed-loop 9工程：同一workの連続証跡</h2>
