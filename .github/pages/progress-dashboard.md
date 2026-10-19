@@ -61,6 +61,26 @@ permalink: /ops/progress/
 (function(){
 
 const taskNames=["Writer→Readerのイベント形式統一","GitHubコメント証跡の照合","POST前のReader接続","POST前のGuard接続","担当・競合・終端状態の再検証","P0/P1候補の継続探索","安全性回帰テスト","最新head CIとOwner Gate","差分全体の未発見Blocker調査","期限切れ後の安全な自動再配車","高度なRecovery監視・最適化"];
+// Provisional data contract. All criteria remain unfinalized until Luna approval.
+const snapshot={scope_version:'PROVISIONAL-867-v1',criteria:[],previous:null,work_ref:null,lease_id:null};
+function metricFor(dimension){
+ const entries=snapshot.criteria.filter(function(c){return c.dimension===dimension});
+ if(!entries.length||entries.some(function(c){return !c.finalized}))return 'UNKNOWN';
+ const ids=entries.map(function(c){return c.criterion_id});
+ if(new Set(ids).size!==ids.length)return 'UNKNOWN';
+ const passed=entries.filter(function(c){return c.state==='PASS'&&Boolean(c.evidence_url)}).length;
+ return passed+'/'+entries.length+' ('+(100*passed/entries.length).toFixed(1)+'%)';
+}
+function deltaFor(previous,current){
+ if(!previous||previous.scope_version!==current.scope_version)return 'UNKNOWN';
+ const oldIds=previous.criteria.map(function(c){return c.criterion_id}).sort();
+ const newIds=current.criteria.map(function(c){return c.criterion_id}).sort();
+ if(JSON.stringify(oldIds)!==JSON.stringify(newIds))return 'SCOPE_CHANGED';
+ return 'COMPARABLE';
+}
+const metrics=document.querySelectorAll('#pv-contract .cards .metric');
+['implementation','verification','production'].forEach(function(dimension,i){metrics[i].textContent=metricFor(dimension)});
+metrics[3].textContent=deltaFor(snapshot.previous,snapshot);
 const criterionRoot=document.getElementById('pv-criteria');
 taskNames.forEach(function(name,i){
  const taskId='PV867-T'+String(i+1).padStart(2,'0');
