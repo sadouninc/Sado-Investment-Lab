@@ -452,5 +452,29 @@ class ProgressDashboardBuildTest(unittest.TestCase):
                 self.assertIn(marker, source)
 
 
+    def test_progress_dashboard_validates_snapshot_before_render(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "function validateSnapshot(data)",
+            "throw new Error('missing scope_version')",
+            "throw new Error('criteria must be a list')",
+            "throw new Error('missing criterion_id')",
+            "throw new Error('duplicate criterion_id')",
+            "throw new Error('invalid dimension')",
+            "throw new Error('invalid state')",
+            "throw new Error('finalized must be boolean')",
+            "throw new Error('invalid evidence_url')",
+            "validateSnapshot(snapshot);",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+        self.assertLess(
+            source.index("validateSnapshot(snapshot);"),
+            source.index("const metrics=document.querySelectorAll"),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
