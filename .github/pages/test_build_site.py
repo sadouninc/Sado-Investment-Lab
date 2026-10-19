@@ -404,5 +404,24 @@ class ProgressDashboardBuildTest(unittest.TestCase):
                 self.assertIn(marker, source)
 
 
+    def test_progress_dashboard_delta_keeps_scope_and_blockers_separate(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "const oldMap=new Map(",
+            "const newMap=new Map(",
+            "status:'SCOPE_CHANGED',scope_delta:",
+            "newly_passed:changed(",
+            "regressed:changed(",
+            "new_blockers:changed(",
+            "resolved_blockers:changed(",
+            "remaining_blockers:changed(",
+            "delta.status==='COMPARABLE'",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+
+
 if __name__ == "__main__":
     unittest.main()
