@@ -66,9 +66,9 @@ jobs:
           summary = os.environ.get("GITHUB_STEP_SUMMARY")
           if summary:
               with open(summary, "a", encoding="utf-8") as out:
-                  out.write("## Issue Writer proposal dry-run\\n\\n")
+                  out.write("## Issue Writer proposal dry-run\n\n")
                   for key, value in fields.items():
-                      out.write(f"- {key}: {value}\\n")
+                      out.write(f"- {key}: {value}\n")
           PY
           if [ "$rc" -ne 0 ]; then
             echo "::warning::Collector exited nonzero (code $rc); inspect DECISION and summary; issue POST remains disabled"
