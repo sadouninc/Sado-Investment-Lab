@@ -110,10 +110,10 @@ jobs:
               if key in result:
                   print(f"{key}={safe(result[key])}")
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
-              out.write("## Issue #873 gated POST result\\n\\n")
+              out.write("## Issue #873 gated POST result\n\n")
               for key in ("decision", "issue_number", "error_type"):
                   if key in result:
-                      out.write(f"- {key}: {safe(result[key])}\\n")
-              out.write("- READY dispatch: disabled\\n")
+                      out.write(f"- {key}: {safe(result[key])}\n")
+              out.write("- READY dispatch: disabled\n")
           PY
           exit "$rc"
