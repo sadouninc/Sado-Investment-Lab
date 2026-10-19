@@ -1,0 +1,75 @@
+name: Actions Failure Issue Writer Dry Run (#873)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read # collector GET /pulls requires this permission
+  issues: read
+
+concurrency:
+  group: actions-failure-issue-writer-873
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - name: Generate issue proposal without mutation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          rc=0
+          PYTHONPATH=. python -m scripts.actions_failure_collector --max-age-hours 24 > issue-proposal.json 2> collector-stderr.log || rc=$?
+          if ! python -m json.tool issue-proposal.json >/dev/null 2>&1; then
+            echo "::error::Invalid collector output; issue POST prohibited"
+            exit 1
+          fi
+          export COLLECTOR_EXIT_CODE="$rc"
+          python - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+          data = json.loads(Path("issue-proposal.json").read_text())
+          if not isinstance(data, dict):
+              raise SystemExit("Invalid result shape")
+          safe = lambda v: re.sub(r"[^A-Za-z0-9_ .-]", "_", str(v))[:160]
+          decision = data.get("decision", "HOLD_MISSING_DECISION")
+          draft = data.get("issue_draft")
+          if decision == "ISSUE_DRAFT_ELIGIBLE":
+              if not isinstance(draft, dict) or not all(isinstance(draft.get(k), str) and draft[k] for k in ("title", "body")):
+                  raise SystemExit("Eligible result missing valid draft; fail closed")
+              print("ISSUE_PROPOSAL=ELIGIBLE")
+          else:
+              print("ISSUE_PROPOSAL=NOT_ELIGIBLE")
+          print("DECISION=" + safe(decision))
+          print("ISSUE_POST=DISABLED")
+          print("READY_DISPATCH=DISABLED")
+          fields = {
+              "ISSUE_PROPOSAL": "ELIGIBLE" if decision == "ISSUE_DRAFT_ELIGIBLE" else "NOT_ELIGIBLE",
+              "DECISION": safe(decision),
+              "COLLECTOR_EXIT_CODE": safe(os.environ.get("COLLECTOR_EXIT_CODE", "UNKNOWN")),
+              "ISSUE_POST": "DISABLED",
+              "READY_DISPATCH": "DISABLED",
+          }
+          summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary:
+              with open(summary, "a", encoding="utf-8") as out:
+                  out.write("## Issue Writer proposal dry-run\n\n")
+                  for key, value in fields.items():
+                      out.write(f"- {key}: {value}\n")
+          PY
+          if [ "$rc" -ne 0 ]; then
+            echo "::warning::Collector exited nonzero (code $rc); inspect DECISION and summary; issue POST remains disabled"
+          fi
