@@ -386,5 +386,23 @@ class ProgressDashboardBuildTest(unittest.TestCase):
         self.assertNotIn("fetch(", source)
 
 
+    def test_progress_dashboard_metrics_are_evidence_safe(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "const snapshot={scope_version:",
+            "criteria:[],previous:null",
+            "if(!entries.length||entries.some",
+            "return 'UNKNOWN'",
+            "c.state==='PASS'&&Boolean(c.evidence_url)",
+            "previous.scope_version!==current.scope_version",
+            "return 'SCOPE_CHANGED'",
+            "metrics[i].textContent=metricFor(dimension)",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+
+
 if __name__ == "__main__":
     unittest.main()
