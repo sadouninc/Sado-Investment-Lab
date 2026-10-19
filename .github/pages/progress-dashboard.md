@@ -67,7 +67,8 @@ function metricFor(dimension){
  const entries=snapshot.criteria.filter(function(c){return c.dimension===dimension});
  if(!entries.length||entries.some(function(c){return !c.finalized}))return 'UNKNOWN';
  const ids=entries.map(function(c){return c.criterion_id});
- if(new Set(ids).size!==ids.length)return 'UNKNOWN';
+ if(new Set(ids).size!==ids.length)throw new Error('duplicate criterion_id');
+ if(entries.some(function(c){return !['PASS','FAIL','BLOCKED','UNKNOWN'].includes(c.state)}))throw new Error('invalid state');
  const passed=entries.filter(function(c){return c.state==='PASS'&&Boolean(c.evidence_url)}).length;
  return passed+'/'+entries.length+' ('+(100*passed/entries.length).toFixed(1)+'%)';
 }
