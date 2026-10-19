@@ -423,5 +423,18 @@ class ProgressDashboardBuildTest(unittest.TestCase):
                 self.assertIn(marker, source)
 
 
+    def test_progress_dashboard_rejects_invalid_criterion_data(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "throw new Error('duplicate criterion_id')",
+            "throw new Error('invalid state')",
+            "['PASS','FAIL','BLOCKED','UNKNOWN']",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+
+
 if __name__ == "__main__":
     unittest.main()
