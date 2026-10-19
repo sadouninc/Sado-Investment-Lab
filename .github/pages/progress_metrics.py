@@ -4,6 +4,35 @@ VALID_STATES = frozenset({"PASS", "FAIL", "BLOCKED", "UNKNOWN"})
 DIMENSIONS = ("implementation", "verification", "production")
 
 
+def validate_snapshot(snapshot):
+    """Validate snapshot structure without inventing canonical criteria."""
+    if not isinstance(snapshot, dict) or not isinstance(snapshot.get("scope_version"), str) or not snapshot["scope_version"]:
+        raise ValueError("missing scope_version")
+    criteria = snapshot.get("criteria")
+    if not isinstance(criteria, list):
+        raise ValueError("criteria must be a list")
+    seen = set()
+    for item in criteria:
+        if not isinstance(item, dict):
+            raise ValueError("criterion must be an object")
+        cid = item.get("criterion_id")
+        if not isinstance(cid, str) or not cid:
+            raise ValueError("missing criterion_id")
+        if cid in seen:
+            raise ValueError("duplicate criterion_id")
+        seen.add(cid)
+        if item.get("dimension") not in DIMENSIONS:
+            raise ValueError("invalid dimension")
+        if item.get("state") not in VALID_STATES:
+            raise ValueError("invalid state")
+        if not isinstance(item.get("finalized"), bool):
+            raise ValueError("finalized must be boolean")
+        evidence = item.get("evidence_url")
+        if evidence is not None and (not isinstance(evidence, str) or not evidence.startswith("https://")):
+            raise ValueError("invalid evidence_url")
+    return snapshot
+
+
 def summarize(criteria, dimension):
     """Return PASS/denominator only for a finalized, nonempty criterion set."""
     if dimension not in DIMENSIONS:
