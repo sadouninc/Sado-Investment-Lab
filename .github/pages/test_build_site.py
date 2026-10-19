@@ -436,5 +436,21 @@ class ProgressDashboardBuildTest(unittest.TestCase):
                 self.assertIn(marker, source)
 
 
+    def test_progress_dashboard_latest_head_ci_contract(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "function latestHeadCI(",
+            "reason:'MISSING_EVIDENCE'",
+            "reason:'STALE_HEAD'",
+            "reason:'LATEST_HEAD_SUCCESS'",
+            "reason:'LATEST_HEAD_NOT_SUCCESS'",
+            "reason:'RUN_NOT_COMPLETE'",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+
+
 if __name__ == "__main__":
     unittest.main()
