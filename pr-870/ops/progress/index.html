@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #870 · NOT PRODUCTION</strong>
-  <span>Head 2b2906b644ce · Built 2026-10-19T14:53:02Z</span>
+  <span>Head d912371977ff · Built 2026-10-19T14:57:11Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -224,15 +224,28 @@ function metricFor(dimension){
  return passed+'/'+entries.length+' ('+(100*passed/entries.length).toFixed(1)+'%)';
 }
 function deltaFor(previous,current){
- if(!previous||previous.scope_version!==current.scope_version)return 'UNKNOWN';
- const oldIds=previous.criteria.map(function(c){return c.criterion_id}).sort();
- const newIds=current.criteria.map(function(c){return c.criterion_id}).sort();
- if(JSON.stringify(oldIds)!==JSON.stringify(newIds))return 'SCOPE_CHANGED';
- return 'COMPARABLE';
+ if(!previous)return {status:'UNKNOWN',newly_passed:null,regressed:null,new_blockers:null,resolved_blockers:null,remaining_blockers:null,scope_delta:null};
+ const oldMap=new Map(previous.criteria.map(function(c){return [c.criterion_id,c]}));
+ const newMap=new Map(current.criteria.map(function(c){return [c.criterion_id,c]}));
+ const added=[...newMap.keys()].filter(function(id){return !oldMap.has(id)}).sort();
+ const removed=[...oldMap.keys()].filter(function(id){return !newMap.has(id)}).sort();
+ if(previous.scope_version!==current.scope_version||added.length||removed.length){
+  return {status:'SCOPE_CHANGED',scope_delta:{added:added,removed:removed}};
+ }
+ const verified=function(c){return c.state==='PASS'&&Boolean(c.evidence_url)};
+ const blocked=function(c){return c.state==='BLOCKED'};
+ const changed=function(predicate){return [...newMap.keys()].filter(function(id){return predicate(oldMap.get(id),newMap.get(id))}).sort()};
+ return {status:'COMPARABLE',scope_delta:{added:[],removed:[]},
+  newly_passed:changed(function(oldItem,newItem){return !verified(oldItem)&&verified(newItem)}),
+  regressed:changed(function(oldItem,newItem){return verified(oldItem)&&!verified(newItem)}),
+  new_blockers:changed(function(oldItem,newItem){return !blocked(oldItem)&&blocked(newItem)}),
+  resolved_blockers:changed(function(oldItem,newItem){return blocked(oldItem)&&!blocked(newItem)}),
+  remaining_blockers:changed(function(oldItem,newItem){return blocked(newItem)})};
 }
 const metrics=document.querySelectorAll('#pv-contract .cards .metric');
 ['implementation','verification','production'].forEach(function(dimension,i){metrics[i].textContent=metricFor(dimension)});
-metrics[3].textContent=deltaFor(snapshot.previous,snapshot);
+const delta=deltaFor(snapshot.previous,snapshot);
+metrics[3].textContent=delta.status==='COMPARABLE'?'PASS増加 '+delta.newly_passed.length+' / 後退 '+delta.regressed.length:delta.status==='SCOPE_CHANGED'?'SCOPE_CHANGED':'UNKNOWN';
 const criterionRoot=document.getElementById('pv-criteria');
 taskNames.forEach(function(name,i){
  const taskId='PV867-T'+String(i+1).padStart(2,'0');
