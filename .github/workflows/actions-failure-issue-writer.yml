@@ -54,6 +54,10 @@ jobs:
           except (OSError, ValueError):
               data = {"decision": "HOLD_INVALID_OUTPUT"}
           safe = lambda v: re.sub(r"[^A-Za-z0-9_ .-]", "_", str(v))[:120]
+          print("Issue #873 writer result (sanitized)")
+          for key in ("decision", "issue_post", "error_type"):
+              if key in data:
+                  print(f"{key}={safe(data[key])}")
           summary = os.environ["GITHUB_STEP_SUMMARY"]
           with open(summary, "a", encoding="utf-8") as out:
               out.write("## Issue #873 writer result\n\n")
@@ -101,11 +105,15 @@ jobs:
           except (OSError, ValueError):
               result = {"decision": "HOLD_INVALID_OUTPUT"}
           safe = lambda v: re.sub(r"[^A-Za-z0-9_ .-]", "_", str(v))[:120]
+          print("Issue #873 gated POST result (sanitized)")
+          for key in ("decision", "error_type"):
+              if key in result:
+                  print(f"{key}={safe(result[key])}")
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as out:
-              out.write("## Issue #873 gated POST result\\n\\n")
+              out.write("## Issue #873 gated POST result\n\n")
               for key in ("decision", "issue_number", "error_type"):
                   if key in result:
-                      out.write(f"- {key}: {safe(result[key])}\\n")
-              out.write("- READY dispatch: disabled\\n")
+                      out.write(f"- {key}: {safe(result[key])}\n")
+              out.write("- READY dispatch: disabled\n")
           PY
           exit "$rc"
