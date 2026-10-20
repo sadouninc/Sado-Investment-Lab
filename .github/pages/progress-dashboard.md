@@ -123,7 +123,11 @@ function deltaFor(previous,current){
 }
 const metrics=document.querySelectorAll('#pv-contract .cards .metric');
 ['implementation','verification','production'].forEach(function(dimension,i){metrics[i].textContent=snapshotValid?metricFor(dimension):'UNKNOWN'});
-const delta=snapshotValid?deltaFor(snapshot.previous,snapshot):{status:'UNKNOWN'};
+let previousValid=snapshotValid;
+if(snapshotValid&&snapshot.previous!==null){
+ try{validateSnapshot(snapshot.previous)}catch(error){previousValid=false;console.error('Previous progress snapshot invalid:',error.message)}
+}
+const delta=previousValid?deltaFor(snapshot.previous,snapshot):{status:'UNKNOWN'};
 metrics[3].textContent=delta.status==='COMPARABLE'?'PASS増加 '+delta.newly_passed.length+' / 後退 '+delta.regressed.length:delta.status==='SCOPE_CHANGED'?'SCOPE_CHANGED':'UNKNOWN';
 const criterionRoot=document.getElementById('pv-criteria');
 taskNames.forEach(function(name,i){
