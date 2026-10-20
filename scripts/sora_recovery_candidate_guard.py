@@ -107,7 +107,7 @@ def check_candidate(issue: Mapping, comments: list, prs: list) -> dict:
         # Incidental issue mentions in a PR description are not ownership evidence.
         # Only explicit closing/linkage syntax in the body can establish ownership.
         body_link = re.search(
-            r"(?im)^\\s*(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\\s*:?\\s*(?:[\\w.-]+/[\\w.-]+)?#" + str(number) + r"(?!\\d)\\b",
+            r"(?im)^\s*(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s*:?\s*(?:[\w.-]+/[\w.-]+)?#" + str(number) + r"(?!\d)\b",
             pr.get("body") or "",
         )
         if issue_ref.search(pr["title"]) or body_link or branch_ref.search(ref):
