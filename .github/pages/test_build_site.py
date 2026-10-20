@@ -478,5 +478,20 @@ class ProgressDashboardBuildTest(unittest.TestCase):
         )
 
 
+    def test_progress_dashboard_mobile_overflow_contract(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            ".pv .card{min-width:0}",
+            "font-size:clamp(1.1rem,4.2vw,1.6rem)",
+            "overflow-wrap:anywhere",
+            "@media(max-width:350px){.pv .cards{grid-template-columns:minmax(0,1fr)}",
+            "@media(min-width:700px){.pv .cards{grid-template-columns:repeat(4,minmax(0,1fr))}",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+
+
 if __name__ == "__main__":
     unittest.main()
