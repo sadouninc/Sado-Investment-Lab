@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-20T11:29:10+09:00",
-  "last_success_at": "2026-10-20T11:29:10+09:00",
+  "last_run_at": "2026-10-20T12:27:15+09:00",
+  "last_success_at": "2026-10-20T12:27:15+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-20T11:29:10+09:00",
+  "last_news_delta_at": "2026-10-20T12:27:15+09:00",
   "news_persisted": false,
   "persistence_status": "PENDING_PERSIST",
   "updated_by": "❤️レイ",
-  "note": "2026-10-20 11:29 JST scheduled run. TEAM_RULES→TEAM_STATE→#99 head 6235488874 (267 comments) VERIFIED, AWAY/LUNA Flow Authority, no new To ALL/レイ. #861: MHI-Ingeteam 2026-10-15 MOU US AI data-center power conversion/quality (primary source; not confirmed orders); Consumer/Field and MRAM no new verified commercial delta. Research direct update_file REJECTED by OpenAI safety checks once, not retried. Issue #79 untouched. Routine heartbeat direct update_file attempted once."
+  "note": "2026-10-20 12:27 JST scheduled run. TEAM_RULES→TEAM_STATE→#99 head 6235488874 (267 comments) VERIFIED; AWAY/LUNA authority; no new To ALL/レイ. #861 verified Reuters 2026-10-20 Elice Group IPO first-day ~28% fall despite 388.84x institutional demand; financing risk signal, not confirmed Japan supplier order impact. Research direct update_file REJECTED by OpenAI safety checks once, not retried. Consumer/Field and MRAM no new verified adoption delta. Issue #79 untouched. Routine heartbeat direct update_file attempted once."
 }
