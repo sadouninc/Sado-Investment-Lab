@@ -493,5 +493,24 @@ class ProgressDashboardBuildTest(unittest.TestCase):
                 self.assertIn(marker, source)
 
 
+    def test_progress_dashboard_previous_snapshot_fails_closed(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "let previousValid=snapshotValid;",
+            "if(snapshotValid&&snapshot.previous!==null)",
+            "try{validateSnapshot(snapshot.previous)}catch(error)",
+            "previousValid=false",
+            "const delta=previousValid?deltaFor(snapshot.previous,snapshot):{status:'UNKNOWN'};",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+        self.assertLess(
+            source.index("try{validateSnapshot(snapshot.previous)}catch(error)"),
+            source.index("const delta=previousValid?deltaFor("),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
