@@ -105,9 +105,9 @@ def check_candidate(issue: Mapping, comments: list, prs: list) -> dict:
             return _block("INVALID_PR_HEAD")
         ref = head["ref"] if head is not None else ""
         # Incidental issue mentions in a PR description are not ownership evidence.
-        # Only explicit closing/linkage syntax in the body can establish ownership.
+        # Recognize explicit closing/linkage syntax anywhere, including bullet lists.
         body_link = re.search(
-            r"(?im)^\s*(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s*:?\s*(?:[\w.-]+/[\w.-]+)?#" + str(number) + r"(?!\d)\b",
+            r"(?im)(?<![\w])(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s*:?\s*(?:[\w.-]+/[\w.-]+)?#" + str(number) + r"(?!\d)\b",
             pr.get("body") or "",
         )
         if issue_ref.search(pr["title"]) or body_link or branch_ref.search(ref):
