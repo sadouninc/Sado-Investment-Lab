@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-21T01:34:06+09:00",
-  "last_success_at": "2026-10-21T01:34:06+09:00",
+  "last_run_at": "2026-10-21T02:31:25.826+09:00",
+  "last_success_at": "2026-10-21T02:31:25.826+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-21T01:34:06+09:00",
+  "last_news_delta_at": "2026-10-21T02:31:25.826+09:00",
   "news_persisted": false,
   "persistence_status": "REJECTED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-21 01:34 JST scheduled run; TEAM_RULES 89f8b8a2, TEAM_STATE 8beb099f, #99 head 6235488874 / 267 comments VERIFIED; AWAY / LUNA Flow Authority. Modal 2026-10-19 Vera CPU early benchmark up to 2x throughput vs x86 GNR; first-party evidence, rollout pending; MRAM/Consumer material new evidence not verified. Research mutation=REJECTED (none). Issue #79 untouched. Heartbeat direct GitHub update_file attempt 1."
+  "note": "2026-10-21 scheduled Research run; TEAM_RULES 89f8b8a2, TEAM_STATE 8beb099f, #99 head 6235488874 / 267 comments VERIFIED; AWAY/LUNA Flow Authority. Newly verified historical TDK Ventures May 27 C2i investment + Infineon Oct 5 acquisition completion, TDK realized P&L UNKNOWN. MRAM new production and Consumer independent material delta unverified. Research direct GitHub update_file attempt 1 REJECTED TOOL_SAFETY_REJECTION; no retry. Issue #79 untouched. Heartbeat direct GitHub update_file attempt 1."
 }
