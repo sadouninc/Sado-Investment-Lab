@@ -103,3 +103,30 @@ def test_malformed_unrelated_lease_event_does_not_block():
     body = '{"canonical_lease_id":"lease-' + 'a'*32 + '","work_ref":"issue:860",'
     result = check_candidate(issue(), [{"id": 11, "body": body}], [])
     assert result["status"] == "ALLOW_PRELIMINARY"
+
+
+def test_incidental_issue_reference_in_unrelated_pr_does_not_block():
+    # #873's PR may mention #859 as background, without owning its work.
+    prs = [{"number": 882, "state": "open", "title": "#873 scheduled read-only failure preview",
+            "body": "Context: #859 remains HOLD; no recovery implementation here.",
+            "head": {"ref": "luna/873-read-only-preview"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "ALLOW_PRELIMINARY"
+    assert result["dispatch_authorized"] is False
+
+
+def test_explicit_closing_reference_in_pr_body_still_blocks():
+    prs = [{"number": 883, "state": "open", "title": "Recovery follow-up",
+            "body": "Fixes #859", "head": {"ref": "unrelated-branch"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RELATED_PR_EXISTS"
+    assert result["pr_number"] == 883
+
+
+def test_explicit_related_pr_title_still_blocks():
+    prs = [{"number": 884, "state": "open", "title": "fix: #859 recovery guard",
+            "body": "", "head": {"ref": "other-work"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RELATED_PR_EXISTS"
