@@ -130,3 +130,28 @@ def test_explicit_related_pr_title_still_blocks():
     result = check_candidate(issue(), [], prs)
     assert result["status"] == "BLOCKED"
     assert result["reason"] == "RELATED_PR_EXISTS"
+
+
+def test_auto_router_dispatch_exact_target_blocks_duplicate_start():
+    body = "<!-- AUTO_ROUTER_DISPATCH lease_id=lease-" + "a" * 32 + " executor=SORA target_issue=859 -->"
+    result = check_candidate(issue(), [{"id": 20, "body": body}], [])
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "PRIOR_DISPATCH_REQUIRES_RECONCILIATION"
+
+
+def test_auto_router_dispatch_different_numeric_target_is_not_ours():
+    # Do not confuse issue 859 with 8590 when scanning unrelated history.
+    body = "<!-- AUTO_ROUTER_DISPATCH lease_id=lease-" + "a" * 32 + " executor=SORA target_issue=8590 -->"
+    result = check_candidate(issue(), [{"id": 21, "body": body}], [])
+    assert result["status"] == "ALLOW_PRELIMINARY"
+    assert result["dispatch_authorized"] is False
+
+
+def test_cross_repository_explicit_closing_reference_still_blocks():
+    prs = [{"number": 885, "state": "open", "title": "Follow-up",
+            "body": "Resolves sadouninc/Sado-Investment-Lab#859",
+            "head": {"ref": "unrelated-branch"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RELATED_PR_EXISTS"
+    assert result["pr_number"] == 885
