@@ -155,3 +155,38 @@ def test_cross_repository_explicit_closing_reference_still_blocks():
     assert result["status"] == "BLOCKED"
     assert result["reason"] == "RELATED_PR_EXISTS"
     assert result["pr_number"] == 885
+
+
+def test_pr_882_real_body_incidental_reference_not_owner_linkage():
+    prs = [{"number": 882, "state": "open",
+            "title": "[Luna] #873: schedule read-only failure preview (POST remains manual-only)",
+            "body": "Refs #873. Scope: writer workflow. ♦️ソラ remains Single Implementation Owner for #859. No #860 changes.",
+            "head": {"ref": "luna/873-read-only-preview"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "ALLOW_PRELIMINARY"
+    assert result["dispatch_authorized"] is False
+
+
+def test_explicit_refs_issue_859_blocks_related_pr():
+    prs = [{"number": 886, "state": "open", "title": "Recovery implementation",
+            "body": "Refs #859.", "head": {"ref": "other-work"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RELATED_PR_EXISTS"
+    assert result["pr_number"] == 886
+
+
+def test_explicit_references_cross_repo_issue_859_blocks():
+    prs = [{"number": 887, "state": "open", "title": "Recovery follow-up",
+            "body": "References sadouninc/Sado-Investment-Lab#859",
+            "head": {"ref": "other-work"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RELATED_PR_EXISTS"
+
+
+def test_refs_8590_does_not_match_859():
+    prs = [{"number": 888, "state": "open", "title": "Other issue",
+            "body": "Refs #8590.", "head": {"ref": "other-work"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "ALLOW_PRELIMINARY"
