@@ -512,5 +512,17 @@ class ProgressDashboardBuildTest(unittest.TestCase):
         )
 
 
+    def test_progress_dashboard_pr860_merge_proof_not_closed_loop_proof(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            "ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a", source
+        )
+        self.assertIn("PR #860は2026-10-17 22:36 JSTにマージ済み", source)
+        self.assertIn("マージ確認は自然closed-loopの全段階実証を意味しません", source)
+        self.assertNotIn("PR #860は未確認（OPEN時点）", source)
+
+
 if __name__ == "__main__":
     unittest.main()
