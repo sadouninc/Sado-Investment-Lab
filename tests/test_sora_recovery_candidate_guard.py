@@ -103,3 +103,90 @@ def test_malformed_unrelated_lease_event_does_not_block():
     body = '{"canonical_lease_id":"lease-' + 'a'*32 + '","work_ref":"issue:860",'
     result = check_candidate(issue(), [{"id": 11, "body": body}], [])
     assert result["status"] == "ALLOW_PRELIMINARY"
+
+
+def test_incidental_issue_reference_in_unrelated_pr_does_not_block():
+    # #873's PR may mention #859 as background, without owning its work.
+    prs = [{"number": 882, "state": "open", "title": "#873 scheduled read-only failure preview",
+            "body": "Context: #859 remains HOLD; no recovery implementation here.",
+            "head": {"ref": "luna/873-read-only-preview"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "ALLOW_PRELIMINARY"
+    assert result["dispatch_authorized"] is False
+
+
+def test_explicit_closing_reference_in_pr_body_still_blocks():
+    prs = [{"number": 883, "state": "open", "title": "Recovery follow-up",
+            "body": "Fixes #859", "head": {"ref": "unrelated-branch"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RELATED_PR_EXISTS"
+    assert result["pr_number"] == 883
+
+
+def test_explicit_related_pr_title_still_blocks():
+    prs = [{"number": 884, "state": "open", "title": "fix: #859 recovery guard",
+            "body": "", "head": {"ref": "other-work"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RELATED_PR_EXISTS"
+
+
+def test_auto_router_dispatch_exact_target_blocks_duplicate_start():
+    body = "<!-- AUTO_ROUTER_DISPATCH lease_id=lease-" + "a" * 32 + " executor=SORA target_issue=859 -->"
+    result = check_candidate(issue(), [{"id": 20, "body": body}], [])
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "PRIOR_DISPATCH_REQUIRES_RECONCILIATION"
+
+
+def test_auto_router_dispatch_different_numeric_target_is_not_ours():
+    # Do not confuse issue 859 with 8590 when scanning unrelated history.
+    body = "<!-- AUTO_ROUTER_DISPATCH lease_id=lease-" + "a" * 32 + " executor=SORA target_issue=8590 -->"
+    result = check_candidate(issue(), [{"id": 21, "body": body}], [])
+    assert result["status"] == "ALLOW_PRELIMINARY"
+    assert result["dispatch_authorized"] is False
+
+
+def test_cross_repository_explicit_closing_reference_still_blocks():
+    prs = [{"number": 885, "state": "open", "title": "Follow-up",
+            "body": "Resolves sadouninc/Sado-Investment-Lab#859",
+            "head": {"ref": "unrelated-branch"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RELATED_PR_EXISTS"
+    assert result["pr_number"] == 885
+
+
+def test_pr_882_real_body_incidental_reference_not_owner_linkage():
+    prs = [{"number": 882, "state": "open",
+            "title": "[Luna] #873: schedule read-only failure preview (POST remains manual-only)",
+            "body": "Refs #873. Scope: writer workflow. ♦️ソラ remains Single Implementation Owner for #859. No #860 changes.",
+            "head": {"ref": "luna/873-read-only-preview"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "ALLOW_PRELIMINARY"
+    assert result["dispatch_authorized"] is False
+
+
+def test_explicit_refs_issue_859_blocks_related_pr():
+    prs = [{"number": 886, "state": "open", "title": "Recovery implementation",
+            "body": "Refs #859.", "head": {"ref": "other-work"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RELATED_PR_EXISTS"
+    assert result["pr_number"] == 886
+
+
+def test_explicit_references_cross_repo_issue_859_blocks():
+    prs = [{"number": 887, "state": "open", "title": "Recovery follow-up",
+            "body": "References sadouninc/Sado-Investment-Lab#859",
+            "head": {"ref": "other-work"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "BLOCKED"
+    assert result["reason"] == "RELATED_PR_EXISTS"
+
+
+def test_refs_8590_does_not_match_859():
+    prs = [{"number": 888, "state": "open", "title": "Other issue",
+            "body": "Refs #8590.", "head": {"ref": "other-work"}}]
+    result = check_candidate(issue(), [], prs)
+    assert result["status"] == "ALLOW_PRELIMINARY"
