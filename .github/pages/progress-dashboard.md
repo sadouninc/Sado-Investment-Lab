@@ -11,7 +11,7 @@ permalink: /ops/progress/
 <section class="pv" aria-label="開発進捗">
 <h1>開発進捗ダッシュボード</h1>
 <p class="sub">2026年10月12日〜18日 JST ／ <a href="https://github.com/sadouninc/Sado-Investment-Lab/issues/867">週間計画 #867</a> ／ <a href="https://github.com/sadouninc/Sado-Investment-Lab/pull/860">実装 PR #860</a></p>
-<p class="warn"><strong>証跡の取り扱い：</strong>これは2026-10-17に確認したGitHub記録に基づくスナップショットです。リアルタイム集計ではありません。未確認は成功扱いしません。各項目の完了判定はcommit・テスト・CI・承認の照合後に更新します。</p>
+<p class="warn"><strong>証跡の取り扱い：</strong>これは2026-10-17の暫定台帳を基礎に、2026-10-23確認のPR #860マージ証跡のみ追記した静的スナップショットです。リアルタイム集計ではありません。未確認は成功扱いしません。各項目の完了判定はcommit・テスト・CI・承認の照合後に更新します。</p>
 <div class="cards" aria-label="集計">
 <div class="card"><div class="metric">9件</div><div>マージ前課題</div><div class="small sub">完了数は未検証</div></div>
 <div class="card"><div class="metric">2件</div><div>後続候補</div><div class="small sub">初回マージ対象外候補</div></div>
@@ -20,7 +20,7 @@ permalink: /ops/progress/
 </div>
 <p class="small">※ 「未集計」は0件ではありません。#867の週内merge SHA照合が必要です。</p>
 <div class="section"><h2>PR #860の進捗と残Blocker</h2><p>課題を開くと完了条件・担当・証跡を確認できます。先頭9件はマージ前の検証対象、最後2件は後続候補です。</p><div id="pv-list"></div></div>
-<div class="section"><h2>直近の検証記録</h2><div class="card"><strong>CIで構文エラーを検出</strong><p>報告されたhead: <code>7ab5cfe2c4648bcc875a78ecc76ccc762e85fb91</code>。Actions run <a href="https://github.com/sadouninc/Sado-Investment-Lab/actions/runs/38955714503">38955714503</a>、<a href="https://github.com/sadouninc/Sado-Investment-Lab/actions/runs/38955714434">38955714434</a> は失敗報告。<code>scripts/recovery_rev2_evidence_adapter.py:20</code> のSyntaxError。この記録は過去headの失敗であり、現在headのCI状態を示しません。現在headのSHA・CI結果はこのスナップショットではUNKNOWNです。<a href="https://github.com/sadouninc/Sado-Investment-Lab/pull/860#issuecomment-6223216216">診断証跡</a></p><p><strong>merge SHA:</strong> PR #860は未確認（OPEN時点）。<strong>次:</strong> ソラの修正commitとCI再検証。</p></div></div>
+<div class="section"><h2>直近の検証記録</h2><div class="card"><strong>CIで構文エラーを検出</strong><p>報告されたhead: <code>7ab5cfe2c4648bcc875a78ecc76ccc762e85fb91</code>。Actions run <a href="https://github.com/sadouninc/Sado-Investment-Lab/actions/runs/38955714503">38955714503</a>、<a href="https://github.com/sadouninc/Sado-Investment-Lab/actions/runs/38955714434">38955714434</a> は失敗報告。<code>scripts/recovery_rev2_evidence_adapter.py:20</code> のSyntaxError。この失敗は過去headの履歴であり、マージ済みの最終結果とは区別します。現在headのSHA・CI結果はこのスナップショットではUNKNOWNです。<a href="https://github.com/sadouninc/Sado-Investment-Lab/pull/860#issuecomment-6223216216">診断証跡</a></p><p><strong>merge SHA:</strong> PR #860は2026-10-17 22:36 JSTにマージ済み。<strong>merge SHA:</strong> <a href="https://github.com/sadouninc/Sado-Investment-Lab/commit/ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a"><code>ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a</code></a>。<strong>注意:</strong> マージ確認は自然closed-loopの全段階実証を意味しません。</p></div></div>
 <div class="section"><h2>自然closed-loopの証明</h2><p>READY → lease/comment ID → ACK → 実装commit → PR → CI/review → merge SHA → NEXT_AUTO を同一workで連続照合する必要があります。現時点では全区間を結ぶ証跡が未確認のため<strong>未実証</strong>です。</p></div>
 <p class="small sub">根拠: <a href="https://github.com/sadouninc/Sado-Investment-Lab/issues/867#issuecomment-6214081524">9+2 baseline</a> / <a href="https://github.com/sadouninc/Sado-Investment-Lab/issues/867#issuecomment-6231862060">Design Contract v0.2</a>。課題名はbaselineを日本語要約した表示名で、正式IDの新設ではありません。</p>
 
