@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-WORKFLOW = Path(".github/workflows/queue-auto-promotion-consumer.yml")
+WORKFLOW = Path(__file__).resolve().parents[1] / ".github/workflows/queue-auto-promotion-consumer.yml"
 
 
 def lease_state(comments, issue="828"):
