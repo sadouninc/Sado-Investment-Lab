@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 
 
-WORKFLOW = Path(".github/workflows/sora-recovery-control-plane.yml")
+WORKFLOW = Path(__file__).resolve().parents[1] / ".github/workflows/sora-recovery-control-plane.yml"
 
 
 def _workflow() -> str:
