@@ -50,3 +50,16 @@ def test_dispatch_gate_never_uses_reader_as_authority():
     assert result["status"] == "HOLD"
     assert result["reason"] == "INCOMPLETE_EVIDENCE"
     assert result["post_authorized"] is False
+
+def test_recovery_guard_reads_every_comment_and_pr_page():
+    """Incomplete inventories must never look like a safe empty history."""
+    source = _workflow()
+    assert (
+        'gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${ISSUE}/comments?per_page=100" '
+        "| jq -s 'add // []' > /tmp/comments.json"
+    ) in source
+    assert (
+        'gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls?state=all&per_page=100" '
+        "| jq -s 'add // []' > /tmp/prs.json"
+    ) in source
+    assert "set -euo pipefail" in source
