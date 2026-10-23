@@ -218,6 +218,19 @@ def test_valid_event_with_two_target_keys_is_not_false_ambiguous():
     assert lease_state([comment(body)]) == "RETRYABLE"
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"work_ref": "issue:828", "owner_slice": "issue-827", "status": "DISPATCH_LEASE_EXPIRED"},
+        {"work_ref": "issue:827", "owner_slice": "issue-828", "status": "DISPATCH_LEASE_EXPIRED"},
+        {"work_ref": "issue:828", "owner_slice": "issue-827", "status": "PROMOTION_BRANCH_READY"},
+    ],
+)
+def test_conflicting_lease_identity_fails_closed(payload):
+    """A mismatched owner_slice cannot authorize retry or terminalize this issue."""
+    assert lease_state([comment(json.dumps(payload))]) == "AMBIGUOUS"
+
+
 def test_unparsed_fragment_for_other_issue_does_not_override_valid_lease():
     body = event("DISPATCH_LEASE_EXPIRED") + (
         '\nLease update: {"work_ref": "issue:8289", "status":'
