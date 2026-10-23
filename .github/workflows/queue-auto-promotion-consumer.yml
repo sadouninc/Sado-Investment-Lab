@@ -74,8 +74,8 @@ jobs:
                    | map(select(test("^\\s*[\\{\\[]")) | try fromjson catch null)
                    | any(. == null)) as $malformed_json_line
                 | ($b | contains("flow-dispatch-lease") or contains("AUTO_ROUTER_DISPATCH")) as $lease_marker
-                | ($b | contains("\"work_ref\":\"issue:" + $n + "\"")
-                   or contains("\"owner_slice\":\"issue-" + $n + "\"")) as $target_hint
+                | ($b | test("\"work_ref\"\\s*:\\s*\"issue:" + $n + "(?:[^0-9]|$)")
+                   or test("\"owner_slice\"\\s*:\\s*\"issue-" + $n + "(?:[^0-9]|$)")) as $target_hint
                 | if ($events | length) > 1 then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   elif ($lease_marker or $target_hint) and $malformed_json_line then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   elif ($events | length) == 1 then $events[0]
