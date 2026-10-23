@@ -86,7 +86,13 @@ jobs:
                     (if .work_ref? == ("issue:" + $n) then 1 else 0 end) +
                     (if .owner_slice? == ("issue-" + $n) then 1 else 0 end)
                   ) | add // 0) as $parsed_ref_count
-                | if ($events | length) > 1 or $target_ref_count > $parsed_ref_count then {"status":"AMBIGUOUS_LEASE_EVENT"}
+                | ($events | any(
+                    (.work_ref? != null and .work_ref != ("issue:" + $n)) or
+                    (.owner_slice? != null and .owner_slice != ("issue-" + $n))
+                  )) as $conflicting_identity
+                # A lease whose work_ref and owner_slice disagree must not
+                # authorize a retry or dispatch for either issue.
+                | if $conflicting_identity or ($events | length) > 1 or $target_ref_count > $parsed_ref_count then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   elif ($lease_marker or $target_hint) and $malformed_json_line then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   elif ($events | length) == 1 then $events[0]
                   # A target hint embedded in prose (not a standalone JSON line)
