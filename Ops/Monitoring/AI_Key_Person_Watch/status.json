@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-24T00:30:54+09:00",
-  "last_success_at": "2026-10-24T00:30:54+09:00",
+  "last_run_at": "2026-10-24T01:34:01+09:00",
+  "last_success_at": "2026-10-24T01:34:01+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-24T00:30:54+09:00",
+  "last_news_delta_at": "2026-10-24T01:34:01+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-24 00:30 JST scheduled watch. TEAM_RULES/TEAM_STATE verified; #99 broadcast-head 6235488874 reached (267/267), no newer To: ALL/レイ. User Mode AWAY; current Flow Authority LUNA per 2026-10-17 transition. New research: 2026-10-23 Zhongji Innolight official disclosure, 2027 firm orders vs 2028 customer guidance, 10/22 China optical-sector selloff and 10/23 reassurance; direct GitHub update_file SUCCESS commit 1a2d92aa2571646c004a01fa293c4a4024f7fc16. MRAM new independent customer mass-production proof and material independent consumer-review delta not found. Issue #79 untouched; no dummy mutation/retry. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector."
+  "note": "2026-10-24 01:34 JST scheduled watch. TEAM_RULES/TEAM_STATE verified; #99 broadcast-head 6235488874 reached (267/267), no newer To: ALL/レイ. User Mode AWAY; Flow Authority LUNA per 2026-10-17 authoritative transition. New primary-source discovery: NTT/JAXA 2026-10-23 LEO satellite MIMO on-orbit 2x2 1.94x, 3x3 2.67x average channel capacity vs SISO and 920MHz LPWA simultaneous 2-terminal signal separation; commercial deployment/orders unknown. Research direct GitHub update_file SUCCESS commit 7e505b2dcfd5c327a65597ffcfcecdebea3479c5. MRAM new independent customer mass-production proof and material independent consumer-review delta not confirmed. Issue #79 untouched; no dummy mutation/retry. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector."
 }
