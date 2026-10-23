@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-23T18:32:03+09:00",
-  "last_success_at": "2026-10-23T18:32:03+09:00",
+  "last_run_at": "2026-10-23T19:30:20+09:00",
+  "last_success_at": "2026-10-23T19:30:20+09:00",
   "last_status": "OK",
-  "news_delta": 1,
-  "last_news_delta_at": "2026-10-23T18:32:03+09:00",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-10-23T19:30:20+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-23 18:30 JST scheduled watch. Startup Sync v2 TEAM_RULES/TEAM_STATE verified; #99 broadcast-head 6235488874, 267/267, no new To: ALL/レイ. AWAY, LUNA Flow Authority. Besi 2026Q3 hybrid-bonding orders and ASML competition follow-up, reported 2026-10-22; Research direct GitHub SUCCESS commit fefe0540cdb8191bebf21ede8b5764e3f69690a6, post-write blob verified. MRAM new customer mass-production adoption/Consumer independent review material delta not confirmed. Issue #79 untouched."
+  "note": "2026-10-23 19:30 JST scheduled watch. Startup Sync v2: TEAM_RULES/TEAM_STATE verified; #99 broadcast-head 6235488874, 267/267, no new To: ALL/レイ. AWAY, LUNA Flow Authority. New primary-source BOJ 2026-10-23 AI financing/NBFI risk, Reuters 2026-10-23 AI cyber defense/PHP operational disruption. Research SUCCESS; MRAM new customer production evidence not confirmed; Consumer independent review material delta not confirmed. Issue #79 untouched."
 }
