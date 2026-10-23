@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #865 · NOT PRODUCTION</strong>
-  <span>Head a800e031f983 · Built 2026-10-22T23:41:13Z</span>
+  <span>Head 3fb1e0c8038d · Built 2026-10-23T09:00:21Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -167,7 +167,7 @@
   <p>Data / Feature preparation → Morning Dataset → AI reasoning → Human decision</p>
 </blockquote>
 
-<div class="metric-grid"><div class="metric-card"><span>Schema</span><strong>1.0</strong></div><div class="metric-card"><span>As of</span><strong>2026-10-22</strong></div><div class="metric-card"><span>Quality</span><strong>PARTIAL</strong></div><div class="metric-card"><span>Completeness</span><strong>4 / 8 sources</strong><small> · 50.0%</small></div></div>
+<div class="metric-grid"><div class="metric-card"><span>Schema</span><strong>1.0</strong></div><div class="metric-card"><span>As of</span><strong>2026-10-23</strong></div><div class="metric-card"><span>Quality</span><strong>PARTIAL</strong></div><div class="metric-card"><span>Completeness</span><strong>4 / 8 sources</strong><small> · 50.0%</small></div></div>
 
 <p><strong>Source counts:</strong> OK 4 / PARTIAL 0 / STALE 2 / MISSING 2</p>
 
@@ -187,7 +187,7 @@
     <tr>
       <td>market</td>
       <td><span class="status-badge status-ok">OK</span></td>
-      <td>2026-10-21T23:00:00+00:00</td>
+      <td>2026-10-22T23:00:00+00:00</td>
       <td>https://query1.finance.yahoo.com/v8/finance/chart/</td>
       <td>—</td>
     </tr>
@@ -196,7 +196,7 @@
       <td><span class="status-badge status-stale">STALE</span></td>
       <td>2026-08-08</td>
       <td>data/portfolio/current.json</td>
-      <td>portfolio snapshot is 75 days old (freshness limit 3)</td>
+      <td>portfolio snapshot is 76 days old (freshness limit 3)</td>
     </tr>
     <tr>
       <td>capital</td>
@@ -208,21 +208,21 @@
     <tr>
       <td>candidates</td>
       <td><span class="status-badge status-ok">OK</span></td>
-      <td>2026-10-22</td>
+      <td>2026-10-23</td>
       <td>data/generated/public/candidate-selector.json</td>
       <td>—</td>
     </tr>
     <tr>
       <td>investor_dna</td>
       <td><span class="status-badge status-ok">OK</span></td>
-      <td>2026-10-21T23:47:14+00:00</td>
+      <td>2026-10-22T23:47:29+00:00</td>
       <td>data/generated/public/investor-dna.json</td>
       <td>—</td>
     </tr>
     <tr>
       <td>events</td>
       <td><span class="status-badge status-missing">MISSING</span></td>
-      <td>2026-10-22</td>
+      <td>2026-10-23</td>
       <td>data/events/calendar.json</td>
       <td>event calendar contains no events and does not explicitly confirm complete empty coverage</td>
     </tr>
@@ -231,12 +231,12 @@
       <td><span class="status-badge status-stale">STALE</span></td>
       <td>2026-08-11</td>
       <td>Current_Status.md</td>
-      <td>watchlist snapshot is 72 days old (freshness limit 3)</td>
+      <td>watchlist snapshot is 73 days old (freshness limit 3)</td>
     </tr>
     <tr>
       <td>sector_rotation</td>
       <td><span class="status-badge status-ok">OK</span></td>
-      <td>2026-10-21</td>
+      <td>2026-10-22</td>
       <td>data/generated/public/money-flow/sector-history.jsonl</td>
       <td>—</td>
     </tr>
@@ -248,10 +248,10 @@
 <h2 id="warnings">Warnings</h2>
 
 <ul>
-  <li>portfolio source is stale: portfolio snapshot is 75 days old (freshness limit 3)</li>
+  <li>portfolio source is stale: portfolio snapshot is 76 days old (freshness limit 3)</li>
   <li>capital source is missing: capital_snapshots table not found in canonical history database</li>
   <li>events source is missing: event calendar contains no events and does not explicitly confirm complete empty coverage</li>
-  <li>watchlist source is stale: watchlist snapshot is 72 days old (freshness limit 3)</li>
+  <li>watchlist source is stale: watchlist snapshot is 73 days old (freshness limit 3)</li>
 </ul>
 
 <h2 id="source-summaries">Source Summaries</h2>
@@ -262,7 +262,7 @@
 
 <ul>
   <li>Status: OK</li>
-  <li>As of: 2026-10-21T23:00:00+00:00</li>
+  <li>As of: 2026-10-22T23:00:00+00:00</li>
   <li>Source: https://query1.finance.yahoo.com/v8/finance/chart/</li>
   <li>Reason: —</li>
   <li>phase: —</li>
@@ -277,83 +277,83 @@
   "phase": null,
   "indices": {
     "nikkei_225": {
-      "value": 64075.421875,
-      "previous_close": 64916.69921875,
-      "change": -841.27734375,
-      "change_pct": -1.2959336409190263,
-      "as_of": "2026-10-20T00:00:00+00:00",
+      "value": 64621.23828125,
+      "previous_close": 64075.421875,
+      "change": 545.81640625,
+      "change_pct": 0.8518342763545012,
+      "as_of": "2026-10-21T00:00:00+00:00",
       "symbol": "^N225",
       "kind": "index",
       "source": "Yahoo Finance chart endpoint"
     },
     "topix": {
-      "value": 425.6000061035156,
-      "previous_close": 421.79998779296875,
-      "change": 3.800018310546875,
-      "change_pct": 0.9009052680229166,
-      "as_of": "2026-10-21T00:00:00+00:00",
+      "value": 420.6000061035156,
+      "previous_close": 425.6000061035156,
+      "change": -5.0,
+      "change_pct": -1.1748120132272475,
+      "as_of": "2026-10-22T00:00:00+00:00",
       "symbol": "1306.T",
       "kind": "etf_proxy",
       "proxy_for": "TOPIX",
       "source": "Yahoo Finance chart endpoint"
     },
     "growth_250_proxy": {
-      "value": 607.9000244140625,
-      "previous_close": 591.9000244140625,
-      "change": 16.0,
-      "change_pct": 2.7031592059552323,
-      "as_of": "2026-10-21T00:00:00+00:00",
+      "value": 598.9000244140625,
+      "previous_close": 607.9000244140625,
+      "change": -9.0,
+      "change_pct": -1.4805066028208904,
+      "as_of": "2026-10-22T00:00:00+00:00",
       "symbol": "2516.T",
       "kind": "etf_proxy",
       "proxy_for": "TSE Growth Market 250",
       "source": "Yahoo Finance chart endpoint"
     },
     "sp500": {
-      "value": 7757.169921875,
-      "previous_close": 7712.56982421875,
-      "change": 44.60009765625,
-      "change_pct": 0.5782780405591699,
-      "as_of": "2026-10-21T13:30:00+00:00",
+      "value": 7663.43017578125,
+      "previous_close": 7757.169921875,
+      "change": -93.73974609375,
+      "change_pct": -1.2084271330631364,
+      "as_of": "2026-10-22T13:30:00+00:00",
       "symbol": "^GSPC",
       "kind": "index",
       "source": "Yahoo Finance chart endpoint"
     },
     "nasdaq": {
-      "value": 26702.857421875,
-      "previous_close": 26424.8203125,
-      "change": 278.037109375,
-      "change_pct": 1.052181646220986,
-      "as_of": "2026-10-21T13:30:00+00:00",
+      "value": 26008.859375,
+      "previous_close": 26702.859375,
+      "change": -694.0,
+      "change_pct": -2.598972605344816,
+      "as_of": "2026-10-22T13:30:00+00:00",
       "symbol": "^IXIC",
       "kind": "index",
       "source": "Yahoo Finance chart endpoint"
     },
     "dow": {
-      "value": 52856.08984375,
-      "previous_close": 52495.87890625,
-      "change": 360.2109375,
-      "change_pct": 0.6861699337261965,
-      "as_of": "2026-10-21T13:30:00+00:00",
+      "value": 52867.98046875,
+      "previous_close": 52856.08984375,
+      "change": 11.890625,
+      "change_pct": 0.022496225194013314,
+      "as_of": "2026-10-22T13:30:00+00:00",
       "symbol": "^DJI",
       "kind": "index",
       "source": "Yahoo Finance chart endpoint"
     },
     "sox": {
-      "value": 11505.5556640625,
-      "previous_close": 11283.8095703125,
-      "change": 221.74609375,
-      "change_pct": 1.965170471623431,
-      "as_of": "2026-10-21T13:30:00+00:00",
+      "value": 10731.9775390625,
+      "previous_close": 11505.5595703125,
+      "change": -773.58203125,
+      "change_pct": -6.723549832778701,
+      "as_of": "2026-10-22T13:30:00+00:00",
       "symbol": "^SOX",
       "kind": "index",
       "source": "Yahoo Finance chart endpoint"
     },
     "vix": {
-      "value": 16.68000030517578,
-      "previous_close": 17.309999465942383,
-      "change": -0.6299991607666016,
-      "change_pct": -3.6395099953996644,
-      "as_of": "2026-10-21T07:00:00+00:00",
+      "value": 19.030000686645508,
+      "previous_close": 16.68000030517578,
+      "change": 2.3500003814697266,
+      "change_pct": 14.088731046009181,
+      "as_of": "2026-10-22T07:00:00+00:00",
       "symbol": "^VIX",
       "kind": "index",
       "source": "Yahoo Finance chart endpoint"
@@ -370,7 +370,7 @@
   <li>Status: STALE</li>
   <li>As of: 2026-08-08</li>
   <li>Source: data/portfolio/current.json</li>
-  <li>Reason: portfolio snapshot is 75 days old (freshness limit 3)</li>
+  <li>Reason: portfolio snapshot is 76 days old (freshness limit 3)</li>
   <li>positions: 10 items</li>
   <li>exposure: —</li>
   <li>pnl: —</li>
@@ -481,7 +481,7 @@
 
 <ul>
   <li>Status: OK</li>
-  <li>As of: 2026-10-22</li>
+  <li>As of: 2026-10-23</li>
   <li>Source: data/generated/public/candidate-selector.json</li>
   <li>Reason: —</li>
   <li>Items: 6</li>
@@ -575,7 +575,7 @@
 
 <ul>
   <li>Status: OK</li>
-  <li>As of: 2026-10-21T23:47:14+00:00</li>
+  <li>As of: 2026-10-22T23:47:29+00:00</li>
   <li>Source: data/generated/public/investor-dna.json</li>
   <li>Reason: —</li>
   <li>native_dna: 3 fields</li>
@@ -788,7 +788,7 @@
 
 <ul>
   <li>Status: MISSING</li>
-  <li>As of: 2026-10-22</li>
+  <li>As of: 2026-10-23</li>
   <li>Source: data/events/calendar.json</li>
   <li>Reason: event calendar contains no events and does not explicitly confirm complete empty coverage</li>
   <li>earnings: —</li>
@@ -809,7 +809,7 @@
   <li>Status: STALE</li>
   <li>As of: 2026-08-11</li>
   <li>Source: Current_Status.md</li>
-  <li>Reason: watchlist snapshot is 72 days old (freshness limit 3)</li>
+  <li>Reason: watchlist snapshot is 73 days old (freshness limit 3)</li>
   <li>items: 9 items</li>
   <li>Available fields: 1</li>
 </ul>
