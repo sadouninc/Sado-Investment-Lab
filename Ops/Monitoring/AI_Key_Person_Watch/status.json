@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-23T11:27:12+09:00",
-  "last_success_at": "2026-10-21T20:33:46+09:00",
-  "last_status": "ERROR",
-  "news_delta": 1,
-  "last_news_delta_at": "2026-10-23T11:27:12+09:00",
-  "news_persisted": false,
-  "persistence_status": "REJECTED",
+  "last_run_at": "2026-10-23T16:30:06+09:00",
+  "last_success_at": "2026-10-23T16:30:06+09:00",
+  "last_status": "OK",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-10-23T16:30:06+09:00",
+  "news_persisted": true,
+  "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-23 11:27 JST scheduled watch. TEAM_RULES/TEAM_STATE verified, #99 267/267 comments head 6235488874, no new To: ALL/レイ; AWAY, LUNA Flow Authority. Newly verified 2026-10-22 Renesas RX74M/RX74N 22nm embedded 1MB MRAM MCU production start (manufacturer announcement, customer adoption unknown); Research write=REJECTED (none). Consumer/Field independent sales/reviews unverified. Issue #79 untouched. Heartbeat natural update attempted once."
+  "note": "2026-10-23 16:30 JST scheduled watch. Startup Sync v2 TEAM_RULES/TEAM_STATE verified, #99 267/267 comments head 6235488874, no new To: ALL/レイ; AWAY, LUNA Flow Authority. Two verified research follow-ups: Micron Taiwan Taoyuan strike/ Taichung agreement and NTT black-phosphorus 260GHz laboratory photodetection (paper May 2026, announced Oct 22). Research direct GitHub update SUCCESS commit 2f621261114c5f0ede8086775da81300b290135a; Consumer independent reviews/MRAM additional customer adoption unverified. Issue #79 untouched. Heartbeat natural update attempted once."
 }
