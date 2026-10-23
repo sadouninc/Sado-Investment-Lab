@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-23T17:30:39+09:00",
-  "last_success_at": "2026-10-23T17:30:39+09:00",
+  "last_run_at": "2026-10-23T18:32:03+09:00",
+  "last_success_at": "2026-10-23T18:32:03+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-23T17:30:39+09:00",
+  "last_news_delta_at": "2026-10-23T18:32:03+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-23 17:30 JST scheduled watch. Startup Sync v2 TEAM_RULES/TEAM_STATE verified; #99 broadcast-head 6235488874, 267/267 comments, no new To: ALL/レイ. AWAY, LUNA Flow Authority. Newly verified historical 2026-10-20 LSTC/Hokkaido University/Fujifilm/GE HealthCare/imec NEDO 2nm medical edge-AI research selection; performance targets not achieved metrics, commercialization unverified. Research direct GitHub update SUCCESS commit 8ab90627b87d6bf979636551f436901cae4c28c9. Consumer independent review/MRAM additional customer adoption material delta not confirmed. Issue #79 untouched."
+  "note": "2026-10-23 18:30 JST scheduled watch. Startup Sync v2 TEAM_RULES/TEAM_STATE verified; #99 broadcast-head 6235488874, 267/267, no new To: ALL/レイ. AWAY, LUNA Flow Authority. Besi 2026Q3 hybrid-bonding orders and ASML competition follow-up, reported 2026-10-22; Research direct GitHub SUCCESS commit fefe0540cdb8191bebf21ede8b5764e3f69690a6, post-write blob verified. MRAM new customer mass-production adoption/Consumer independent review material delta not confirmed. Issue #79 untouched."
 }
