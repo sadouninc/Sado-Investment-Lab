@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-23T21:35:41+09:00",
-  "last_success_at": "2026-10-23T21:35:41+09:00",
+  "last_run_at": "2026-10-23T22:30:47.983+09:00",
+  "last_success_at": "2026-10-23T22:30:47.983+09:00",
   "last_status": "OK",
-  "news_delta": 2,
-  "last_news_delta_at": "2026-10-23T21:35:41+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-23T22:30:47.983+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-23 JST scheduled watch. Startup Sync v2: TEAM_RULES/TEAM_STATE verified; #99 broadcast-head 6235488874 (267/267) reached; no new To: ALL/レイ; user_mode AWAY, current Flow Authority LUNA (Owner-directed 2026-10-17 transition). Research delta 2: ABB×ETM TFM direct-drive cooling motor commercialization plan (2026-10-22 official); Reuters 2026-10-23 DC electricity connection/contract termination risk. Research direct GitHub update_file SUCCESS commit 8cbe620a71438e7346ee118036b1a2f9952a7843. MRAM new customer mass-production proof not found; no material independent Consumer review delta. Issue #79 untouched. No dummy write or retry."
+  "note": "2026-10-23 JST scheduled watch. Startup Sync v2 TEAM_RULES/TEAM_STATE verified, #99 broadcast-head 6235488874 (267/267) reached; no newer To: ALL/レイ; user_mode AWAY, current Flow Authority LUNA (2026-10-17 Owner-directed transition). Newly verified historical business evidence: Hitachi(6501) + Tokyo Gas(9531) + Brookfield + Hartree onsite-powered green data center MOU (2026-10-19 official; Kanto/Kyushu planning; no project order or MW yet). Research direct GitHub update_file SUCCESS commit 4f2594637fb348506d1ab5fd3e27de37a96b3de5; MRAM new customer mass-production proof and material independent consumer review delta not found. Issue #79 untouched; no dummy mutation or retry. run_context=chatgpt_scheduled; execution_path=direct GitHub connector."
 }
