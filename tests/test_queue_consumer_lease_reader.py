@@ -110,6 +110,53 @@ def test_malformed_target_json_without_marker_fails_closed():
     assert lease_state([comment(body)]) == "AMBIGUOUS"
 
 
+@pytest.mark.parametrize(
+    "body",
+    [
+        '{"work_ref": "issue:828", "status":',
+        '{ "work_ref" :\n "issue:828", "status":',
+        '{"owner_slice" : "issue-828", "status":',
+        '{"work_ref": "issue:828',
+    ],
+)
+def test_malformed_target_whitespace_and_truncation_fail_closed(body):
+    assert lease_state([comment(body)]) == "AMBIGUOUS"
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        '{"work_ref": "issue:8289", "status":',
+        '{"work_ref": "issue:827", "status":',
+        '{"owner_slice": "issue-8289", "status":',
+        '{"not_work_ref": "issue:828", "status":',
+        "Unrelated update without a canonical lease event",
+    ],
+)
+def test_unrelated_malformed_or_plain_comments_do_not_claim_target(body):
+    assert lease_state([comment(body)]) == "NONE"
+
+
+def test_ambiguous_lease_followed_by_unrelated_comment_remains_ambiguous():
+    comments = [
+        comment('{"work_ref": "issue:828", "status":'),
+        comment("Routine update; no lease event"),
+        comment(event("ASSIGNED", issue="827", lease_expires_at="2999-01-01T00:00:00Z")),
+    ]
+    assert lease_state(comments) == "AMBIGUOUS"
+
+
+def test_multiline_fallback_assigned_lease():
+    body = "<!-- flow-dispatch-lease -->\n" + event(
+        "FALLBACK_ASSIGNED", lease_expires_at="2999-01-01T00:00:00Z"
+    ) + "\n担当: 🪐ソラ"
+    assert lease_state([comment(body)]) == "ACTIVE"
+
+
+def test_empty_comment_list_has_no_lease():
+    assert lease_state([]) == "NONE"
+
+
 def test_valid_event_plus_malformed_json_fails_closed():
     body = "<!-- flow-dispatch-lease -->\n" + event(
         "ASSIGNED", lease_expires_at="2999-01-01T00:00:00Z"
