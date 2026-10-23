@@ -199,13 +199,13 @@ def test_expired_then_active_events_in_one_comment_fail_closed():
     "suffix",
     [
         'Lease update: {"work_ref": "issue:828", "status":',
-        'Lease update: {"work_ref":\\n "issue:828", "status":',
+        'Lease update: {"work_ref":\n "issue:828", "status":',
         'Lease update: {"work_ref": "issue:828", "status":"ASSIGNED"}',
     ],
 )
 def test_valid_expired_event_plus_unparsed_target_fragment_fails_closed(suffix):
     """A later unparsed target cannot silently preserve a retryable lease."""
-    body = event("DISPATCH_LEASE_EXPIRED") + "\\n" + suffix
+    body = event("DISPATCH_LEASE_EXPIRED") + "\n" + suffix
     assert lease_state([comment(body)]) == "AMBIGUOUS"
 
 
@@ -220,7 +220,7 @@ def test_valid_event_with_two_target_keys_is_not_false_ambiguous():
 
 def test_unparsed_fragment_for_other_issue_does_not_override_valid_lease():
     body = event("DISPATCH_LEASE_EXPIRED") + (
-        '\\nLease update: {"work_ref": "issue:8289", "status":'
+        '\nLease update: {"work_ref": "issue:8289", "status":'
     )
     assert lease_state([comment(body)]) == "RETRYABLE"
 
