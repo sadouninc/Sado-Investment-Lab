@@ -18,13 +18,19 @@ def lease_state(comments, issue="828"):
     suffix = chr(39) + ' /tmp/comments.json)"'
     assert prefix in source and suffix in source, "Cannot find canonical jq Lease Reader"
     expression = source.split(prefix, 1)[1].split(suffix, 1)[0]
-    result = subprocess.run(
-        ["jq", "-r", "--arg", "n", issue, expression],
-        input=json.dumps(comments),
-        text=True,
-        capture_output=True,
-        check=True,
-    )
+    try:
+        result = subprocess.run(
+            ["jq", "-r", "--arg", "n", issue, expression],
+            input=json.dumps(comments),
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        raise AssertionError(
+            f"Canonical jq Lease Reader failed (exit={exc.returncode}): "
+            f"{(exc.stderr or '').strip()}"
+        ) from exc
     return result.stdout.strip()
 
 
@@ -140,3 +146,15 @@ def test_protected_issue_79_has_no_authority_from_other_issue():
     assert lease_state([comment(event(
         "ASSIGNED", issue="828", lease_expires_at="2999-01-01T00:00:00Z"
     ))], issue="79") == "NONE"
+
+
+
+def test_jq_failure_reports_stderr(monkeypatch):
+    def failing_run(*args, **kwargs):
+        raise subprocess.CalledProcessError(
+            returncode=3, cmd=args[0], stderr="jq: syntax error in canonical reader"
+        )
+
+    monkeypatch.setattr(subprocess, "run", failing_run)
+    with pytest.raises(AssertionError, match="jq: syntax error in canonical reader"):
+        lease_state([comment(event("ASSIGNED"))])
