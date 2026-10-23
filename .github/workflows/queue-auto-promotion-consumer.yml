@@ -79,6 +79,9 @@ jobs:
                 | if ($events | length) > 1 then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   elif ($lease_marker or $target_hint) and $malformed_json_line then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   elif ($events | length) == 1 then $events[0]
+                  # A target hint embedded in prose (not a standalone JSON line)
+                  # is not a validated lease. Treat it as ambiguous, never NONE.
+                  elif $target_hint then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   elif $lease_marker then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   else empty end;
               [ .[] | comment_event ] | last // {} |
