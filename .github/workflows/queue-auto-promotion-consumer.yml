@@ -76,7 +76,17 @@ jobs:
                 | ($b | contains("flow-dispatch-lease") or contains("AUTO_ROUTER_DISPATCH")) as $lease_marker
                 | ($b | test("\"work_ref\"\\s*:\\s*\"issue:" + $n + "(?:[^0-9]|$)")
                    or test("\"owner_slice\"\\s*:\\s*\"issue-" + $n + "(?:[^0-9]|$)")) as $target_hint
-                | if ($events | length) > 1 then {"status":"AMBIGUOUS_LEASE_EVENT"}
+                # Count target references, including prose-prefixed or multiline
+                # malformed fragments which fromjson cannot turn into events.
+                # A valid event may carry both work_ref and owner_slice.
+                | ($b | [match("\"work_ref\"\\s*:\\s*\"issue:" + $n + "(?:[^0-9]|$)"; "g"),
+                         match("\"owner_slice\"\\s*:\\s*\"issue-" + $n + "(?:[^0-9]|$)"; "g")]
+                   | length) as $target_ref_count
+                | ($events | map(
+                    (if .work_ref? == ("issue:" + $n) then 1 else 0 end) +
+                    (if .owner_slice? == ("issue-" + $n) then 1 else 0 end)
+                  ) | add // 0) as $parsed_ref_count
+                | if ($events | length) > 1 or $target_ref_count > $parsed_ref_count then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   elif ($lease_marker or $target_hint) and $malformed_json_line then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   elif ($events | length) == 1 then $events[0]
                   # A target hint embedded in prose (not a standalone JSON line)
