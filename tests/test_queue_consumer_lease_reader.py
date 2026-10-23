@@ -146,6 +146,21 @@ def test_ambiguous_lease_followed_by_unrelated_comment_remains_ambiguous():
     assert lease_state(comments) == "AMBIGUOUS"
 
 
+
+@pytest.mark.parametrize(
+    "body, expected",
+    [
+        ('Lease update: {"work_ref": "issue:828", "status":', "AMBIGUOUS"),
+        ('Lease update: {"work_ref": "issue:828", "status":"ASSIGNED"}', "AMBIGUOUS"),
+        ('Lease update: {"work_ref": "issue:8289", "status":', "NONE"),
+        ('Lease update: {"work_ref": "issue:827", "status":', "NONE"),
+    ],
+)
+def test_prose_prefixed_target_fragment_fails_closed(body, expected):
+    """Target-bearing inline fragments must not be mistaken for no lease."""
+    assert lease_state([comment(body)]) == expected
+
+
 def test_multiline_fallback_assigned_lease():
     body = "<!-- flow-dispatch-lease -->\n" + event(
         "FALLBACK_ASSIGNED", lease_expires_at="2999-01-01T00:00:00Z"
