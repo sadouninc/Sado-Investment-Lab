@@ -369,7 +369,7 @@ class ProgressDashboardBuildTest(unittest.TestCase):
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, source)
-        self.assertIn("i<9?'マージ前候補':'後続候補'", source)
+        self.assertIn("i<9?'当初マージ前候補':'後続候補'", source)
         self.assertIn("taskNames.forEach", source)
         self.assertIn("loopNames.forEach", source)
         self.assertIn("進捗率は確定母数がないためUNKNOWN", source)
