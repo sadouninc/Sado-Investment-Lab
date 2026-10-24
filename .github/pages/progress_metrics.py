@@ -114,11 +114,11 @@ def closed_loop(steps):
         return {"passed": 0, "total": 9, "complete": 0}
     if [s.get("step") for s in steps] != list(STEPS):
         return {"passed": 0, "total": 9, "complete": 0}
-    work_refs = {s.get("work_ref") for s in steps}
-    lease_ids = {s.get("lease_id") for s in steps}
+    work_refs = [s.get("work_ref") for s in steps]
+    lease_ids = [s.get("lease_id") for s in steps]
     linked = (
-        len(work_refs) == 1 and len(lease_ids) == 1
-        and all(isinstance(ref, str) and bool(ref.strip()) for ref in work_refs | lease_ids)
+        all(isinstance(ref, str) and bool(ref.strip()) for ref in work_refs + lease_ids)
+        and len(set(work_refs)) == 1 and len(set(lease_ids)) == 1
     )
     if not linked:
         return {"passed": 0, "total": 9, "complete": 0}
