@@ -190,3 +190,81 @@ def test_refs_8590_does_not_match_859():
             "body": "Refs #8590.", "head": {"ref": "other-work"}}]
     result = check_candidate(issue(), [], prs)
     assert result["status"] == "ALLOW_PRELIMINARY"
+
+
+def _verified_885_repair():
+    return {
+        "number": 885,
+        "state": "closed",
+        "merged": True,
+        "title": "fix(#859): distinguish incidental PR mentions from recovery ownership",
+        "body": "Refs #859",
+        "head": {
+            "ref": "sora/859-hold-only-workflow-regression-20261020",
+            "sha": "788cb555d645bd5b3bba2080c03a667d66a466db",
+        },
+        "base": {"ref": "main"},
+        "merged_at": "2026-10-22T23:20:02Z",
+        "merge_commit_sha": "f21eecc5bbc1893510964dea28f8d7c14a09db65",
+    }
+
+
+def test_exact_merged_885_completed_slice_only():
+    result = check_candidate(issue(), [], [_verified_885_repair()])
+    assert result["status"] == "ALLOW_PRELIMINARY"
+    assert result["dispatch_authorized"] is False
+
+
+def test_885_without_authenticated_merge_sha_remains_held():
+    pr = _verified_885_repair()
+    pr.pop("merge_commit_sha")
+    result = check_candidate(issue(), [], [pr])
+    assert result["reason"] == "RELATED_PR_EXISTS"
+
+
+def test_885_with_mismatched_head_sha_remains_held():
+    pr = _verified_885_repair()
+    pr["head"]["sha"] = "0" * 40
+    result = check_candidate(issue(), [], [pr])
+    assert result["reason"] == "RELATED_PR_EXISTS"
+
+
+def test_885_open_or_unmerged_remains_held():
+    for field, value in (("state", "open"), ("merged_at", None), ("merged", False), ("merged", None)):
+        pr = _verified_885_repair()
+        pr[field] = value
+        result = check_candidate(issue(), [], [pr])
+        assert result["reason"] == "RELATED_PR_EXISTS"
+
+
+def test_885_missing_base_provenance_remains_held():
+    pr = _verified_885_repair()
+    pr.pop("base")
+    result = check_candidate(issue(), [], [pr])
+    assert result["reason"] == "RELATED_PR_EXISTS"
+
+
+def test_885_does_not_hide_other_related_or_incomplete_pr():
+    pr_860 = {"number": 860, "state": "closed", "title": "fix(#859): recovery control plane",
+              "body": "Refs #859", "head": {"ref": "nagi/859-sora-control-plane-writer"}}
+    result = check_candidate(issue(), [], [_verified_885_repair(), pr_860])
+    assert result["reason"] == "RELATED_PR_EXISTS"
+    assert result["pr_number"] == 860
+
+
+def test_885_does_not_hide_unreconciled_lease_event():
+    comment = {"id": 1, "body": json.dumps({"work_ref": "issue:859", "status": "DISPATCHED"})}
+    result = check_candidate(issue(), [comment], [_verified_885_repair()])
+    assert result["reason"] == "UNRECONCILED_WORK_EVENT"
+
+
+def test_885_does_not_override_issue79_hard_deny():
+    result = check_candidate(issue(79), [], [_verified_885_repair()])
+    assert result["status"] == "BLOCKED"
+
+
+def test_885_missing_merged_flag_remains_held():
+    pr = _verified_885_repair()
+    pr.pop("merged")
+    result = check_candidate(issue(), [], [pr])
+    assert result["reason"] == "RELATED_PR_EXISTS"

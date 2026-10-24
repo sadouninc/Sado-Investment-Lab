@@ -48,6 +48,27 @@ def _related_event(body: str, issue_number: int) -> bool:
     return False
 
 
+
+# This is a narrow, immutable completed-slice attestation, NOT a rule to ignore
+# all merged PRs. PR #860 and any unverified/incomplete work still block.
+def _attested_completed_859_guard_repair(pr: Mapping, issue_number: int) -> bool:
+    if issue_number != 859 or pr.get("number") != 885 or pr.get("state") != "closed":
+        return False
+    head = pr.get("head")
+    base = pr.get("base")
+    return (
+        pr.get("title") == "fix(#859): distinguish incidental PR mentions from recovery ownership"
+        and pr.get("merged_at") == "2026-10-22T23:20:02Z"
+        and pr.get("merge_commit_sha") == "f21eecc5bbc1893510964dea28f8d7c14a09db65"
+        and pr.get("merged") is True
+        and isinstance(head, Mapping)
+        and head.get("ref") == "sora/859-hold-only-workflow-regression-20261020"
+        and head.get("sha") == "788cb555d645bd5b3bba2080c03a667d66a466db"
+        and isinstance(base, Mapping)
+        and base.get("ref") == "main"
+    )
+
+
 def check_candidate(issue: Mapping, comments: list, prs: list) -> dict:
     """Preliminary read-only eligibility; ALLOW is never dispatch authorization."""
     if not isinstance(issue, Mapping):
@@ -111,6 +132,8 @@ def check_candidate(issue: Mapping, comments: list, prs: list) -> dict:
             pr.get("body") or "",
         )
         if issue_ref.search(pr["title"]) or body_link or branch_ref.search(ref):
+            if _attested_completed_859_guard_repair(pr, number):
+                continue  # Completed guard repair only; not POST authorization.
             return _block("RELATED_PR_EXISTS", pr_number=pr["number"])
     return {"status": "ALLOW_PRELIMINARY", "reason": "FRESH_ATTESTED_PREFLIGHT_REQUIRED",
             "issue_number": number, "dispatch_authorized": False}
