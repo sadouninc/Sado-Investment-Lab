@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-25T01:28:17+09:00",
-  "last_success_at": "2026-10-25T01:28:17+09:00",
+  "last_run_at": "2026-10-25T02:35:54.136+09:00",
+  "last_success_at": "2026-10-25T02:35:54.136+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-25T00:27:43+09:00",
-  "news_persisted": false,
-  "persistence_status": "NO_MATERIAL_DELTA",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-10-25T02:35:54.136+09:00",
+  "news_persisted": true,
+  "persistence_status": "MATERIAL_DELTA_PERSISTED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-25 01:28 JST natural chatgpt_scheduled Research/Discovery monitoring. Startup Sync v2 TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82; TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0; #99 267/267, head=6235488874 VERIFIED; Flow Authority=🌙ルナ (supersedes stale ナギ instruction). #861 causal Discovery, #124 heartbeat, MRAM and Consumer/Field checked. No new independently verified material Research delta; no Research file update. 2026-10-18 Reuters reports Samsung/TSMC HBM base-die possibility via Seoul Economic Daily; no primary confirmation/contract economics; WATCH_ONLY, not promoted. No verified new MRAM customer-volume adoption or independent buyer-review delta. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector; operation=update_file; historical Oct11 route UNKNOWN; no dummy mutation or rejected-operation retry."
+  "note": "2026-10-25 02:35 JST natural chatgpt_scheduled Research/Discovery run. Startup Sync v2 TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82, TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0; #99 267/267 broadcast-head=6235488874 VERIFIED; AWAY, Flow Authority=🌙ルナ supersedes stale ナギ prompt. #861 Discovery and #124 heartbeat. 2 material Research deltas saved to 06_Research/News/AI_Key_Person_Watch/2026-10.md, research commit=d33f99adfd83a21e0a14eda5e47ca12e28639e13 (readback VERIFIED): AWS Jassy 10/23 capacity commitments (CEO-reported), Moonshot Kimi K3.1 Pro 10/24 primary release (internal cyber bench not independently verified). MRAM new mass-production design wins and independent Consumer buyer reviews: no verified material delta. #831 Watchlist/Investment Owner-only; Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector; operation=update_file; Oct11 historical execution path UNKNOWN; no dummy mutation, no safety bypass or rejected-operation retry."
 }
