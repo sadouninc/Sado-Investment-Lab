@@ -1,6 +1,9 @@
 name: Actions Failure Issue Writer (#873)
 
 on:
+  # Read-only observation once daily; schedule never enables issue POST.
+  schedule:
+    - cron: '17 18 * * *'
   workflow_dispatch:
     inputs:
       confirm_issue_post:
@@ -21,7 +24,7 @@ concurrency:
 
 jobs:
   preview:
-    if: github.ref == 'refs/heads/main' && inputs.confirm_issue_post != 'ISSUE873_CREATE_ONE'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.confirm_issue_post != 'ISSUE873_CREATE_ONE'))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -68,7 +71,7 @@ jobs:
           PY
           exit "$rc"
   writer:
-    if: github.ref == 'refs/heads/main' && inputs.confirm_issue_post == 'ISSUE873_CREATE_ONE'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.confirm_issue_post == 'ISSUE873_CREATE_ONE'
     permissions:
       contents: read
       actions: read
