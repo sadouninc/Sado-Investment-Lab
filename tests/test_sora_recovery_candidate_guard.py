@@ -196,6 +196,7 @@ def _verified_885_repair():
     return {
         "number": 885,
         "state": "closed",
+        "merged": True,
         "title": "fix(#859): distinguish incidental PR mentions from recovery ownership",
         "body": "Refs #859",
         "head": {
@@ -229,7 +230,7 @@ def test_885_with_mismatched_head_sha_remains_held():
 
 
 def test_885_open_or_unmerged_remains_held():
-    for field, value in (("state", "open"), ("merged_at", None), ("merged", False)):
+    for field, value in (("state", "open"), ("merged_at", None), ("merged", False), ("merged", None)):
         pr = _verified_885_repair()
         pr[field] = value
         result = check_candidate(issue(), [], [pr])
@@ -260,3 +261,10 @@ def test_885_does_not_hide_unreconciled_lease_event():
 def test_885_does_not_override_issue79_hard_deny():
     result = check_candidate(issue(79), [], [_verified_885_repair()])
     assert result["status"] == "BLOCKED"
+
+
+def test_885_missing_merged_flag_remains_held():
+    pr = _verified_885_repair()
+    pr.pop("merged")
+    result = check_candidate(issue(), [], [pr])
+    assert result["reason"] == "RELATED_PR_EXISTS"
