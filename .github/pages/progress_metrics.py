@@ -55,7 +55,9 @@ def summarize(criteria, dimension):
 
 
 def compare_snapshots(previous, current):
-    """Compare only equal-scope snapshots; scope changes stay separate."""
+    """Compare only validated equal-scope snapshots; reject malformed history."""
+    validate_snapshot(previous)
+    validate_snapshot(current)
     old = {c["criterion_id"]: c for c in previous["criteria"]}
     new = {c["criterion_id"]: c for c in current["criteria"]}
     added, removed = sorted(new.keys() - old.keys()), sorted(old.keys() - new.keys())
