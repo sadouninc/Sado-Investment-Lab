@@ -534,5 +534,14 @@ class ProgressDashboardBuildTest(unittest.TestCase):
         self.assertNotIn("<strong>merge SHA:</strong> PR #860", source)
 
 
+    def test_progress_dashboard_rows_do_not_claim_pr860_open(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("#860（MERGED、criterion別PASSは未判定）", source)
+        self.assertIn("PR単位 ac378e389e1c（criterion別の帰属は未確認）", source)
+        self.assertNotIn("（OPEN時点）", source)
+
+
 if __name__ == "__main__":
     unittest.main()
