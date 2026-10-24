@@ -107,11 +107,25 @@ STEPS = ("READY", "LEASE", "ACK", "COMMIT", "PR", "LATEST_HEAD_CI",
 
 
 def closed_loop(steps):
-    """Only one consistently linked work/lease can count as a complete set."""
-    if len(steps) != len(STEPS) or [s["step"] for s in steps] != list(STEPS):
+    """Count only valid, attributable nine-stage evidence for one work/lease."""
+    if not isinstance(steps, (list, tuple)) or len(steps) != len(STEPS):
+        return {"passed": 0, "total": 9, "complete": 0}
+    if any(not isinstance(s, dict) for s in steps):
+        return {"passed": 0, "total": 9, "complete": 0}
+    if [s.get("step") for s in steps] != list(STEPS):
         return {"passed": 0, "total": 9, "complete": 0}
     work_refs = {s.get("work_ref") for s in steps}
     lease_ids = {s.get("lease_id") for s in steps}
-    linked = len(work_refs) == 1 and None not in work_refs and len(lease_ids) == 1 and None not in lease_ids
-    passed = sum(s.get("state") == "PASS" and bool(s.get("evidence_url")) for s in steps) if linked else 0
-    return {"passed": passed, "total": 9, "complete": int(linked and passed == 9)}
+    linked = (
+        len(work_refs) == 1 and len(lease_ids) == 1
+        and all(isinstance(ref, str) and bool(ref.strip()) for ref in work_refs | lease_ids)
+    )
+    if not linked:
+        return {"passed": 0, "total": 9, "complete": 0}
+    passed = sum(
+        s.get("state") == "PASS"
+        and isinstance(s.get("evidence_url"), str)
+        and s["evidence_url"].startswith("https://")
+        for s in steps
+    )
+    return {"passed": passed, "total": 9, "complete": int(passed == 9)}
