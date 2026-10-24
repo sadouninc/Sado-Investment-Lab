@@ -133,5 +133,22 @@ class ProgressMetricsTest(unittest.TestCase):
                     validate_snapshot(snapshot)
 
 
+    def test_snapshot_delta_rejects_malformed_previous_and_current(self):
+        valid = {"scope_version": "v1", "criteria": [criterion("a")]}
+        invalid_snapshots = [
+            {"scope_version": "v1", "criteria": [criterion("a"), criterion("a")]},
+            {"scope_version": "v1", "criteria": [dict(criterion("a"), state="DONE")]},
+            {"scope_version": "v1", "criteria": "not a list"},
+            {"scope_version": "", "criteria": [criterion("a")]},
+        ]
+        for invalid in invalid_snapshots:
+            with self.subTest(invalid=invalid):
+                with self.assertRaises(ValueError):
+                    compare_snapshots(invalid, valid)
+                with self.assertRaises(ValueError):
+                    compare_snapshots(valid, invalid)
+
+
+
 if __name__ == "__main__":
     unittest.main()
