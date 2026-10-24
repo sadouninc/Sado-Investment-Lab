@@ -524,5 +524,15 @@ class ProgressDashboardBuildTest(unittest.TestCase):
         self.assertNotIn("PR #860は未確認（OPEN時点）", source)
 
 
+    def test_progress_dashboard_baseline_not_current_blocker_count(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("当初マージ前候補", source)
+        self.assertIn("現在の未完了数を示すものではありません", source)
+        self.assertNotIn("<div>マージ前課題</div>", source)
+        self.assertNotIn("<strong>merge SHA:</strong> PR #860", source)
+
+
 if __name__ == "__main__":
     unittest.main()
