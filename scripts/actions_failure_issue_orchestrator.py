@@ -4,11 +4,31 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
 
 from scripts.actions_failure_collector import GitHubReadOnlyClient, collect_current_failure
 from scripts.actions_failure_issue_writer import post_validated_issue
+
+
+def _observable_result(result: dict, *, issue_post: str) -> dict:
+    """Return only bounded identifiers needed to audit a dry-run decision."""
+    output = {"decision": result.get("decision"), "issue_post": issue_post}
+    analysis = result.get("analysis")
+    if not isinstance(analysis, dict):
+        return output
+    for key in ("source_run_id", "job_id"):
+        value = analysis.get(key)
+        if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+            output[key] = value
+    error_class = analysis.get("error_class")
+    if isinstance(error_class, str) and re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", error_class):
+        output["error_class"] = error_class
+    request_id = analysis.get("request_id")
+    if isinstance(request_id, str) and re.fullmatch(r"actions-failure-[0-9a-f]{20}", request_id):
+        output["request_id"] = request_id
+    return output
 
 
 def main(argv=None):
@@ -33,10 +53,10 @@ def main(argv=None):
         result = collect_current_failure(client, as_of=datetime.now(timezone.utc), max_age_hours=args.max_age_hours)
         decision = result.get("decision")
         if decision != "ISSUE_DRAFT_ELIGIBLE":
-            print(json.dumps({"decision": decision, "issue_post": "SKIPPED"}, sort_keys=True))
+            print(json.dumps(_observable_result(result, issue_post="SKIPPED"), sort_keys=True))
             return 0 if decision in {"NO_CURRENT_OPEN_PR_FAILURE", "DUPLICATE_SUPPRESSED"} else 2
         if not enabled:
-            print(json.dumps({"decision": decision, "issue_post": "DISABLED"}, sort_keys=True))
+            print(json.dumps(_observable_result(result, issue_post="DISABLED"), sort_keys=True))
             return 0
         # Fresh all-state inventory after proposal creation, immediately before POST.
         issues = client.all_pages("issues", None, {"state": "all"})

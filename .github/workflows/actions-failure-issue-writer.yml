@@ -58,13 +58,13 @@ jobs:
               data = {"decision": "HOLD_INVALID_OUTPUT"}
           safe = lambda v: re.sub(r"[^A-Za-z0-9_ .-]", "_", str(v))[:120]
           print("Issue #873 writer result (sanitized)")
-          for key in ("decision", "issue_post", "error_type"):
+          for key in ("decision", "issue_post", "source_run_id", "job_id", "error_class", "request_id", "error_type"):
               if key in data:
                   print(f"{key}={safe(data[key])}")
           summary = os.environ["GITHUB_STEP_SUMMARY"]
           with open(summary, "a", encoding="utf-8") as out:
               out.write("## Issue #873 writer result\n\n")
-              for key in ("decision", "issue_post", "issue_number", "error_type"):
+              for key in ("decision", "issue_post", "source_run_id", "job_id", "error_class", "request_id", "issue_number", "error_type"):
                   if key in data:
                       out.write(f"- {key}: {safe(data[key])}\n")
               out.write("- READY dispatch: disabled\n")
