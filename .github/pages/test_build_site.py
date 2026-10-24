@@ -543,5 +543,15 @@ class ProgressDashboardBuildTest(unittest.TestCase):
         self.assertNotIn("（OPEN時点）", source)
 
 
+    def test_progress_dashboard_wraps_long_mobile_code(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            ".pv code{overflow-wrap:anywhere;word-break:break-word;white-space:normal}",
+            source,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
