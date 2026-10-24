@@ -60,7 +60,7 @@ def _attested_completed_859_guard_repair(pr: Mapping, issue_number: int) -> bool
         pr.get("title") == "fix(#859): distinguish incidental PR mentions from recovery ownership"
         and pr.get("merged_at") == "2026-10-22T23:20:02Z"
         and pr.get("merge_commit_sha") == "f21eecc5bbc1893510964dea28f8d7c14a09db65"
-        and pr.get("merged") is not False
+        and pr.get("merged") is True
         and isinstance(head, Mapping)
         and head.get("ref") == "sora/859-hold-only-workflow-regression-20261020"
         and head.get("sha") == "788cb555d645bd5b3bba2080c03a667d66a466db"
