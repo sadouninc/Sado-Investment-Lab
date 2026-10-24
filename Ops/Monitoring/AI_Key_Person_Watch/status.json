@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-24T23:29:00+09:00",
-  "last_success_at": "2026-10-24T23:29:00+09:00",
+  "last_run_at": "2026-10-25T00:27:43+09:00",
+  "last_success_at": "2026-10-25T00:27:43+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-24T22:36:25+09:00",
-  "news_persisted": false,
-  "persistence_status": "NO_NEW_RESEARCH",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-25T00:27:43+09:00",
+  "news_persisted": true,
+  "persistence_status": "RESEARCH_UPDATED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-24 23:29 JST natural chatgpt_scheduled monitoring. Startup Sync v2: TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82; TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0; #99 267/267, head=6235488874 VERIFIED. Current SSoT Flow Authority=🌙ルナ (stale ナギ prompt superseded). #861 Discovery Radar/#124 heartbeat reviewed. Fresh web searches on AI chips, MRAM adoption, smart-glasses/consumer trends yielded no sufficiently verified novel material delta; no Research mutation. Last research delta timestamp preserved. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; Oct11 route UNKNOWN; no dummy writes, no retry."
+  "note": "2026-10-25 00:27 JST natural chatgpt_scheduled monitoring. Startup Sync v2: TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82; TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0; #99 267/267, head=6235488874 VERIFIED. Flow Authority=🌙ルナ (stale ナギ prompt superseded). #861 Discovery/#124 heartbeat/MRAM/consumer checked. New material Research: 2026-10-13 EDPB smart-glasses statement and 2026-10-20 Reuters independent regulatory reporting; appended existing 2026-10 Research file, commit 3aeaa5b44d559baed63d5ba4d03c7782b0a943d9, verified by fetch. No independent consumer buyer reviews or MRAM volume-adoption evidence. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector; operation=update_file; Oct11 historical route UNKNOWN; no dummy mutation or refused-op retry."
 }
