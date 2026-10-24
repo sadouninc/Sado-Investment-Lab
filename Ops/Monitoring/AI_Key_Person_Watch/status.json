@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-24T19:34:57+09:00",
-  "last_success_at": "2026-10-24T19:34:57+09:00",
+  "last_run_at": "2026-10-24T20:31:21+09:00",
+  "last_success_at": "2026-10-24T20:31:21+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-10-24T13:37:58+09:00",
   "news_persisted": false,
   "persistence_status": "NO_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-10-24 19:34 JST chatgpt_scheduled Research run. Startup Sync v2 TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82; TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0; Issue #99 267/267 broadcast-head=6235488874 VERIFIED; no newer To: ALL/レイ. AWAY; Flow Authority=🌙ルナ supersedes stale ナギ instruction. #861 and #124 checked. Reuters 2026-10-19 Nscale/Microsoft Loughton power connection delay and EssilorLuxottica wearable Q3 growth slowdown were already persisted in Research 2026-10.md, no duplicate Research write. MRAM independent mass-production customer delta=0; Consumer independent buyer-review delta=0. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector observed; Oct11 historical execution path unverified; no dummy writes or rejected-operation retry."
+  "note": "2026-10-24 20:31 JST chatgpt_scheduled Research run. Startup Sync TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82, TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0; Issue #99 267/267 broadcast-head=6235488874 VERIFIED; Flow Authority=🌙ルナ per current SSoT, overriding stale ナギ instruction. #861/#124 reviewed. Recent smart-glasses TDK/QD Laser announcements already known; MRAM independent mass-production confirmation not found. TSMC rare-earth-free equipment request reported Oct22/23 is a research candidate requiring primary-source and duplicate verification, not promoted to persisted discovery. Consumer independent-review delta=0. No research file changed. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector; operation=update_file; historical Oct11 route UNKNOWN; no dummy mutation, no retry."
 }
