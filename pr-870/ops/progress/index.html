@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #870 · NOT PRODUCTION</strong>
-  <span>Head 69d014482f61 · Built 2026-10-24T01:05:48Z</span>
+  <span>Head e89e9b32cc9d · Built 2026-10-24T01:42:39Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -296,7 +296,7 @@ const list=document.getElementById('pv-list');
 rows.forEach(function(row,i){
  const d=document.createElement('details');const s=document.createElement('summary');const title=document.createElement('strong');title.textContent=row[0]+' '+row[1];const tag=document.createElement('span');tag.className='tag';tag.textContent=i<9?'当初マージ前候補':'後続候補';s.append(title,tag);d.append(s);
  const meta=document.createElement('div');meta.className='meta';const owner=document.createElement('span');owner.className='pill';owner.textContent='担当: '+row[2];const state=document.createElement('span');state.className='pill';state.textContent='状態: 証跡照合待ち';meta.append(owner,state);d.append(meta);
- const dl=document.createElement('dl');[['残Blocker',row[3]],['完了条件',row[3]+'をテスト・CI・実証跡で確認'],['次のアクション',i<9?'PR #860の最新headと該当テスト・CIを照合':'🌙ルナが後続scopeと担当を確定'],['commit SHA','項目単位の対応は未確認'],['CI','項目単位の成功は未確認'],['PR','#{860}（OPEN時点）'.replace('#{860}','#860')],['merge SHA','未確認']].forEach(function(p){const dt=document.createElement('dt');dt.textContent=p[0];const dd=document.createElement('dd');dd.textContent=p[1];dl.append(dt,dd)});d.append(dl);const a=document.createElement('a');a.href='https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/pull/860';a.textContent='PR #860 の証跡を見る →';d.append(a);list.append(d);
+ const dl=document.createElement('dl');[['残Blocker',row[3]],['完了条件',row[3]+'をテスト・CI・実証跡で確認'],['次のアクション',i<9?'マージ済みPR #860の該当commit・テスト・CIをcriterion単位で照合':'🌙ルナが後続scopeと担当を確定'],['commit SHA','項目単位の対応は未確認'],['CI','項目単位の成功は未確認'],['PR','#860（MERGED、criterion別PASSは未判定）'],['merge SHA','PR単位 ac378e389e1c（criterion別の帰属は未確認）']].forEach(function(p){const dt=document.createElement('dt');dt.textContent=p[0];const dd=document.createElement('dd');dd.textContent=p[1];dl.append(dt,dd)});d.append(dl);const a=document.createElement('a');a.href='https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/pull/860';a.textContent='PR #860 の証跡を見る →';d.append(a);list.append(d);
 });
 })();
 </script>
