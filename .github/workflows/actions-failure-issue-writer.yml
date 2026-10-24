@@ -1,9 +1,9 @@
 name: Actions Failure Issue Writer (#873)
 
 on:
-  # Read-only observation once daily; schedule never enables issue POST.
+  # Temporary hourly read-only observation at minute 17 UTC for validation; schedule never enables issue POST.
   schedule:
-    - cron: '17 18 * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
     inputs:
       confirm_issue_post:
