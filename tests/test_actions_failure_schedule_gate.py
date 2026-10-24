@@ -33,24 +33,32 @@ def test_issue_post_requires_manual_dispatch_and_exact_confirmation(event, confi
     }
     result = {
         "decision": "ISSUE_DRAFT_ELIGIBLE",
-        "analysis": {"request_id": "actions-failure-test"},
+        "analysis": {"request_id": "actions-failure-" + "a" * 20},
     }
+    fake_client = MagicMock()
+    stdout = io.StringIO()
     with (
         patch.dict(os.environ, env),
-        patch("scripts.actions_failure_issue_orchestrator.GitHubReadOnlyClient"),
+        patch("scripts.actions_failure_issue_orchestrator.GitHubReadOnlyClient", return_value=fake_client) as client_factory,
         patch("scripts.actions_failure_issue_orchestrator.collect_current_failure", return_value=result),
         patch("scripts.actions_failure_issue_orchestrator.post_validated_issue", return_value={"number": 100}) as writer,
     ):
-        fake_client = MagicMock()
-        with patch("scripts.actions_failure_issue_orchestrator.GitHubReadOnlyClient", return_value=fake_client):
-            with redirect_stdout(io.StringIO()):
-                assert main(["--enable-post"]) == 0
+        with redirect_stdout(stdout):
+            assert main(["--enable-post"]) == 0
+        client_factory.assert_called_once_with("acme/repo", "fake-test-token")
+        output = json.loads(stdout.getvalue())
+        assert output["request_id"] == result["analysis"]["request_id"]
         if expect_post:
             writer.assert_called_once()
             fake_client.all_pages.assert_called_once()
         else:
             writer.assert_not_called()
             fake_client.all_pages.assert_not_called()
+            assert output == {
+                "decision": "ISSUE_DRAFT_ELIGIBLE",
+                "issue_post": "DISABLED",
+                "request_id": result["analysis"]["request_id"],
+            }
 
 
 def test_schedule_default_cli_cannot_post():
