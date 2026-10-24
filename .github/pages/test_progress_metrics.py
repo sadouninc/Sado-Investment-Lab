@@ -150,5 +150,31 @@ class ProgressMetricsTest(unittest.TestCase):
 
 
 
+    def test_closed_loop_rejects_empty_or_malformed_linkage(self):
+        base = [{"step": name, "work_ref": "work-a", "lease_id": "lease-1",
+                 "state": "PASS", "evidence_url": "https://example.org/evidence"}
+                for name in STEPS]
+        for field, value in (("work_ref", ""), ("lease_id", "  "),
+                             ("work_ref", None), ("lease_id", [])):
+            steps = [dict(item) for item in base]
+            steps[0][field] = value
+            with self.subTest(field=field, value=value):
+                self.assertEqual(closed_loop(steps)["complete"], 0)
+        self.assertEqual(closed_loop(None)["complete"], 0)
+        self.assertEqual(closed_loop([None] * 9)["complete"], 0)
+
+    def test_closed_loop_rejects_invalid_evidence_url(self):
+        base = [{"step": name, "work_ref": "work-a", "lease_id": "lease-1",
+                 "state": "PASS", "evidence_url": "https://example.org/evidence"}
+                for name in STEPS]
+        for value in ("", "http://example.org/no", "not-a-link", [], None):
+            steps = [dict(item) for item in base]
+            steps[-1]["evidence_url"] = value
+            with self.subTest(value=value):
+                result = closed_loop(steps)
+                self.assertEqual(result["passed"], 8)
+                self.assertEqual(result["complete"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()
