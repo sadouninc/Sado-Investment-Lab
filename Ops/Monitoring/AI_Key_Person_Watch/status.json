@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-25T16:33:32+09:00",
-  "last_success_at": "2026-10-25T16:33:32+09:00",
+  "last_run_at": "2026-10-25T17:30:10+09:00",
+  "last_success_at": "2026-10-25T17:30:10+09:00",
   "last_status": "OK",
-  "news_delta": 2,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-25T16:33:32+09:00",
-  "news_persisted": true,
-  "persistence_status": "SUCCESS",
+  "news_persisted": false,
+  "persistence_status": "NOT_ATTEMPTED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-25 16:33 JST natural chatgpt_scheduled Research/Discovery. Startup Sync v2 VERIFIED: TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82; TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0; #99 267/267 broadcast-head=6235488874; To: ALL/レイ delta=0. AWAY; Single Flow Authority=🌙ルナ (stale ナギ prompt superseded). #861 material delta=2: (1) Renesas RX74M/RX74N 22nm 1MB embedded MRAM industrial MCU mass production officially announced Oct22, external customer adoption/earnings UNKNOWN; (2) BSCode NASGlass Thailand 232-person company-run field trial reported Oct21, NOT independent consumer review. Research update_file SUCCESS readback VERIFIED commit a6380267b96cafc6dd2f5141cefe5ac020d0b7c0. MRAM new independent customer adoption=UNKNOWN; independent consumer review new evidence=0. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector; operation=update_file; historical Oct11 path UNKNOWN; no dummy, bypass or retry."
+  "note": "2026-10-25T17:30:10+09:00 normal AI Key Person Watch / Discovery run. Startup Sync v2: TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82, TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0, #99 267/267 head=6235488874 VERIFIED, To: ALL/レイ delta=0 vs previous verified cursor. AWAY; Single Flow Authority=🌙ルナ per SSoT (older prompt ナギ superseded). #861 / Consumer-Field / MRAM watch: checked Oct25 public news and existing 2026-10 Research; TDK retinal projection and NTT/Furukawa photonic chiplet already recorded; Renesas RX74M/RX74N and NASGlass recorded in preceding run. No new independently confirmed material delta, no new independent MRAM customer or consumer review. Research write NOT_ATTEMPTED (no material delta). Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector observed for this update_file; historical Oct11 path UNKNOWN; dummy/bypass/retry none."
 }
