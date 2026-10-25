@@ -553,5 +553,19 @@ class ProgressDashboardBuildTest(unittest.TestCase):
         )
 
 
+    def test_progress_dashboard_evidence_candidates_are_not_pass(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        section = source.split('id="pv-evidence-candidates"', 1)[1].split(
+            'id="pv-contract"', 1
+        )[0]
+        self.assertEqual(section.count("（証跡候補・判定UNKNOWN）"), 9)
+        self.assertIn("T10・T11 後続候補", section)
+        self.assertIn("自然closed-loop実証を意味しません", section)
+        self.assertIn("ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a", section)
+        self.assertNotIn("（証跡候補・判定PASS）", section)
+
+
 if __name__ == "__main__":
     unittest.main()
