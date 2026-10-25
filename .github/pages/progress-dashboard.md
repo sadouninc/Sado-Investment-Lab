@@ -128,7 +128,7 @@ function deltaFor(previous,current){
  if(previous.scope_version!==current.scope_version||added.length||removed.length){
   return {status:'SCOPE_CHANGED',scope_delta:{added:added,removed:removed}};
  }
- const verified=function(c){return c.state==='PASS'&&Boolean(c.evidence_url)};
+ const verified=function(c){return c.finalized===true&&c.state==='PASS'&&Boolean(c.evidence_url)};
  const blocked=function(c){return c.state==='BLOCKED'};
  const changed=function(predicate){return [...newMap.keys()].filter(function(id){return predicate(oldMap.get(id),newMap.get(id))}).sort()};
  return {status:'COMPARABLE',scope_delta:{added:[],removed:[]},
