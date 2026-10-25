@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-25T15:28:53.783+09:00",
-  "last_success_at": "2026-10-25T15:28:53.783+09:00",
+  "last_run_at": "2026-10-25T16:33:32+09:00",
+  "last_success_at": "2026-10-25T16:33:32+09:00",
   "last_status": "OK",
-  "news_delta": 1,
-  "last_news_delta_at": "2026-10-25T15:28:53.783+09:00",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-10-25T16:33:32+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-25 15:28 JST natural chatgpt_scheduled Research/Discovery. Startup Sync v2 VERIFIED: TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82; TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0; #99 267/267 broadcast-head=6235488874; To: ALL/レイ delta=0. AWAY; Single Flow Authority=🌙ルナ (stale ナギ prompt superseded). #861 material historical delta=1: NVIDIA 2026-10-21 Halos SAFE / Alpamayo 2 Edge / TIER IV Europe validation; Research update_file SUCCESS and readback VERIFIED commit bbce331bbfe5057d06f366c6bff4b1bc8d05c0c9. MRAM new mass-production adoption=0; independent consumer review new evidence=0. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector; operation=update_file; historical Oct11 path UNKNOWN; no dummy, bypass or retry."
+  "note": "2026-10-25 16:33 JST natural chatgpt_scheduled Research/Discovery. Startup Sync v2 VERIFIED: TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82; TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0; #99 267/267 broadcast-head=6235488874; To: ALL/レイ delta=0. AWAY; Single Flow Authority=🌙ルナ (stale ナギ prompt superseded). #861 material delta=2: (1) Renesas RX74M/RX74N 22nm 1MB embedded MRAM industrial MCU mass production officially announced Oct22, external customer adoption/earnings UNKNOWN; (2) BSCode NASGlass Thailand 232-person company-run field trial reported Oct21, NOT independent consumer review. Research update_file SUCCESS readback VERIFIED commit a6380267b96cafc6dd2f5141cefe5ac020d0b7c0. MRAM new independent customer adoption=UNKNOWN; independent consumer review new evidence=0. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector; operation=update_file; historical Oct11 path UNKNOWN; no dummy, bypass or retry."
 }
