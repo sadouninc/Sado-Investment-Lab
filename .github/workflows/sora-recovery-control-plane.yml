@@ -279,10 +279,6 @@ jobs:
               raise SystemExit("UNRECOGNIZED_READER_STATUS")
           if result.get("dispatch_allowed") is not False:
               raise SystemExit("UNAUTHORIZED_READER_DISPATCH")
-          # This checkpoint has no independently proven comment-to-run link.
-          # Never treat an empty/unverified projection as authorization.
-          if result.get("status") != "UNKNOWN" or result.get("reason") != "PROVENANCE_UNVERIFIED":
-              raise SystemExit("UNEXPECTED_UNATTESTED_READER_PROJECTION")
           if result.get("status") == "UNKNOWN":
               print("READER_HOLD_UNVERIFIED_PROVENANCE")
           elif result.get("status") in {"ACKED", "RUNNING", "PR_OPEN"}:
@@ -293,6 +289,10 @@ jobs:
               print("READER_HOLD_EXPIRY_NOT_STOP_PROOF")
           else:
               print("READER_HOLD_OWNER_AND_PATH_ATTESTATION_REQUIRED")
+          # This checkpoint has no independently proven comment-to-run link.
+          # Never treat an empty/unverified projection as authorization.
+          if result.get("status") != "UNKNOWN" or result.get("reason") != "PROVENANCE_UNVERIFIED":
+              raise SystemExit("UNEXPECTED_UNATTESTED_READER_PROJECTION")
           PY
           # Evaluate the actual conservative gate against this run's observed
           # candidate and reader state. Neither an empty Owner approval nor an

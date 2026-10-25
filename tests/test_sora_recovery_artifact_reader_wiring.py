@@ -73,3 +73,40 @@ def test_owner_inventory_runtime_missing_source_stays_unknown_and_hold_only():
     assert "OWNER_INVENTORY_AUDIT=" in source
     assert "evidence_complete=False" in source
     assert 'f.write("post_authorized=false' in source
+
+
+def test_actual_reader_audit_logs_before_unchanged_unattested_gate():
+    import io
+    import json
+    import textwrap
+    from contextlib import redirect_stdout
+
+    source = WORKFLOW.read_text(encoding="utf-8")
+    begin = source.index('          print("CANONICAL_READER_PROJECTION="')
+    end = source.index("          PY", begin)
+    code = textwrap.dedent(source[begin:end])
+    states = {
+        "BLOCKED": "READER_HOLD_OWNER_AND_PATH_ATTESTATION_REQUIRED",
+        "READY": "READER_HOLD_OWNER_AND_PATH_ATTESTATION_REQUIRED",
+        "DISPATCHED": "READER_HOLD_OWNER_AND_PATH_ATTESTATION_REQUIRED",
+        "ACKED": "READER_HOLD_ACTIVE_EXECUTION",
+        "RUNNING": "READER_HOLD_ACTIVE_EXECUTION",
+        "PR_OPEN": "READER_HOLD_ACTIVE_EXECUTION",
+        "DONE": "READER_HOLD_TERMINAL", "MERGED": "READER_HOLD_TERMINAL",
+        "EXPIRED": "READER_HOLD_EXPIRY_NOT_STOP_PROOF",
+    }
+    for state, diagnostic in states.items():
+        out = io.StringIO()
+        try:
+            with redirect_stdout(out):
+                exec(code, {"json": json, "result": {"status": state, "dispatch_allowed": False}})
+        except SystemExit as exc:
+            assert str(exc) == "UNEXPECTED_UNATTESTED_READER_PROJECTION"
+        else:
+            raise AssertionError("Unattested state escaped the existing HOLD gate")
+        assert diagnostic in out.getvalue()
+    out = io.StringIO()
+    with redirect_stdout(out):
+        exec(code, {"json": json, "result": {"status": "UNKNOWN", "reason": "PROVENANCE_UNVERIFIED",
+                                             "dispatch_allowed": False}})
+    assert "READER_HOLD_UNVERIFIED_PROVENANCE" in out.getvalue()
