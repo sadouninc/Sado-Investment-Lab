@@ -14,7 +14,14 @@ from scripts.actions_failure_issue_writer import post_validated_issue
 
 def _observable_result(result: dict, *, issue_post: str) -> dict:
     """Return only bounded identifiers needed to audit a dry-run decision."""
-    output = {"decision": result.get("decision"), "issue_post": issue_post}
+    decision = result.get("decision")
+    if not isinstance(decision, str) or not re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", decision):
+        decision = "HOLD_INVALID_DECISION"
+    output = {"decision": decision, "issue_post": issue_post}
+    # Selection can identify a verified run before complete job analysis exists.
+    source_run_id = result.get("source_run_id")
+    if isinstance(source_run_id, int) and not isinstance(source_run_id, bool) and source_run_id > 0:
+        output["source_run_id"] = source_run_id
     analysis = result.get("analysis")
     if not isinstance(analysis, dict):
         return output
@@ -36,6 +43,7 @@ def main(argv=None):
     parser.add_argument("--enable-post", action="store_true")
     parser.add_argument("--max-age-hours", type=int, default=24)
     args = parser.parse_args(argv)
+    scheduled = os.environ.get("GITHUB_EVENT_NAME") == "schedule"
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     token = os.environ.get("GH_TOKEN", "")
     # Never POST from a non-main ref, PR, schedule, or without exact opt-in.
@@ -46,7 +54,7 @@ def main(argv=None):
         and os.environ.get("ISSUE_POST_CONFIRM") == "ISSUE873_CREATE_ONE"
     )
     if not repo or not token:
-        print(json.dumps({"decision": "HOLD_MISSING_ENV", "issue_post": "DISABLED"}, sort_keys=True))
+        print(json.dumps({"decision": "HOLD_MISSING_ENV", "issue_post": "SKIPPED" if scheduled else "DISABLED"}, sort_keys=True))
         return 2
     try:
         client = GitHubReadOnlyClient(repo, token)
@@ -56,7 +64,8 @@ def main(argv=None):
             print(json.dumps(_observable_result(result, issue_post="SKIPPED"), sort_keys=True))
             return 0 if decision in {"NO_CURRENT_OPEN_PR_FAILURE", "DUPLICATE_SUPPRESSED"} else 2
         if not enabled:
-            print(json.dumps(_observable_result(result, issue_post="DISABLED"), sort_keys=True))
+            post_state = "SKIPPED" if os.environ.get("GITHUB_EVENT_NAME") == "schedule" else "DISABLED"
+            print(json.dumps(_observable_result(result, issue_post=post_state), sort_keys=True))
             return 0
         # Fresh all-state inventory after proposal creation, immediately before POST.
         issues = client.all_pages("issues", None, {"state": "all"})
@@ -65,7 +74,7 @@ def main(argv=None):
         return 0
     except Exception as exc:
         # Do not print API payloads or tokens; never automatically retry an uncertain POST.
-        print(json.dumps({"decision": "HOLD_ERROR", "error_type": type(exc).__name__, "issue_post": "UNVERIFIED"}, sort_keys=True))
+        print(json.dumps({"decision": "HOLD_ERROR", "error_type": type(exc).__name__, "issue_post": "SKIPPED" if scheduled else "UNVERIFIED"}, sort_keys=True))
         return 2
 
 
