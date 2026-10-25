@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #870 · NOT PRODUCTION</strong>
-  <span>Head ce716fdc6c3a · Built 2026-10-24T12:30:19Z</span>
+  <span>Head 0e9b526a0f7f · Built 2026-10-25T05:13:30Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -176,6 +176,23 @@
 <div class="section"><h2>自然closed-loopの証明</h2><p>READY → lease/comment ID → ACK → 実装commit → PR → CI/review → merge SHA → NEXT_AUTO を同一workで連続照合する必要があります。現時点では全区間を結ぶ証跡が未確認のため<strong>未実証</strong>です。</p></div>
 <p class="small sub">根拠: <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/issues/867#issuecomment-6214081524">9+2 baseline</a> / <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/issues/867#issuecomment-6231862060">Design Contract v0.2</a>。課題名はbaselineを日本語要約した表示名で、正式IDの新設ではありません。</p>
 
+<div class="section" id="pv-evidence-candidates" aria-label="既存実装の証跡候補">
+<h2>PR #860 既存実装の証跡候補（未判定）</h2>
+<p class="warn">以下はマージ済みPR #860の変更ファイルから選んだ<strong>調査の入口</strong>です。ファイルの存在・マージはcriterionのPASS、Owner Gate承認、自然closed-loop実証を意味しません。正式なcriterion ID・必須証跡・合否は🌙ルナによる対応付け待ちです。</p>
+<ol class="small">
+<li><strong>T01 イベント形式</strong> — <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/blob/ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a/scripts/recovery_rev2_identity.py"><code>scripts/recovery_rev2_identity.py</code></a>（証跡候補・判定UNKNOWN）</li>
+<li><strong>T02 履歴・コメント照合</strong> — <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/blob/ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a/scripts/recovery_rev2_linked_history.py"><code>scripts/recovery_rev2_linked_history.py</code></a>（証跡候補・判定UNKNOWN）</li>
+<li><strong>T03 Reader接続</strong> — <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/blob/ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a/scripts/recovery_rev2_read_bridge.py"><code>scripts/recovery_rev2_read_bridge.py</code></a>（証跡候補・判定UNKNOWN）</li>
+<li><strong>T04 Guard接続</strong> — <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/blob/ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a/scripts/sora_recovery_candidate_guard.py"><code>scripts/sora_recovery_candidate_guard.py</code></a>（証跡候補・判定UNKNOWN）</li>
+<li><strong>T05 Owner・競合制御</strong> — <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/blob/ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a/scripts/sora_recovery_dispatch_gate.py"><code>scripts/sora_recovery_dispatch_gate.py</code></a>（証跡候補・判定UNKNOWN）</li>
+<li><strong>T06 Pickup処理</strong> — <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/blob/ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a/scripts/sora_recovery_pickup.py"><code>scripts/sora_recovery_pickup.py</code></a>（証跡候補・判定UNKNOWN）</li>
+<li><strong>T07 安全性テスト</strong> — <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/blob/ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a/tests/test_859_cross_component_contract.py"><code>tests/test_859_cross_component_contract.py</code></a>（証跡候補・判定UNKNOWN）</li>
+<li><strong>T08 CI・Owner Gate</strong> — <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/blob/ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a/.github/workflows/sora-recovery-control-plane.yml"><code>.github/workflows/sora-recovery-control-plane.yml</code></a>（証跡候補・判定UNKNOWN）</li>
+<li><strong>T09 差分レビュー</strong> — <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/blob/ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a/tests/test_recovery_rev2_legacy_attestation.py"><code>tests/test_recovery_rev2_legacy_attestation.py</code></a>（証跡候補・判定UNKNOWN）</li>
+<li><strong>T10・T11 後続候補</strong> — 正式な対象・証跡・担当は未確定（UNKNOWN）</li>
+</ol>
+<p class="small">固定参照: <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/commit/ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a">PR #860 のmerge SHA</a> ／ <a href="https://github.com/sadouninc/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/pull/860/files">変更ファイル全体</a>。上の一覧は全受入条件の網羅・対応付けを主張しません。</p>
+</div>
 <div class="section" id="pv-contract" aria-label="受入条件台帳">
 <h2>定量進捗・受入条件台帳（暫定）</h2>
 <p class="warn">この台帳は静的な手動スナップショットです。11課題の正式criterion分解・合否・母数は🌙ルナの証跡判定待ちです。UNKNOWNはPASSではありません。暫定task_idはこのスナップショット内で固定し、canonical IDの承認を意味しません。</p>
