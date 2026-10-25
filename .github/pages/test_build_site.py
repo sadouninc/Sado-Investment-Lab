@@ -4,6 +4,8 @@ import importlib.util
 import json
 import sys
 import re
+import shutil
+import subprocess
 import tempfile
 import unittest
 from datetime import date
@@ -395,7 +397,7 @@ class ProgressDashboardBuildTest(unittest.TestCase):
             "criteria:[],previous:null",
             "if(!entries.length||entries.some",
             "return 'UNKNOWN'",
-            "c.state==='PASS'&&Boolean(c.evidence_url)",
+            "c.finalized===true&&c.state==='PASS'&&Boolean(c.evidence_url)",
             "previous.scope_version!==current.scope_version",
             "status:'SCOPE_CHANGED',scope_delta:",
             "metrics[i].textContent=snapshotValid?metricFor(dimension):'UNKNOWN'",
@@ -403,6 +405,42 @@ class ProgressDashboardBuildTest(unittest.TestCase):
             with self.subTest(marker=marker):
                 self.assertIn(marker, source)
 
+
+    def test_progress_dashboard_delta_verified_pass_transitions(self) -> None:
+        """Execute the actual dashboard JS; provisional PASS must not count."""
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("Node.js unavailable for dashboard JavaScript regression")
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        js = source.split("function deltaFor(previous,current){", 1)[1].split(
+            "const metrics=document.querySelectorAll", 1
+        )[0]
+        function = "function deltaFor(previous,current){" + js
+        scenario = """
+const row=(state,finalized)=>({criterion_id:'a',dimension:'implementation',
+  state,finalized,evidence_url:'https://example.org/evidence'});
+const snap=(criterion)=>({scope_version:'v1',criteria:[criterion]});
+const cases=[
+  [row('UNKNOWN',false),row('PASS',false),[],[]],
+  [row('PASS',false),row('PASS',true),['a'],[]],
+  [row('PASS',true),row('PASS',false),[],['a']],
+  [row('PASS',true),row('PASS',true),[],[]]
+];
+for(const [before,after,newly,regressed] of cases){
+  const actual=deltaFor(snap(before),snap(after));
+  if(JSON.stringify(actual.newly_passed)!==JSON.stringify(newly)||
+     JSON.stringify(actual.regressed)!==JSON.stringify(regressed)){
+    throw new Error('verified PASS delta regression: '+JSON.stringify(actual));
+  }
+}
+"""
+        result = subprocess.run(
+            [node, "-e", function + scenario],
+            capture_output=True, text=True, check=False, timeout=15
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_progress_dashboard_delta_keeps_scope_and_blockers_separate(self) -> None:
         source = Path(__file__).with_name("progress-dashboard.md").read_text(
