@@ -24,6 +24,20 @@ class ProgressMetricsTest(unittest.TestCase):
         self.assertEqual(summarize(items, "verification")["passed"], 1)
         self.assertEqual(summarize(items, "production")["passed"], 0)
 
+    def test_provisional_pass_not_counted_as_verified_delta(self):
+        previous = {"scope_version": "v1", "criteria": [
+            criterion("a", "UNKNOWN", finalized=False),
+        ]}
+        current = {"scope_version": "v1", "criteria": [
+            criterion("a", "PASS", "https://example.org/unreviewed", finalized=False),
+        ]}
+        self.assertEqual(compare_snapshots(previous, current)["newly_passed"], [])
+        approved = {"scope_version": "v1", "criteria": [
+            criterion("a", "PASS", "https://example.org/approved", finalized=True),
+        ]}
+        self.assertEqual(compare_snapshots(current, approved)["newly_passed"], ["a"])
+        self.assertEqual(compare_snapshots(approved, current)["regressed"], ["a"])
+
     def test_scope_delta_not_progress_delta(self):
         previous = {"scope_version": "v1", "criteria": [criterion("a")]}
         current = {"scope_version": "v1", "criteria": [criterion("a"), criterion("b")]}
