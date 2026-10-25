@@ -110,3 +110,18 @@ def test_partial_artifact_inventory_cannot_be_rescued_by_owner_approval():
         authenticated=[], complete=False)
     assert projection["status"] == "UNKNOWN"
     assert decision(projection)["post_authorized"] is False
+
+
+def test_owner_inventory_projection_never_substitutes_for_dispatch_evidence():
+    from scripts.recovery_rev2_read_bridge import project_attested_owner_inventory
+    refs = {name: "synthetic" for name in
+            ("issues", "pull_requests", "branches", "actions_runs", "owner_lease_ledger")}
+    for claims in ([], [{"work_id": WORK, "owner": "KAI", "state": "EXECUTION_EVIDENCE",
+                         "paths": ["scripts/recovery_rev2_read_bridge.py"]}]):
+        for verified in (False, True):
+            result = project_attested_owner_inventory(
+                work_id=WORK, claims=claims, source_refs=refs,
+                coverage_complete=True, provenance_verified=verified,
+                freshness_verified=True)
+            assert result["dispatch_allowed"] is False
+            assert decision(result)["post_authorized"] is False

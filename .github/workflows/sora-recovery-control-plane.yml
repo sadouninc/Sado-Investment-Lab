@@ -221,6 +221,17 @@ jobs:
               # Never treat missing artifacts or partial pagination as READY.
               complete=all_dispatches_linked and bool(linked_dispatches))
           print("LINKED_LEGACY_PROJECTION=" + json.dumps(linked_projection, sort_keys=True))
+          from scripts.recovery_rev2_read_bridge import project_attested_owner_inventory
+          # No canonical complete Owner/Lease ledger is connected yet. Missing
+          # input is UNKNOWN even if there are no open PRs or artifact records.
+          owner_inventory = project_attested_owner_inventory(
+              work_id=work_id, claims=None, source_refs=None)
+          assert owner_inventory["dispatch_allowed"] is False
+          print("OWNER_INVENTORY_AUDIT=" + json.dumps({
+              "status": owner_inventory["status"],
+              "reason": owner_inventory["reason"],
+              "dispatch_allowed": owner_inventory["dispatch_allowed"],
+          }, sort_keys=True))
           print("ARTIFACT_READER_AUDIT=" + json.dumps({
               "work_id": work_id,
               "observed_count": len(observed_dispatches),
@@ -268,10 +279,6 @@ jobs:
               raise SystemExit("UNRECOGNIZED_READER_STATUS")
           if result.get("dispatch_allowed") is not False:
               raise SystemExit("UNAUTHORIZED_READER_DISPATCH")
-          # This checkpoint has no independently proven comment-to-run link.
-          # Never treat an empty/unverified projection as authorization.
-          if result.get("status") != "UNKNOWN" or result.get("reason") != "PROVENANCE_UNVERIFIED":
-              raise SystemExit("UNEXPECTED_UNATTESTED_READER_PROJECTION")
           if result.get("status") == "UNKNOWN":
               print("READER_HOLD_UNVERIFIED_PROVENANCE")
           elif result.get("status") in {"ACKED", "RUNNING", "PR_OPEN"}:
@@ -282,6 +289,10 @@ jobs:
               print("READER_HOLD_EXPIRY_NOT_STOP_PROOF")
           else:
               print("READER_HOLD_OWNER_AND_PATH_ATTESTATION_REQUIRED")
+          # This checkpoint has no independently proven comment-to-run link.
+          # Never treat an empty/unverified projection as authorization.
+          if result.get("status") != "UNKNOWN" or result.get("reason") != "PROVENANCE_UNVERIFIED":
+              raise SystemExit("UNEXPECTED_UNATTESTED_READER_PROJECTION")
           PY
           # Evaluate the actual conservative gate against this run's observed
           # candidate and reader state. Neither an empty Owner approval nor an

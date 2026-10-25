@@ -94,3 +94,97 @@ def test_nonhex_merge_sha_fails():
 def test_protected_issue_79():
     result = project_state(work_id="issue:79", events=[], evidence_verified=True)
     assert result["status"] == "BLOCKED" and not result["dispatch_allowed"]
+
+
+# Normalized synthetic projections only: these fixtures are not real ledger
+# records, authenticated GitHub evidence, or operational authorization.
+def owner_inventory(claims, **overrides):
+    from scripts.recovery_rev2_read_bridge import project_attested_owner_inventory
+    arguments = dict(work_id="issue:859", claims=claims,
+                     source_refs={name: "synthetic-test-snapshot" for name in
+                                  ("issues", "pull_requests", "branches", "actions_runs", "owner_lease_ledger")},
+                     coverage_complete=True, provenance_verified=True,
+                     freshness_verified=True)
+    arguments.update(overrides)
+    return project_attested_owner_inventory(**arguments)
+
+
+def owner_claim(work="issue:859", owner="KAI", state="EXECUTION_EVIDENCE", paths=None):
+    return {"work_id": work, "owner": owner, "state": state,
+            "paths": paths if paths is not None else ["scripts/recovery_rev2_read_bridge.py"]}
+
+
+def test_owner_inventory_without_pr_retains_execution_evidence():
+    result = owner_inventory([owner_claim()])
+    assert result["status"] == "COMPLETE"
+    assert result["active_claims"][0]["owner"] == "KAI"
+    assert result["active_claims"][0]["active_wip"] is True
+    assert result["dispatch_allowed"] is False
+
+
+def test_attested_complete_empty_owner_inventory_is_distinct_from_unknown():
+    result = owner_inventory([])
+    assert result["status"] == "COMPLETE_EMPTY"
+    assert result["active_claims"] == []
+    assert result["dispatch_allowed"] is False
+    for overrides in ({"claims": None}, {"source_refs": None},
+                      {"coverage_complete": False}, {"provenance_verified": False},
+                      {"freshness_verified": False}, {"source_refs": {}}):
+        inputs = {"claims": []}
+        inputs.update(overrides)
+        held = owner_inventory(**inputs)
+        assert held["status"] == "UNKNOWN"
+        assert held["active_claims"] is None
+        assert held["dispatch_allowed"] is False
+
+
+def test_owner_inventory_comment_or_pr_sources_alone_are_not_complete():
+    for references in ({"issues": "comment:123"}, {"pull_requests": "open-prs:0"}):
+        held = owner_inventory([], source_refs=references)
+        assert held["status"] == "UNKNOWN"
+        assert held["active_claims"] is None
+
+
+def test_waiting_owner_does_not_consume_wip_but_keeps_path_claim():
+    result = owner_inventory([owner_claim(state="CI_WAIT")])
+    assert result["status"] == "COMPLETE"
+    assert result["active_claims"][0]["active_wip"] is False
+    assert result["active_claims"][0]["paths"]
+
+
+def test_conflicting_owner_or_path_inventory_holds():
+    for claims in ([owner_claim(), owner_claim(owner="SORA")],
+                   [owner_claim(), owner_claim(work="issue:828", owner="SORA")],
+                   [owner_claim(paths=["scripts/**"]), owner_claim(work="issue:828")]):
+        held = owner_inventory(claims)
+        assert held["status"] == "UNKNOWN"
+        assert held["active_claims"] is None
+
+
+def test_invalid_unknown_or_ambiguous_owner_claim_holds():
+    for claim in (None, {}, owner_claim(state="UNKNOWN"), owner_claim(state=[]),
+                  owner_claim(owner=""), owner_claim(paths=[]),
+                  owner_claim(paths=["scripts/recovery_*.py"]), owner_claim(work="issue:79"),
+                  owner_claim(paths=["scripts/../tests/a.py"]), owner_claim(paths=["/scripts/a.py"]),
+                  owner_claim(paths=["scripts//a.py"])):
+        result = owner_inventory([claim])
+        assert result["status"] == "UNKNOWN"
+        assert result["dispatch_allowed"] is False
+
+
+def test_owner_inventory_is_deterministic_and_does_not_mutate_input():
+    from copy import deepcopy
+    claims = [owner_claim(work="issue:860", paths=["tests/b.py"]), owner_claim()]
+    original = deepcopy(claims)
+    assert owner_inventory(claims) == owner_inventory(list(reversed(claims)))
+    assert claims == original
+
+
+def test_owner_inventory_protected_target_denies_even_complete_empty():
+    assert owner_inventory([], work_id="issue:79")["status"] == "BLOCKED"
+
+
+def test_owner_inventory_requires_literal_true_attestation_flags():
+    for field in ("coverage_complete", "provenance_verified", "freshness_verified"):
+        for value in (1, "true", None):
+            assert owner_inventory([], **{field: value})["status"] == "UNKNOWN"

@@ -54,3 +54,90 @@ def project_attested_comments(*, work_id: str, comments: Sequence[Mapping],
                     "dispatch_allowed": False}
         events.append(event)
     return project_state(work_id=work_id, events=events, evidence_verified=True)
+
+
+def project_attested_owner_inventory(*, work_id: str, claims: Sequence[Mapping] | None,
+                                    source_refs: Mapping | None,
+                                    coverage_complete: bool = False,
+                                    provenance_verified: bool = False,
+                                    freshness_verified: bool = False) -> dict:
+    """Project independently attested ownership claims; never grant authority.
+
+    This is a normalized read boundary, NOT a new canonical Owner/Lease ledger.
+    The caller must independently verify GitHub API + ledger identity, run/lease
+    binding, expiry, ACK, STOP/revocation and consistency before setting the
+    provenance/freshness flags. Source strings alone prove nothing. Each of the
+    five source domains must be covered, including work without a PR. Until a
+    real ledger reader exists, callers must pass unknown and remain HOLD.
+    """
+    import re
+
+    def hold(reason):
+        # Unknown is deliberately not represented as an empty owner collection.
+        return {"status": "UNKNOWN", "reason": reason,
+                "active_claims": None, "dispatch_allowed": False}
+
+    if work_id == "issue:79":
+        return {"status": "BLOCKED", "reason": "PROTECTED_ISSUE_79",
+                "active_claims": None, "dispatch_allowed": False}
+    valid_work = lambda value: isinstance(value, str) and re.fullmatch(r"issue:[1-9][0-9]*", value)
+    if not valid_work(work_id):
+        return hold("INVALID_WORK_ID")
+    if claims is None or source_refs is None:
+        return hold("OWNER_INVENTORY_SOURCE_UNAVAILABLE")
+    if provenance_verified is not True:
+        return hold("OWNER_INVENTORY_PROVENANCE_UNVERIFIED")
+    if coverage_complete is not True:
+        return hold("OWNER_INVENTORY_INCOMPLETE")
+    if freshness_verified is not True:
+        return hold("OWNER_INVENTORY_FRESHNESS_UNVERIFIED")
+    domains = {"issues", "pull_requests", "branches", "actions_runs", "owner_lease_ledger"}
+    if (not isinstance(source_refs, Mapping) or set(source_refs) != domains
+            or any(not isinstance(ref, str) or not ref.strip()
+                   for ref in source_refs.values())):
+        return hold("OWNER_INVENTORY_SOURCE_COVERAGE_MISSING")
+    if not isinstance(claims, (list, tuple)):
+        return hold("INVALID_OWNER_INVENTORY")
+    # These are existing TEAM_STATE work states, not PR-derived owner guesses.
+    active = {"EXECUTION_EVIDENCE", "IMPLEMENTING", "REVISION_REQUIRED", "CONFLICT_RESOLUTION"}
+    waiting = {"DISPATCHED", "ACKED", "CI_WAIT", "REVIEW_WAIT", "RESEARCH_GATE_WAIT",
+               "DESIGN_GATE_WAIT", "OWNER_WAIT", "EXTERNAL_WAIT", "MERGE_READY"}
+    projected = []
+    seen = set()
+    for claim in claims:
+        if not isinstance(claim, Mapping):
+            return hold("INVALID_OWNER_CLAIM")
+        work, owner, state, paths = (claim.get(key) for key in
+                                     ("work_id", "owner", "state", "paths"))
+        if (not valid_work(work) or not isinstance(owner, str) or not owner.strip()
+                or not isinstance(state, str) or state not in active | waiting
+                or not isinstance(paths, (list, tuple)) or not paths
+                or any(not isinstance(path, str) or not path.strip()
+                       or path != path.strip() or path.startswith(("/", "\\"))
+                       or "\\" in path or ":" in path
+                       or any(part in {"", ".", ".."} for part in path.split("/"))
+                       for path in paths)):
+            return hold("INVALID_OWNER_CLAIM")
+        # Duplicate/conflicting work identities must not be silently collapsed.
+        if work == "issue:79":
+            return hold("PROTECTED_ISSUE_79")
+        if work in seen:
+            return hold("CONFLICTING_OWNER_CLAIMS")
+        seen.add(work)
+        for previous in projected:
+            for left in previous["paths"]:
+                for right in paths:
+                    # Preserve exact, directory and trailing-glob claims. Other
+                    # glob syntax is not interpreted as proof of disjointness.
+                    a, b = left.removesuffix("/**").rstrip("/"), right.removesuffix("/**").rstrip("/")
+                    if a == b or a.startswith(b + "/") or b.startswith(a + "/"):
+                        return hold("CONFLICTING_OWNER_PATHS")
+        if any("*" in path.removesuffix("/**") or "?" in path or "[" in path for path in paths):
+            return hold("AMBIGUOUS_OWNER_PATHS")
+        # Waiting work does not consume active WIP, but retains owner/path claims.
+        projected.append({"work_id": work, "owner": owner, "state": state,
+                          "paths": sorted(set(paths)), "active_wip": state in active})
+    projected.sort(key=lambda item: (item["work_id"], item["owner"]))
+    return {"status": "COMPLETE" if projected else "COMPLETE_EMPTY",
+            "reason": "ATTESTED_OWNER_INVENTORY", "active_claims": projected,
+            "source_refs": dict(source_refs), "dispatch_allowed": False}
