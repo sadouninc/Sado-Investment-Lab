@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-25T20:30:21.474+09:00",
-  "last_success_at": "2026-10-25T20:30:21.474+09:00",
+  "last_run_at": "2026-10-25T12:29:04.079+00:00",
+  "last_success_at": "2026-10-25T12:29:04.079+00:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-25T20:30:21.474+09:00",
-  "news_persisted": true,
-  "persistence_status": "COMPLETED",
+  "news_persisted": false,
+  "persistence_status": "NOT_REQUIRED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-25 normal AI Key Person Watch #124 / Discovery #861 / Consumer Field / MRAM. Startup Sync v2: TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82, TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0, Issue #99 267/267 broadcast-head=6235488874 VERIFIED; To: ALL/レイ delta=0. AWAY, Single Flow Authority=🌙ルナ (old ナギ instruction superseded). Material research: BOJ Financial System Report 2026-10-23 AI investment -> foreign NBFI -> Japan financial market risk, BOJ primary; existing Research append VERIFIED, commit=d9afd8a8d3fc2d286272875ce200724975467236. MRAM new external mass-production customer and independent Consumer reviews no new material verified delta. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector observed; operation=update_file; research_result=SUCCESS; historical Oct11 path UNKNOWN; no dummy writes/rejected retries."
+  "note": "2026-10-25 normal AI Key Person Watch #124 / Discovery #861 / Consumer Field / MRAM. Startup Sync v2 TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82 TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0; Issue #99 267/267 broadcast-head=6235488874 VERIFIED; To: ALL/レイ new delta=0. SSoT AWAY, Single Flow Authority=🌙ルナ (supersedes user prompt's ナギ). Verified recent source scan; no material new independently corroborated evidence beyond existing Research; Research write NOT_REQUIRED. MRAM external customer mass-production and independent Consumer reviews no material new evidence. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector observed; operation=update_file; historical 2026-10-11 execution path UNKNOWN. No dummy writes, no retries of rejected writes."
 }
