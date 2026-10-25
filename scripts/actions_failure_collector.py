@@ -67,6 +67,9 @@ class GitHubReadOnlyClient:
 
     def all_pages(self, endpoint: str, key: str | None, params: dict[str, str | int]):
         result = []
+        counted = endpoint == "actions/runs" or re.fullmatch(r"actions/runs/[1-9][0-9]*/jobs", endpoint)
+        expected_count = None
+        seen_ids = set()
         for page in range(1, self.max_pages + 1):
             raw = self.get_json(endpoint, {**params, "per_page": 100, "page": page})
             if key is not None:
@@ -77,8 +80,28 @@ class GitHubReadOnlyClient:
                 if not isinstance(raw, list):
                     raise IncompleteInventory("invalid API inventory shape")
                 items = raw
+            if len(items) > 100:
+                raise IncompleteInventory("oversized API page")
+            if counted:
+                count = raw.get("total_count") if isinstance(raw, dict) else None
+                if isinstance(count, bool) or not isinstance(count, int) or count < 0:
+                    raise IncompleteInventory("invalid or missing inventory count")
+                if expected_count is not None and count != expected_count:
+                    raise IncompleteInventory("inventory count changed between pages")
+                expected_count = count
+                for item in items:
+                    identifier = item.get("id") if isinstance(item, dict) else None
+                    if isinstance(identifier, bool) or not isinstance(identifier, int) or identifier < 1:
+                        raise IncompleteInventory("invalid inventory identifier")
+                    if identifier in seen_ids:
+                        raise IncompleteInventory("duplicate inventory identifier")
+                    seen_ids.add(identifier)
             result.extend(items)
+            if counted and len(result) > expected_count:
+                raise IncompleteInventory("inventory exceeds declared count")
             if len(items) < 100:
+                if counted and len(result) != expected_count:
+                    raise IncompleteInventory("incomplete declared inventory")
                 return result
         raise IncompleteInventory("pagination bound reached")
 

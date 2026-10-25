@@ -37,9 +37,9 @@ class Stub(GitHubReadOnlyClient):
     def get_json(self, endpoint, params):
         self.calls.append((endpoint, params["page"]))
         if params["page"] > 1:
-            return [] if endpoint in {"pulls", "issues"} else {"jobs" if endpoint.endswith("/jobs") else "workflow_runs": []}
+            return [] if endpoint in {"pulls", "issues"} else {"total_count": len(self.responses[endpoint]), "jobs" if endpoint.endswith("/jobs") else "workflow_runs": []}
         value = self.responses[endpoint]
-        return value if endpoint in {"pulls", "issues"} else {"jobs" if endpoint.endswith("/jobs") else "workflow_runs": value}
+        return value if endpoint in {"pulls", "issues"} else {"total_count": len(value), "jobs" if endpoint.endswith("/jobs") else "workflow_runs": value}
 
 
 def test_readonly_collector_creates_draft_but_never_writes():
@@ -134,3 +134,54 @@ def test_no_current_failure_skips_issue_inventory():
     c = Stub(runs=[run("success")])
     assert collect_current_failure(c, as_of=NOW)["decision"] == "NO_CURRENT_OPEN_PR_FAILURE"
     assert all(endpoint != "issues" for endpoint, _ in c.calls)
+
+
+@pytest.mark.parametrize("endpoint,key", [("actions/runs", "workflow_runs"), ("actions/runs/100/jobs", "jobs")])
+@pytest.mark.parametrize("size", [0, 1, 100, 101])
+def test_counted_inventory_complete_pages(endpoint, key, size):
+    c = GitHubReadOnlyClient("acme/repo", "test-token")
+    items = [{"id": i + 1} for i in range(size)]
+    c.get_json = lambda endpoint, params: {"total_count": size, key: items[(params["page"]-1)*100:params["page"]*100]}
+    assert c.all_pages(endpoint, key, {}) == items
+
+
+@pytest.mark.parametrize("payload", [
+    {"workflow_runs": []},
+    {"total_count": True, "workflow_runs": []},
+    {"total_count": -1, "workflow_runs": []},
+    {"total_count": "0", "workflow_runs": []},
+    {"total_count": 1, "workflow_runs": []},
+    {"total_count": 0, "workflow_runs": [{"id": 1}]},
+    {"total_count": 2, "workflow_runs": [{"id": 1}]},
+    {"total_count": 2, "workflow_runs": [{"id": 1}, {"id": 1}]},
+    {"total_count": 1, "workflow_runs": [{"id": True}]},
+    {"total_count": 1, "workflow_runs": [{}]},
+])
+def test_counted_inventory_rejects_uncertainty(payload):
+    c = GitHubReadOnlyClient("acme/repo", "test-token")
+    c.get_json = lambda *_: payload
+    with pytest.raises(IncompleteInventory):
+        c.all_pages("actions/runs", "workflow_runs", {})
+
+
+@pytest.mark.parametrize("change", ["count", "duplicate", "empty", "limit"])
+def test_counted_inventory_rejects_page_drift_or_truncation(change):
+    c = GitHubReadOnlyClient("acme/repo", "test-token", max_pages=1 if change == "limit" else 10)
+    def response(endpoint, params):
+        if params["page"] == 1:
+            return {"total_count": 101, "jobs": [{"id": i+1} for i in range(100)]}
+        return {"total_count": 102 if change == "count" else 101,
+                "jobs": [] if change == "empty" else [{"id": 1 if change == "duplicate" else 101}]}
+    c.get_json = response
+    with pytest.raises(IncompleteInventory):
+        c.all_pages("actions/runs/100/jobs", "jobs", {})
+
+
+@pytest.mark.parametrize("status", [401, 403, 404, 429, 500])
+def test_counted_inventory_http_failure_stays_incomplete(status):
+    from urllib.error import HTTPError
+    from unittest.mock import patch
+    c = GitHubReadOnlyClient("acme/repo", "test-token")
+    with patch("scripts.actions_failure_collector.urlopen", side_effect=HTTPError("https://example.invalid", status, "test", {}, None)):
+        with pytest.raises(IncompleteInventory):
+            c.all_pages("actions/runs", "workflow_runs", {})
