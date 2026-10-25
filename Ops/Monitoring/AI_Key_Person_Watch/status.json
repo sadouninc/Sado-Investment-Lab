@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-25T18:32:44+09:00",
-  "last_success_at": "2026-10-25T18:32:44+09:00",
+  "last_run_at": "2026-10-25T19:32:26+09:00",
+  "last_success_at": "2026-10-25T19:32:26+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-25T18:32:44+09:00",
-  "news_persisted": true,
-  "persistence_status": "SUCCESS",
+  "news_persisted": false,
+  "persistence_status": "NOT_REQUIRED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-25T18:32:44+09:00 normal AI Key Person Watch / Discovery run. Startup Sync v2: TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82, TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0, #99 267/267 head=6235488874 VERIFIED, To: ALL/レイ delta=0 vs previous verified cursor. AWAY; Single Flow Authority=🌙ルナ per current SSoT (older prompt ナギ superseded). #861 material historical research delta=1: AWS TorchNeuron public beta Oct20, AI chip portability; saved to 06_Research/News/AI_Key_Person_Watch/2026-10.md commit 3bc24e8214a4b0cc8dd27f1149c7ecebcc03e40f; post-write fetch VERIFIED. Consumer independent review and MRAM external new customer delta=0. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector observed for research update_file and this heartbeat update_file; historical Oct11 path UNKNOWN; dummy/bypass/retry none."
+  "note": "2026-10-25 19:32 JST normal AI Key Person Watch #124 / #861 / Consumer Field / MRAM run. Startup Sync v2: TEAM_RULES sha=89f8b8a2d82b98afd5e7cc6a1a0df81665824f82, TEAM_STATE sha=8beb099f079b2a89a13ae8b73f8252d3e7ed2ed0, Issue #99 267/267 broadcast-head=6235488874 VERIFIED; To: ALL/レイ new delta=0. AWAY, Single Flow Authority=🌙ルナ (older prompt ナギ superseded). Reuters 2026-10-20 NVIDIA/CoreWeave financing risk and Rokid Oct18 sales already covered by prior Research; fresh MRAM external customer and independent consumer-review material delta=0. Research write NOT_REQUIRED, no dummy write. Corrected prior persistence_status=SUCCESS (invalid under scripts/monitoring/ai_key_person_watch_status.py) to schema-valid NOT_REQUIRED. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector observed for heartbeat update_file; historical Oct11 path UNKNOWN; no rejected retry."
 }
