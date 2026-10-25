@@ -63,3 +63,13 @@ def test_github_output_writes_single_newline_delimited_hold_value():
     assert "\\\\n" not in lines[0]
     output = ast.literal_eval(lines[0].removeprefix("f.write(").removesuffix(")"))
     assert output == "post_authorized=false\n"
+
+
+def test_owner_inventory_runtime_missing_source_stays_unknown_and_hold_only():
+    source = WORKFLOW.read_text(encoding="utf-8")
+    assert "project_attested_owner_inventory(" in source
+    assert "work_id=work_id, claims=None, source_refs=None" in source
+    assert 'assert owner_inventory["dispatch_allowed"] is False' in source
+    assert "OWNER_INVENTORY_AUDIT=" in source
+    assert "evidence_complete=False" in source
+    assert 'f.write("post_authorized=false' in source
