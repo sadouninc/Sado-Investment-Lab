@@ -72,7 +72,7 @@ def compare_snapshots(previous, current):
             "remaining_blockers": None,
         }
     def verified(c):
-        return c["state"] == "PASS" and bool(c.get("evidence_url"))
+        return c["finalized"] and c["state"] == "PASS" and bool(c.get("evidence_url"))
     def blocked(c):
         return c["state"] == "BLOCKED"
     return {
