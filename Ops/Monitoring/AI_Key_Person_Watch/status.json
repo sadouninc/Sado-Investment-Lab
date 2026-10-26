@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-26T20:31:42+09:00",
-  "last_success_at": "2026-10-26T20:31:42+09:00",
+  "last_run_at": "2026-10-26T21:35:02+09:00",
+  "last_success_at": "2026-10-26T21:35:02+09:00",
   "last_status": "OK",
-  "news_delta": 1,
-  "last_news_delta_at": "2026-10-26T20:31:42+09:00",
-  "news_persisted": true,
-  "persistence_status": "SUCCESS",
+  "news_delta": 4,
+  "last_news_delta_at": "2026-10-26T21:35:02+09:00",
+  "news_persisted": false,
+  "persistence_status": "PENDING_PERSIST",
   "updated_by": "❤️レイ",
-  "note": "2026-10-26 20:31 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field, second-order scan. New 2026-10-26 Tata Communications $400-450m / ~10,000km India AI DC interconnect investment signal; Japan optical suppliers only hypothesis, no orders confirmed. Research append commit 6721b8c788b2c8c10ce8f456b5e18ebd65245059. Startup Sync TEAM_RULES→TEAM_STATE (AWAY/LUNA)→#99 broadcast-head=6405435565/comments=270, fetched=270 final=6405435565 VERIFIED; To: ALL/レイ delta checked. #79 untouched. run_context=chatgpt_scheduled; role=レイ; heartbeat operation=update_file via direct GitHub connector. Historical 2026-10-11 execution path UNKNOWN."
+  "note": "2026-10-26 21:35 JST scheduled #124/#861 research: four material Oct 26 findings (Meta up to $95bn equity offering; SpaceX Apollo-managed ~$40bn hardware lease clarifies prior debt claim; Musk neocloud leverage warning; ASMPT SMT H1 bookings +87.8% and possible sale). Reuters verified; Research update NOT PERSISTED due connector argument validation: missing required sha; no GitHub mutation sent for Research and no same-operation retry this run. Pending Research append in next eligible run after canonical dedup. Startup Sync TEAM_RULES→TEAM_STATE (AWAY/LUNA)→#99 broadcast-head=6405435565/comments=270 fetched=270 tail=6405435565 VERIFIED; no To: ALL/レイ delta; #79 untouched. run_context=chatgpt_scheduled; role=レイ; heartbeat via direct GitHub connector. Historical 2026-10-11 execution path UNKNOWN."
 }
