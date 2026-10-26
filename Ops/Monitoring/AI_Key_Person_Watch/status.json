@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-27T05:32:56+09:00",
-  "last_success_at": "2026-10-27T05:32:56+09:00",
+  "last_run_at": "2026-10-27T06:35:52.015+09:00",
+  "last_success_at": "2026-10-27T06:35:52.015+09:00",
   "last_status": "OK",
-  "news_delta": 2,
-  "last_news_delta_at": "2026-10-27T05:32:56+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-27T06:35:52.015+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-27 05:32 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field Radar. Cadence Maestro+Socionext InnoStack and Unconventional AI/NeuReality new verified 2026-10-26 historical announcements; material_delta=2, research_result=SUCCESS, research_commit=3f51bfaebe8c1296be7263217ff7fb52bbb5ac61. Startup Sync TEAM_RULES→TEAM_STATE(AWAY/LUNA)→#99 broadcast-head=6405435565/comments=270 fetched=270 tail=6405435565 VERIFIED; To: ALL/レイ checked. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; historical 2026-10-11 path UNKNOWN."
+  "note": "2026-10-27 06:35 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field, second-order scan. New Research: jig.jp(5244) SABERA 2026-10-27 general retail start planned; 2026-10-20 official release; actual same-day sales and revenue UNKNOWN. Research appended commit f779cdac0a59d1371254ede543f9167e8166b8e0. Startup Sync TEAM_RULES→TEAM_STATE(AWAY/LUNA)→#99 broadcast-head=6405435565/comments=270 fetched=270 tail=6405435565 VERIFIED; To: ALL/レイ delta checked. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; historical 2026-10-11 path UNKNOWN."
 }
