@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-27T03:28:00+09:00",
-  "last_success_at": "2026-10-27T03:28:00+09:00",
+  "last_run_at": "2026-10-27T04:32:47+09:00",
+  "last_success_at": "2026-10-27T04:32:47+09:00",
   "last_status": "OK",
-  "news_delta": 2,
-  "last_news_delta_at": "2026-10-27T03:28:00+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-27T04:32:47+09:00",
   "news_persisted": true,
-  "persistence_status": "SUCCESS",
+  "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-27 03:28 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field, second-order scan. Anthropic S-1 safety/evaluation training pause and AI DC microgrid market+verified contracts (new to Research, prior deals dated). Research SUCCESS evidence=f254ad503f37fca890525410647240331cf5a72b. Startup Sync TEAM_RULES→TEAM_STATE(AWAY/LUNA)→#99 head=6405435565/comments=270 fetched=270 final=6405435565 VERIFIED. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; historical 2026-10-11 path UNKNOWN."
+  "note": "2026-10-27 04:32 JST scheduled #124/#861 AI Key Person/MRAM/Consumer-Field scan. Everspin CEO EE Times 2026-10-22 NOR Flash replacement pricing delta, TrendForce primary; Research SUCCESS evidence=04933295c21dff087cbea17b5ac6bfaa8295977f. Startup Sync TEAM_RULES→TEAM_STATE(AWAY/LUNA)→#99 broadcast-head=6405435565/comments=270 fetched=270 final=6405435565 VERIFIED; To: ALL/レイ checked; #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector. persistence_status enum corrected to canonical COMPLETED/NOT_REQUIRED/PENDING_PERSIST per validator. Historical 2026-10-11 execution path UNKNOWN."
 }
