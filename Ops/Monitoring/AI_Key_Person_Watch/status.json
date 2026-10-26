@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-26T08:27:31+09:00",
-  "last_success_at": "2026-10-26T08:27:31+09:00",
+  "last_run_at": "2026-10-26T09:33:14+09:00",
+  "last_success_at": "2026-10-26T09:33:14+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-26T06:31:35+09:00",
-  "news_persisted": false,
-  "persistence_status": "NOT_NEEDED",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-26T09:33:14+09:00",
+  "news_persisted": true,
+  "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-26 08:27 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field and second-/third-order Japan-equity scan; no independently verified new material delta after 07:33 JST, so Research append skipped. Checked recent AI infrastructure, MRAM, XR smart glasses and grid/optics sources; surfaced items were older/background or not incremental to prior Research. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 head VERIFIED comment_id=6398065102 (268/268); authoritative Flow Authority=LUNA per 2026-10-17 merged rule, despite legacy NAGI instruction. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; target=status.json; execution_path=direct GitHub connector; historical 2026-10-11 path UNKNOWN. No dummy mutation, no retry."
+  "note": "2026-10-26 09:31 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field and second-/third-order Japan-equity scan. Material historical evidence newly verified: Japan yttrium supply squeeze (10/22 report), separate TSMC rare-earth-free factory motor investigation; no confirmed Japanese listed-company orders. Research appended commit 0f2b7cfcc9cbf6d208fd1210dee07b576b0dbe22. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 body broadcast-head=6405435565/comments=270; fetched=270 final=6405435565 VERIFIED. Current Flow Authority=LUNA per merged TEAM_RULES/STATE, legacy NAGI instruction superseded. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; target=status.json; execution_path=direct GitHub connector. Historical 2026-10-11 path UNKNOWN. No dummy mutation or retry."
 }
