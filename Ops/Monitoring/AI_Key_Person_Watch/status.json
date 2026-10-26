@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-26T16:38:43+09:00",
-  "last_success_at": "2026-10-26T16:38:43+09:00",
+  "last_run_at": "2026-10-26T17:37:09.274+09:00",
+  "last_success_at": "2026-10-26T17:37:09.274+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-26T16:38:43+09:00",
+  "last_news_delta_at": "2026-10-26T17:37:09.274+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-26 16:38 JST scheduled #124/#861 AI Key Person/MRAM/Consumer-Field/second-order scan. Newly verified previously unrecorded NVIDIA Minerva AIOps primary announcement 2026-10-22: IREN using, others planned; Japanese beneficiaries unverified WATCH_ONLY. Research commit b3f3b4806bc7fe89eaff8474230558cf8f8895d8. Existing DSX POD 10/22 research detected; duplicate skipped. Startup Sync TEAM_RULES→TEAM_STATE AWAY/LUNA→#99 head=6405435565/comments=270 fetched=270 final=6405435565 VERIFIED. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; no dummy/retry. Historical 2026-10-11 execution path UNKNOWN."
+  "note": "2026-10-26 17:37 JST scheduled #124/#861 AI Key Person/MRAM/Consumer-Field/second-order scan. Newly verified previously unrecorded eole (2334) 2026-10-22 plan for 300 distributed 2MW AI DC sites/600MW total by 2030 and 2026-10-21 HGX B300 Fukushima 96-server plan; not installed capacity or confirmed revenue; WATCH_ONLY. Research commit d1e7ada4ff2589e6ce4c9f6132844eb251f99eec. Startup Sync TEAM_RULES→TEAM_STATE AWAY/LUNA→#99 head=6405435565/comments=270 fetched=270 final=6405435565 VERIFIED. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; no dummy/retry. Historical 2026-10-11 execution path UNKNOWN."
 }
