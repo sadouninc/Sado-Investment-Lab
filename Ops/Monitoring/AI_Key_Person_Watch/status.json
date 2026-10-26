@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-26T21:35:02+09:00",
-  "last_success_at": "2026-10-26T21:35:02+09:00",
+  "last_run_at": "2026-10-26T22:36:09+09:00",
+  "last_success_at": "2026-10-26T22:36:09+09:00",
   "last_status": "OK",
-  "news_delta": 4,
-  "last_news_delta_at": "2026-10-26T21:35:02+09:00",
-  "news_persisted": false,
-  "persistence_status": "PENDING_PERSIST",
+  "news_delta": 5,
+  "last_news_delta_at": "2026-10-26T22:36:09+09:00",
+  "news_persisted": true,
+  "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-26 21:35 JST scheduled #124/#861 research: four material Oct 26 findings (Meta up to $95bn equity offering; SpaceX Apollo-managed ~$40bn hardware lease clarifies prior debt claim; Musk neocloud leverage warning; ASMPT SMT H1 bookings +87.8% and possible sale). Reuters verified; Research update NOT PERSISTED due connector argument validation: missing required sha; no GitHub mutation sent for Research and no same-operation retry this run. Pending Research append in next eligible run after canonical dedup. Startup Sync TEAM_RULES→TEAM_STATE (AWAY/LUNA)→#99 broadcast-head=6405435565/comments=270 fetched=270 tail=6405435565 VERIFIED; no To: ALL/レイ delta; #79 untouched. run_context=chatgpt_scheduled; role=レイ; heartbeat via direct GitHub connector. Historical 2026-10-11 execution path UNKNOWN."
+  "note": "2026-10-26 22:36 JST scheduled #124/#861: previous 4 pending Oct26 finance signals reverified plus Anthropic official S-1 new; Research SUCCESS evidence=05b95df35a0664a429743241e89694f72f7412f2. Startup Sync TEAM_RULES→TEAM_STATE(AWAY/LUNA)→#99 head=6405435565/comments=270 fetched=270 last=6405435565 VERIFIED; #79 untouched. run_context=chatgpt_scheduled; role=レイ; direct GitHub connector, prior 2026-10-11 route UNKNOWN."
 }
