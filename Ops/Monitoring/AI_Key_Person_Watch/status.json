@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-26T13:26:42+09:00",
-  "last_success_at": "2026-10-26T13:26:42+09:00",
+  "last_run_at": "2026-10-26T14:33:07+09:00",
+  "last_success_at": "2026-10-26T14:33:07+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-26T13:26:42+09:00",
+  "last_news_delta_at": "2026-10-26T14:33:07+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-26 scheduled #124/#861 AI Key Person/MRAM/Consumer-Field/second-order Japan equity scan. New-to-repository primary evidence: Mitsubishi Electric 2026-10-21 developed physical-AI CNC/humanoid natural-language machining collaboration; JIMTOF 10/26 demo announced, not confirmed as commercial deployment. Adoption, ROI and earnings UNKNOWN. Research append commit 77c7b330d5bde2d24926b101e1627b4ec35c4b03. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 broadcast-head=6405435565/comments=270; fetched=270 final=6405435565 VERIFIED. Flow Authority=LUNA per current SSoT, legacy NAGI instruction superseded. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; no dummy/retry. Historical 2026-10-11 path UNKNOWN."
+  "note": "2026-10-26 scheduled #124/#861 AI Key Person/MRAM/Consumer-Field/second-order Japan equity scan. Material new-to-repository verified historical evidence: Fuji Electric 2026-05-27 ejector data center liquid cooling product release; up to 85% summer-condition cooling electricity reduction (not annual PUE), 2030 >JPY10bn sales target is FT-reported not confirmed orders or IR. Research append commit 5a1be152c4fdec552fa64aa1b9af6661b50826e7. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 head=6405435565/comments=270; fetched=270 final=6405435565 VERIFIED. Flow Authority=LUNA per current SSoT; legacy NAGI superseded. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; no dummy/retry. Historical 2026-10-11 execution path UNKNOWN."
 }
