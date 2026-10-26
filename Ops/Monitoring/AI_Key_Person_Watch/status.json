@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-26T12:28:27+09:00",
-  "last_success_at": "2026-10-26T12:28:27+09:00",
+  "last_run_at": "2026-10-26T13:26:42+09:00",
+  "last_success_at": "2026-10-26T13:26:42+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-26T12:28:27+09:00",
+  "last_news_delta_at": "2026-10-26T13:26:42+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-26 scheduled #124/#861 AI Key Person/MRAM/Consumer-Field/second-order Japan equity scan. New-to-repository historical company-primary evidence: 2026-09-08 GMO AIR launched GMO LOOP for Physical AI on-site learning/continuous model refinement, alongside GMO SAFE and humanoid field maintenance vehicle. Commercial customer counts, actual ROI, GMO Group (9449) earnings impact UNKNOWN; not a 10/26 announcement. Research append commit 7a1a718564bdd47b5117d06600578ec60cb4a5ee. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 broadcast-head=6405435565/comments=270; fetched=270 final=6405435565 VERIFIED. Flow Authority=LUNA per current SSoT; legacy NAGI instruction superseded. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; target=status.json; execution_path=direct GitHub connector; no dummy/retry. Historical 2026-10-11 path UNKNOWN."
+  "note": "2026-10-26 scheduled #124/#861 AI Key Person/MRAM/Consumer-Field/second-order Japan equity scan. New-to-repository primary evidence: Mitsubishi Electric 2026-10-21 developed physical-AI CNC/humanoid natural-language machining collaboration; JIMTOF 10/26 demo announced, not confirmed as commercial deployment. Adoption, ROI and earnings UNKNOWN. Research append commit 77c7b330d5bde2d24926b101e1627b4ec35c4b03. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 broadcast-head=6405435565/comments=270; fetched=270 final=6405435565 VERIFIED. Flow Authority=LUNA per current SSoT, legacy NAGI instruction superseded. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; no dummy/retry. Historical 2026-10-11 path UNKNOWN."
 }
