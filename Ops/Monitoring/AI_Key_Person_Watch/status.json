@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-26T09:33:14+09:00",
-  "last_success_at": "2026-10-26T09:33:14+09:00",
+  "last_run_at": "2026-10-26T10:29:07+09:00",
+  "last_success_at": "2026-10-26T10:29:07+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-26T09:33:14+09:00",
+  "last_news_delta_at": "2026-10-26T10:29:07+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-26 09:31 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field and second-/third-order Japan-equity scan. Material historical evidence newly verified: Japan yttrium supply squeeze (10/22 report), separate TSMC rare-earth-free factory motor investigation; no confirmed Japanese listed-company orders. Research appended commit 0f2b7cfcc9cbf6d208fd1210dee07b576b0dbe22. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 body broadcast-head=6405435565/comments=270; fetched=270 final=6405435565 VERIFIED. Current Flow Authority=LUNA per merged TEAM_RULES/STATE, legacy NAGI instruction superseded. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; target=status.json; execution_path=direct GitHub connector. Historical 2026-10-11 path UNKNOWN. No dummy mutation or retry."
+  "note": "2026-10-26 10:29 JST scheduled #124/#861 AI Key Person/MRAM/Consumer & Field/second-order Japan equities scan. Newly discovered historical primary evidence (2026-09-28/30): Nabtesco Technology Ventures invested in LOMBY's JPY 387m round; Nabtesco already supplied WiBotic wireless charging systems to LOMBY robots; no confirmed Nabtesco revenue magnitude/profit conversion. Research append commit 76cb0b951578a17ef175fe6f721ae298b7714163. Everspin 10/22 AI-server interview overlaps previously recorded MRAM CXL/JEDEC evidence, not duplicated. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 broadcast-head=6405435565/comments=270; fetched=270 final=6405435565 VERIFIED. Flow Authority=LUNA per merged SSoT, legacy NAGI instruction superseded. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; target=status.json; execution_path=direct GitHub connector; result=SUCCESS if tool returns commit. Historical 2026-10-11 path UNKNOWN. No dummy mutation or retry."
 }
