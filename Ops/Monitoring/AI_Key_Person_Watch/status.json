@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-27T02:28:14.928+09:00",
-  "last_success_at": "2026-10-27T02:28:14.928+09:00",
+  "last_run_at": "2026-10-27T03:28:00+09:00",
+  "last_success_at": "2026-10-27T03:28:00+09:00",
   "last_status": "OK",
-  "news_delta": 1,
-  "last_news_delta_at": "2026-10-27T02:28:14.928+09:00",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-10-27T03:28:00+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-27 02:28 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field, second-order scan. New-to-Research HISTORICAL Sep 2 Everspin x Teledyne HiRel 256Mb MRAM aerospace/defense qualification and channel partnership, Q4 shipments planned NOT confirmed. Research append commit 30f39f952520cc680457e52b93ec98d3f83ddefc. Startup Sync TEAM_RULES→TEAM_STATE (AWAY/LUNA)→#99 broadcast-head=6405435565/comments=270 fetched=270 final=6405435565 VERIFIED; To: ALL/レイ delta checked. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file via direct GitHub connector. Historical 2026-10-11 execution path UNKNOWN."
+  "note": "2026-10-27 03:28 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field, second-order scan. Anthropic S-1 safety/evaluation training pause and AI DC microgrid market+verified contracts (new to Research, prior deals dated). Research SUCCESS evidence=f254ad503f37fca890525410647240331cf5a72b. Startup Sync TEAM_RULES→TEAM_STATE(AWAY/LUNA)→#99 head=6405435565/comments=270 fetched=270 final=6405435565 VERIFIED. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; historical 2026-10-11 path UNKNOWN."
 }
