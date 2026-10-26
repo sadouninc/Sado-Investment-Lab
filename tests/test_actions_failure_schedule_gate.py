@@ -197,9 +197,9 @@ def test_schedule_real_collector_boundaries_never_post(case, expected, rc):
                 return prs * 100
             return prs
         if endpoint == "actions/runs":
-            return {"workflow_runs": [run]}
+            return {"total_count": len([run]), "workflow_runs": [run]}
         if endpoint.endswith("/jobs"):
-            return {"jobs": jobs}
+            return {"total_count": len(jobs), "jobs": jobs}
         if endpoint == "issues":
             return issues
         raise AssertionError(endpoint)
