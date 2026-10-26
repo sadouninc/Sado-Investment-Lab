@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-26T22:36:09+09:00",
-  "last_success_at": "2026-10-26T22:36:09+09:00",
+  "last_run_at": "2026-10-26T23:36:21+09:00",
+  "last_success_at": "2026-10-26T23:36:21+09:00",
   "last_status": "OK",
-  "news_delta": 5,
-  "last_news_delta_at": "2026-10-26T22:36:09+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-26T23:36:21+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-26 22:36 JST scheduled #124/#861: previous 4 pending Oct26 finance signals reverified plus Anthropic official S-1 new; Research SUCCESS evidence=05b95df35a0664a429743241e89694f72f7412f2. Startup Sync TEAM_RULES→TEAM_STATE(AWAY/LUNA)→#99 head=6405435565/comments=270 fetched=270 last=6405435565 VERIFIED; #79 untouched. run_context=chatgpt_scheduled; role=レイ; direct GitHub connector, prior 2026-10-11 route UNKNOWN."
+  "note": "2026-10-26 23:36 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field scan. One distinct 2026-10-26 Anthropic third-party SaaS security disclosure signal (Cathedral report versus Anthropic confirmed limited scope); Research append commit=7bdc08db19a77f56e551a9b262c933a2c4e57e4a. No new independently verified MRAM or consumer trend delta. Startup Sync TEAM_RULES→TEAM_STATE(AWAY/LUNA)→#99 broadcast-head=6405435565/comments=270 fetched=270 tail=6405435565 VERIFIED; To: ALL/レイ checked; #79 untouched. run_context=chatgpt_scheduled; role=レイ; direct GitHub connector. 2026-10-11 path UNKNOWN."
 }
