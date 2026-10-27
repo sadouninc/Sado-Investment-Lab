@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-27T23:32:19+09:00",
-  "last_success_at": "2026-10-27T23:32:19+09:00",
+  "last_run_at": "2026-10-28T00:30:31+09:00",
+  "last_success_at": "2026-10-28T00:30:31+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-27T22:29:46+09:00",
-  "news_persisted": false,
-  "persistence_status": "NO_MATERIAL_DELTA",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-10-28T00:30:31+09:00",
+  "news_persisted": true,
+  "persistence_status": "RESEARCH_SAVED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-27 23:32 JST scheduled #124/#861 AI Key Person, Consumer/Field and MRAM scan. Fresh 2026-10-27 NVIDIA/Meta $3B Muse partnership already recorded at 18:35 JST in canonical 06_Research/News/AI_Key_Person_Watch/2026-10.md; no duplicate Research. 2026-10-22 KDDI/Broadcom CPO and UMC/AP Memory DTC, and 2026-10-21 NVIDIA robotics also already recorded; no distinct new material delta. Everspin 2026-10-28 US after-close Q3 earnings pending (company IR). Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE AWAY/LUNA sha=8beb099f -> #99 head=6405435565/comments=270, fetched=270/tail=6405435565 VERIFIED; weekly #892 checked. Issue #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; 2026-10-11 historical path UNKNOWN."
+  "note": "2026-10-28 00:30 JST scheduled #124/#861 AI Key Person, Consumer/Field, MRAM scan. Two new primary-source 2026-10-27 findings persisted: NTT 4K edge AI inference LSI PoC (3x detection distance, 98.1% fewer VLM inputs in specified evaluation) and Omron/NTT Docomo Business OT/IT factory security cooperation. Existing Infineon 300mm GaN EUR1.1B 2026-10-27 news received official primary-source verification without counting as a new news item. Research commit d25c74c4536fff61cd8c2151db2991cb82fa36bf, refetched blob 2cbb7f66298b0cbbef329b64a55d62cce8996ae5. Everspin Q3 results expected 2026-10-28 US after close; no earnings claim. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE AWAY/LUNA sha=8beb099f -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED; W44 #892 routing. Issue #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; 2026-10-11 historical mutation path UNKNOWN."
 }
