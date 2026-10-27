@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-28T04:28:45+09:00",
-  "last_success_at": "2026-10-28T04:28:45+09:00",
+  "last_run_at": "2026-10-28T05:32:19+09:00",
+  "last_success_at": "2026-10-28T05:32:19+09:00",
   "last_status": "OK",
-  "news_delta": 2,
-  "last_news_delta_at": "2026-10-28T04:28:45+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-28T05:32:19+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-28 04:28 JST #124/#861 AI Key Person/Discovery/Consumer-Field/MRAM. Two PRIMARY_COMPANY_RELEASE_2026-10-27 signals saved to 06_Research/News/AI_Key_Person_Watch/2026-10.md: Ouster/Stereolabs ZED Box 2 8 synchronized GMSL2 camera robot edge AI product and SAP TechEd Physical AI ERP-to-robot auditable execution. Both corporate claims; Japan listed direct earnings UNKNOWN, no independent consumer/field reviews. Research commit bf6746cd6e5c7f46332ee4091ced7a2e04ecbe1b, blob d5b8bb8497a11b5cea606a9970734499c774793c refetched VERIFIED. Everspin 2026-10-28 US after-market earnings pending, no invented numbers. Startup Sync TEAM_RULES blob89f8b8a2 -> TEAM_STATE AWAY/LUNA blob8beb099f -> #99 broadcast-head 6405435565/comments270, fetched270 tail matched VERIFIED; W44 #892. Issue #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; actual_tool_response=yes. Historical 2026-10-11 write path UNKNOWN."
+  "note": "2026-10-28 05:32 JST #124/#861 AI Key Person/Discovery/Consumer-Field/MRAM. New PRIMARY_SONY_RELEASE_2026-10-27: XYN spatial capture 3DCG object generation expanded, Japan/US launch, creator subscription tiers and token billing; direct Sony(6758) business connection, adoption/earnings UNKNOWN, independent field review UNKNOWN. Research commit b6f536710a8131c106ae1e4d3b6cca5b125285e6 blob 623945bd948cbed655574c2842a4b1f29f924be5 refetched VERIFIED. Everspin 2026-10-28 US after-market Q3 earnings pending; no invented results. Startup TEAM_RULES blob89f8b8a2 -> TEAM_STATE AWAY/LUNA blob8beb099f -> #99 broadcast-head 6405435565/comments270, fetched270 tail matched VERIFIED -> W44 #892. #79 untouched. run_context=chatgpt_scheduled; role=Rei; execution_path=direct GitHub connector; operation=update_file; actual_tool_response=yes; 2026-10-11 historical route UNKNOWN."
 }
