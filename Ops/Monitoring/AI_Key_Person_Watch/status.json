@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-28T07:28:44+09:00",
-  "last_success_at": "2026-10-28T07:28:44+09:00",
+  "last_run_at": "2026-10-28T08:28:23+09:00",
+  "last_success_at": "2026-10-28T08:28:23+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-28T05:32:19+09:00",
-  "news_persisted": false,
-  "persistence_status": "NOT_REQUIRED",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-28T08:28:23+09:00",
+  "news_persisted": true,
+  "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-28 07:28 JST #124/#861 AI Key Person/Discovery/Consumer-Field/MRAM. New primary-verified Research delta=0; no duplicate Research write. Everspin Q3 results officially scheduled Oct28 US after market, not yet published at this JST run. XREAL AURA Oct28 launch/shipping chatter not treated as verified delivery: XREAL Oct8 official Japan price 229800/269800 JPY, year-end shipping plan; community opinions mixed, not adoption proof. Startup TEAM_RULES blob89f8b8a2 -> TEAM_STATE AWAY/LUNA blob8beb099f -> #99 broadcast-head 6405435565/comments270, fetched270 tail matched VERIFIED -> W44 #892. Nagi Flow Authority prompt superseded by LUNA SSoT. #79 untouched. run_context=chatgpt_scheduled; role=Rei; execution_path=direct GitHub connector; operation=update_file; historical 2026-10-11 route UNKNOWN."
+  "note": "2026-10-28 08:28 JST #124/#861 AI Key Person/Discovery/Consumer-Field/MRAM. New PRIMARY_COMPANY_RELEASE_2026-10-27 Ryosan Ryoyo physical AI training package: actual offering, not commercial robot adoption, Research 06_Research/News/AI_Key_Person_Watch/2026-10.md commit 3772c92f9acbe52147272e38bc68630c10a90f69 verified. Everspin Q3 2026 after US close Oct28 not yet released. XREAL AURA year-end shipment plan; no verified Oct28 deliveries. Startup TEAM_RULES blob89f8b8a2 -> TEAM_STATE AWAY/LUNA blob8beb099f -> #99 broadcast-head 6405435565/comments270, fetched270 tail matched VERIFIED -> W44 #892. #79 untouched. run_context=chatgpt_scheduled; role=Rei; execution_path=direct GitHub connector; operation=update_file; historical 2026-10-11 route UNKNOWN."
 }
