@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-27T16:29:31+09:00",
-  "last_success_at": "2026-10-27T16:29:31+09:00",
+  "last_run_at": "2026-10-27T17:31:33+09:00",
+  "last_success_at": "2026-10-27T17:31:33+09:00",
   "last_status": "OK",
-  "news_delta": 1,
-  "last_news_delta_at": "2026-10-27T16:29:31+09:00",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-10-27T17:31:33+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-27 16:29 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field and second-order scan. Newly verified onsite DC power demand: Wärtsilä US 282MW firm order (10/05 primary), >3GW US DC total, TGES Tokyo Gas group Japan MoU (09/17 primary); Reuters 10/27 Q3 group order €2.37bn +33% SECONDARY, company Q3 original not independently checked. 1 material Research entry saved: commit cbb91eb6369414aea70e36cfd2dc826946982d35; Everspin 10/28 earnings pending. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE AWAY/LUNA -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED, To: ALL/Rei delta none. User Nagi conflicts current SSoT Luna. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector. Historical 2026-10-11 path UNKNOWN."
+  "note": "2026-10-27 17:31 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field, second-order scan. Material Research 2 deltas: Meta 10/26 primary Muse >10m US/Canada onboarding, >25% WAU shopping, >2m business weekly and >30m conversations/week (separate from already-logged $95bn funding); Infineon €1.1bn Villach power GaN capex Reuters 10/27 secondary, 2026 primary not independently verified. Research commit 2494b7a6cb3c8d29d5499ee3ea7a0d51e449e442, post-fetch VERIFIED. MRAM no new verified material delta; Everspin 10/28 earnings pending. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE AWAY/LUNA sha=8beb099f -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED, To: ALL/Rei new delta none. User Nagi conflicts current SSoT Luna. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; actual_tool_response=yes. Historical 2026-10-11 execution path UNKNOWN."
 }
