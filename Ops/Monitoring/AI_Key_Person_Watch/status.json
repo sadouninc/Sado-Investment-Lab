@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-28T00:30:31+09:00",
-  "last_success_at": "2026-10-28T00:30:31+09:00",
+  "last_run_at": "2026-10-28T01:30:29.652+09:00",
+  "last_success_at": "2026-10-28T01:30:29.652+09:00",
   "last_status": "OK",
   "news_delta": 2,
-  "last_news_delta_at": "2026-10-28T00:30:31+09:00",
+  "last_news_delta_at": "2026-10-28T01:30:29.652+09:00",
   "news_persisted": true,
   "persistence_status": "RESEARCH_SAVED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-28 00:30 JST scheduled #124/#861 AI Key Person, Consumer/Field, MRAM scan. Two new primary-source 2026-10-27 findings persisted: NTT 4K edge AI inference LSI PoC (3x detection distance, 98.1% fewer VLM inputs in specified evaluation) and Omron/NTT Docomo Business OT/IT factory security cooperation. Existing Infineon 300mm GaN EUR1.1B 2026-10-27 news received official primary-source verification without counting as a new news item. Research commit d25c74c4536fff61cd8c2151db2991cb82fa36bf, refetched blob 2cbb7f66298b0cbbef329b64a55d62cce8996ae5. Everspin Q3 results expected 2026-10-28 US after close; no earnings claim. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE AWAY/LUNA sha=8beb099f -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED; W44 #892 routing. Issue #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; 2026-10-11 historical mutation path UNKNOWN."
+  "note": "2026-10-28 01:30 JST #124/#861 AI Key Person, Consumer/Field, MRAM scan. Two newly documented company-source signals: Ryosan Ryoyo TEL semiconductor equipment security adoption (company release 2026-10-22; future device fitment planned) and Rohde & Schwarz ASA-ML Microchip/NXP multivendor demo with Nippon Chemi-Con technical support (release 2026-10-27; demo 10-20). No commercial sales/profit inference. Research commit 2754bf56cc13a964e1ee304d13b54772014240ff, blob 810130118f3f2abb8c2043ce158452eee8b5f24d refetched VERIFIED. Everspin Q3 earnings pending 2026-10-28 US after close. Startup Sync TEAM_RULES 89f8b8a2 → TEAM_STATE AWAY/LUNA 8beb099f → #99 broadcast-head 6405435565 / 270 comments fetched 270 tail matched VERIFIED → #892. Issue #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; 2026-10-11 historical mutation path UNKNOWN."
 }
