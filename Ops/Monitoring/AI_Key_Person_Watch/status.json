@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-27T18:35:28+09:00",
-  "last_success_at": "2026-10-27T18:35:28+09:00",
+  "last_run_at": "2026-10-27T19:35:41+09:00",
+  "last_success_at": "2026-10-27T19:35:41+09:00",
   "last_status": "OK",
-  "news_delta": 2,
-  "last_news_delta_at": "2026-10-27T18:35:28+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-27T19:35:41+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-27 18:35 JST scheduled #124/#861 AI Key Person/MRAM/Consumer-Field/second-order scan. Research 2 distinct deltas: Meta Muse Japan 10/23 official launch and named Mercari/Money Forward ME/Pia collaboration in progress (not completed integrations/revenue); Reuters 10/27 NVIDIA $3bn Meta equity investment and Muse co-optimization (company primary not independently verified; closing unknown). Research commit 3ab71f011db9cda7d339ac35d6d04de2a6627e81, post-fetch VERIFIED. MRAM 10/22 CEO/NOR pricing already logged 10/27 04:32, no duplicate. Everspin Q3 earnings 10/28 pending. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE AWAY/LUNA sha=8beb099f -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED; To: ALL/Rei new delta none. User Nagi conflicts current SSoT Luna. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; actual_tool_response=yes. Historical 2026-10-11 execution path UNKNOWN."
+  "note": "2026-10-27 19:35 JST scheduled #124/#861 AI Key Person/MRAM/Consumer-Field/second-order scan. 1 distinct primary-verified delta: Applied Materials 2026-10-26 agreement to increase Besi stake to approximately 20% (from ~9% per Reuters), subject to HSR waiting period; next-gen hybrid bonding/3D IC interconnect co-innovation. Completion/beneficiaries' orders UNKNOWN. Research commit 91e1b2f143284bd3b4d06a437fc846a442d4ae87 post-fetch VERIFIED. Everspin 2026-10-28 Q3 earnings pending, no separate MRAM/consumer delta persisted. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE AWAY/LUNA sha=8beb099f -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED; To: ALL/Rei delta none. User Nagi conflicts current SSoT Luna. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector; actual_tool_response=yes. Historical 2026-10-11 execution path UNKNOWN."
 }
