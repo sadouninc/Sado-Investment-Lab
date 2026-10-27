@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-27T12:28:39+09:00",
-  "last_success_at": "2026-10-27T12:28:39+09:00",
+  "last_run_at": "2026-10-27T13:29:06+09:00",
+  "last_success_at": "2026-10-27T13:29:06+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-27T12:28:39+09:00",
+  "last_news_delta_at": "2026-10-27T13:29:06+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-27 12:28 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field, 2nd/3rd-order scan. NEW verified secondary-source delta: Reuters 2026-10-27 reports Bank of Korea pessimistic scenario of 2027 semiconductor exports $50B-$100B below prior forecasts if US big-tech AI capex slows, with assumed chip price -10% and GDP growth -0.4pp; BOK original not independently read; scenario not observed decline. Research commit be2aef35ef4d8754526bdf98459077623951ebe2; readback=VERIFIED. MRAM/Consumer no other independently verified material new delta; already recorded NTT Furukawa optical chiplet and SoftBank Malaysia $50B discussion, no duplicate. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE(AWAY/LUNA) -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED; To: ALL/レイ delta checked. User text Nagi conflicts with current SSoT Luna. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector observed; historical 2026-10-11 path UNKNOWN."
+  "note": "2026-10-27 13:29 JST scheduled #124/#861 AI Key Person/MRAM/Consumer-Field/2nd-3rd-order scan. NEWLY_VERIFIED historical Reuters 2026-10-26: China's AI-heavy STAR50 down ~40% from July peak, ~$480B market cap decline; market valuation observation != verified capex or order drop; prior China optical module and BOK risk records distinguished. Research commit 9ff097f291c6d48edf98a0f2cc9a44deca5f95e3; research write SUCCESS; heartbeat readback pending. MRAM/consumer other material delta not verified. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE AWAY/LUNA -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED; To: ALL/レイ delta checked. User Nagi conflicts with SSoT Luna; Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; direct GitHub connector observed; 2026-10-11 historical path UNKNOWN."
 }
