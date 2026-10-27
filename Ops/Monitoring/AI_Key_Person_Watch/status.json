@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-27T21:28:34+09:00",
-  "last_success_at": "2026-10-27T21:28:34+09:00",
+  "last_run_at": "2026-10-27T22:29:46+09:00",
+  "last_success_at": "2026-10-27T22:29:46+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-27T21:28:34+09:00",
+  "last_news_delta_at": "2026-10-27T22:29:46+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-27 21:28 JST scheduled #124/#861 AI Key Person, Consumer/Field, MRAM watch. One novel primary-verified historical delta: Tokyo Artisan Intelligence 2026-10-26 Series C first close JPY1.27bn combined equity+bank loan, Tokyo Keiki group capital/business tie and rail inspection AI co-development, StingRay test chip evaluated, Manta Ray mass-production roadmap unproven. Research commit 4a9044f776a2786b698f253e0da5a903c6ddeec5 post-fetch VERIFIED. Other optical, Besi, Amazon memory, smart glasses items already saved; MRAM Everspin 10/28 US after-close earnings pending. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE AWAY/LUNA sha=8beb099f -> #99 body head=6405435565/comments=270, fetched 270/tail=6405435565 VERIFIED; To ALL/Rei no new instruction. #892 audit support; #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; actual_tool_response=yes; historical 2026-10-11 path UNKNOWN."
+  "note": "2026-10-27 22:29 JST scheduled #124/#861 Consumer/Field/MRAM and second-order scan. New primary-verified 2026-10-26 Rapidus+HCLTech two India semiconductor engineering centers in Bengaluru/Hubli operational; PDK/DTCO/mask/layout support; revenue, customer tape-outs and 2027 mass production UNKNOWN. Research commit 824a98943ca0e64b39675190da3361f871323782 post-fetch VERIFIED. MRAM Everspin 2026-10-28 US after-close earnings pending, no distinct MRAM delta. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE AWAY/LUNA sha=8beb099f -> #99 body head=6405435565/comments=270, fetched=270/tail=6405435565 VERIFIED; To ALL/Rei no new directives. #892 audit support, #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; actual_tool_response=yes; historical 2026-10-11 path UNKNOWN."
 }
