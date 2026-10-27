@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-27T09:30:49+09:00",
-  "last_success_at": "2026-10-27T09:30:49+09:00",
+  "last_run_at": "2026-10-27T10:33:42+09:00",
+  "last_success_at": "2026-10-27T10:33:42+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-27T09:30:49+09:00",
+  "last_news_delta_at": "2026-10-27T10:33:42+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-27 09:30 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field, 2nd/3rd-order scan. NEW quantitative evidence: Cadence 2026-10-26 Q3 revenue $1.633bn +22% YoY, AI Super Agents >100 active customer engagements (not 100 paid customers), backlog $8.2bn (not AI-only), GAAP operating margin down 31.8%->26.2%; source official investor IR. Research commit 933ba7251de01ecdf83fca4c193870227207a701 read-back verified. Other candidates (NTT photonic chiplets, TDK retinal projection, THine VCSEL, Meta equity, SABERA launch) already recorded/no new independent sales evidence; no duplicates. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE(AWAY/LUNA) -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED; To: ALL/レイ delta checked. User says Nagi but SSoT says Luna. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector observed for this run; 2026-10-11 historical path UNKNOWN."
+  "note": "2026-10-27 10:33 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field, 2nd/3rd-order scan. Historical material delta verified: Sumitomo Chemical (4005) 2026-08-31 4-inch InP epitaxial wafer mass production and sales start; mid-2030s JPY10bn product revenue target is a forecast, customer/actual sales unknown. Distinct from JX Metals InP substrates and NTT optical chiplet R&D. Research commit 4e3e1f65e0079903f224a8387bc9ddebc735255e readback verified. Other fresh topics duplicate/insufficient material evidence; no forced saves. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE(AWAY/LUNA) -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED; To: ALL/レイ delta checked. User text says Nagi but SSoT says Luna. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector observed for this run; 2026-10-11 historical path UNKNOWN."
 }
