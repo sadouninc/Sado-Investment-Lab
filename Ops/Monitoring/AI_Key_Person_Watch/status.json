@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-27T10:33:42+09:00",
-  "last_success_at": "2026-10-27T10:33:42+09:00",
+  "last_run_at": "2026-10-27T11:31:39+09:00",
+  "last_success_at": "2026-10-27T11:31:39+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-27T10:33:42+09:00",
+  "last_news_delta_at": "2026-10-27T11:31:39+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-27 10:33 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field, 2nd/3rd-order scan. Historical material delta verified: Sumitomo Chemical (4005) 2026-08-31 4-inch InP epitaxial wafer mass production and sales start; mid-2030s JPY10bn product revenue target is a forecast, customer/actual sales unknown. Distinct from JX Metals InP substrates and NTT optical chiplet R&D. Research commit 4e3e1f65e0079903f224a8387bc9ddebc735255e readback verified. Other fresh topics duplicate/insufficient material evidence; no forced saves. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE(AWAY/LUNA) -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED; To: ALL/レイ delta checked. User text says Nagi but SSoT says Luna. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector observed for this run; 2026-10-11 historical path UNKNOWN."
+  "note": "2026-10-27 11:31 JST scheduled #124/#861 AI Key Person, MRAM, Consumer/Field, 2nd/3rd-order scan. NEW verified primary delta: Broadcom/Bank of America/Blackstone/Citi/Morgan Stanley 2026-10-26 $63B SPV financing for Anthropic XPU/network equipment leasing, 2027 delivery planned; Broadcom residual-value support equal to first-lien portion; Reuters reports ~$43.5B first-lien (not primary-disclosed). Distinct from already-logged Meta $95B plan and SpaceX Apollo $40B lease; not incremental compute demand proven. Research commit b0dfbf8a1243070cb08603a0e80560663262235b; readback=VERIFIED. MRAM/Consumer no further material new evidence. Startup Sync TEAM_RULES sha=89f8b8a2 -> TEAM_STATE(AWAY/LUNA) -> #99 head=6405435565/comments=270 fetched=270/tail=6405435565 VERIFIED; To: ALL/レイ delta checked. User text Nagi conflicts with current SSoT Luna. Issue #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; execution_path=direct GitHub connector observed; historical 2026-10-11 path UNKNOWN."
 }
