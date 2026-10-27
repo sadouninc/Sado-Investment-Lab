@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-28T06:34:30+09:00",
-  "last_success_at": "2026-10-28T06:34:30+09:00",
+  "last_run_at": "2026-10-28T07:28:00+09:00",
+  "last_success_at": "2026-10-28T07:28:00+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-10-28T05:32:19+09:00",
   "news_persisted": false,
   "persistence_status": "NOT_REQUIRED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-28 06:34 JST #124/#861 AI Key Person/Discovery/Consumer-Field/MRAM. New PRIMARY_VERIFIED Research delta=0; no duplicate Research write. Everspin Q3 2026 results scheduled US Oct28 after close (official press release Oct14), not yet reported. XREAL 2026-10-27 Reddit event speculation and mixed user experiences are unverified field chatter, no adoption/earnings claim. Startup TEAM_RULES blob89f8b8a2 -> TEAM_STATE AWAY/LUNA blob8beb099f -> #99 broadcast-head 6405435565/comments270, fetched270 tail matched VERIFIED -> W44 #892. User prompt Nagi Flow Authority is superseded by current LUNA SSoT. #79 untouched. run_context=chatgpt_scheduled; role=Rei; execution_path=direct GitHub connector; operation=update_file; historical 2026-10-11 route UNKNOWN."
+  "note": "2026-10-28 07:28 JST manual chat invocation: AI Key Person/Discovery #861/Consumer-Field/MRAM checked. Everspin Q3 2026 results scheduled Oct28 after US close, webcast 17:00 ET; results not yet published. No new primary-verified material research delta; no duplicate Research write. TEAM_RULES blob89f8b8a2 -> TEAM_STATE blob8beb099f -> #99 broadcast-head 6405435565/comments270, fetched270 tail matched VERIFIED; current Flow Authority LUNA. Issue #79 untouched. run_context=manual_chat; role=Rei; operation=update_file; execution_path=direct GitHub connector; historical Oct11 route UNKNOWN."
 }
