@@ -110,3 +110,53 @@ def test_unknown_issuer_holds():
     d = fixture()
     d["owner_lease_ledger"]["items"][0]["issuer"] = "issue-comment"
     assert project(d)["status"] == "UNKNOWN"
+
+
+def test_terminal_releases_matching_active_claim():
+    d = fixture()
+    terminal = deepcopy(d["owner_lease_ledger"]["items"][0])
+    terminal["status"] = "RELEASE"
+    d["owner_lease_ledger"]["items"].append(terminal)
+    result = project(d)
+    assert result["status"] == "COMPLETE_EMPTY"
+    assert result["claims"] == []
+    assert result["dispatch_allowed"] is False
+
+
+def test_terminal_without_matching_active_holds():
+    d = fixture()
+    d["owner_lease_ledger"]["items"][0]["status"] = "STOP"
+    assert project(d)["reason"] == "UNMATCHED_OR_REPEATED_TERMINAL_EVENT"
+
+
+def test_terminal_scope_mismatch_holds():
+    d = fixture()
+    terminal = deepcopy(d["owner_lease_ledger"]["items"][0])
+    terminal["status"] = "REVOKED"
+    terminal["owner"] = "different-owner"
+    d["owner_lease_ledger"]["items"].append(terminal)
+    assert project(d)["reason"] == "TERMINAL_SCOPE_MISMATCH"
+
+
+def test_active_after_terminal_holds():
+    d = fixture()
+    terminal = deepcopy(d["owner_lease_ledger"]["items"][0])
+    terminal["status"] = "STOP"
+    d["owner_lease_ledger"]["items"].extend(
+        [terminal, deepcopy(d["owner_lease_ledger"]["items"][0])])
+    assert project(d)["reason"] == "ACTIVE_AFTER_TERMINAL_EVENT"
+
+
+def test_terminal_unverified_run_holds():
+    d = fixture()
+    terminal = deepcopy(d["owner_lease_ledger"]["items"][0])
+    terminal["status"] = "RELEASE"
+    terminal["run_artifact_verified"] = False
+    d["owner_lease_ledger"]["items"].append(terminal)
+    assert project(d)["reason"] == "ISSUER_RUN_ATTESTATION_MISSING"
+
+
+def test_projection_never_claims_independent_attestation():
+    result = project(fixture())
+    assert result["reason"] == "PROJECTION_ONLY_EXTERNAL_ATTESTATION_REQUIRED"
+    assert result["dispatch_allowed"] is False
