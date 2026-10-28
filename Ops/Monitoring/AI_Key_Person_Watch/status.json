@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-28T11:33:44+09:00",
-  "last_success_at": "2026-10-28T11:33:44+09:00",
+  "last_run_at": "2026-10-28T12:30:24+09:00",
+  "last_success_at": "2026-10-28T12:30:24+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-10-28T09:30:51+09:00",
   "news_persisted": false,
   "persistence_status": "NOT_REQUIRED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-28 11:33 JST scheduled #124/#861 AI Key Person/Discovery/Consumer-Field/MRAM. Fresh searches: Everspin Q3 2026 earnings US Oct28 after market close still pending (consensus ~$20.07M / EPS -$0.04 secondary estimate, NOT actual); Oct28 KDDI physical-AI coverage repeats previously recorded Oct27 official announcement; other physical-AI/robotics reports identified were older, not verified new material Research delta. No fresh verified consumer adoption evidence; Research write not required. Startup TEAM_RULES blob89f8b8a2 -> TEAM_STATE AWAY/LUNA blob8beb099f -> #99 broadcast-head 6405435565/comments270 fetched270 last6405435565 VERIFIED -> #892, #861, #124. #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; historical 2026-10-11 execution route UNKNOWN."
+  "note": "2026-10-28 12:30 JST scheduled #124/#861 AI Key Person/Discovery/Consumer-Field/MRAM. Fresh primary Everspin IR as of this run: Q3 2026 earnings scheduled US Oct28 after close, not yet reported (https://everspin.gcs-web.com/news-releases/news-release-details/everspin-announces-date-third-quarter-2026-financial-results). JEDEC LPDDR PMEM Oct20 already recorded in Oct24 Research, no duplicate. KDDI ELYZA, NTT Docomo Physical AI, Mitsubishi Electric humanoid CNC and SAP/Ouster developments already in Oct Research. XREAL AURA Oct27 Reddit teaser/event and Oct28 ship speculation are unverified community chatter, not shipment/adoption evidence. No new PRIMARY_VERIFIED material Research delta; Research write NOT_REQUIRED. Startup TEAM_RULES blob89f8b8a2 -> TEAM_STATE AWAY/LUNA blob8beb099f -> #99 body broadcast-head 6405435565/comments270, fetched270 last6405435565 VERIFIED -> W44 #892 -> #861/#124. Issue #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; historical Oct11 execution route UNKNOWN."
 }
