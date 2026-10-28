@@ -13,6 +13,13 @@ DOMAINS = ("issues", "pull_requests", "branches", "actions_runs", "owner_lease_l
 ACTIVE = frozenset(("ASSIGNED", "ACKNOWLEDGED", "FALLBACK_ASSIGNED"))
 
 
+def _overlap(a: str, b: str) -> bool:
+    """Conservatively reject exact and directory/file nested path ownership."""
+    a, b = a.rstrip("/"), b.rstrip("/")
+    return a == b or a.startswith(b + "/") or b.startswith(a + "/")
+
+
+
 def _unknown(reason: str) -> dict[str, Any]:
     return {"status": "UNKNOWN", "reason": reason, "claims": [],
             "source_refs": None, "dispatch_allowed": False}
@@ -51,17 +58,25 @@ def project_owner_claim_source(
             return _unknown("SOURCE_UNVERIFIED")
         refs[name] = domain["source_ref"]
 
-    runs = {r.get("id"): r for r in domains["actions_runs"]["items"]
-            if isinstance(r, Mapping) and type(r.get("id")) is int}
+    runs: dict[int, Mapping[str, Any]] = {}
+    for run in domains["actions_runs"]["items"]:
+        if not isinstance(run, Mapping) or type(run.get("id")) is not int:
+            return _unknown("MALFORMED_ACTIONS_RUN")
+        run_id = run["id"]
+        if run_id in runs and dict(runs[run_id]) != dict(run):
+            return _unknown("CONFLICTING_ACTIONS_RUN_RECORDS")
+        runs[run_id] = run
     claims: list[dict[str, Any]] = []
     seen: set[tuple[str, str]] = set()
     occupied: dict[str, str] = {}
+    lease_owners: dict[str, str] = {}
     terminated: set[str] = set()
     for claim in domains["owner_lease_ledger"]["items"]:
         if not isinstance(claim, Mapping):
             return _unknown("MALFORMED_CLAIM")
-        if claim.get("work_id") != work_id:
-            continue
+        # All-actor scope: a foreign work item can still occupy these paths.
+        # An unverified foreign claim cannot establish conflict-free ownership.
+        foreign_work = claim.get("work_id") != work_id
         if claim.get("status") not in ACTIVE:
             if claim.get("status") in ("STOP", "RELEASE", "REVOKED"):
                 # A terminal event requires authenticated provenance as well.
@@ -82,6 +97,13 @@ def project_owner_claim_source(
                 not isinstance(paths, list) or not paths or
                 any(not isinstance(p, str) or not p or "*" in p for p in paths)):
             return _unknown("INVALID_CLAIM_SCOPE")
+        if lease in lease_owners and lease_owners[lease] != owner:
+            return _unknown("CONFLICTING_LEASE_OWNER")
+        lease_owners[lease] = owner
+        if foreign_work:
+            # Never silently ignore an active pre-PR claim from another work.
+            # Its terminal history also needs independent reconciliation.
+            return _unknown("ALL_ACTOR_SCOPE_RECONCILIATION_REQUIRED")
         if claim["status"] in ("STOP", "RELEASE", "REVOKED"):
             # Never accept a terminal event as proof of release without an
             # independently attested matching active lease and ordering.
@@ -110,7 +132,8 @@ def project_owner_claim_source(
             if deadline.tzinfo is None or deadline <= now:
                 return _unknown("LEASE_EXPIRED_OR_UNVERIFIED")
             for path in paths:
-                if path in occupied and occupied[path] != lease:
+                if any(_overlap(path, existing) and active_lease != lease
+                       for existing, active_lease in occupied.items()):
                     return _unknown("CONFLICTING_OWNER_PATHS")
                 occupied[path] = lease
         identity = (lease, claim["status"])
@@ -174,15 +197,19 @@ def collect_authenticated_owner_claims(
             page = next_page
         domains[name] = {"items": items, "complete": True, "fresh": True,
                          "source_ref": tuple(refs)}
-    runs = {run.get("id"): run for run in domains["actions_runs"]["items"]
-            if isinstance(run, Mapping) and type(run.get("id")) is int}
+    runs: dict[int, Mapping[str, Any]] = {}
+    for run in domains["actions_runs"]["items"]:
+        if not isinstance(run, Mapping) or type(run.get("id")) is not int:
+            return _unknown("MALFORMED_ACTIONS_RUN")
+        if run["id"] in runs and dict(runs[run["id"]]) != dict(run):
+            return _unknown("CONFLICTING_ACTIONS_RUN_RECORDS")
+        runs[run["id"]] = run
     verified_claims: list[dict[str, Any]] = []
     for claim in domains["owner_lease_ledger"]["items"]:
         if not isinstance(claim, Mapping):
             return _unknown("MALFORMED_CLAIM")
-        if claim.get("work_id") != work_id:
-            verified_claims.append(dict(claim))
-            continue
+        # Verify all actors, including pre-PR and other-work claims, before
+        # attempting a conflict-free inventory for this work.
         run_id = claim.get("writer_run_id")
         run = runs.get(run_id) if type(run_id) is int else None
         if run is None:
