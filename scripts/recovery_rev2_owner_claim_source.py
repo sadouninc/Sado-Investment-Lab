@@ -124,3 +124,79 @@ def project_owner_claim_source(
     return {"status": "COMPLETE" if claims else "COMPLETE_EMPTY",
             "reason": "PROJECTION_ONLY_EXTERNAL_ATTESTATION_REQUIRED", "claims": claims,
             "source_refs": refs, "dispatch_allowed": False}
+
+
+def collect_authenticated_owner_claims(
+    *, work_id: str, fetch_page, verify_run_artifact, now: datetime | None = None,
+    max_pages: int = 100,
+) -> dict[str, Any]:
+    """Read GitHub evidence through injected *read-only* API functions.
+
+    fetch_page(domain, page, per_page=100) returns a mapping with items,
+    next_page (integer or None), and immutable source_ref. Every page is
+    traversed; failures and unverified artifacts fail closed. A boolean
+    embedded in an issue comment is never treated as attestation.
+    verify_run_artifact(claim, run) must independently verify the run-owned
+    artifact and return True; this function does not trust claim flags.
+    """
+    if work_id == "issue:79":
+        return {"status": "BLOCKED", "reason": "PROTECTED_ISSUE_79",
+                "claims": [], "source_refs": None, "dispatch_allowed": False}
+    if not isinstance(work_id, str) or not work_id.startswith("issue:"):
+        return _unknown("INVALID_WORK_ID")
+    if not callable(fetch_page) or not callable(verify_run_artifact):
+        return _unknown("SOURCE_READER_UNAVAILABLE")
+    domains: dict[str, dict[str, Any]] = {}
+    for name in DOMAINS:
+        items: list[Any] = []
+        refs: list[str] = []
+        page = 1
+        visited: set[int] = set()
+        while page is not None:
+            if page in visited or len(visited) >= max_pages:
+                return _unknown("INCOMPLETE_PAGINATION")
+            visited.add(page)
+            try:
+                response = fetch_page(name, page, per_page=100)
+            except Exception:
+                return _unknown("SOURCE_FETCH_FAILED")
+            if not isinstance(response, Mapping):
+                return _unknown("SOURCE_UNVERIFIED")
+            chunk, ref = response.get("items"), response.get("source_ref")
+            next_page = response.get("next_page")
+            if (not isinstance(chunk, list) or not isinstance(ref, str)
+                    or not ref or response.get("fresh") is not True
+                    or (next_page is not None and
+                        (type(next_page) is not int or next_page <= page))):
+                return _unknown("SOURCE_UNVERIFIED")
+            items.extend(chunk)
+            refs.append(ref)
+            page = next_page
+        domains[name] = {"items": items, "complete": True, "fresh": True,
+                         "source_ref": tuple(refs)}
+    runs = {run.get("id"): run for run in domains["actions_runs"]["items"]
+            if isinstance(run, Mapping) and type(run.get("id")) is int}
+    for claim in domains["owner_lease_ledger"]["items"]:
+        if not isinstance(claim, Mapping):
+            return _unknown("MALFORMED_CLAIM")
+        if claim.get("work_id") != work_id:
+            continue
+        run_id = claim.get("writer_run_id")
+        run = runs.get(run_id) if type(run_id) is int else None
+        if run is None:
+            return _unknown("ISSUER_RUN_ATTESTATION_MISSING")
+        try:
+            verified = verify_run_artifact(claim, run) is True
+        except Exception:
+            return _unknown("ISSUER_RUN_ATTESTATION_MISSING")
+        if not verified:
+            return _unknown("ISSUER_RUN_ATTESTATION_MISSING")
+        # Never elevate caller-provided assertion flags without checking.
+        claim["run_artifact_verified"] = True
+        claim["artifact_run_id"] = run_id
+    result = project_owner_claim_source(work_id=work_id, domains=domains, now=now)
+    # Independent source/claim verification still does not establish all-actor
+    # cross-domain exclusivity. Do not export a production COMPLETE inventory.
+    if result["status"] in ("COMPLETE", "COMPLETE_EMPTY"):
+        return _unknown("CROSS_DOMAIN_CLAIM_RECONCILIATION_REQUIRED")
+    return result
