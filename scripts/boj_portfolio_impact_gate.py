@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from src.sado_investment_lab.domain.boj_early_warning import classify_boj_signal
 CANONICAL_HOLDINGS_PATH = Path("data/portfolio/current.json")
 CANONICAL_RESEARCH_DIR = Path("06_Research/boj_evidence")
 
@@ -116,13 +117,17 @@ def load_canonical_holdings(path: Path | str | None = None) -> dict[str, Any]:
 
 
 def evaluate_boj_signal(signal_input: dict[str, Any] | str | Path | None = None) -> dict[str, Any]:
-    """Evaluate BOJ signal input and enforce probability-only capping at ORANGE.
+    """Normalize legacy BOJ signal input and delegate to canonical classifier.
 
-    Fail-closed rule: Missing or unparseable signal, or unknown boj_state, remains UNKNOWN.
-    UNKNOWN != PASS/ORANGE.
+    This function acts as a legacy input adapter:
+    - Loads signal from file/dict/default ledger
+    - Normalizes legacy field names (boj_state/signal_state -> raw_requested_state)
+    - Delegates policy classification to canonical classify_boj_signal
+    - Adapts canonical output shape to legacy gate output format
+
+    All classification logic resides in the canonical classifier.
     """
     if signal_input is None:
-        # Check if canonical ledger file exists
         ledger_file = Path("06_Research/boj_evidence/boj_observation_ledger_512.jsonl")
         if ledger_file.is_file():
             try:
@@ -172,55 +177,99 @@ def evaluate_boj_signal(signal_input: dict[str, Any] | str | Path | None = None)
             "reason": f"unsupported signal input type: {type(signal_input)}",
         }
 
-    raw_state_str = signal_data.get("boj_state") or signal_data.get("signal_state")
-    if not raw_state_str or not isinstance(raw_state_str, str):
+    # Validate explicit legacy states without requiring a state on canonical inputs.
+    state_key = None
+    if isinstance(signal_data, dict):
+        state_key = next((key for key in ("raw_requested_state", "boj_state", "signal_state") if key in signal_data), None)
+    raw_state = signal_data[state_key] if state_key else None
+    canonical_input = isinstance(signal_data, dict) and any(
+        isinstance(signal_data.get(key), dict) and bool(signal_data[key])
+        for key in ("primary_evidence", "market_factors")
+    )
+    if not isinstance(signal_data, dict) or (
+        state_key is not None and (not isinstance(raw_state, str) or raw_state.strip().upper() not in VALID_SIGNAL_STATES)
+    ) or (state_key is None and not canonical_input):
         return {
             "effective_state": "UNKNOWN",
-            "raw_state": "UNKNOWN",
+            "raw_state": raw_state if state_key is not None else "UNKNOWN",
             "primary_evidence_present": False,
             "probability_only": True,
-            "reason": "Missing or non-string boj_state in signal payload; failing closed to UNKNOWN.",
+            "reason": "Missing or invalid signal state; failing closed to UNKNOWN.",
         }
 
-    raw_state = raw_state_str.strip().upper()
-    if raw_state not in VALID_SIGNAL_STATES:
-        return {
-            "effective_state": "UNKNOWN",
-            "raw_state": raw_state,
-            "primary_evidence_present": False,
-            "probability_only": True,
-            "reason": f"Unknown boj_state '{raw_state}'; failing closed to UNKNOWN.",
-        }
+    # Normalize legacy field names: boj_state / signal_state -> raw_requested_state
+    normalized_input = dict(signal_data)
+    if state_key is not None:
+        normalized_input["raw_requested_state"] = raw_state.strip().upper()
+    if "raw_requested_state" not in normalized_input:
+        legacy_state = normalized_input.get("boj_state") or normalized_input.get("signal_state")
+        if legacy_state:
+            normalized_input["raw_requested_state"] = legacy_state
+    
+    # Extract market probability from canonical ledger shape if present
+    # Real canonical ledger format: policy_pricing.next_meeting_hike_probability_pct
+    # Normalize policy_delta to market_prob_rising
+    policy_delta = signal_data.get("policy_delta")
+    if policy_delta == "STRENGTHENS_ORANGE":
+        # Initialize market_factors if needed
+        if "market_factors" not in normalized_input:
+            normalized_input["market_factors"] = {}
+        if not isinstance(normalized_input["market_factors"], dict):
+            normalized_input["market_factors"] = {}
+        # Set market_prob_rising only if not already present
+        if "market_prob_rising" not in normalized_input["market_factors"]:
+            normalized_input["market_factors"]["market_prob_rising"] = True
+    
+    policy_pricing = signal_data.get("policy_pricing")
+    if isinstance(policy_pricing, dict):
+        prob_pct = policy_pricing.get("next_meeting_hike_probability_pct")
+        if prob_pct is not None and isinstance(prob_pct, (int, float)):
+            # Convert percentage to decimal for canonical classifier (80.0 -> 0.80)
+            prob_decimal = prob_pct / 100.0
+            # Inject into market_factors for canonical classifier
+            if "market_factors" not in normalized_input:
+                normalized_input["market_factors"] = {}
+            if not isinstance(normalized_input["market_factors"], dict):
+                normalized_input["market_factors"] = {}
+            # Preserve any existing market_implied_probability; only set if missing
+            if "market_implied_probability" not in normalized_input["market_factors"]:
+                normalized_input["market_factors"]["market_implied_probability"] = prob_decimal
 
-    primary_evidence_present = bool(
-        signal_data.get("primary_evidence_present")
-        or signal_data.get("primary_evidence")
-        or signal_data.get("has_primary_evidence")
-        or (signal_data.get("interpretation") and isinstance(signal_data["interpretation"], dict) and signal_data["interpretation"].get("red_gate") == "MET")
-    )
+    # Delegate to canonical classifier
+    canonical_result = classify_boj_signal(normalized_input)
 
-    probability_only = bool(
-        signal_data.get("probability_only")
-        or signal_data.get("market_probability_only")
-        or not primary_evidence_present
-    )
+    # Adapt canonical output to legacy gate format
+    result_dict = canonical_result.to_dict()
 
-    reason = str(signal_data.get("reason") or signal_data.get("policy_message") or "")
+    # Preserve the existing flat legacy cap without overriding canonical evidence.
+    if (
+        state_key in {"boj_state", "signal_state"}
+        and normalized_input["raw_requested_state"] == "RED"
+        and signal_data.get("probability_only") is True
+        and (signal_data.get("primary_evidence_present") is False or signal_data.get("primary_evidence_present") is None)
+        and "primary_evidence" not in signal_data
+        and "market_factors" not in signal_data
+        and not signal_data.get("is_stale")
+        and signal_data.get("evidence_status", "MISSING") == "MISSING"
+        and result_dict["effective_state"] == "UNKNOWN"
+    ):
+        result_dict["effective_state"] = "ORANGE"
+        result_dict["reason"] = "[CAPPED_AT_ORANGE] Legacy probability-only RED has no primary BOJ evidence."
 
-    effective_state = raw_state
-    if raw_state == "RED" and probability_only:
-        effective_state = "ORANGE"
-        reason = (
-            f"[CAPPED_AT_ORANGE] Raw signal requested RED, but market-implied probability alone "
-            f"cannot produce RED without primary BOJ evidence. {reason}".strip()
-        )
+    # Extract market probability from canonical provenance for adapter output
+    market_implied_prob_decimal = result_dict.get("provenance", {}).get("market_implied_probability")
+    market_implied_prob_pct = None
+    if market_implied_prob_decimal is not None and isinstance(market_implied_prob_decimal, (int, float)):
+        # Convert decimal back to percentage (0.80 -> 80.0)
+        market_implied_prob_pct = market_implied_prob_decimal * 100.0
 
     return {
-        "effective_state": effective_state,
-        "raw_state": raw_state,
-        "primary_evidence_present": primary_evidence_present,
-        "probability_only": probability_only,
-        "reason": reason if reason else f"Evaluated state {effective_state}",
+        "effective_state": result_dict["effective_state"],
+        "raw_state": result_dict["raw_requested_state"],
+        "primary_evidence_present": result_dict["primary_evidence_present"],
+        "probability_only": result_dict["probability_only"],
+        "reason": result_dict["reason"],
+        "market_implied_probability_pct": market_implied_prob_pct,
     }
 
 
