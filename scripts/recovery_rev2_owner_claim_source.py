@@ -5,7 +5,7 @@ issue leases, dispatch work, or claim to authenticate a comment by its author.
 """
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from typing import Any
 
@@ -56,6 +56,7 @@ def project_owner_claim_source(
     claims: list[dict[str, Any]] = []
     seen: set[tuple[str, str]] = set()
     occupied: dict[str, str] = {}
+    terminated: set[str] = set()
     for claim in domains["owner_lease_ledger"]["items"]:
         if not isinstance(claim, Mapping):
             return _unknown("MALFORMED_CLAIM")
@@ -81,6 +82,23 @@ def project_owner_claim_source(
                 not isinstance(paths, list) or not paths or
                 any(not isinstance(p, str) or not p or "*" in p for p in paths)):
             return _unknown("INVALID_CLAIM_SCOPE")
+        if claim["status"] in ("STOP", "RELEASE", "REVOKED"):
+            # Never accept a terminal event as proof of release without an
+            # independently attested matching active lease and ordering.
+            if lease not in {c["lease_id"] for c in claims} or lease in terminated:
+                return _unknown("UNMATCHED_OR_REPEATED_TERMINAL_EVENT")
+            if any(c["lease_id"] == lease and
+                   (c["owner"] != owner or c["exact_paths"] != paths)
+                   for c in claims):
+                return _unknown("TERMINAL_SCOPE_MISMATCH")
+            terminated.add(lease)
+            for path in paths:
+                if occupied.get(path) == lease:
+                    del occupied[path]
+            claims = [c for c in claims if c["lease_id"] != lease]
+            continue
+        if lease in terminated:
+            return _unknown("ACTIVE_AFTER_TERMINAL_EVENT")
         if claim["status"] in ACTIVE:
             if claim.get("ack_verified") is not True:
                 return _unknown("ACK_UNVERIFIED")
@@ -100,6 +118,9 @@ def project_owner_claim_source(
             return _unknown("DUPLICATE_CLAIM")
         seen.add(identity)
         claims.append(dict(claim))
+    # Snapshot flags and run_artifact_verified are caller assertions, NOT
+    # independently authenticated GitHub evidence. Never expose this output
+    # as a production-ready attested inventory without a trusted fetch layer.
     return {"status": "COMPLETE" if claims else "COMPLETE_EMPTY",
-            "reason": "ATTESTED_SOURCE_SNAPSHOT", "claims": claims,
+            "reason": "PROJECTION_ONLY_EXTERNAL_ATTESTATION_REQUIRED", "claims": claims,
             "source_refs": refs, "dispatch_allowed": False}
