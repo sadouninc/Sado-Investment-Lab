@@ -146,7 +146,7 @@ def test_manual_poc_identity_is_explicit_and_auto_green_is_not_enabled():
     assert "pull-requests: write" not in combined
 
 
-def _verify_assigned_comment_fixture(comment: dict) -> bool:
+def _verify_assigned_comment_fixture(comment: dict, *, predicate_override: str | None = None) -> bool:
     """Exercise the workflow's actual jq filter, not a second Python parser."""
     import json
     import shutil
@@ -159,7 +159,7 @@ def _verify_assigned_comment_fixture(comment: dict) -> bool:
     workflow = _read(DISPATCH)
     start = workflow.index("'(.id == $cid) and") + 1
     end = workflow.index("' >/dev/null", start)
-    predicate = workflow[start:end]
+    predicate = predicate_override if predicate_override is not None else workflow[start:end]
     result = subprocess.run(
         [
             "jq", "-e", "--arg", "repository", "sadouninc/Sado-Investment-Lab",
@@ -174,6 +174,12 @@ def _verify_assigned_comment_fixture(comment: dict) -> bool:
         capture_output=True,
         check=False,
     )
+    # jq -e returns 1 for a genuine false result; syntax/runtime failures
+    # must fail the test rather than masquerade as a negative fixture.
+    if result.stderr.strip() or result.returncode not in (0, 1):
+        raise AssertionError(
+            f"jq predicate execution failed (rc={result.returncode}): {result.stderr.strip()}"
+        )
     return result.returncode == 0
 
 
@@ -224,6 +230,8 @@ def test_assigned_linkage_schema_and_comment_id_are_run_bound():
     assert "select(type == \"number\" and . > 0)" in text
     assert 'gh api "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}"' in text
     assert "schema_version:2,comment_id:$comment_id,writer_run_id:$writer_run_id" in text
+    assert "issue_number:($issue|tonumber)" in text
+    assert "issue_number:$issue" not in text
     assert 'workflow_path:".github/workflows/ai-production-dispatch.yml"' in text
     assert "ai-production-assigned-linkage.json" in text
     assert 'echo "lease_id=owner-command"' in text  # Historical command != canonical lease.
@@ -243,3 +251,47 @@ def test_assigned_linkage_upload_failure_blocks_copilot_dispatch():
     assert "gh workflow run copilot-poc1.yml" in text[dispatch:]
     assert "pull-requests: write" not in text
     assert "gh pr merge" not in text
+
+
+def test_assigned_linkage_jq_predicate_error_is_not_a_negative_match():
+    import pytest
+
+    with pytest.raises(AssertionError, match="jq predicate execution failed"):
+        _verify_assigned_comment_fixture({"id": 67890}, predicate_override="invalid jq syntax !!!")
+
+
+def test_assigned_linkage_issue_number_is_numeric_in_actual_jq_schema():
+    import json
+    import shutil
+    import subprocess
+
+    import pytest
+
+    if shutil.which("jq") is None:
+        pytest.skip("jq is required by the production workflow")
+    workflow = _read(DISPATCH)
+    start = workflow.index("'{schema_version:2,comment_id:$comment_id") + 1
+    end = workflow.index("}' \\\n", start) + 1
+    predicate = workflow[start:end]
+    result = subprocess.run(
+        ["jq", "-nc", "--argjson", "comment_id", "67890",
+         "--argjson", "writer_run_id", "12345", "--arg", "issue", "859",
+         "--arg", "lease", "lease-" + "a" * 32,
+         "--arg", "repository", "sadouninc/Sado-Investment-Lab", predicate],
+        capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["issue_number"] == 859
+    assert type(payload["issue_number"]) is int
+    assert type(payload["comment_id"]) is int
+    assert type(payload["writer_run_id"]) is int
+
+
+def test_assigned_comment_without_artifact_remains_duplicate_hold():
+    workflow = _read(DISPATCH)
+    assert "DUPLICATE_ACTIVE_DISPATCH_SKIP" in workflow
+    assert "date -u -d '+60 minutes'" in workflow
+    assert "remains visible to the duplicate gate until its 60-minute expiry" in workflow
+    assert "steps.assigned_linkage.outcome == 'success'" in workflow
+    assert "Never treat comment-only evidence as authenticated" in workflow
