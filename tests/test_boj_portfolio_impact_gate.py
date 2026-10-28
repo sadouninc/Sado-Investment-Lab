@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from scripts.boj_portfolio_impact_gate import (
     determine_position_side,
     evaluate_boj_signal,
@@ -223,7 +224,9 @@ def test_dynamic_canonical_research_artifact_loading() -> None:
     sensitivities = load_canonical_research_sensitivities()
     assert "3778" in sensitivities
     assert sensitivities["3778"]["rate_sensitivity"] == "HIGH"
-    assert "06_Research/boj_evidence/3778_sakura_internet.md" in sensitivities["3778"]["evidence_refs"]
+    assert Path("06_Research/boj_evidence/3778_sakura_internet.md") in (
+        Path(ref) for ref in sensitivities["3778"]["evidence_refs"]
+    )
 
 
 def test_deterministic_identical_input_identical_output() -> None:

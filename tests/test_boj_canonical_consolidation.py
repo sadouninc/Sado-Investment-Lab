@@ -1,6 +1,31 @@
 from __future__ import annotations
 
 from src.sado_investment_lab.domain.boj_early_warning import classify_boj_signal
+from scripts.boj_portfolio_impact_gate import evaluate_boj_signal
+
+
+def test_adapter_preserves_nested_only_canonical_inputs() -> None:
+    for signal in (
+        {"primary_evidence": {"present": True, "status": "VALID", "actual_rate_hike_decision": True}},
+        {"market_factors": {"market_implied_probability": 0.8}},
+        {"market_factors": {"market_implied_probability": 0.35}},
+    ):
+        assert evaluate_boj_signal(signal)["effective_state"] == classify_boj_signal(signal).effective_state
+
+
+def test_adapter_rejects_explicit_invalid_states_even_with_nested_factors() -> None:
+    for key in ("raw_requested_state", "boj_state", "signal_state"):
+        for state in (None, "", " ", False, 1, [], {}, "INVALID_STATE"):
+            signal = {key: state, "market_factors": {"market_implied_probability": 0.8}}
+            assert evaluate_boj_signal(signal)["effective_state"] == "UNKNOWN"
+
+
+def test_adapter_legacy_cap_does_not_override_stale_nested_evidence() -> None:
+    signal = {
+        "boj_state": "RED", "probability_only": True, "primary_evidence_present": False,
+        "primary_evidence": {"present": True, "status": "STALE", "indicates_near_term_tightening": True},
+    }
+    assert evaluate_boj_signal(signal)["effective_state"] == "UNKNOWN"
 
 
 def test_legacy_shape_is_classified_by_canonical_classifier() -> None:
