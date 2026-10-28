@@ -147,11 +147,15 @@ jobs:
                  (.body | split("\n") | map(fromjson?) |
                    any(.work_ref == ("issue:" + $issue) and .status == "ASSIGNED" and
                        .canonical_lease_id == $lease and .writer_run_id == $run_id))' >/dev/null
+          # If upload fails after the ASSIGNED comment POST, that comment
+          # remains visible to the duplicate gate until its 60-minute expiry.
+          # Never treat comment-only evidence as authenticated or retry POST
+          # automatically; B2 must verify the run-owned artifact independently.
           # The next step uploads this file as a run-owned artifact. Missing
           # or failed upload blocks downstream Copilot dispatch.
           jq -nc --argjson comment_id "$comment_id" --argjson writer_run_id "$GITHUB_RUN_ID" \
             --arg issue "$issue" --arg lease "$LEASE_ID" --arg repository "$GITHUB_REPOSITORY" \
-            '{schema_version:2,comment_id:$comment_id,writer_run_id:$writer_run_id,issue_number:$issue,canonical_lease_id:$lease,repository:$repository,workflow_path:".github/workflows/ai-production-dispatch.yml",status:"ASSIGNED"}' \
+            '{schema_version:2,comment_id:$comment_id,writer_run_id:$writer_run_id,issue_number:($issue|tonumber),canonical_lease_id:$lease,repository:$repository,workflow_path:".github/workflows/ai-production-dispatch.yml",status:"ASSIGNED"}' \
             > /tmp/ai-production-assigned-linkage.json
           echo "issue_number=$issue" >> "$GITHUB_OUTPUT"; echo "dispatch_allowed=true" >> "$GITHUB_OUTPUT"
 
