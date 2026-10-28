@@ -144,7 +144,7 @@ jobs:
                 '(.id == $cid) and
                  (.issue_url == ("https://api.github.com/repos/" + $repository + "/issues/" + $issue)) and
                  (.user.login == "github-actions[bot]") and
-                 (.body | split("\\n") | map(fromjson?) |
+                 (.body | split("\n") | map(fromjson?) |
                    any(.work_ref == ("issue:" + $issue) and .status == "ASSIGNED" and
                        .canonical_lease_id == $lease and .writer_run_id == $run_id))' >/dev/null
           # The next step uploads this file as a run-owned artifact. Missing
