@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-28T14:27:00+09:00",
-  "last_success_at": "2026-10-28T14:27:00+09:00",
+  "last_run_at": "2026-10-28T15:33:13+09:00",
+  "last_success_at": "2026-10-28T15:33:13+09:00",
   "last_status": "OK",
-  "news_delta": 1,
-  "last_news_delta_at": "2026-10-28T14:27:00+09:00",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-10-28T15:33:13+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-28 14:27 JST scheduled #124/#861 Consumer/Field/MRAM. Google DeepMind Genie 4 primary 2026-10-27 world-model research preview, sim-to-real/safety/robotics verification and compute demand hypothesis; NOT commercial revenue, Research 2026-10.md commit fe6dfbb9deceb0b17d4fff8614b7692549b555d0 VERIFIED. Everspin Q3 2026 earnings US Oct28 after close not yet reported; KDDI 1000 robot/300oku yen previously recorded 10/27, no duplicate. Startup TEAM_RULES blob89f8b8a2→TEAM_STATE AWAY/LUNA blob8beb099f→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→W44 #892→#861/#124. #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; historical 2026-10-11 route UNKNOWN."
+  "note": "2026-10-28 15:33 JST scheduled #124/#861 Consumer/Field/MRAM. PRIMARY_VERIFIED research: Oracle/Google 2026-10-27 official OCI Google TPU availability planned 2027 (distinct from unconfirmed OpenAI TPU purchase); Akamai 2026-10-27 official Inference + Agent Sandbox beta WebAssembly/Spin secure execution. 2 research items appended existing 06_Research/News/AI_Key_Person_Watch/2026-10.md commit 8eb02766967b08bd35eed777a0cd649cd5c0d2fd, reread blob VERIFIED. XREAL AURA physical shipping not independently verified; Everspin 2026Q3 earnings US Oct28 after close still pending. TEAM_RULES blob89f8b8a2→TEAM_STATE AWAY/LUNA blob8beb099f→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→W44 #892→#861/#124. #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; historical 2026-10-11 route UNKNOWN."
 }
