@@ -213,3 +213,63 @@ def test_collector_fails_closed_on_pagination_loop():
         work_id="issue:859", fetch_page=fetch,
         verify_run_artifact=lambda claim, run: True, now=NOW)
     assert result["status"] == "UNKNOWN"
+
+
+def test_nested_directory_scope_conflict_holds():
+    d = fixture()
+    other = deepcopy(d["owner_lease_ledger"]["items"][0])
+    other["lease_id"] = "second-test-only"
+    other["exact_paths"] = ["scripts/example.py/subdir"]
+    d["owner_lease_ledger"]["items"].append(other)
+    assert project(d)["reason"] == "CONFLICTING_OWNER_PATHS"
+
+
+def test_parent_directory_scope_conflict_holds():
+    d = fixture()
+    other = deepcopy(d["owner_lease_ledger"]["items"][0])
+    other["lease_id"] = "second-test-only"
+    other["exact_paths"] = ["scripts/"]
+    d["owner_lease_ledger"]["items"].append(other)
+    assert project(d)["reason"] == "CONFLICTING_OWNER_PATHS"
+
+
+def test_same_lease_different_owner_holds():
+    d = fixture()
+    other = deepcopy(d["owner_lease_ledger"]["items"][0])
+    other["owner"] = "different-owner"
+    other["status"] = "ASSIGNED"
+    d["owner_lease_ledger"]["items"].append(other)
+    assert project(d)["reason"] == "CONFLICTING_LEASE_OWNER"
+
+
+def test_foreign_pre_pr_claim_is_not_ignored():
+    d = fixture()
+    foreign = deepcopy(d["owner_lease_ledger"]["items"][0])
+    foreign["work_id"] = "issue:999"
+    foreign["lease_id"] = "other-test-only"
+    d["owner_lease_ledger"]["items"].insert(0, foreign)
+    assert d["pull_requests"]["items"] == []
+    assert project(d)["reason"] == "ALL_ACTOR_SCOPE_RECONCILIATION_REQUIRED"
+
+
+def test_conflicting_duplicate_run_id_holds():
+    d = fixture()
+    d["actions_runs"]["items"].append({"id": 123, "conclusion": "failure"})
+    assert project(d)["reason"] == "CONFLICTING_ACTIONS_RUN_RECORDS"
+
+
+def test_collector_requires_foreign_claim_attestation():
+    from scripts.recovery_rev2_owner_claim_source import collect_authenticated_owner_claims
+    d = fixture()
+    foreign = deepcopy(d["owner_lease_ledger"]["items"][0])
+    foreign["work_id"] = "issue:999"
+    foreign["lease_id"] = "other-test-only"
+    d["owner_lease_ledger"]["items"].append(foreign)
+    def fetch(name, page, per_page):
+        return {"items": d[name]["items"], "source_ref": name,
+                "fresh": True, "next_page": None}
+    result = collect_authenticated_owner_claims(
+        work_id="issue:859", fetch_page=fetch,
+        verify_run_artifact=lambda claim, run: claim["work_id"] == "issue:859",
+        now=NOW)
+    assert result["reason"] == "ISSUER_RUN_ATTESTATION_MISSING"
