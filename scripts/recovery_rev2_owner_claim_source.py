@@ -176,10 +176,12 @@ def collect_authenticated_owner_claims(
                          "source_ref": tuple(refs)}
     runs = {run.get("id"): run for run in domains["actions_runs"]["items"]
             if isinstance(run, Mapping) and type(run.get("id")) is int}
+    verified_claims: list[dict[str, Any]] = []
     for claim in domains["owner_lease_ledger"]["items"]:
         if not isinstance(claim, Mapping):
             return _unknown("MALFORMED_CLAIM")
         if claim.get("work_id") != work_id:
+            verified_claims.append(dict(claim))
             continue
         run_id = claim.get("writer_run_id")
         run = runs.get(run_id) if type(run_id) is int else None
@@ -192,8 +194,11 @@ def collect_authenticated_owner_claims(
         if not verified:
             return _unknown("ISSUER_RUN_ATTESTATION_MISSING")
         # Never elevate caller-provided assertion flags without checking.
-        claim["run_artifact_verified"] = True
-        claim["artifact_run_id"] = run_id
+        verified_claim = dict(claim)
+        verified_claim["run_artifact_verified"] = True
+        verified_claim["artifact_run_id"] = run_id
+        verified_claims.append(verified_claim)
+    domains["owner_lease_ledger"]["items"] = verified_claims
     result = project_owner_claim_source(work_id=work_id, domains=domains, now=now)
     # Independent source/claim verification still does not establish all-actor
     # cross-domain exclusivity. Do not export a production COMPLETE inventory.
