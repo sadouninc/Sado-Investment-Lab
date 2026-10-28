@@ -79,6 +79,14 @@ GitHubアカウント上のauthorが同一であっても、チーム内で誰�
 
 `Issue → branch → commit → PR → review / CI → merge`
 
+### Review gate classification / recurring APPROVED=0 loop prevention (2026-10-29)
+
+- Independent technical review evidence and GitHub `APPROVED` submissions are **different signals**. An exact-head technical `COMMENTED / PASS_WITH_SCOPE` review may satisfy the team's technical review evidence requirement where applicable, but is **not** a GitHub `APPROVED` event.
+- Do **not** invent a blanket `APPROVED >= 1` prerequisite solely because no approvals were submitted. Determine GitHub-required approvals from authorized, verifiable branch-protection/ruleset evidence and apply them if required. A 403 reading protection is `UNKNOWN`, **not** proof that approval is required or not required.
+- `mergeable=clean` and an empty ruleset list do **not** prove classic branch protection is absent. Unknown required gates are **not PASS**; never bypass required CI, independent technical review, unresolved blocking findings, exact-head, Owner/path/Lease, Product/Design/Reliability, or AUTO_GREEN controls.
+- When required-review policy is inaccessible, record one `BLOCKED_ESCAPE` with evidence, responsible authority and exit condition. Do not repeat the same reviewer hunt or duplicate escalation on subsequent runs unless evidence changes. Re-evaluate once new evidence is available.
+- This section clarifies existing review classification only. It does not grant merge authorization, change GitHub protection, relax any mandatory gate, enable POST/Dispatch, or alter Issue #79 hard deny. Changes to this permanent rule must follow the normal PR/review/CI process.
+
 ### PR必須
 
 以下は原則としてmainへ直接commitしない。
