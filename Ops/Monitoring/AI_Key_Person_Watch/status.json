@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-28T19:27:29+09:00",
-  "last_success_at": "2026-10-28T19:27:29+09:00",
+  "last_run_at": "2026-10-28T19:46:00+09:00",
+  "last_success_at": "2026-10-28T19:46:00+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-28T19:27:29+09:00",
-  "news_persisted": true,
-  "persistence_status": "SUCCESS",
+  "news_persisted": false,
+  "persistence_status": "NOT_REQUIRED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-28 19:27 JST scheduled #124/#861 Consumer/Field/MRAM. New NEDO-selected quantum+AI materials R&D by TOPPAN/Aisin/Asahi Kasei/SoftBank/AGC/DIC (2026-2028; no proven sales/quantum advantage). Research commit 02f37d7fc24870428c85dc15853ab9e256320da8 fetched and blob SHA verified. Everspin Q3 US Oct 28 after-close pending. TEAM_RULES 89f8b8a2 -> TEAM_STATE 8beb099f AWAY/LUNA -> #99 head 6405435565/comments270 fetched270 tail matched VERIFIED -> #892/#124/#861. #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector; actual_tool_response=yes; Oct11 historical route UNKNOWN."
+  "note": "2026-10-28 19:46 JST manual chat follow-up. Primary-source recheck: AISIN 2026-10-28 quantum+AI materials 6-company R&D already saved at 19:27; no new distinct verified Research delta. Everspin Q3 2026 after US close Oct28 pending. TEAM_RULES 89f8b8a2 -> TEAM_STATE 8beb099f AWAY/LUNA -> #99 head 6405435565/comments270 fetched270 tail VERIFIED -> #892. #79 untouched. run_context=manual_chat, role=Rei, direct GitHub connector; historical Oct11 route UNKNOWN."
 }
