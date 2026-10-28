@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-29T04:37:41+09:00",
-  "last_success_at": "2026-10-29T04:37:41+09:00",
+  "last_run_at": "2026-10-29T05:37:44+09:00",
+  "last_success_at": "2026-10-29T05:37:44+09:00",
   "last_status": "OK",
-  "news_delta": 2,
-  "last_news_delta_at": "2026-10-29T04:37:41+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-29T05:37:44+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-29T04:37:41+09:00 chatgpt_scheduled #124/#861 Consumer/Field/MRAM watch. TEAM_RULES 89f8b8a2 → TEAM_STATE 8beb099f → #99 broadcast-head 6405435565/comments270 tail VERIFIED → #892/#861/#124. Flow LUNA, #79 untouched. PRIMARY company sources ASM Q3 2026 1.4nm/HBM capex and 2027 >EUR5.7bn outlook; ACM Research 310x310mm panel-level plating production tool shipped to Asia outside mainland China and Q3 preliminary $360-365m. Two distinct discovery signals saved to existing 06_Research/News/AI_Key_Person_Watch/2026-10.md, commit 3cfdafc91b416035a865a1736ceb36caabebf9c6 VERIFIED. Everspin Q3 actual not yet published as of 2026-10-28 15:xx EDT, after-close planned. No independent Consumer/Field adoption evidence. Direct GitHub connector tool responses observed; historical Oct11 route UNKNOWN."
+  "note": "2026-10-29T05:37:44+09:00 chatgpt_scheduled #124/#861 MRAM/Consumer-Field watch. TEAM_RULES 89f8b8a2→TEAM_STATE 8beb099f→#99 broadcast-head 6405435565/comments270 tail VERIFIED→#892/#861/#124. Flow LUNA; #79 untouched. Everspin Q3 unaudited 2026-10-28 16:00 EDT results: total $20.648m +47% YoY, MRAM product $16.945m +33.5%, GAAP gross margin 51.4%, net loss $7.175m, Q4 guidance $21.5-22.5m. One important MRAM discovery saved to existing 06_Research/News/AI_Key_Person_Watch/2026-10.md commit 3a8ccdae8c1f8ef01b75d0c6fc6a7bce8ae27412 VERIFIED. No independent Consumer/Field adoption proof. Direct GitHub connector responses observed; 2026-10-11 provenance UNKNOWN."
 }
