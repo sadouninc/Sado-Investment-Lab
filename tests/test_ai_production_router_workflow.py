@@ -144,3 +144,102 @@ def test_manual_poc_identity_is_explicit_and_auto_green_is_not_enabled():
     assert "enable-auto-merge" not in combined
     assert "gh pr merge" not in combined
     assert "pull-requests: write" not in combined
+
+
+def _verify_assigned_comment_fixture(comment: dict) -> bool:
+    """Exercise the workflow's actual jq filter, not a second Python parser."""
+    import json
+    import shutil
+    import subprocess
+
+    import pytest
+
+    if shutil.which("jq") is None:
+        pytest.skip("jq is required by the production workflow")
+    workflow = _read(DISPATCH)
+    start = workflow.index("'(.id == $cid) and") + 1
+    end = workflow.index("' >/dev/null", start)
+    predicate = workflow[start:end]
+    result = subprocess.run(
+        [
+            "jq", "-e", "--arg", "repository", "sadouninc/Sado-Investment-Lab",
+            "--arg", "issue", "859",
+            "--arg", "lease", "lease-" + "a" * 32,
+            "--argjson", "run_id", "12345",
+            "--argjson", "cid", "67890",
+            predicate,
+        ],
+        input=json.dumps(comment),
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    return result.returncode == 0
+
+
+def test_assigned_linkage_validates_comment_identity_with_jq():
+    import json
+
+    event = {
+        "work_ref": "issue:859",
+        "status": "ASSIGNED",
+        "canonical_lease_id": "lease-" + "a" * 32,
+        "writer_run_id": 12345,
+    }
+    comment = {
+        "id": 67890,
+        "issue_url": "https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/859",
+        "user": {"login": "github-actions[bot]"},
+        "body": "<!-- flow-dispatch-lease -->\n" + json.dumps(event)
+                + "\n\n担当: ソラ / Copilot Lease",
+    }
+    assert _verify_assigned_comment_fixture(comment)
+
+    for key, wrong in (
+        ("id", 67891),
+        ("issue_url", "https://api.github.com/repos/sadouninc/Sado-Investment-Lab/issues/860"),
+        ("user", {"login": "other-user"}),
+        ("body", "<!-- flow-dispatch-lease -->\n{not-json}"),
+    ):
+        bad = dict(comment)
+        bad[key] = wrong
+        assert not _verify_assigned_comment_fixture(bad), key
+
+    for key, wrong in (
+        ("work_ref", "issue:860"),
+        ("status", "ACKNOWLEDGED"),
+        ("canonical_lease_id", "lease-" + "b" * 32),
+        ("writer_run_id", 12346),
+    ):
+        bad = dict(comment)
+        bad["body"] = "<!-- flow-dispatch-lease -->\n" + json.dumps({**event, key: wrong})
+        assert not _verify_assigned_comment_fixture(bad), key
+
+
+def test_assigned_linkage_schema_and_comment_id_are_run_bound():
+    text = _read(DISPATCH)
+    assert '--argjson writer_run_id "$GITHUB_RUN_ID"' in text
+    assert 'writer_run_id:$writer_run_id' in text
+    assert 'comment_id="$(jq -er' in text
+    assert "select(type == \"number\" and . > 0)" in text
+    assert 'gh api "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}"' in text
+    assert "schema_version:2,comment_id:$comment_id,writer_run_id:$writer_run_id" in text
+    assert 'workflow_path:".github/workflows/ai-production-dispatch.yml"' in text
+    assert "ai-production-assigned-linkage.json" in text
+    assert 'echo "lease_id=owner-command"' in text  # Historical command != canonical lease.
+
+
+def test_assigned_linkage_upload_failure_blocks_copilot_dispatch():
+    text = _read(DISPATCH)
+    upload = text.index("- name: Preserve run-owned Copilot assignment linkage")
+    dispatch = text.index("- name: Dispatch Copilot and explicitly hand off completion")
+    assert upload < dispatch
+    assert "id: assigned_linkage" in text[upload:dispatch]
+    assert "uses: actions/upload-artifact@v4" in text[upload:dispatch]
+    assert "name: ai-production-assigned-linkage-" + "$" + "{{ github.run_id }}" in text[upload:dispatch]
+    assert "if-no-files-found: error" in text[upload:dispatch]
+    assert "continue-on-error:" not in text[upload:dispatch]
+    assert "steps.assigned_linkage.outcome == 'success'" in text[dispatch:]
+    assert "gh workflow run copilot-poc1.yml" in text[dispatch:]
+    assert "pull-requests: write" not in text
+    assert "gh pr merge" not in text
