@@ -127,18 +127,50 @@ jobs:
           fi
           if jq -e '.terminalizing == true' /tmp/dispatch-state.json >/dev/null; then echo DUPLICATE_PROMOTION_TERMINALIZATION_SKIP; echo "dispatch_allowed=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           assigned_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; expires_at="$(date -u -d '+60 minutes' +%Y-%m-%dT%H:%M:%SZ)"
-          lease="$(jq -nc --arg work_ref "issue:${issue}" --arg owner_slice "issue-${issue}" --arg assigned_at "$assigned_at" --arg expires_at "$expires_at" --arg canonical_lease "$LEASE_ID" '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"copilot",canonical_lease_id:$canonical_lease,assigned_at:$assigned_at,acknowledged_at:null,lease_expires_at:$expires_at,fallback_owner:"amazon_q_free",status:"ASSIGNED"}')"
+          lease="$(jq -nc --arg work_ref "issue:${issue}" --arg owner_slice "issue-${issue}" --arg assigned_at "$assigned_at" --arg expires_at "$expires_at" --arg canonical_lease "$LEASE_ID" --argjson writer_run_id "$GITHUB_RUN_ID" '{work_ref:$work_ref,owner_slice:$owner_slice,engine:"copilot",canonical_lease_id:$canonical_lease,writer_run_id:$writer_run_id,assigned_at:$assigned_at,acknowledged_at:null,lease_expires_at:$expires_at,fallback_owner:"amazon_q_free",status:"ASSIGNED"}')"
           gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${issue}/comments" -f body="<!-- flow-dispatch-lease -->
           ${lease}
 
           担当: ♦️ソラ
           種別: AI Production Dispatch / Copilot Lease
 
-          Canonical/owner-authenticated Copilot ingress accepted. Safety failure remains fail-closed." >/dev/null
+          Canonical/owner-authenticated Copilot ingress accepted. Safety failure remains fail-closed." > /tmp/ai-production-assigned-comment.json
+          # The POST response ID is the only accepted comment identity. A
+          # self-declared run ID in the comment is never attestation by itself.
+          comment_id="$(jq -er '.id | select(type == "number" and . > 0)' /tmp/ai-production-assigned-comment.json)"
+          gh api "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}" \
+            | jq -e --arg repository "$GITHUB_REPOSITORY" --arg issue "$issue" \
+                --arg lease "$LEASE_ID" --argjson run_id "$GITHUB_RUN_ID" --argjson cid "$comment_id" \
+                '(.id == $cid) and
+                 (.issue_url == ("https://api.github.com/repos/" + $repository + "/issues/" + $issue)) and
+                 (.user.login == "github-actions[bot]") and
+                 (.body | split("\n") | map(fromjson?) |
+                   any(.work_ref == ("issue:" + $issue) and .status == "ASSIGNED" and
+                       .canonical_lease_id == $lease and .writer_run_id == $run_id))' >/dev/null
+          # If upload fails after the ASSIGNED comment POST, that comment
+          # remains visible to the duplicate gate until its 60-minute expiry.
+          # Never treat comment-only evidence as authenticated or retry POST
+          # automatically; B2 must verify the run-owned artifact independently.
+          # The next step uploads this file as a run-owned artifact. Missing
+          # or failed upload blocks downstream Copilot dispatch.
+          jq -nc --argjson comment_id "$comment_id" --argjson writer_run_id "$GITHUB_RUN_ID" \
+            --arg issue "$issue" --arg lease "$LEASE_ID" --arg repository "$GITHUB_REPOSITORY" \
+            '{schema_version:2,comment_id:$comment_id,writer_run_id:$writer_run_id,issue_number:($issue|tonumber),canonical_lease_id:$lease,repository:$repository,workflow_path:".github/workflows/ai-production-dispatch.yml",status:"ASSIGNED"}' \
+            > /tmp/ai-production-assigned-linkage.json
           echo "issue_number=$issue" >> "$GITHUB_OUTPUT"; echo "dispatch_allowed=true" >> "$GITHUB_OUTPUT"
 
-      - name: Dispatch Copilot and explicitly hand off completion
+      - name: Preserve run-owned Copilot assignment linkage
+        id: assigned_linkage
         if: steps.command.outputs.accepted == 'true' && steps.gate.outputs.dispatch_allowed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-production-assigned-linkage-${{ github.run_id }}
+          path: /tmp/ai-production-assigned-linkage.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Dispatch Copilot and explicitly hand off completion
+        if: steps.command.outputs.accepted == 'true' && steps.gate.outputs.dispatch_allowed == 'true' && steps.assigned_linkage.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ steps.gate.outputs.issue_number }}
