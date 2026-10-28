@@ -135,7 +135,7 @@ def test_terminal_scope_mismatch_holds():
     terminal["status"] = "REVOKED"
     terminal["owner"] = "different-owner"
     d["owner_lease_ledger"]["items"].append(terminal)
-    assert project(d)["reason"] == "TERMINAL_SCOPE_MISMATCH"
+    assert project(d)["reason"] == "CONFLICTING_LEASE_OWNER"
 
 
 def test_active_after_terminal_holds():
