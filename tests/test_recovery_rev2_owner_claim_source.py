@@ -160,3 +160,56 @@ def test_projection_never_claims_independent_attestation():
     result = project(fixture())
     assert result["reason"] == "PROJECTION_ONLY_EXTERNAL_ATTESTATION_REQUIRED"
     assert result["dispatch_allowed"] is False
+
+
+def test_collector_paginates_and_still_holds_cross_domain():
+    from scripts.recovery_rev2_owner_claim_source import collect_authenticated_owner_claims
+    d = fixture()
+    calls = []
+    def fetch(name, page, per_page):
+        calls.append((name, page, per_page))
+        data = d[name]["items"]
+        if name == "issues" and page == 1:
+            return {"items": [{"number": 859}], "source_ref": "page-1",
+                    "fresh": True, "next_page": 2}
+        return {"items": data if page == 1 else [], "source_ref": "page",
+                "fresh": True, "next_page": None}
+    result = collect_authenticated_owner_claims(
+        work_id="issue:859", fetch_page=fetch,
+        verify_run_artifact=lambda claim, run: run["id"] == 123, now=NOW)
+    assert ("issues", 2, 100) in calls
+    assert result["reason"] == "CROSS_DOMAIN_CLAIM_RECONCILIATION_REQUIRED"
+    assert result["dispatch_allowed"] is False
+
+
+def test_collector_rejects_forged_artifact():
+    from scripts.recovery_rev2_owner_claim_source import collect_authenticated_owner_claims
+    d = fixture()
+    def fetch(name, page, per_page):
+        return {"items": d[name]["items"], "source_ref": name,
+                "fresh": True, "next_page": None}
+    result = collect_authenticated_owner_claims(
+        work_id="issue:859", fetch_page=fetch,
+        verify_run_artifact=lambda claim, run: False, now=NOW)
+    assert result["reason"] == "ISSUER_RUN_ATTESTATION_MISSING"
+
+
+def test_collector_fails_closed_on_missing_page():
+    from scripts.recovery_rev2_owner_claim_source import collect_authenticated_owner_claims
+    def fetch(name, page, per_page):
+        raise PermissionError("403")
+    result = collect_authenticated_owner_claims(
+        work_id="issue:859", fetch_page=fetch,
+        verify_run_artifact=lambda claim, run: True, now=NOW)
+    assert result["reason"] == "SOURCE_FETCH_FAILED"
+
+
+def test_collector_fails_closed_on_pagination_loop():
+    from scripts.recovery_rev2_owner_claim_source import collect_authenticated_owner_claims
+    def fetch(name, page, per_page):
+        return {"items": [], "source_ref": name, "fresh": True,
+                "next_page": page}
+    result = collect_authenticated_owner_claims(
+        work_id="issue:859", fetch_page=fetch,
+        verify_run_artifact=lambda claim, run: True, now=NOW)
+    assert result["status"] == "UNKNOWN"
