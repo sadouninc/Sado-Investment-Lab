@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-28T16:31:39+09:00",
-  "last_success_at": "2026-10-28T16:31:39+09:00",
+  "last_run_at": "2026-10-28T17:30:26+09:00",
+  "last_success_at": "2026-10-28T17:30:26+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-10-28T15:33:13+09:00",
   "news_persisted": false,
-  "persistence_status": "NOT_NEEDED",
+  "persistence_status": "NOT_REQUIRED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-28 16:31 JST scheduled #124/#861 Consumer/Field/MRAM. No new high-confidence material delta warranting Research: Renesas 2026-10-28 RL78/G21 appliance MCU is routine product extension (not MRAM); 2026-10-22 KDDI/Broadcom CPO and 2026-10-27 Oracle/Google TPU/Akamai already logged; Everspin Q3 results due after US Oct28 close, not yet released. Research append NOT_NEEDED. TEAM_RULES blob 89f8b8a2 -> TEAM_STATE AWAY/LUNA blob 8beb099f -> #99 broadcast-head 6405435565/comments270 fetched270 final ID verified -> #892/#861/#124. #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector. Historical 2026-10-11 route UNKNOWN."
+  "note": "2026-10-28 17:30 JST scheduled #124/#861 Consumer/Field/MRAM. No verified new material delta requiring Research append. Everspin Q3 2026 results remain scheduled after US Oct 28 close (official IR, not yet announced). XREAL AURA Oct 8 official price/payment announcement is prior-known; Oct 28 shipping unverified. Fujitsu/FANUC/Yaskawa physical AI and other discovered news were previously announced, no fresh commercial earnings evidence. TEAM_RULES 89f8b8a2 -> TEAM_STATE 8beb099f AWAY/LUNA -> #99 head 6405435565/comments=270 fetched=270 last=6405435565 VERIFIED -> #892/#124/#861. #79 untouched. run_context=chatgpt_scheduled; role=Rei; operation=update_file; execution_path=direct GitHub connector. Historical 2026-10-11 route UNKNOWN."
 }
