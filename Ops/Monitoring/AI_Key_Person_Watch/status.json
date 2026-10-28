@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-29T03:35:19+09:00",
-  "last_success_at": "2026-10-29T03:35:19+09:00",
+  "last_run_at": "2026-10-29T04:37:41+09:00",
+  "last_success_at": "2026-10-29T04:37:41+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-28T19:27:29+09:00",
-  "news_persisted": false,
-  "persistence_status": "NOT_REQUIRED",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-10-29T04:37:41+09:00",
+  "news_persisted": true,
+  "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-29T03:35:19+09:00 chatgpt_scheduled #124/#861/#824 MRAM/Consumer/Field watch. Startup Sync TEAM_RULES 89f8b8a2, TEAM_STATE 8beb099f, #99 broadcast-head 6405435565/comments270 verified, #892/#861/#824/#124 open; Flow LUNA; #79 untouched. Everspin official Q3 release due Oct28 after US market close; as of this run 2026-10-28 14:xx EDT before close and official Q3 actual release not available. JEDEC LPDDR PMEM and CXL demo already known; no verified unique Research delta, no Research write. Prior #895 merge inherited observation, no PR action this run. Direct GitHub connector actual response observed; Oct11 historic route UNKNOWN."
+  "note": "2026-10-29T04:37:41+09:00 chatgpt_scheduled #124/#861 Consumer/Field/MRAM watch. TEAM_RULES 89f8b8a2 → TEAM_STATE 8beb099f → #99 broadcast-head 6405435565/comments270 tail VERIFIED → #892/#861/#124. Flow LUNA, #79 untouched. PRIMARY company sources ASM Q3 2026 1.4nm/HBM capex and 2027 >EUR5.7bn outlook; ACM Research 310x310mm panel-level plating production tool shipped to Asia outside mainland China and Q3 preliminary $360-365m. Two distinct discovery signals saved to existing 06_Research/News/AI_Key_Person_Watch/2026-10.md, commit 3cfdafc91b416035a865a1736ceb36caabebf9c6 VERIFIED. Everspin Q3 actual not yet published as of 2026-10-28 15:xx EDT, after-close planned. No independent Consumer/Field adoption evidence. Direct GitHub connector tool responses observed; historical Oct11 route UNKNOWN."
 }
