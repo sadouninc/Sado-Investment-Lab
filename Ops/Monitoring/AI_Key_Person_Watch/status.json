@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-29T14:30:02+09:00",
-  "last_success_at": "2026-10-29T14:30:02+09:00",
+  "last_run_at": "2026-10-29T15:30:05+09:00",
+  "last_success_at": "2026-10-29T15:30:05+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-29T12:36:19+09:00",
-  "news_persisted": false,
-  "persistence_status": "NOT_REQUIRED",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-29T15:30:05+09:00",
+  "news_persisted": true,
+  "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-29 14:30 JST chatgpt_scheduled #124/#861 AI Key Person/Consumer-Field/MRAM watch. TEAM_RULES blob79a43dc1→TEAM_STATE blob8beb099f→#99 broadcast-head comment_id6405435565/comments270 fetched270 tail VERIFIED→#892/#861/#124. Flow Authority LUNA (Nagi legacy prompt); #79 untouched. Reviewed fresh 2026-10-29 Samsung Q3 market reaction (Reuters: shares fell >6%, shareholder-return details deferred to Jan 2027) and recent SK hynix/Denso memory-chain reporting; no additional independent company adoption/earnings evidence meriting new Research beyond existing entries. No new MRAM/Consumer-Field adoption proof; Research NOT_REQUIRED. Direct GitHub connector mutation observed for this heartbeat; 2026-10-11 provenance UNKNOWN."
+  "note": "2026-10-29 15:30 JST chatgpt_scheduled #124/#861. TEAM_RULES blob79a43dc1→TEAM_STATE blob8beb099f AWAY/LUNA→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→#892/#861/#124. #79 untouched. SK hynix 2026-10-28 official Kioxia investment gain special dividend Q3 10,000 won/share, 2026 shareholder return plan ~100tn won; important delta saved to existing 2026-10 Research commit 7f53a42a407f593eafc917bba882a18176ebefca verified. Consumer/Field and MRAM no independent new adoption proof. Direct GitHub connector observed for this heartbeat; 2026-10-11 provenance UNKNOWN."
 }
