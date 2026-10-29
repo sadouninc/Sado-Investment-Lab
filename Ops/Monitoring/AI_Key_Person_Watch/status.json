@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-29T20:28:26+09:00",
-  "last_success_at": "2026-10-29T20:28:26+09:00",
+  "last_run_at": "2026-10-29T21:32:45+09:00",
+  "last_success_at": "2026-10-29T21:32:45+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-29T20:28:26+09:00",
+  "last_news_delta_at": "2026-10-29T21:32:45+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-29 20:28 JST chatgpt_scheduled #124/#861. TEAM_RULES 79a43dc1→TEAM_STATE 8beb099f AWAY/LUNA→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→#892→#861/#124. #79 untouched. ASE 2026-10-29 official unaudited Q3: revenue NT$244,161m +44.8% YoY, Packaging NT$122,173m, Testing NT$26,302m, ATM CapEx US$2,063m; Research commit 7fe7d0a97927a2f567f965babf560824b2da13c6 blob verified. MRAM Everspin Q3 already in 05:36 JST Research, no duplicate. Consumer/Field no independently verified adoption delta. Direct GitHub connector observed this run; 2026-10-11 provenance UNKNOWN."
+  "note": "2026-10-29 21:32 JST chatgpt_scheduled #124/#861. TEAM_RULES 79a43dc1→TEAM_STATE 8beb099f AWAY/LUNA→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→#892→#861/#124. #79 untouched. Alphabet/Microsoft 2026Q3 AI CapEx vs FCF and Gemini company-reported 1bn users, primary-source comparison; Research commit 2a9029034e16d22ca305e2bed5cd6cf48c0d0e3e blob verified. Consumer adoption company reported, independent reviews not confirmed; MRAM no new adoption. Direct GitHub connector observed this run; 2026-10-11 provenance UNKNOWN."
 }
