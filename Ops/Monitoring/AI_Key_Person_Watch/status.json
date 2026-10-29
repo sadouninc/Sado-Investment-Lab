@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-30T07:31:43+09:00",
-  "last_success_at": "2026-10-30T07:31:43+09:00",
+  "last_run_at": "2026-10-30T08:29:26+09:00",
+  "last_success_at": "2026-10-30T08:29:26+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-30T07:31:43+09:00",
-  "news_persisted": false,
-  "persistence_status": "REJECTED",
+  "last_news_delta_at": "2026-10-30T08:29:26+09:00",
+  "news_persisted": true,
+  "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-30 07:31 JST chatgpt_scheduled #124/#861. TEAM_RULES→TEAM_STATE(AWAY/LUNA)→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→#892→#861/#124. Fresh Fortinet/ServiceNow 2026Q3 company earnings and 10/29 Reuters software stock selloff: material new Research 1, monthly ledger update REJECTED by safety checks; not retried. Heartbeat update separate natural operation. MRAM new mass adoption and independent consumer signal not established. #79 untouched; LUNA Flow Authority. Oct11 historical path UNKNOWN."
+  "note": "2026-10-30 08:29 JST chatgpt_scheduled #124/#861. TEAM_RULES(79a43dc1)→TEAM_STATE(8beb099f; AWAY/LUNA)→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→#892→#861/#124. Amazon 2026Q3 official AWS +39.3%, TTM FCF -US$42.4bn and Alexa+ Japan company-reported launch: Research 1 entry saved, commit 9410b2bfc42f3c0ba74d343104f3833387432fa2, blob verified. Previous Fortinet/ServiceNow rejected Research not retried. MRAM mass adoption and independent consumer reviews not established. #79 untouched. Oct11 historical execution path UNKNOWN."
 }
