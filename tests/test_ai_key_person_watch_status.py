@@ -208,6 +208,12 @@ class AIKeyPersonWatchStatusTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             update_status(BASE, dict(valid_evidence, news_persisted="yes"))
 
+        with self.assertRaises(ValueError):
+            update_status(BASE, dict(valid_evidence, run_at=None))
+
+        with self.assertRaises(ValueError):
+            update_status(BASE, dict(valid_evidence, run_at=""))
+
     def test_update_status_missing_required_fields_raises_value_error(self) -> None:
         valid_evidence = {
             "run_at": "2026-08-09T08:30:00+09:00",

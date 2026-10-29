@@ -114,7 +114,11 @@ def validate_run_evidence(evidence: dict[str, Any]) -> None:
     if missing:
         raise ValueError(f"missing required evidence field(s): {', '.join(missing)}")
 
-    parse_timestamp(evidence.get("run_at"))
+    run_at = evidence.get("run_at")
+    if not run_at or not isinstance(run_at, str):
+        raise ValueError("run_at in evidence must be a non-empty string timestamp")
+
+    parse_timestamp(run_at)
     if evidence.get("status") not in VALID_RUN_STATUS:
         raise ValueError("invalid status in evidence")
     news_delta = evidence.get("news_delta")
