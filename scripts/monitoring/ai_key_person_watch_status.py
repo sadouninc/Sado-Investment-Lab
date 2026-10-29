@@ -37,7 +37,9 @@ def validate_status(payload: dict[str, Any]) -> None:
     if not isinstance(stale_after, int) or stale_after <= 0:
         raise ValueError("stale_after_minutes must be a positive integer")
     news_delta = payload.get("news_delta")
-    if news_delta is not None and (not isinstance(news_delta, int) or news_delta < 0):
+    if news_delta is not None and (
+        isinstance(news_delta, bool) or not isinstance(news_delta, int) or news_delta < 0
+    ):
         raise ValueError("news_delta must be null or a non-negative integer")
     for key in ("last_run_at", "last_success_at", "last_news_delta_at"):
         parse_timestamp(payload.get(key))
@@ -122,7 +124,7 @@ def validate_run_evidence(evidence: dict[str, Any]) -> None:
     if evidence.get("status") not in VALID_RUN_STATUS:
         raise ValueError("invalid status in evidence")
     news_delta = evidence.get("news_delta")
-    if not isinstance(news_delta, int) or news_delta < 0:
+    if isinstance(news_delta, bool) or not isinstance(news_delta, int) or news_delta < 0:
         raise ValueError("news_delta in evidence must be a non-negative integer")
     if not isinstance(evidence.get("news_persisted"), bool):
         raise ValueError("news_persisted in evidence must be a boolean")

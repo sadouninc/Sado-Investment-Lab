@@ -214,6 +214,19 @@ class AIKeyPersonWatchStatusTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             update_status(BASE, dict(valid_evidence, run_at=""))
 
+        with self.assertRaises(ValueError):
+            update_status(BASE, dict(valid_evidence, news_delta=True))
+
+        with self.assertRaises(ValueError):
+            update_status(BASE, dict(valid_evidence, news_delta=False))
+
+    def test_validate_status_boolean_news_delta_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_status(dict(BASE, news_delta=True))
+
+        with self.assertRaises(ValueError):
+            validate_status(dict(BASE, news_delta=False))
+
     def test_update_status_missing_required_fields_raises_value_error(self) -> None:
         valid_evidence = {
             "run_at": "2026-08-09T08:30:00+09:00",
