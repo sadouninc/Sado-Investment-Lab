@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-30T00:26:43+09:00",
-  "last_success_at": "2026-10-30T00:26:43+09:00",
+  "last_run_at": "2026-10-30T01:31:33+09:00",
+  "last_success_at": "2026-10-30T01:31:33+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-30T00:26:43+09:00",
+  "last_news_delta_at": "2026-10-30T01:31:33+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-30 00:26 JST chatgpt_scheduled #124/#861. TEAM_RULES 79a43dc1→TEAM_STATE 8beb099f AWAY/LUNA→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→#892→#861/#124. #79 untouched. US 2026 data-center local ballot tracker 49 measures total, 41 on Nov 3; 6 prior decisions favored restrictions; Reuters Oct29 confirms siting/utility-water local risk. Research commit e001aad611dc407168a5a8d213984944ee4b8df8, blob verified. Japanese beneficiary orders UNKNOWN; MRAM new adoption unconfirmed. Direct GitHub connector observed this run; 2026-10-11 provenance UNKNOWN."
+  "note": "2026-10-30 01:31 JST chatgpt_scheduled #124/#861. TEAM_RULES 79a43dc1→TEAM_STATE 8beb099f AWAY/LUNA→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→#892→#861/#124. #79 untouched. ITI Oct29 primary industry-led data-center responsible-growth roadmap (community/energy/water/resilience/transparency), distinct response to prior local ballot observation; voluntary, no binding project capex/order evidence. Research commit 10535198a9fefcbc9afd395bda9a0c83f8c87428, blob 2c1095728ea486415f23f22838358374aa6db761 verified. Consumer independent adoption/MRAM new adoption unconfirmed. Direct GitHub connector observed; 2026-10-11 provenance UNKNOWN."
 }
