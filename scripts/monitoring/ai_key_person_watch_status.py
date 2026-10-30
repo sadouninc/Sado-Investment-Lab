@@ -128,8 +128,11 @@ def validate_run_evidence(evidence: dict[str, Any]) -> None:
         raise ValueError("news_delta in evidence must be a non-negative integer")
     if not isinstance(evidence.get("news_persisted"), bool):
         raise ValueError("news_persisted in evidence must be a boolean")
-    if evidence.get("persistence_status") not in VALID_PERSISTENCE_STATUS:
+    persistence_status = evidence.get("persistence_status")
+    if persistence_status not in VALID_PERSISTENCE_STATUS:
         raise ValueError("invalid persistence_status in evidence")
+    if news_delta > 0 and persistence_status == "NOT_REQUIRED":
+        raise ValueError("positive news_delta requires persistence tracking")
 
 
 def update_status(current_payload: dict[str, Any], evidence: dict[str, Any]) -> dict[str, Any]:
