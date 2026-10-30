@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T07:31:45+09:00",
-  "last_success_at": "2026-10-31T07:31:45+09:00",
+  "last_run_at": "2026-10-31T08:29:09+09:00",
+  "last_success_at": "2026-10-31T08:29:09+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-31T07:31:45+09:00",
+  "last_news_delta_at": "2026-10-31T08:29:09+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 07:31 JST scheduled. TEAM_RULES→TEAM_STATE→#99 broadcast-head=6405435565/comments=270, fetched=270/tail=6405435565 VERIFIED; #892/#861/#124 checked. Panasonic FY2027 H1 results and FY operating profit 5900→7100億円; AI-related Industry annual sales forecast 3100→3600億円 (FX ~200億円), Industry 2Q adjusted OP 541億円; attribution of all profit to AI prohibited. Research commit 9beb305f7d3413a462b7a1c4b430a79dbaa405a5 verified after fetch. MRAM and consumer glasses: no additional confirmed delta. Issue #79 untouched. Flow Authority LUNA (stale NAGI instruction superseded). Direct GitHub connector mutation; historical 2026-10-11 execution path UNKNOWN."
+  "note": "2026-10-31 08:29 JST scheduled. TEAM_RULES→TEAM_STATE→#99 broadcast-head=6405435565/comments=270, fetched=270/tail=6405435565 VERIFIED; #892/#861/#124 checked. Historical 2026-10-20 EssilorLuxottica Q3 wearable revenue EUR486m (+20% constant FX; includes AI and Nuance Audio) newly verified against company release and filing; Q2 EUR370m; slowdown and standalone Japan profit attribution caveats recorded. Research commit b5456252a799bce1ba912cbe42474a84db6ec490 verified after fetch. MRAM and AI semiconductor: no additional new direct Japanese profit-capture evidence. Issue #79 untouched. Flow Authority LUNA; stale NAGI instruction superseded. Direct GitHub connector mutation; historical 2026-10-11 execution path UNKNOWN."
 }
