@@ -130,7 +130,7 @@ A PR is only an `AUTO_GREEN` candidate when all required facts are known and GRE
 
 UNKNOWN never becomes PASS.
 
-**Current rollout state:** evaluator + shadow tests are on main via #621/#627. Actual automatic merge execution is still OFF until #625 completes TEAM_STATE/#99/TEAM_RULES alignment and shadow evidence confirms dangerous false-positive = 0.
+**Current rollout state:** Owner activated production AUTO_GREEN on 2026-10-01 JST under #625 (comment 5930723106; commit `7a3d651eb465bda22c08bd9d6a3012b1fb775b97`). Evaluator and shadow tests were introduced via #621/#627. Activation is not proof of a verified natural merge closed-loop: all mandatory exact-head, CI/review, Product/Design/Reliability, Owner, security, and GitHub protection gates remain fail-closed (`UNKNOWN != PASS`); Issue #79 remains hard deny.
 
 ## Implementation Capacity / Queue
 
