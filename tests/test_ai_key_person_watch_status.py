@@ -220,6 +220,29 @@ class AIKeyPersonWatchStatusTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             update_status(BASE, dict(valid_evidence, news_delta=False))
 
+    def test_update_status_rejects_positive_delta_without_persistence_tracking(self) -> None:
+        evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "OK",
+            "news_delta": 3,
+            "news_persisted": False,
+            "persistence_status": "NOT_REQUIRED",
+        }
+        with self.assertRaises(ValueError) as ctx:
+            update_status(BASE, evidence)
+        self.assertIn("requires persistence tracking", str(ctx.exception))
+
+    def test_update_status_allows_zero_delta_not_required(self) -> None:
+        evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "OK",
+            "news_delta": 0,
+            "news_persisted": False,
+            "persistence_status": "NOT_REQUIRED",
+        }
+        updated = update_status(BASE, evidence)
+        self.assertEqual("NOT_REQUIRED", updated["persistence_status"])
+
     def test_validate_status_boolean_news_delta_rejected(self) -> None:
         with self.assertRaises(ValueError):
             validate_status(dict(BASE, news_delta=True))
