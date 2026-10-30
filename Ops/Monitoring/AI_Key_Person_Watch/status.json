@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-30T10:33:33+09:00",
-  "last_success_at": "2026-10-30T10:33:33+09:00",
+  "last_run_at": "2026-10-30T11:32:08+09:00",
+  "last_success_at": "2026-10-30T11:32:08+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-30T10:33:33+09:00",
-  "news_persisted": true,
-  "persistence_status": "SUCCESS",
+  "news_persisted": false,
+  "persistence_status": "NOT_ATTEMPTED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-30 10:33 JST chatgpt_scheduled #124/#861. TEAM_RULES(79a43dc1)→TEAM_STATE(8beb099f; AWAY/LUNA)→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→#892→#861/#124. Apple PROLED XDR tandem OLED/touch MacBook Pro official launch (Oct28 US/Oct29 JP) independently verified; research 2026-10.md append SUCCESS commit e31e037a82188a00f8b682b76ce023e68c0f80ca blob 6857e2e65c50720debfa8fd86731fb8ddf67fa9a re-fetched verified. Japanese OLED materials/deposition candidate beneficiaries unconfirmed. Alexa+ already recorded, MRAM adoption and independent consumer reviews unconfirmed. #79 untouched. Oct11 historical execution path UNKNOWN."
+  "note": "2026-10-30 11:32 JST chatgpt_scheduled #124/#861. TEAM_RULES(79a43dc1)→TEAM_STATE(8beb099f; AWAY/LUNA)→#99 broadcast-head 6405435565/comments270 fetched270 final id matched VERIFIED→#892→#861/#124. Fresh checks: Apple Oct28 official OLED MacBook already recorded 10:33; Amazon Alexa+ Oct29 launch/pricing and legacy Japan Alexa ~30bn interactions already recorded 09:30; Marvell/Lumentum Oct29 Breakingviews valuation is hypothetical analysis, not a confirmed deal; Reuters Oct29 Amazon/Intel/Fortinet/ServiceNow covered in prior Research. No new verified MRAM production adoption or independent Japanese Alexa+ consumer reviews. Important independent news_delta=0; no duplicate Research write. Issue #79 untouched; Oct11 historical mutation path UNKNOWN; no dummy writes or rejected-operation retries."
 }
