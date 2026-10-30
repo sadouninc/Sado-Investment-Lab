@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T01:28:14.400+09:00",
-  "last_success_at": "2026-10-31T01:28:14.400+09:00",
+  "last_run_at": "2026-10-31T02:34:13+09:00",
+  "last_success_at": "2026-10-31T02:34:13+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-31T01:28:14.400+09:00",
+  "last_news_delta_at": "2026-10-31T02:34:13+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 scheduled. TEAM_RULES→TEAM_STATE (LUNA/AWAY)→#99 broadcast-head=6405435565/comments=270 fetched270/tail6405435565 VERIFIED→#892/#861/#124. Tokyo Electron 2026-10-30 FY2027 H1 revenue +41.3%, operating income +67.2%; FY2027 op income outlook ¥1.169tn (+87.1%), COMPANY_REPORTED/FORECAST distinct. #861 Research appended 06_Research/News/AI_Key_Person/2026/2026-10.md commit 011891c531faf82eb6b4e73a68d7301c4624fa4f. Adjacent Japanese suppliers' direct orders UNKNOWN; valuation NOT_ASSESSED. MRAM Sep29 CXL prior signal, no new confirmed delta; consumer radar no new validated item. Issue #79 untouched. execution_path=direct GitHub connector; 2026-10-11 historical route UNKNOWN."
+  "note": "2026-10-31 scheduled. TEAM_RULES→TEAM_STATE (LUNA/AWAY)→#99 broadcast-head=6405435565/comments=270 fetched270/tail6405435565 VERIFIED→#892/#861/#124. MRAM evidence: Everspin Oct20 JEDEC LPDDR PMEM task group exploratory (NOT_STANDARD), Oct28 Q3 product sales $16.945m vs $12.690m (+33.5%), GAAP net loss $7.175m, and Renesas Oct22 RX74M/N embedded MRAM production launch. TEL MRAM PVD equipment official; cross-company direct orders UNKNOWN. Research appended 06_Research/News/AI_Key_Person/2026/2026-10.md commit 87546869efc9d6d85cd53db9646b4a418a47a95e and re-read VERIFIED. Amazon Oct29 AWS +39% but FCF -$42.4bn observed as sector-risk context, no duplicate Research entry. Consumer radar no new independently validated purchase/adoption signal. Issue #79 untouched. execution_path=direct GitHub connector; 2026-10-11 historical route UNKNOWN."
 }
