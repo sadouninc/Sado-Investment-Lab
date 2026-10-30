@@ -232,6 +232,42 @@ class AIKeyPersonWatchStatusTest(unittest.TestCase):
             update_status(BASE, evidence)
         self.assertIn("requires persistence tracking", str(ctx.exception))
 
+    def test_update_status_rejects_completed_without_persisted_flag(self) -> None:
+        evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "OK",
+            "news_delta": 3,
+            "news_persisted": False,
+            "persistence_status": "COMPLETED",
+        }
+        with self.assertRaises(ValueError) as ctx:
+            update_status(BASE, evidence)
+        self.assertIn("COMPLETED persistence requires", str(ctx.exception))
+
+    def test_update_status_rejects_pending_after_persisted(self) -> None:
+        evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "OK",
+            "news_delta": 3,
+            "news_persisted": True,
+            "persistence_status": "PENDING_PERSIST",
+        }
+        with self.assertRaises(ValueError) as ctx:
+            update_status(BASE, evidence)
+        self.assertIn("PENDING_PERSIST requires", str(ctx.exception))
+
+    def test_update_status_rejects_not_required_with_persisted_flag(self) -> None:
+        evidence = {
+            "run_at": "2026-08-09T08:30:00+09:00",
+            "status": "OK",
+            "news_delta": 0,
+            "news_persisted": True,
+            "persistence_status": "NOT_REQUIRED",
+        }
+        with self.assertRaises(ValueError) as ctx:
+            update_status(BASE, evidence)
+        self.assertIn("NOT_REQUIRED requires", str(ctx.exception))
+
     def test_update_status_allows_zero_delta_not_required(self) -> None:
         evidence = {
             "run_at": "2026-08-09T08:30:00+09:00",
