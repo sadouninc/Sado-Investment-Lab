@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-30T14:33:37+09:00",
-  "last_success_at": "2026-10-30T14:33:37+09:00",
+  "last_run_at": "2026-10-30T15:31:13+09:00",
+  "last_success_at": "2026-10-30T15:31:13+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-30T14:33:37+09:00",
+  "last_news_delta_at": "2026-10-30T15:31:13+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-30 14:33 JST chatgpt_scheduled #124/#861. TEAM_RULES(79a43dc1)→TEAM_STATE(8beb099f; AWAY/LUNA)→#99 broadcast-head 6405435565/comments270 fetched270 final matched VERIFIED→#892→#861/#124. Retrospective primary-source discovery: Synaptics Astra SR200 multimodal edge-AI xMCU announced 2026-10-20; Google Research Coral NPU collaboration and wearable/smart-glasses design targets. Not a 10/30 launch; production OEM adoption/independent reviews unverified. Research commit 631925e0c4449d5fdfee8277a9cd713d65c5cf27 (re-read blob SHA matched). MRAM new production adoption unconfirmed. Issue #79 untouched; Luna Flow Authority; Oct11 historical mutation path UNKNOWN; no dummy/rejected-op retry."
+  "note": "2026-10-30 15:31 JST chatgpt_scheduled #124/#861. TEAM_RULES(79a43dc1)→TEAM_STATE(8beb099f; AWAY/LUNA)→#99 broadcast-head6405435565/comments270 fetched270 tail matched VERIFIED→#892→#861/#124. Reuters 2026-10-30 reports NVIDIA negotiating billions in credit guarantees for Nscale/Anthropic West Virginia AI data center; NOT SIGNED, company primary confirmation UNKNOWN. Research commit 1a13f722f169c196f952265662d4444149b92bc2, re-read blob 3357bc7c9d39340488e753eee9d492fc43166c06 matched. KDDI/Broadcom CPO already recorded 10/23; no duplicate. MRAM production adoption/independent Alexa+ user reviews not confirmed. #79 untouched; Luna Flow Authority; Oct11 historical write path UNKNOWN; no dummy/rejected-op retry."
 }
