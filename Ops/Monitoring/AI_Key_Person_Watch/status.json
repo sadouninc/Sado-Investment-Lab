@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T00:33:33+09:00",
-  "last_success_at": "2026-10-31T00:33:33+09:00",
+  "last_run_at": "2026-10-31T01:28:14.400+09:00",
+  "last_success_at": "2026-10-31T01:28:14.400+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-31T00:33:33+09:00",
+  "last_news_delta_at": "2026-10-31T01:28:14.400+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 00:33 JST scheduled. TEAM_RULES→TEAM_STATE (LUNA/AWAY)→#99 broadcast-head=6405435565/comments=270 fetched270/tail6405435565 VERIFIED→#892/#861/#124. STMicro 2026-10-29 official Q3 RFOC +46.2%, AI datacenter 2026 outlook ~$1.3bn / 2027 >$2bn (Reuters and management), recorded 1 meaningful #861 optical interconnect discovery in 06_Research/News/AI_Key_Person/2026/2026-10.md commit c729ed519ca398099677c7e92941d20fd0ea4fa8. Japan optical suppliers direct ST orders/profit capture UNKNOWN. Panasonic Oct30 and Foxconn/OpenAI already recorded/monitored, no duplicate. MRAM Sep29 CXL remains prior signal, no new confirmed delta. Issue #79 untouched. execution_path=direct GitHub connector; 2026-10-11 historical route UNKNOWN."
+  "note": "2026-10-31 scheduled. TEAM_RULES→TEAM_STATE (LUNA/AWAY)→#99 broadcast-head=6405435565/comments=270 fetched270/tail6405435565 VERIFIED→#892/#861/#124. Tokyo Electron 2026-10-30 FY2027 H1 revenue +41.3%, operating income +67.2%; FY2027 op income outlook ¥1.169tn (+87.1%), COMPANY_REPORTED/FORECAST distinct. #861 Research appended 06_Research/News/AI_Key_Person/2026/2026-10.md commit 011891c531faf82eb6b4e73a68d7301c4624fa4f. Adjacent Japanese suppliers' direct orders UNKNOWN; valuation NOT_ASSESSED. MRAM Sep29 CXL prior signal, no new confirmed delta; consumer radar no new validated item. Issue #79 untouched. execution_path=direct GitHub connector; 2026-10-11 historical route UNKNOWN."
 }
