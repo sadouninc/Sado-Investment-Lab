@@ -131,8 +131,13 @@ def validate_run_evidence(evidence: dict[str, Any]) -> None:
     persistence_status = evidence.get("persistence_status")
     if persistence_status not in VALID_PERSISTENCE_STATUS:
         raise ValueError("invalid persistence_status in evidence")
-    if news_delta > 0 and persistence_status == "NOT_REQUIRED":
-        raise ValueError("positive news_delta requires persistence tracking")
+    news_persisted = evidence["news_persisted"]
+    if persistence_status == "COMPLETED" and not news_persisted:
+        raise ValueError("COMPLETED persistence requires news_persisted=true")
+    if persistence_status == "PENDING_PERSIST" and news_persisted:
+        raise ValueError("PENDING_PERSIST requires news_persisted=false")
+    if persistence_status == "NOT_REQUIRED" and (news_delta > 0 or news_persisted):
+        raise ValueError("NOT_REQUIRED requires zero news_delta and news_persisted=false")
 
 
 def update_status(current_payload: dict[str, Any], evidence: dict[str, Any]) -> dict[str, Any]:
