@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-30T09:30:38+09:00",
-  "last_success_at": "2026-10-30T09:30:38+09:00",
+  "last_run_at": "2026-10-30T10:33:33+09:00",
+  "last_success_at": "2026-10-30T10:33:33+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-30T09:30:38+09:00",
+  "last_news_delta_at": "2026-10-30T10:33:33+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-30 09:30 JST chatgpt_scheduled #124/#861. TEAM_RULES(79a43dc1)→TEAM_STATE(8beb099f; AWAY/LUNA)→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→#892→#861/#124. Amazon Japan official Alexa+ Early Access pricing Prime included / non-Prime JPY3000 per month, new Echo Dot JPY17980 and Echo Time JPY35980: verified incremental Research saved, commit 838e22b2537b6108031c2961d8a1f3016fa802ae, blob 79220307daba4bf8221de6d3083e310e09bebb80 re-fetched verified. Alphabet Q3 already recorded; MRAM new mass adoption and independent consumer reviews not established. Previous Fortinet/ServiceNow rejected operation not retried. #79 untouched. Oct11 historical execution path UNKNOWN."
+  "note": "2026-10-30 10:33 JST chatgpt_scheduled #124/#861. TEAM_RULES(79a43dc1)→TEAM_STATE(8beb099f; AWAY/LUNA)→#99 broadcast-head 6405435565/comments270 fetched270 tail VERIFIED→#892→#861/#124. Apple PROLED XDR tandem OLED/touch MacBook Pro official launch (Oct28 US/Oct29 JP) independently verified; research 2026-10.md append SUCCESS commit e31e037a82188a00f8b682b76ce023e68c0f80ca blob 6857e2e65c50720debfa8fd86731fb8ddf67fa9a re-fetched verified. Japanese OLED materials/deposition candidate beneficiaries unconfirmed. Alexa+ already recorded, MRAM adoption and independent consumer reviews unconfirmed. #79 untouched. Oct11 historical execution path UNKNOWN."
 }
