@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-30T20:30:40+09:00",
-  "last_success_at": "2026-10-30T20:30:40+09:00",
+  "last_run_at": "2026-10-30T21:30:13+09:00",
+  "last_success_at": "2026-10-30T21:30:13+09:00",
   "last_status": "OK",
-  "news_delta": 2,
-  "last_news_delta_at": "2026-10-30T20:30:40+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-30T21:30:13+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-30 20:30 JST scheduled #124/#861. TEAM_RULES 79a43dc1 → TEAM_STATE 8beb099f (AWAY/LUNA) → #99 broadcast-head 6405435565/comments270 fetched270 last matched VERIFIED → #892/#861/#124. 2 verified distinct findings: Panasonic Industry 920億円 AI MEGTRON/SP-Cap/package materials capacity and R&D plan (official 10/30), TDK FY27 forecast sales 3兆500億円/operating profit 3650億円 (official 10/30). Research commit 63043af1df0799df767a56ebdd4708717923adf5 blob c46c74cf7d103bb70ca0fd2117abb8a4dc3dd812 re-read PASS. MRAM new production customer and Alexa+ independent Japan user reviews no new verified delta. #79 untouched; Oct11 historical execution path UNKNOWN; no dummy/retry."
+  "note": "2026-10-30 21:30 JST scheduled #124/#861. TEAM_RULES 79a43dc1 → TEAM_STATE cab5039e (AWAY/LUNA) → #99 broadcast-head 6405435565/comments270 fetched270 tail matched VERIFIED → #892/#861/#124. Panasonic Holdings FY2027 consolidated earnings guidance raised operating profit 5900→7100億円 (+20.3%), adjusted operating profit 6500→7800億円, sales 7.8→8.4兆円, dividend 70円. Distinct from prior Panasonic Industry 920億円 capacity plan. Official 10/30 IR earnings release and slides verified; AI demand plus reform/FX/other contributions, not all AI. Research commit 1c68fe7ce431b649e5d108e315366f1aa2e08bf0 readback PASS. MRAM new production customers and Alexa+ independent Japan reviews no confirmed delta. #79 untouched; 2026-10-11 historical execution path UNKNOWN; no dummy/retry."
 }
