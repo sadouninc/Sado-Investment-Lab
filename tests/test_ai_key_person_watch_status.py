@@ -230,7 +230,7 @@ class AIKeyPersonWatchStatusTest(unittest.TestCase):
         }
         with self.assertRaises(ValueError) as ctx:
             update_status(BASE, evidence)
-        self.assertIn("requires persistence tracking", str(ctx.exception))
+        self.assertIn("NOT_REQUIRED requires", str(ctx.exception))
 
     def test_update_status_rejects_completed_without_persisted_flag(self) -> None:
         evidence = {
