@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T03:35:10+09:00",
-  "last_success_at": "2026-10-31T03:35:10+09:00",
+  "last_run_at": "2026-10-31T04:33:39+09:00",
+  "last_success_at": "2026-10-31T04:33:39+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-31T02:34:13+09:00",
-  "news_persisted": false,
-  "persistence_status": "NOT_NEEDED",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-31T04:33:39+09:00",
+  "news_persisted": true,
+  "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 03:35 JST scheduled. TEAM_RULES→TEAM_STATE→#99 broadcast-head=6405435565/comments=270, fetched=270/tail=6405435565 VERIFIED; #892/#861/#124 checked. Fresh Oct30 Reuters/FT: AI hyperscaler CAPEX/FCF concern and Japanese semiconductor share selloff; already covered as sector-risk context in prior Research, no independently verified new company-level Japanese order/profit capture. MRAM prior Oct20/22/28 findings remain latest validated; no new standard ratification or adoption. Consumer/field radar: no fresh verified purchase/adoption signal. Research write NOT_NEEDED, no dummy. Issue #79 untouched; Flow Authority LUNA (older prompt NAGI superseded). This run direct GitHub connector status update; Oct11 historical path UNKNOWN."
+  "note": "2026-10-31 04:33 JST scheduled. TEAM_RULES→TEAM_STATE→#99 broadcast-head=6405435565/comments=270, fetched=270/tail=6405435565 VERIFIED; #892/#861/#124 checked. One historical first-party consumer/field evidence conversion: Vision Megane Aug27 self-reported Ray-Ban Meta sales 5.6x own plan (Aug12), prescription lenses 54.2% in July; research appended commit 662d1ac59879426641dbf9a3dc0b76aa6c9d19f4. NOT new Oct31 product news, national adoption or listed profit proof. AI CAPEX/earnings and MRAM current search: no additional independently verified new company-level Japan profit/MRAM standardization delta. Issue #79 untouched. Flow Authority LUNA (older prompt NAGI superseded). Direct GitHub connector research write succeeded; Oct11 historical path UNKNOWN."
 }
