@@ -4,12 +4,12 @@
 > Permanent rules remain in `TEAM_RULES.md`. Broadcast history remains in Issue #99.
 > Do not copy detailed Issue specifications or historical Broadcasts here.
 
-Last updated: 2026-10-17  
+Last updated: 2026-10-31  
 Sources: Issue #99 Current Active Board; #602; #617; #625; #645; #556; #690; merged PR #605; merged PR #621; merged PR #627  
 
-## Owner-directed Flow Authority transition (2026-10-17)
+## Current Flow Authority (operational pointer)
 
-👑サドは🌊ナギのSM任務終了、🌙ルナの進捗・Flow責任引継ぎを指示。この文書のmain反映後、Flow authorityは🌙ルナ、Implementation Ownerは♦️ソラ（PR #860）を維持する。ナギは新規routingを承認しない。既存のAUTO_GREEN/Owner Gate/Issue #79 hard denyは変更しない。PR #860のマージ承認と混同しない。
+🌙ルナが暫定Single Flow Authority。2026-10-17の権限移管と恒久的な役割境界は `TEAM_RULES.md` を正とし、実行時のモードは下記 `User Mode v2` を参照する。PR #860はマージ済みのHOLD-only観測版であり、現行の実装担当・Lease・POST/Dispatch許可を示すものではない。これらは対象Issue/PRの最新の正規契約と安全STOPで判定する。
 
 ## User Mode v2
 
