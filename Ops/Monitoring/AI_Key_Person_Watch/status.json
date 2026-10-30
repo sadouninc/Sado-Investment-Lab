@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-30T13:31:39+09:00",
-  "last_success_at": "2026-10-30T13:31:39+09:00",
+  "last_run_at": "2026-10-30T14:33:37+09:00",
+  "last_success_at": "2026-10-30T14:33:37+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-30T13:31:39+09:00",
+  "last_news_delta_at": "2026-10-30T14:33:37+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-30 13:31 JST chatgpt_scheduled #124/#861. TEAM_RULES(79a43dc1)→TEAM_STATE(8beb099f; AWAY/LUNA)→#99 broadcast-head 6405435565/comments270 fetched270 final matched VERIFIED→#892→#861/#124. One new company-announced Foxconn/Lightwave Logic SOH EO-polymer optical transceiver demonstration planned for Hon Hai Tech Day 10/30-31; 200G/400G per lane is a target, NOT proven commercial shipments or independent achieved speed. Research commit cda2794114be79c876c5e95b160f30e5f0f370f4. MRAM new production adoption and independent Alexa+ Japan user reviews not confirmed. Issue #79 untouched; Luna Flow Authority; Oct11 historical mutation path UNKNOWN; no dummy/rejected-op retry."
+  "note": "2026-10-30 14:33 JST chatgpt_scheduled #124/#861. TEAM_RULES(79a43dc1)→TEAM_STATE(8beb099f; AWAY/LUNA)→#99 broadcast-head 6405435565/comments270 fetched270 final matched VERIFIED→#892→#861/#124. Retrospective primary-source discovery: Synaptics Astra SR200 multimodal edge-AI xMCU announced 2026-10-20; Google Research Coral NPU collaboration and wearable/smart-glasses design targets. Not a 10/30 launch; production OEM adoption/independent reviews unverified. Research commit 631925e0c4449d5fdfee8277a9cd713d65c5cf27 (re-read blob SHA matched). MRAM new production adoption unconfirmed. Issue #79 untouched; Luna Flow Authority; Oct11 historical mutation path UNKNOWN; no dummy/rejected-op retry."
 }
