@@ -141,3 +141,48 @@ def project_attested_owner_inventory(*, work_id: str, claims: Sequence[Mapping] 
     return {"status": "COMPLETE" if projected else "COMPLETE_EMPTY",
             "reason": "ATTESTED_OWNER_INVENTORY", "active_claims": projected,
             "source_refs": dict(source_refs), "dispatch_allowed": False}
+
+
+def project_verified_copilot_linkage_inventory(*, work_id: str,
+                                               observed_comment_ids: Sequence,
+                                               verified_linkages: Sequence[Mapping],
+                                               source_complete: bool) -> dict:
+    """Project independently verified B1 linkage evidence without authorizing POST.
+
+    Empty history is UNKNOWN, and a partial artifact inventory is never READY.
+    This is not the canonical five-domain Owner/Lease inventory.
+    """
+    def hold(reason: str) -> dict:
+        return {"status": "UNKNOWN", "reason": reason, "dispatch_allowed": False,
+                "observed_count": len(observed_comment_ids) if isinstance(observed_comment_ids, (list, tuple)) else None,
+                "authenticated_count": 0}
+
+    if work_id == "issue:79":
+        return {"status": "BLOCKED", "reason": "PROTECTED_ISSUE_79",
+                "dispatch_allowed": False, "authenticated_count": 0}
+    if (not isinstance(observed_comment_ids, (list, tuple))
+            or not isinstance(verified_linkages, (list, tuple))):
+        return hold("INVALID_B1_EVIDENCE")
+    if source_complete is not True:
+        return hold("COPILOT_B1_SOURCE_INCOMPLETE")
+    if not observed_comment_ids:
+        return hold("COPILOT_B1_NO_OBSERVED_ASSIGNMENT")
+    ids = [linkage.get("comment_id") if isinstance(linkage, Mapping) else None
+           for linkage in verified_linkages]
+    if (len(ids) != len(observed_comment_ids)
+            or any(type(cid) is not int or cid <= 0 for cid in ids)
+            or len(set(ids)) != len(ids)
+            or len(set(observed_comment_ids)) != len(observed_comment_ids)
+            or set(ids) != set(observed_comment_ids)):
+        return hold("COPILOT_B1_ATTESTATION_SET_MISMATCH")
+    if any(linkage.get("status") != "ATTESTED_LINKAGE"
+           or linkage.get("work_id") != work_id
+           or linkage.get("dispatch_allowed") is not False
+           for linkage in verified_linkages):
+        return hold("COPILOT_B1_IDENTITY_MISMATCH")
+    # All observed assignments have independent run/artifact/comment linkage,
+    # but neither canonical owner inventory nor ACK/STOP/expiry history follows.
+    return {"status": "LINKAGE_ATTESTED", "reason": "COPILOT_B1_LINKAGES_CORRELATED",
+            "observed_count": len(observed_comment_ids),
+            "authenticated_count": len(verified_linkages),
+            "dispatch_allowed": False}
