@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T09:37:44+09:00",
-  "last_success_at": "2026-10-31T09:37:44+09:00",
+  "last_run_at": "2026-10-31T09:51:07+09:00",
+  "last_success_at": "2026-10-31T09:51:07+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-10-31T09:24:58+09:00",
   "news_persisted": false,
   "persistence_status": "NOT_NEEDED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 09:37 JST chat invocation, not scheduled. TEAM_RULES→TEAM_STATE→#99 broadcast-head 6405435565 count 270 tail 6405435565 VERIFIED; #892/#861/#124 checked. SABERA Oct 27 retail and Oct 29 Rakuten rollout previously covered; Everspin Oct 28 Q3 $20.6m already known, Japan profit attribution UNKNOWN. No material Research delta; no repeat of previously rejected Research append. Issue #79 untouched. LUNA Flow Authority; direct GitHub connector heartbeat, Oct 11 historical path UNKNOWN."
+  "note": "2026-10-31 09:51 JST user-invoked chat run, NOT scheduled. TEAM_RULES→TEAM_STATE→#99 head 6405435565, 270 comments, tail 6405435565 VERIFIED; #892/#861/#124 read. Everspin Q3 2026 product revenue +33.5% YoY, non-product revenue +170.3% YoY, GAAP loss $7.175m verified SEC filing; previously logged, no new Research delta. SABERA Rakuten planned rollout already known; no Japan listed MRAM supplier profit attribution. Prior Research write rejection not retried. Issue #79 untouched. LUNA flow authority; execution path direct GitHub connector; Oct 11 historical execution path UNKNOWN."
 }
