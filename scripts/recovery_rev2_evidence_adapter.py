@@ -204,3 +204,121 @@ def verify_run_owned_dispatch_linkage(*, linkage: Mapping, comment: Mapping,
     return {"status": "ATTESTED_LINKAGE", "reason": "RUN_OWNED_ARTIFACT_CORRELATED",
             "comment_id": cid, "writer_run_id": run_id, "work_id": f"issue:{issue}",
             "lease_id": lease, "dispatch_allowed": False}
+
+
+def verify_copilot_assigned_linkage(*, artifact_zip: bytes,
+                                    artifact: Mapping, actions_run: Mapping,
+                                    comment: Mapping, expected_repository: str,
+                                    expected_issue_number: int,
+                                    now_utc: str) -> dict:
+    """Validate a B1 Copilot ASSIGNED linkage, without granting dispatch.
+
+    The caller must fetch artifact/run/comment from GitHub independently; this
+    function compares their identities and fails closed on missing provenance.
+    """
+    from datetime import datetime, timezone
+    from io import BytesIO
+    from zipfile import BadZipFile, ZipFile
+
+    unknown = lambda reason: {"status": "UNKNOWN", "reason": reason, "dispatch_allowed": False}
+    if expected_issue_number == 79:
+        return {"status": "BLOCKED", "reason": "PROTECTED_ISSUE_79",
+                "dispatch_allowed": False}
+    if (type(expected_issue_number) is not int or expected_issue_number <= 0
+            or not isinstance(expected_repository, str)
+            or not expected_repository or not isinstance(artifact_zip, bytes)
+            or not all(isinstance(x, Mapping) for x in (artifact, actions_run, comment))):
+        return unknown("INVALID_INPUT")
+
+    def utc(value):
+        if not isinstance(value, str):
+            return None
+        try:
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            return dt.astimezone(timezone.utc) if dt.tzinfo else None
+        except ValueError:
+            return None
+
+    now = utc(now_utc)
+    if now is None:
+        return unknown("INVALID_NOW")
+    run_id = actions_run.get("id")
+    if type(run_id) is not int or run_id <= 0:
+        return unknown("INVALID_RUN_ID")
+    if (actions_run.get("path") != ".github/workflows/ai-production-dispatch.yml"
+            or actions_run.get("name") != "AI Production Dispatch"
+            or actions_run.get("event") not in {"workflow_dispatch", "issue_comment"}
+            or actions_run.get("status") != "completed"
+            or actions_run.get("conclusion") != "success"
+            or not isinstance(actions_run.get("repository"), Mapping)
+            or actions_run["repository"].get("full_name") != expected_repository):
+        return unknown("RUN_PROVENANCE_MISMATCH")
+    if (not isinstance(artifact.get("workflow_run"), Mapping)
+            or artifact["workflow_run"].get("id") != run_id
+            or artifact.get("name") != f"ai-production-assigned-linkage-{run_id}"
+            or artifact.get("expired") is not False):
+        return unknown("ARTIFACT_PROVENANCE_MISMATCH")
+    artifact_expires = utc(artifact.get("expires_at"))
+    if artifact_expires is None or now >= artifact_expires:
+        return unknown("ARTIFACT_EXPIRED_OR_UNKNOWN")
+
+    try:
+        with ZipFile(BytesIO(artifact_zip)) as zf:
+            names = zf.namelist()
+            if names != ["ai-production-assigned-linkage.json"]:
+                return unknown("MISSING_OR_DUPLICATE_LINKAGE")
+            raw = zf.read(names[0])
+        linkage = json.loads(raw)
+    except (BadZipFile, OSError, ValueError, RuntimeError, UnicodeError, KeyError):
+        return unknown("INVALID_LINKAGE_ZIP")
+    if not isinstance(linkage, dict):
+        return unknown("INVALID_LINKAGE_SCHEMA")
+    cid = linkage.get("comment_id")
+    lease = linkage.get("canonical_lease_id")
+    import re
+    if (type(linkage.get("schema_version")) is not int
+            or linkage["schema_version"] != 2
+            or type(cid) is not int or cid <= 0
+            or type(linkage.get("writer_run_id")) is not int
+            or linkage["writer_run_id"] != run_id
+            or type(linkage.get("issue_number")) is not int
+            or linkage["issue_number"] != expected_issue_number
+            or linkage.get("repository") != expected_repository
+            or linkage.get("workflow_path") != actions_run["path"]
+            or linkage.get("status") != "ASSIGNED"
+            or not isinstance(lease, str)
+            or not re.fullmatch(r"lease-[0-9a-f]{32}", lease)):
+        return unknown("LINKAGE_SCHEMA_OR_IDENTITY_MISMATCH")
+    if (type(comment.get("id")) is not int or comment["id"] != cid
+            or comment.get("issue_url") !=
+            f"https://api.github.com/repos/{expected_repository}/issues/{expected_issue_number}"
+            or not isinstance(comment.get("user"), Mapping)
+            or comment["user"].get("login") != "github-actions[bot]"):
+        return unknown("COMMENT_PROVENANCE_MISMATCH")
+    body = comment.get("body")
+    if not isinstance(body, str) or not body.startswith("<!-- flow-dispatch-lease -->\n"):
+        return unknown("INVALID_COMMENT_ENVELOPE")
+    events = []
+    for line in body.splitlines():
+        if line.lstrip().startswith("{"):
+            try:
+                events.append(json.loads(line))
+            except ValueError:
+                return unknown("INVALID_COMMENT_JSON")
+    if len(events) != 1 or not isinstance(events[0], dict):
+        return unknown("AMBIGUOUS_COMMENT_EVENT")
+    event = events[0]
+    if (event.get("work_ref") != f"issue:{expected_issue_number}"
+            or event.get("status") != "ASSIGNED"
+            or event.get("engine") != "copilot"
+            or event.get("canonical_lease_id") != lease
+            or type(event.get("writer_run_id")) is not int
+            or event["writer_run_id"] != run_id):
+        return unknown("COMMENT_LINKAGE_MISMATCH")
+    expires = utc(event.get("lease_expires_at"))
+    assigned = utc(event.get("assigned_at"))
+    if expires is None or assigned is None or not assigned < expires or now >= expires:
+        return unknown("LEASE_EXPIRED_OR_UNKNOWN")
+    return {"status": "ATTESTED_LINKAGE", "reason": "COPILOT_RUN_ARTIFACT_COMMENT_MATCH",
+            "work_id": f"issue:{expected_issue_number}", "comment_id": cid,
+            "writer_run_id": run_id, "lease_id": lease, "dispatch_allowed": False}
