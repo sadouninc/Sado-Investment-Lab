@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T12:27:40+09:00",
-  "last_success_at": "2026-10-31T12:27:40+09:00",
+  "last_run_at": "2026-10-31T13:28:09+09:00",
+  "last_success_at": "2026-10-31T13:28:09+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-31T12:27:40+09:00",
+  "last_news_delta_at": "2026-10-31T13:28:09+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 12:27 JST chatgpt_scheduled Research. TEAM_RULES 79a43dc1 → TEAM_STATE f3b71b55 (AWAY/LUNA) → #99 broadcast-head 6405435565 270/270 VERIFIED; #861/#124 read. TDK official 2026-10-30 TMR sensor Physical AI capex ¥100bn, factory start plan 2029; MRAM memory distinct, customer orders/profit UNKNOWN. Research direct GitHub connector SUCCESS commit 02659879e40eca91ef8d4b463665af043ca1edfc. Issue #79 untouched. Historical 10/11 execution path UNKNOWN."
+  "note": "2026-10-31 13:28 JST chatgpt_scheduled direct GitHub connector. Startup TEAM_RULES 79a43dc1 → TEAM_STATE f3b71b55 (AWAY/LUNA) → #99 head 6405435565 comments270/270 VERIFIED; #892 current. Bounded PR review inbox: #903 exact HEAD bcf58ff8 reviewed by レイ review 5721028896, Luna acknowledged/marked ready; no repeat. Research delta: Intel official 2026-10-29 Q3 DCAI +78%, CCPG -5%, Foundry loss $1.853bn; Japan equipment earnings conversion UNKNOWN. Research commit 67400a02e541bec56f6d5b2339a94a4a2e0b38e0. Issue #79 untouched. Historical 10/11 path UNKNOWN."
 }
