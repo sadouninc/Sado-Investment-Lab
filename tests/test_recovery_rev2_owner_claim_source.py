@@ -17,6 +17,15 @@ def test_source_diagnostic_reports_candidates_but_never_authorizes():
     assert result["dispatch_allowed"] is False
 
 
+def test_source_diagnostic_invalid_run_ids_fail_closed():
+    for invalid in (None, 0, -1, "not-an-int"):
+        result = diagnose_owner_ledger_source(
+            repository="sadouninc/Sado-Investment-Lab", workflow_run_id=invalid,
+            artifact_inventory={"total_count": 0, "artifacts": []})
+        assert result["reason"] == "ACTIONS_RUN_UNVERIFIED"
+        assert result["dispatch_allowed"] is False
+
+
 def test_source_diagnostic_rejects_partial_inventory():
     result = diagnose_owner_ledger_source(
         repository="sadouninc/Sado-Investment-Lab", workflow_run_id=123,
