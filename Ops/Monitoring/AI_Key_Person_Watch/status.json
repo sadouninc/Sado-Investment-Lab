@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T20:33:39+09:00",
-  "last_success_at": "2026-10-31T20:33:39+09:00",
+  "last_run_at": "2026-10-31T21:29:24+09:00",
+  "last_success_at": "2026-10-31T21:29:24+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-31T20:33:39+09:00",
+  "last_news_delta_at": "2026-10-31T21:29:24+09:00",
   "news_persisted": true,
   "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 20:33 JST chatgpt_scheduled direct GitHub connector. TEAM_RULES 79a43dc1 -> TEAM_STATE f3b71b55 (AWAY/LUNA) -> #99 broadcast-head 6405435565, 270/270 fetched VERIFIED -> #892/#861/#124. New primary 2026-10-27 Google DeepMind Genie 4 world-model robotics preview; #861 second-order sim-to-real validation hypothesis, Japanese listed orders/revenue UNKNOWN. Research commit fc4b24f23bf80c7d0088d9625a5e77f673abaa58. Rapidus 10/26, Kioxia 10/30, Everspin 10/28 already tracked; no new Japan semiconductor orders/profits. #79 untouched; historical 10/11 path UNKNOWN."
+  "note": "2026-10-31 21:29 JST chatgpt_scheduled direct GitHub connector. TEAM_RULES -> TEAM_STATE AWAY/LUNA -> #99 broadcast-head 6405435565 comments=270 fetched=270 VERIFIED -> #861/#124. Google/XREAL 2026-10-28 official AURA launch, Japan orders announced for Nov 2; Research append cc3b27ce623359047b725e2e1909c36fad5f4524. Rapidus latest 10/26, Everspin 10/28, TDK 10/30 and Kioxia prior tracked; no fresh Japan semiconductor confirmed orders/profit. #79 untouched; historical Oct 11 execution path UNKNOWN."
 }
