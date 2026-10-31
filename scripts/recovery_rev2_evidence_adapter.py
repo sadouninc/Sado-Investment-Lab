@@ -253,7 +253,8 @@ def verify_copilot_assigned_linkage(*, artifact_zip: bytes,
             or not isinstance(actions_run.get("repository"), Mapping)
             or actions_run["repository"].get("full_name") != expected_repository):
         return unknown("RUN_PROVENANCE_MISMATCH")
-    if (artifact.get("workflow_run", {}).get("id") != run_id
+    if (not isinstance(artifact.get("workflow_run"), Mapping)
+            or artifact["workflow_run"].get("id") != run_id
             or artifact.get("name") != f"ai-production-assigned-linkage-{run_id}"
             or artifact.get("expired") is not False):
         return unknown("ARTIFACT_PROVENANCE_MISMATCH")
