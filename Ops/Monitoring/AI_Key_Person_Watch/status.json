@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T10:35:03+09:00",
-  "last_success_at": "2026-10-31T10:35:03+09:00",
+  "last_run_at": "2026-10-31T11:07:18+09:00",
+  "last_success_at": "2026-10-31T11:07:18+09:00",
   "last_status": "OK",
-  "news_delta": 2,
-  "last_news_delta_at": "2026-10-31T10:35:03+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-31T11:07:18+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 10:35 JST natural ChatGPT scheduled run. Startup TEAM_RULES blob79a43dc1 → TEAM_STATE blobf3b71b55 (AWAY, LUNA) → #99 head6405435565/comments270, fetched270/tail verified; #892/#861/#124 read. Verified Kioxia and Tokyo Electron 2026-10-30 official financial disclosures; two distinct material Research entries appended and verified at commit ccf8a3a4e2c55c96dec23a7f0dc04e42dbd119a4. Repaired preexisting invalid persistence_status=NOT_NEEDED to valid COMPLETED per canonical README and validator. Direct GitHub connector; Issue #79 untouched; Oct 11 historical mutation execution path UNKNOWN."
+  "note": "2026-10-31 scheduled natural Research run. TEAM_RULES blob79a43dc1 -> TEAM_STATE blobf3b71b55 (AWAY/LUNA) -> #99 broadcast-head6405435565 fetched270/270 tail6405435565 VERIFIED; #892/#861/#124 read. Rapidus Oct26 HCLTech two development centers + Oct30 CFO funding interview primary-source evidence newly appended to Oct Research, verified commit 98bd728fe646eed3283cb52710a125def69f14cc. Research and heartbeat direct GitHub connector; Issue #79 untouched. No claims of investment return or customer mass production; Oct11 historical execution path UNKNOWN."
 }
