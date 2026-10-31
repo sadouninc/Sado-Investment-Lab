@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-01T01:31:49+09:00",
-  "last_success_at": "2026-11-01T01:31:49+09:00",
+  "last_run_at": "2026-11-01T02:27:57+09:00",
+  "last_success_at": "2026-11-01T02:27:57+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-01T00:26:50+09:00",
   "news_persisted": false,
   "persistence_status": "NOT_REQUIRED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-01 01:31 JST chatgpt_scheduled direct GitHub connector. Startup Sync v2 TEAM_RULES -> TEAM_STATE AWAY/LUNA -> #99 broadcast-head=6405435565/comments270 fetched270/tail6405435565 VERIFIED -> #892/#861/#124. Research delta=0: OpenAI $20B target/$1.25T valuation FT/Reuters report already saved previous run; WSJ reports ~$11B commitments (secondary, not official closing); no independent primary confirmation, no additional Japan-listed orders/revenue/profit. Rapidus/Kioxia/TDK/MRAM/XR no new material primary delta; no duplicate Research write. #79 untouched; 2026-10-11 historical execution path UNKNOWN."
+  "note": "2026-11-01 02:27 JST chatgpt_scheduled direct GitHub connector. TEAM_RULES blob 79a43dc1 -> TEAM_STATE f3b71b55 AWAY/LUNA -> #99 head 6405435565/comments270 fetched270/tail6405435565 VERIFIED -> weekly #892 / #861 / #124. Fresh checks: OpenAI funding reduction and ~$11B commitments remain secondary-report-only and previously researched; Rapidus official latest 2026-10-26 HCLTech; XREAL AURA Japan order 2026-11-02 planned, not yet observed; MRAM/TDK/Kioxia and physical AI no new verified material primary delta or Japan-company order/revenue/profit conversion. Consumer XR community concerns remain anecdotal. Research write not required; #79 untouched; historical 2026-10-11 route UNKNOWN."
 }
