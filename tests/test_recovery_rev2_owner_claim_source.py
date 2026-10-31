@@ -3,6 +3,43 @@ from copy import deepcopy
 from datetime import datetime, timezone
 
 from scripts.recovery_rev2_owner_claim_source import DOMAINS, project_owner_claim_source
+from scripts.recovery_rev2_owner_claim_source import diagnose_owner_ledger_source
+
+
+def test_source_diagnostic_reports_candidates_but_never_authorizes():
+    result = diagnose_owner_ledger_source(
+        repository="sadouninc/Sado-Investment-Lab", workflow_run_id=123,
+        artifact_inventory={"total_count": 2, "artifacts": [
+            {"id": 1, "name": "owner-lease-ledger", "expired": False},
+            {"id": 2, "name": "unrelated", "expired": False}]})
+    assert result["reason"] == "SOURCE_UNVERIFIED"
+    assert result["candidate_artifacts"] == [{"id": 1, "name": "owner-lease-ledger", "expired": False}]
+    assert result["dispatch_allowed"] is False
+
+
+def test_source_diagnostic_invalid_run_ids_fail_closed():
+    for invalid in (None, 0, -1, "not-an-int"):
+        result = diagnose_owner_ledger_source(
+            repository="sadouninc/Sado-Investment-Lab", workflow_run_id=invalid,
+            artifact_inventory={"total_count": 0, "artifacts": []})
+        assert result["reason"] == "ACTIONS_RUN_UNVERIFIED"
+        assert result["dispatch_allowed"] is False
+
+
+def test_source_diagnostic_rejects_partial_inventory():
+    result = diagnose_owner_ledger_source(
+        repository="sadouninc/Sado-Investment-Lab", workflow_run_id=123,
+        artifact_inventory={"total_count": 2, "artifacts": []})
+    assert result["reason"] == "INCOMPLETE_ARTIFACT_INVENTORY"
+    assert result["dispatch_allowed"] is False
+
+
+def test_source_diagnostic_missing_run_and_protected_work_remains_separate():
+    result = diagnose_owner_ledger_source(
+        repository="sadouninc/Sado-Investment-Lab", workflow_run_id=None,
+        artifact_inventory=None)
+    assert result["reason"] == "ACTIONS_RUN_UNVERIFIED"
+    assert result["dispatch_allowed"] is False
 
 NOW = datetime(2026, 10, 28, tzinfo=timezone.utc)
 
