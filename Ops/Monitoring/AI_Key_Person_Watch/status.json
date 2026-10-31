@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T09:24:58+09:00",
-  "last_success_at": "2026-10-31T09:24:58+09:00",
+  "last_run_at": "2026-10-31T09:34:43+09:00",
+  "last_success_at": "2026-10-31T09:34:43+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-31T09:24:58+09:00",
-  "news_persisted": true,
-  "persistence_status": "SUCCESS",
+  "news_persisted": false,
+  "persistence_status": "NOT_NEEDED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 09:24 JST user-invoked chat run, NOT scheduled. TEAM_RULES→TEAM_STATE→#99 head=6405435565 count=270 tail=6405435565 VERIFIED; #892/#861/#124 checked. New research evidence conversion: jig.jp (5244) SABERA Oct 27 general retail launch, prior Makuake >JPY100m in under 3 weeks, 16 product retailers/80 lens-fit outlets as of Oct 20; shipment/profit UNKNOWN. Research commit 1334317efbb33b05fae0364fab35704e8b6cb78f. Issue #79 untouched; LUNA flow authority. Direct GitHub connector; historic Oct 11 execution path UNKNOWN."
+  "note": "2026-10-31 09:34 JST natural chatgpt_scheduled run. TEAM_RULES→TEAM_STATE→#99 head=6405435565/comments=270 tail=6405435565 VERIFIED; #892/#861/#124 read. Consumer/Field Radar: jig.jp SABERA 2026-10-29 Rakuten Mobile 5-store rollout and 2026-07-07 Makuake final JPY192,917,570/2743 supporters verified from issuer primary releases; same evidence already reported in preceding chat and prior Research append was REJECTED, so no retry or duplicate Research. MRAM no independently confirmed new commercial profit signal. Issue #79 untouched. Flow Authority LUNA. execution_path direct GitHub connector, historical 2026-10-11 execution path UNKNOWN."
 }
