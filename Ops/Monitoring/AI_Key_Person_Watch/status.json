@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T21:29:24+09:00",
-  "last_success_at": "2026-10-31T21:29:24+09:00",
+  "last_run_at": "2026-10-31T22:30:32.136+09:00",
+  "last_success_at": "2026-10-31T22:30:32.136+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-10-31T21:29:24+09:00",
-  "news_persisted": true,
-  "persistence_status": "SUCCESS",
+  "news_persisted": false,
+  "persistence_status": "NOT_REQUIRED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 21:29 JST chatgpt_scheduled direct GitHub connector. TEAM_RULES -> TEAM_STATE AWAY/LUNA -> #99 broadcast-head 6405435565 comments=270 fetched=270 VERIFIED -> #861/#124. Google/XREAL 2026-10-28 official AURA launch, Japan orders announced for Nov 2; Research append cc3b27ce623359047b725e2e1909c36fad5f4524. Rapidus latest 10/26, Everspin 10/28, TDK 10/30 and Kioxia prior tracked; no fresh Japan semiconductor confirmed orders/profit. #79 untouched; historical Oct 11 execution path UNKNOWN."
+  "note": "2026-10-31 22:30 JST chatgpt_scheduled direct GitHub connector. Startup Sync v2 TEAM_RULES -> TEAM_STATE AWAY/LUNA -> #99 broadcast-head 6405435565 comments=270 fetched=270 VERIFIED -> #892/#861/#124. Reviewed 10/30-31 primary sources and recent AI/semiconductor/Physical AI/MRAM/XR signals: TDK 10/30 TMR capex, Kioxia 10/30 IR, Rapidus and Google/XREAL AURA already tracked; no verified new Japan supplier order/profit or material new delta since 21:29. Research append NOT_REQUIRED. XREAL Japan general order 11/2 remains announced future, not confirmed live. #79 untouched; Oct 11 historical execution path UNKNOWN."
 }
