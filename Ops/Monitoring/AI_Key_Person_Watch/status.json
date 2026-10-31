@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T15:32:21+09:00",
-  "last_success_at": "2026-10-31T15:32:21+09:00",
+  "last_run_at": "2026-10-31T16:27:39+09:00",
+  "last_success_at": "2026-10-31T16:27:39+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-31T15:32:21+09:00",
+  "last_news_delta_at": "2026-10-31T16:27:39+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 15:32 JST chatgpt_scheduled; direct GitHub connector. Startup TEAM_RULES 79a43dc1 -> TEAM_STATE f3b71b55 AWAY/LUNA -> #99 head 6405435565 comments270/270 VERIFIED -> #892 -> #861/#124. New primary-source discovery: OpenAI/Google 2026-10-30 support AI-training robots.txt common policy token; IETF individual draft, not RFC; Japan listed revenue UNKNOWN. Research append commit af656c9fa2da76fb77576881dce4e7f45c1b185d. MRAM/semiconductor no additional material primary delta beyond existing records. Issue #79 untouched. Historical 10/11 write route UNKNOWN."
+  "note": "2026-10-31 16:27 JST chatgpt_scheduled; direct GitHub connector. Startup TEAM_RULES 79a43dc1 -> TEAM_STATE f3b71b55 AWAY/LUNA -> #99 head 6405435565 comments270/270 VERIFIED -> #892 -> #861/#124. New primary delta: S&P 10/30 Meta AA- unchanged, outlook Stable->Negative; Amazon Q3 AWS +39.3% but trailing FCF -$42.4B, 2026 cash capex forecast ~$220B; Meta Q3 FCF -$2.12B. Research append commit 766e571e0019f3f70c3be0cd4fe14796d3d19f15. Japan listed direct orders UNKNOWN. #79 untouched; 10/11 historical execution path UNKNOWN."
 }
