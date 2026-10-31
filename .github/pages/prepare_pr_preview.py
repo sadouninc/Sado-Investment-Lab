@@ -116,7 +116,7 @@ def _rewrite_url_attributes(html: str, *, production_base: str, prefix: str) -> 
 
     while position < len(html):
         if raw_text:
-            closing = re.search(rf"</{raw_text}\\s*>", html[position:], re.IGNORECASE)
+            closing = re.search(rf"</{raw_text}\s*>", html[position:], re.IGNORECASE)
             if not closing:
                 output.append(html[position:])
                 break
@@ -157,7 +157,7 @@ def _rewrite_url_attributes(html: str, *, production_base: str, prefix: str) -> 
         )
         position = tag_end + 1
 
-        opening = re.match(r"<\\s*(script|style)(?:\\s|>)", tag, re.IGNORECASE)
+        opening = re.match(r"<\s*(script|style)(?:\s|>)", tag, re.IGNORECASE)
         if opening and not tag.rstrip().endswith("/>"):
             raw_text = opening.group(1)
 
