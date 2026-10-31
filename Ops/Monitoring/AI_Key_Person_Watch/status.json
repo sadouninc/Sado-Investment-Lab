@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T13:28:09+09:00",
-  "last_success_at": "2026-10-31T13:28:09+09:00",
+  "last_run_at": "2026-10-31T14:31:45+09:00",
+  "last_success_at": "2026-10-31T14:31:45+09:00",
   "last_status": "OK",
-  "news_delta": 1,
-  "last_news_delta_at": "2026-10-31T13:28:09+09:00",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-10-31T14:31:45+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 13:28 JST chatgpt_scheduled direct GitHub connector. Startup TEAM_RULES 79a43dc1 → TEAM_STATE f3b71b55 (AWAY/LUNA) → #99 head 6405435565 comments270/270 VERIFIED; #892 current. Bounded PR review inbox: #903 exact HEAD bcf58ff8 reviewed by レイ review 5721028896, Luna acknowledged/marked ready; no repeat. Research delta: Intel official 2026-10-29 Q3 DCAI +78%, CCPG -5%, Foundry loss $1.853bn; Japan equipment earnings conversion UNKNOWN. Research commit 67400a02e541bec56f6d5b2339a94a4a2e0b38e0. Issue #79 untouched. Historical 10/11 path UNKNOWN."
+  "note": "2026-10-31 14:31 JST chatgpt_scheduled; direct GitHub connector. Startup TEAM_RULES 79a43dc1 -> TEAM_STATE f3b71b55 AWAY/LUNA -> #99 head 6405435565 comments270/270 VERIFIED -> #892. Inbox checked: #903 independent review already recorded, #892 says PR #903 merged; no duplicate. Primary new evidence: Intel 2026-10-29 SEC Q3 10-Q signed two substrate supply agreements estimated $5.3-6.1bn with $3.3bn expected paid by 2027; US Treasury 2026-10-22 COINS Act outbound-investment NPRM (not effective). Research commit 20978d1833035c524ad844771a5c6ce5d7a860b4. Issue #79 untouched. Historical 10/11 path UNKNOWN."
 }
