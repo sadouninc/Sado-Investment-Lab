@@ -972,6 +972,16 @@ def build_market_compass_page() -> None:
     build_market_compass()
 
 
+def build_progress_dashboard() -> None:
+    """Copy the optional read-only progress page without affecting other pages."""
+    progress_source = PAGES / "progress-dashboard.md"
+    if not progress_source.is_file():
+        return
+    output = SITE / "ops" / "progress" / "index.md"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(progress_source, output)
+
+
 def main() -> None:
     if SITE.exists():
         shutil.rmtree(SITE)
@@ -998,6 +1008,8 @@ def main() -> None:
     build_trade_journal()
     build_trade_analysis_v2()
     build_market_compass_page()
+    build_progress_dashboard()
+
 
 
 if __name__ == "__main__":

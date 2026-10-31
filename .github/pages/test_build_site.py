@@ -4,6 +4,8 @@ import importlib.util
 import json
 import sys
 import re
+import shutil
+import subprocess
 import tempfile
 import unittest
 from datetime import date
@@ -302,6 +304,305 @@ class TradeJournalBuildTest(unittest.TestCase):
             "先行・遅行候補",
         ):
             self.assertIn(expected, page)
+
+
+
+class ProgressDashboardBuildTest(unittest.TestCase):
+    """Optional dashboard must not break the existing Pages build."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.old_pages, self.old_site = build_site.PAGES, build_site.SITE
+        self.addCleanup(setattr, build_site, "PAGES", self.old_pages)
+        self.addCleanup(setattr, build_site, "SITE", self.old_site)
+        root = Path(self.tmp.name)
+        build_site.PAGES = root / "pages"
+        build_site.SITE = root / "site"
+        build_site.PAGES.mkdir()
+        build_site.SITE.mkdir()
+        (build_site.SITE / "index.md").write_text("existing home", encoding="utf-8")
+
+    def test_missing_source_skips_without_touching_existing_pages(self) -> None:
+        build_site.build_progress_dashboard()
+        self.assertEqual(
+            (build_site.SITE / "index.md").read_text(encoding="utf-8"),
+            "existing home",
+        )
+        self.assertFalse((build_site.SITE / "ops" / "progress").exists())
+
+    def test_existing_source_is_published_without_touching_home(self) -> None:
+        content = "---\nlayout: site\npermalink: /ops/progress/\n---\n# Progress\n"
+        (build_site.PAGES / "progress-dashboard.md").write_text(
+            content, encoding="utf-8"
+        )
+        build_site.build_progress_dashboard()
+        self.assertEqual(
+            (build_site.SITE / "ops" / "progress" / "index.md").read_text(
+                encoding="utf-8"
+            ),
+            content,
+        )
+        self.assertEqual(
+            (build_site.SITE / "index.md").read_text(encoding="utf-8"),
+            "existing home",
+        )
+
+
+    def test_progress_dashboard_contract_preserves_unknown_and_all_tasks(self) -> None:
+        """Snapshot must not claim completion when canonical evidence is absent."""
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "scope_version",
+            "newly_passed",
+            "regressed",
+            "new_blockers",
+            "resolved_blockers",
+            "remaining_blockers",
+            "scope_delta",
+            "UNKNOWN",
+            "criteria PASS / 確定総数",
+            "完全成功セット",
+            "work_ref",
+            "lease_id",
+            "PV867-T",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+        self.assertIn("i<9?'当初マージ前候補':'後続候補'", source)
+        self.assertIn("taskNames.forEach", source)
+        self.assertIn("loopNames.forEach", source)
+        self.assertIn("進捗率は確定母数がないためUNKNOWN", source)
+        self.assertIn("過去headのCI成功は現在headのPASSに流用しません", source)
+        self.assertNotIn("30%", source)
+
+    def test_progress_dashboard_declares_manual_snapshot_not_live_api(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("静的な手動スナップショット", source)
+        self.assertIn("追加2セットは推奨", source)
+        self.assertIn("本番実証とは別", source)
+        self.assertNotIn("fetch(", source)
+
+
+    def test_progress_dashboard_metrics_are_evidence_safe(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "const snapshot={scope_version:",
+            "criteria:[],previous:null",
+            "if(!entries.length||entries.some",
+            "return 'UNKNOWN'",
+            "c.finalized===true&&c.state==='PASS'&&Boolean(c.evidence_url)",
+            "previous.scope_version!==current.scope_version",
+            "status:'SCOPE_CHANGED',scope_delta:",
+            "metrics[i].textContent=snapshotValid?metricFor(dimension):'UNKNOWN'",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+
+
+    def test_progress_dashboard_delta_verified_pass_transitions(self) -> None:
+        """Execute the actual dashboard JS; provisional PASS must not count."""
+        node = shutil.which("node")
+        if node is None:
+            self.skipTest("Node.js unavailable for dashboard JavaScript regression")
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        js = source.split("function deltaFor(previous,current){", 1)[1].split(
+            "const metrics=document.querySelectorAll", 1
+        )[0]
+        function = "function deltaFor(previous,current){" + js
+        scenario = """
+const row=(state,finalized)=>({criterion_id:'a',dimension:'implementation',
+  state,finalized,evidence_url:'https://example.org/evidence'});
+const snap=(criterion)=>({scope_version:'v1',criteria:[criterion]});
+const cases=[
+  [row('UNKNOWN',false),row('PASS',false),[],[]],
+  [row('PASS',false),row('PASS',true),['a'],[]],
+  [row('PASS',true),row('PASS',false),[],['a']],
+  [row('PASS',true),row('PASS',true),[],[]]
+];
+for(const [before,after,newly,regressed] of cases){
+  const actual=deltaFor(snap(before),snap(after));
+  if(JSON.stringify(actual.newly_passed)!==JSON.stringify(newly)||
+     JSON.stringify(actual.regressed)!==JSON.stringify(regressed)){
+    throw new Error('verified PASS delta regression: '+JSON.stringify(actual));
+  }
+}
+"""
+        result = subprocess.run(
+            [node, "-e", function + scenario],
+            capture_output=True, text=True, check=False, timeout=15
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_progress_dashboard_delta_keeps_scope_and_blockers_separate(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "const oldMap=new Map(",
+            "const newMap=new Map(",
+            "status:'SCOPE_CHANGED',scope_delta:",
+            "newly_passed:changed(",
+            "regressed:changed(",
+            "new_blockers:changed(",
+            "resolved_blockers:changed(",
+            "remaining_blockers:changed(",
+            "delta.status==='COMPARABLE'",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+
+
+    def test_progress_dashboard_rejects_invalid_criterion_data(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "throw new Error('duplicate criterion_id')",
+            "throw new Error('invalid state')",
+            "['PASS','FAIL','BLOCKED','UNKNOWN']",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+
+
+    def test_progress_dashboard_latest_head_ci_contract(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "function latestHeadCI(",
+            "reason:'MISSING_EVIDENCE'",
+            "reason:'STALE_HEAD'",
+            "reason:'LATEST_HEAD_SUCCESS'",
+            "reason:'LATEST_HEAD_NOT_SUCCESS'",
+            "reason:'RUN_NOT_COMPLETE'",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+
+
+    def test_progress_dashboard_validates_snapshot_before_render(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "function validateSnapshot(data)",
+            "throw new Error('missing scope_version')",
+            "throw new Error('criteria must be a list')",
+            "throw new Error('missing criterion_id')",
+            "throw new Error('duplicate criterion_id')",
+            "throw new Error('invalid dimension')",
+            "throw new Error('invalid state')",
+            "throw new Error('finalized must be boolean')",
+            "throw new Error('invalid evidence_url')",
+            "try{validateSnapshot(snapshot)}catch(error)",
+            "snapshotValid=false",
+            "snapshotValid?metricFor(dimension):'UNKNOWN'",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+        self.assertLess(
+            source.index("try{validateSnapshot(snapshot)}catch(error)"),
+            source.index("const metrics=document.querySelectorAll"),
+        )
+
+
+    def test_progress_dashboard_mobile_overflow_contract(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            ".pv .card{min-width:0}",
+            "font-size:clamp(1.1rem,4.2vw,1.6rem)",
+            "overflow-wrap:anywhere",
+            "@media(max-width:350px){.pv .cards{grid-template-columns:minmax(0,1fr)}",
+            "@media(min-width:700px){.pv .cards{grid-template-columns:repeat(4,minmax(0,1fr))}",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+
+
+    def test_progress_dashboard_previous_snapshot_fails_closed(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        for marker in (
+            "let previousValid=snapshotValid;",
+            "if(snapshotValid&&snapshot.previous!==null)",
+            "try{validateSnapshot(snapshot.previous)}catch(error)",
+            "previousValid=false",
+            "const delta=previousValid?deltaFor(snapshot.previous,snapshot):{status:'UNKNOWN'};",
+        ):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+        self.assertLess(
+            source.index("try{validateSnapshot(snapshot.previous)}catch(error)"),
+            source.index("const delta=previousValid?deltaFor("),
+        )
+
+
+    def test_progress_dashboard_pr860_merge_proof_not_closed_loop_proof(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            "ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a", source
+        )
+        self.assertIn("PR #860は2026-10-17 22:36 JSTにマージ済み", source)
+        self.assertIn("マージ確認は自然closed-loopの全段階実証を意味しません", source)
+        self.assertNotIn("PR #860は未確認（OPEN時点）", source)
+
+
+    def test_progress_dashboard_baseline_not_current_blocker_count(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("当初マージ前候補", source)
+        self.assertIn("現在の未完了数を示すものではありません", source)
+        self.assertNotIn("<div>マージ前課題</div>", source)
+        self.assertNotIn("<strong>merge SHA:</strong> PR #860", source)
+
+
+    def test_progress_dashboard_rows_do_not_claim_pr860_open(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("#860（MERGED、criterion別PASSは未判定）", source)
+        self.assertIn("PR単位 ac378e389e1c（criterion別の帰属は未確認）", source)
+        self.assertNotIn("（OPEN時点）", source)
+
+
+    def test_progress_dashboard_wraps_long_mobile_code(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            ".pv code{overflow-wrap:anywhere;word-break:break-word;white-space:normal}",
+            source,
+        )
+
+
+    def test_progress_dashboard_evidence_candidates_are_not_pass(self) -> None:
+        source = Path(__file__).with_name("progress-dashboard.md").read_text(
+            encoding="utf-8"
+        )
+        section = source.split('id="pv-evidence-candidates"', 1)[1].split(
+            'id="pv-contract"', 1
+        )[0]
+        self.assertEqual(section.count("（証跡候補・判定UNKNOWN）"), 9)
+        self.assertIn("T10・T11 後続候補", section)
+        self.assertIn("自然closed-loop実証を意味しません", section)
+        self.assertIn("ac378e389e1cd0f3ae6d85a1d37bfc4b99fe2e7a", section)
+        self.assertNotIn("（証跡候補・判定PASS）", section)
 
 
 if __name__ == "__main__":

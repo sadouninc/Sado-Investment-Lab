@@ -13,6 +13,157 @@ from pathlib import Path
 BANNER_ID = "sado-pr-preview-banner"
 
 
+_URL_ATTRIBUTES = frozenset({"href", "src"})
+
+
+def _tag_end(source: str, start: int) -> int | None:
+    """Return the closing > while respecting quoted attribute values."""
+    quote: str | None = None
+    index = start
+    while index < len(source):
+        char = source[index]
+        if quote:
+            if char == quote:
+                quote = None
+        elif char in {'"', "'"}:
+            quote = char
+        elif char == ">":
+            return index
+        index += 1
+    return None
+
+
+def _rewrite_preview_url(value: str, *, production_base: str, prefix: str) -> str:
+    production_root = production_base.rstrip("/")
+    if value == production_root:
+        return prefix.rstrip("/")
+    if not value.startswith(production_base):
+        return value
+
+    rewritten = prefix + value[len(production_base):]
+    match = re.match(r"([^?#]*)(.*)", rewritten)
+    assert match is not None
+    path, tail = match.groups()
+    if path.endswith("/"):
+        path += "index.html"
+    return path + tail
+
+
+def _rewrite_start_tag(tag: str, *, production_base: str, prefix: str) -> str:
+    """Rewrite only real href/src value spans and preserve all other source bytes."""
+    if not tag.startswith("<") or tag.startswith(("</", "<!", "<?")):
+        return tag
+
+    index = 1
+    while index < len(tag) and not tag[index].isspace() and tag[index] not in "/>":
+        index += 1
+
+    replacements: list[tuple[int, int, str]] = []
+    while index < len(tag):
+        while index < len(tag) and tag[index].isspace():
+            index += 1
+        if index >= len(tag) or tag[index] in "/>":
+            break
+
+        name_start = index
+        while index < len(tag) and not tag[index].isspace() and tag[index] not in "=/>":
+            index += 1
+        name = tag[name_start:index].lower()
+        while index < len(tag) and tag[index].isspace():
+            index += 1
+        if index >= len(tag) or tag[index] != "=":
+            continue
+
+        index += 1
+        while index < len(tag) and tag[index].isspace():
+            index += 1
+        if index >= len(tag):
+            break
+
+        if tag[index] in {'"', "'"}:
+            quote = tag[index]
+            value_start = index + 1
+            value_end = tag.find(quote, value_start)
+            if value_end < 0:
+                return tag
+            index = value_end + 1
+        else:
+            value_start = index
+            while index < len(tag) and not tag[index].isspace() and tag[index] != ">":
+                index += 1
+            value_end = index
+
+        if name in _URL_ATTRIBUTES:
+            value = tag[value_start:value_end]
+            rewritten = _rewrite_preview_url(
+                value,
+                production_base=production_base,
+                prefix=prefix,
+            )
+            if rewritten != value:
+                replacements.append((value_start, value_end, rewritten))
+
+    for start, end, value in reversed(replacements):
+        tag = tag[:start] + value + tag[end:]
+    return tag
+
+
+def _rewrite_url_attributes(html: str, *, production_base: str, prefix: str) -> str:
+    """Rewrite root-relative URL attributes without touching text, scripts, or externals."""
+    output: list[str] = []
+    position = 0
+    raw_text: str | None = None
+
+    while position < len(html):
+        if raw_text:
+            closing = re.search(rf"</{raw_text}\s*>", html[position:], re.IGNORECASE)
+            if not closing:
+                output.append(html[position:])
+                break
+            end = position + closing.end()
+            output.append(html[position:end])
+            position = end
+            raw_text = None
+            continue
+
+        tag_start = html.find("<", position)
+        if tag_start < 0:
+            output.append(html[position:])
+            break
+        output.append(html[position:tag_start])
+
+        if html.startswith("<!--", tag_start):
+            comment_end = html.find("-->", tag_start + 4)
+            if comment_end < 0:
+                output.append(html[tag_start:])
+                break
+            end = comment_end + 3
+            output.append(html[tag_start:end])
+            position = end
+            continue
+
+        tag_end = _tag_end(html, tag_start + 1)
+        if tag_end is None:
+            output.append(html[tag_start:])
+            break
+
+        tag = html[tag_start:tag_end + 1]
+        output.append(
+            _rewrite_start_tag(
+                tag,
+                production_base=production_base,
+                prefix=prefix,
+            )
+        )
+        position = tag_end + 1
+
+        opening = re.match(r"<\s*(script|style)(?:\s|>)", tag, re.IGNORECASE)
+        if opening and not tag.rstrip().endswith("/>"):
+            raw_text = opening.group(1)
+
+    return "".join(output)
+
+
 def preview_prefix(owner: str, repo: str, ref: str, namespace: str) -> str:
     return f"/{owner}/{repo}/{ref}/{namespace}/"
 
@@ -28,24 +179,10 @@ def rewrite_html(
 ) -> str:
     """Rewrite production-root links and add an unmistakable preview banner."""
     production_base = "/" + production_base.strip("/") + "/"
-    production_root = production_base.rstrip("/")
-    html = re.sub(
-        rf'(?P<quote>["\']){re.escape(production_root)}(?P=quote)',
-        lambda match: f"{match.group('quote')}{prefix.rstrip('/')}{match.group('quote')}",
+    html = _rewrite_url_attributes(
         html,
-    )
-    html = html.replace(production_base, prefix)
-
-    # raw.githack serves files rather than GitHub Pages-style directory indexes.
-    # Make internal directory links explicit while leaving assets and externals alone.
-    escaped_prefix = re.escape(prefix)
-    html = re.sub(
-        rf'(?P<attr>href=["\'])({escaped_prefix})(?P<path>[^"\'#?]*?)/(?P<tail>[#?][^"\']*)?(?P<quote>["\'])',
-        lambda match: (
-            f"{match.group('attr')}{match.group(2)}{match.group('path')}/index.html"
-            f"{match.group('tail') or ''}{match.group('quote')}"
-        ),
-        html,
+        production_base=production_base,
+        prefix=prefix,
     )
 
     if BANNER_ID in html:
