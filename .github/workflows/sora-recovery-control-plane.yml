@@ -354,8 +354,9 @@ jobs:
                   if len(chunk) != 100 or len(repo_artifacts) > repo_total:
                       raise ValueError("INCOMPLETE_REPOSITORY_ARTIFACT_INVENTORY")
               if repository_artifact_inventory is None:
-                  repository_artifact_inventory = {
-                      "total_count": repo_total, "artifacts": repo_artifacts}
+                  # A 10-page bound is never evidence of a complete inventory.
+                  print("OWNER_LEDGER_REPOSITORY_PAGE_LIMIT_EXCEEDED=INCOMPLETE")
+                  raise ValueError("REPOSITORY_ARTIFACT_PAGE_LIMIT_EXCEEDED")
           except (subprocess.CalledProcessError, ValueError, OSError, KeyError,
                   json.JSONDecodeError) as exc:
               print("OWNER_LEDGER_REPOSITORY_FETCH_UNVERIFIED=" + type(exc).__name__)
