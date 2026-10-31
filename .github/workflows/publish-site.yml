@@ -100,6 +100,9 @@ jobs:
       - name: Publish Daihen decision cockpit
         run: PYTHONPATH=.github/pages python3 .github/pages/build_daihen_cockpit.py
 
+      - name: Publish Morning Dataset diagnostics
+        run: python3 .github/pages/build_morning_dataset.py
+
       - name: Publish risk preflight confirmation
         run: python3 .github/pages/build_risk_preflight.py
 
@@ -108,9 +111,6 @@ jobs:
 
       - name: Publish Investor DNA
         run: python3 .github/pages/build_investor_dna.py
-
-      - name: Publish Morning Dataset diagnostics
-        run: python3 .github/pages/build_morning_dataset.py
 
       - name: Publish AI Morning Reports
         run: python3 .github/pages/build_ai_morning_reports.py
