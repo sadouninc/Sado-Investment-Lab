@@ -87,8 +87,14 @@ def diagnose_repository_owner_ledger_candidates(
             return {**result, "reason": "CANDIDATE_RUN_UNVERIFIED"}
         candidates.append({"id": artifact_id, "name": name,
                            "run_id": run["id"], "expired": artifact.get("expired")})
+    # Keep the bounded diagnostic payload explicit: an omitted candidate is
+    # never mistaken for a complete or authenticated issuer inventory.
+    truncated = len(candidates) > 20
     return {**result, "candidate_artifacts": candidates[:20],
-            "candidate_count": len(candidates)}
+            "candidate_count": len(candidates),
+            "returned_count": min(len(candidates), 20),
+            "truncated": truncated,
+            "reason": "INCOMPLETE_CANDIDATE_LIST" if truncated else "SOURCE_UNVERIFIED"}
 
 
 def _overlap(a: str, b: str) -> bool:
