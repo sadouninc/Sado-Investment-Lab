@@ -55,6 +55,80 @@ class PullRequestPagesPreviewTest(unittest.TestCase):
             self.assertTrue(saved["not_production"])
             self.assertEqual(saved["html_files"], 2)
 
+    def test_rewrite_preserves_external_and_inert_content(self):
+        prefix = "/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/"
+        source = (
+            '<a href="https://github.com/sadouninc/Sado-Investment-Lab/issues/867">GitHub</a>'
+            '<a href="/Sado-Investment-Lab/framework/">Internal</a>'
+            "<img src=/Sado-Investment-Lab/assets/site.css />"
+            '<div data-x=\'href="/Sado-Investment-Lab/"\'>Data</div>'
+            '<a title="2 > 1" href="/Sado-Investment-Lab/themes/?x=1#top">Theme</a>'
+            '<script>const x = \'href="/Sado-Investment-Lab/"\';</script>'
+            '<style>.x{background:url("/Sado-Investment-Lab/a.png")}</style>'
+            '<a href="//github.com/sadouninc/Sado-Investment-Lab/issues/867">Protocol</a>'
+        )
+
+        rewritten = MODULE.rewrite_html(
+            source,
+            production_base="/Sado-Investment-Lab/",
+            prefix=prefix,
+            pr_number=870,
+            head_sha="e6e46f3f05e6",
+            built_at="2026-10-31T00:00:00Z",
+        )
+
+        self.assertIn(
+            'href="https://github.com/sadouninc/Sado-Investment-Lab/issues/867"',
+            rewritten,
+        )
+        self.assertIn(
+            f'href="{prefix}framework/index.html"',
+            rewritten,
+        )
+        self.assertIn(
+            f"src={prefix}assets/site.css",
+            rewritten,
+        )
+        self.assertIn(
+            'data-x=\'href="/Sado-Investment-Lab/"\'',
+            rewritten,
+        )
+        self.assertIn(
+            f'href="{prefix}themes/index.html?x=1#top"',
+            rewritten,
+        )
+        self.assertIn(
+            '<script>const x = \'href="/Sado-Investment-Lab/"\';</script>',
+            rewritten,
+        )
+        self.assertIn(
+            '<style>.x{background:url("/Sado-Investment-Lab/a.png")}</style>',
+            rewritten,
+        )
+        self.assertIn(
+            'href="//github.com/sadouninc/Sado-Investment-Lab/issues/867"',
+            rewritten,
+        )
+
+        second_pass = MODULE.rewrite_html(
+            rewritten,
+            production_base="/Sado-Investment-Lab/",
+            prefix=prefix,
+            pr_number=870,
+            head_sha="e6e46f3f05e6",
+            built_at="2026-10-31T00:00:00Z",
+        )
+        self.assertEqual(second_pass, rewritten)
+
+    def test_malformed_start_tag_fails_closed(self):
+        source = '<a href="/Sado-Investment-Lab/framework/"'
+        rewritten = MODULE._rewrite_url_attributes(
+            source,
+            production_base="/Sado-Investment-Lab/",
+            prefix="/sadouninc/Sado-Investment-Lab/pages-previews/pr-870/",
+        )
+        self.assertEqual(rewritten, source)
+
     def test_workflow_keeps_production_deploy_separate(self):
         workflow = (ROOT / ".github" / "workflows" / "publish-site.yml").read_text(encoding="utf-8")
         self.assertIn("if: github.event_name != 'pull_request'", workflow)
