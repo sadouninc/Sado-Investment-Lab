@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-01T05:33:20+09:00",
-  "last_success_at": "2026-11-01T05:33:20+09:00",
+  "last_run_at": "2026-11-01T06:32:25+09:00",
+  "last_success_at": "2026-11-01T06:32:25+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-01T04:30:19+09:00",
   "news_persisted": false,
   "persistence_status": "NOT_REQUIRED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-01 05:33 JST scheduled monitoring; TEAM_RULES blob79a43dc1 -> TEAM_STATE blobf3b71b55 AWAY/LUNA -> #99 head6405435565/comments270, fetched270/tail6405435565 VERIFIED -> #892/#861/#124. Rechecked primary Rapidus news (latest 2026-10-26 HCLTech), MOFA Quad 2026-10-31 (already persisted prior run), XREAL AURA (Nov 2 general orders not yet started), OpenAI funding reporting, MRAM and Kioxia; no newly verified material primary-source delta or Japanese earnings conversion. Research not required. #79 untouched. Historical 2026-10-11 route UNKNOWN."
+  "note": "2026-11-01 06:32 JST scheduled monitoring; TEAM_RULES blob79a43dc1 -> TEAM_STATE blobf3b71b55 AWAY/LUNA -> #99 broadcast-head6405435565/comments270, fetched270/tail6405435565 VERIFIED -> #892/#861/#124. Fresh checked Rapidus official latest 2026-10-26 HCLTech, Google XREAL AURA 2026-10-28 (Japan orders scheduled Nov 2), Quad 2026-10-31 already recorded, AI capex/memory risk and OpenAI funding reporting. No newly verified material primary-source delta or Japanese listed-company order/earnings conversion since prior run. Research not required. #79 untouched. Historical 2026-10-11 execution route UNKNOWN."
 }
