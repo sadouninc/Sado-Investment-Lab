@@ -159,7 +159,8 @@ def project_verified_copilot_linkage_inventory(*, work_id: str,
 
     if work_id == "issue:79":
         return {"status": "BLOCKED", "reason": "PROTECTED_ISSUE_79",
-                "dispatch_allowed": False, "authenticated_count": 0}
+                "dispatch_allowed": False, "observed_count": 0,
+                "authenticated_count": 0}
     if (not isinstance(observed_comment_ids, (list, tuple))
             or not isinstance(verified_linkages, (list, tuple))):
         return hold("INVALID_B1_EVIDENCE")
