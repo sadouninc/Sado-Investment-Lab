@@ -257,7 +257,8 @@ jobs:
                           or page["total_count"] != len(artifacts)):
                       raise ValueError("INCOMPLETE_COPILOT_ARTIFACT_PAGE")
                   named = [item for item in artifacts
-                           if item.get("name") == f"ai-production-assigned-linkage-{run_id}"]
+                           if item.get("name") == f"ai-production-assigned-linkage-{run_id}"
+                           and item.get("expired") is False]
                   if len(named) != 1:
                       raise ValueError("MISSING_OR_DUPLICATE_COPILOT_ARTIFACT")
                   artifact = named[0]
