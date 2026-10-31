@@ -155,7 +155,7 @@ taskNames.forEach(function(name,i){
 });
 const loopNames=['READY検出','lease発行','ACK','実装commit','PR','最新head CI','review/安全Gate','merge SHA','NEXT_AUTO'];
 const loopRoot=document.getElementById('pv-loop');
-loopNames.forEach(function(name,i){const li=document.createElement('li');li.textContent=String(i+1)+'. '+name+' — UNKNOWN（work_ref・lease_id・個別evidence URL未確認）';loopRoot.append(li)});
+loopNames.forEach(function(name,i){const li=document.createElement('li');li.textContent=name+' — UNKNOWN（work_ref・lease_id・個別evidence URL未確認）';loopRoot.append(li)});
 const rows=[["01","Writer→Readerのイベント形式統一","🪐ソラ","work/lease/attemptの整合と曖昧入力拒否"],["02","GitHubコメント証跡の照合","🪐ソラ","comment ID・run ID・全履歴の真正性"],["03","POST前のReader接続","🪐ソラ","workflow内でReader実行の証跡"],["04","POST前のGuard接続","🪐ソラ","関連Issue/PR/コメントの完全取得"],["05","担当・競合・終端状態の再検証","🪐ソラ","UNKNOWN時の配車禁止"],["06","P0/P1候補の継続探索","🪐ソラ","先頭候補不適格でも次候補へ"],["07","安全性回帰テスト","🪐ソラ","ACK/PR/MERGED/不正入力/#79を検証"],["08","最新head CIとOwner Gate","🪐ソラ・🌙ルナ","CI・レビュー・マージ権限の証跡"],["09","差分全体の未発見Blocker調査","🌙ルナ・🪐ソラ","全変更ファイルとreviewの照合"],["10","期限切れ後の安全な自動再配車","未割当","後続候補・Ownerのscope判断待ち"],["11","高度なRecovery監視・最適化","未割当","後続候補・Ownerのscope判断待ち"]];
 const list=document.getElementById('pv-list');
 rows.forEach(function(row,i){
