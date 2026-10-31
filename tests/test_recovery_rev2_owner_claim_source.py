@@ -41,6 +41,49 @@ def test_source_diagnostic_missing_run_and_protected_work_remains_separate():
     assert result["reason"] == "ACTIONS_RUN_UNVERIFIED"
     assert result["dispatch_allowed"] is False
 
+
+def test_repository_diagnostic_finds_other_run_candidates_without_authority():
+    from scripts.recovery_rev2_owner_claim_source import diagnose_repository_owner_ledger_candidates
+    result = diagnose_repository_owner_ledger_candidates(
+        repository="sadouninc/Sado-Investment-Lab",
+        artifact_inventory={"total_count": 2, "artifacts": [
+            {"id": 11, "name": "owner-lease-ledger", "expired": False,
+             "workflow_run": {"id": 987}},
+            {"id": 12, "name": "other", "workflow_run": {"id": 988}},
+        ]})
+    assert result["candidate_count"] == 1
+    assert result["candidate_artifacts"] == [
+        {"id": 11, "name": "owner-lease-ledger", "run_id": 987, "expired": False}]
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "SOURCE_UNVERIFIED"
+    assert result["dispatch_allowed"] is False
+
+
+def test_repository_diagnostic_fails_closed_on_partial_or_duplicate_inventory():
+    from scripts.recovery_rev2_owner_claim_source import diagnose_repository_owner_ledger_candidates
+    a = {"id": 11, "name": "owner-lease-ledger", "workflow_run": {"id": 987}}
+    partial = diagnose_repository_owner_ledger_candidates(
+        repository="sadouninc/Sado-Investment-Lab",
+        artifact_inventory={"total_count": 2, "artifacts": [a]})
+    assert partial["reason"] == "INCOMPLETE_ARTIFACT_INVENTORY"
+    duplicate = diagnose_repository_owner_ledger_candidates(
+        repository="sadouninc/Sado-Investment-Lab",
+        artifact_inventory={"total_count": 2, "artifacts": [a, dict(a)]})
+    assert duplicate["reason"] == "DUPLICATE_ARTIFACT_ID"
+    assert duplicate["dispatch_allowed"] is False
+
+
+def test_repository_diagnostic_rejects_unverified_candidate_run():
+    from scripts.recovery_rev2_owner_claim_source import diagnose_repository_owner_ledger_candidates
+    result = diagnose_repository_owner_ledger_candidates(
+        repository="sadouninc/Sado-Investment-Lab",
+        artifact_inventory={"total_count": 1, "artifacts": [
+            {"id": 11, "name": "lease-ledger", "workflow_run": None}]})
+    assert result["reason"] == "CANDIDATE_RUN_UNVERIFIED"
+    assert result["candidate_artifacts"] == []
+    assert result["dispatch_allowed"] is False
+
+
 NOW = datetime(2026, 10, 28, tzinfo=timezone.utc)
 
 
