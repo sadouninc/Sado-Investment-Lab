@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T09:51:07+09:00",
-  "last_success_at": "2026-10-31T09:51:07+09:00",
+  "last_run_at": "2026-10-31T10:35:03+09:00",
+  "last_success_at": "2026-10-31T10:35:03+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-31T09:24:58+09:00",
-  "news_persisted": false,
-  "persistence_status": "NOT_NEEDED",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-10-31T10:35:03+09:00",
+  "news_persisted": true,
+  "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 09:51 JST user-invoked chat run, NOT scheduled. TEAM_RULES→TEAM_STATE→#99 head 6405435565, 270 comments, tail 6405435565 VERIFIED; #892/#861/#124 read. Everspin Q3 2026 product revenue +33.5% YoY, non-product revenue +170.3% YoY, GAAP loss $7.175m verified SEC filing; previously logged, no new Research delta. SABERA Rakuten planned rollout already known; no Japan listed MRAM supplier profit attribution. Prior Research write rejection not retried. Issue #79 untouched. LUNA flow authority; execution path direct GitHub connector; Oct 11 historical execution path UNKNOWN."
+  "note": "2026-10-31 10:35 JST natural ChatGPT scheduled run. Startup TEAM_RULES blob79a43dc1 → TEAM_STATE blobf3b71b55 (AWAY, LUNA) → #99 head6405435565/comments270, fetched270/tail verified; #892/#861/#124 read. Verified Kioxia and Tokyo Electron 2026-10-30 official financial disclosures; two distinct material Research entries appended and verified at commit ccf8a3a4e2c55c96dec23a7f0dc04e42dbd119a4. Repaired preexisting invalid persistence_status=NOT_NEEDED to valid COMPLETED per canonical README and validator. Direct GitHub connector; Issue #79 untouched; Oct 11 historical mutation execution path UNKNOWN."
 }
