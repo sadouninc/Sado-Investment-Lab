@@ -295,9 +295,12 @@ jobs:
           # #859: observe Actions artifacts as *candidates* only. No artifact
           # name, run ID or comment can authorize a canonical Owner/Lease claim.
           from scripts.recovery_rev2_owner_claim_source import diagnose_owner_ledger_source
-          current_run_id = int(os.environ["GITHUB_RUN_ID"])
+          current_run_id = None
           artifact_inventory = None
           try:
+              current_run_id = int(os.environ["GITHUB_RUN_ID"])
+              if current_run_id <= 0:
+                  raise ValueError("INVALID_ACTIONS_RUN_ID")
               artifact_pages = []
               page = 1
               while page <= 100:
@@ -310,7 +313,8 @@ jobs:
                       raise ValueError("INVALID_ARTIFACT_PAGE")
                   artifact_pages.extend(chunk)
                   if len(chunk) < 100:
-                      if payload.get("total_count") != len(artifact_pages):
+                      total_count = payload.get("total_count")
+                      if type(total_count) is not int or total_count != len(artifact_pages):
                           raise ValueError("INCOMPLETE_ARTIFACT_INVENTORY")
                       artifact_inventory = {"total_count": len(artifact_pages),
                                             "artifacts": artifact_pages}
