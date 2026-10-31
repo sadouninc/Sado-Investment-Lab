@@ -37,7 +37,9 @@ def validate_status(payload: dict[str, Any]) -> None:
     if not isinstance(stale_after, int) or stale_after <= 0:
         raise ValueError("stale_after_minutes must be a positive integer")
     news_delta = payload.get("news_delta")
-    if news_delta is not None and (not isinstance(news_delta, int) or news_delta < 0):
+    if news_delta is not None and (
+        isinstance(news_delta, bool) or not isinstance(news_delta, int) or news_delta < 0
+    ):
         raise ValueError("news_delta must be null or a non-negative integer")
     for key in ("last_run_at", "last_success_at", "last_news_delta_at"):
         parse_timestamp(payload.get(key))
@@ -99,6 +101,91 @@ def load_status(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     validate_status(payload)
     return payload
+
+
+def save_status(path: Path, payload: dict[str, Any]) -> None:
+    validate_status(payload)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def validate_run_evidence(evidence: dict[str, Any]) -> None:
+    if not isinstance(evidence, dict):
+        raise ValueError("evidence must be a dictionary")
+    required_fields = ("run_at", "status", "news_delta", "news_persisted", "persistence_status")
+    missing = [field for field in required_fields if field not in evidence]
+    if missing:
+        raise ValueError(f"missing required evidence field(s): {', '.join(missing)}")
+
+    run_at = evidence.get("run_at")
+    if not run_at or not isinstance(run_at, str):
+        raise ValueError("run_at in evidence must be a non-empty string timestamp")
+
+    parse_timestamp(run_at)
+    if evidence.get("status") not in VALID_RUN_STATUS:
+        raise ValueError("invalid status in evidence")
+    news_delta = evidence.get("news_delta")
+    if isinstance(news_delta, bool) or not isinstance(news_delta, int) or news_delta < 0:
+        raise ValueError("news_delta in evidence must be a non-negative integer")
+    if not isinstance(evidence.get("news_persisted"), bool):
+        raise ValueError("news_persisted in evidence must be a boolean")
+    persistence_status = evidence.get("persistence_status")
+    if persistence_status not in VALID_PERSISTENCE_STATUS:
+        raise ValueError("invalid persistence_status in evidence")
+    news_persisted = evidence["news_persisted"]
+    if persistence_status == "COMPLETED" and not news_persisted:
+        raise ValueError("COMPLETED persistence requires news_persisted=true")
+    if persistence_status == "PENDING_PERSIST" and news_persisted:
+        raise ValueError("PENDING_PERSIST requires news_persisted=false")
+    if persistence_status == "NOT_REQUIRED" and (news_delta > 0 or news_persisted):
+        raise ValueError("NOT_REQUIRED requires zero news_delta and news_persisted=false")
+
+
+def update_status(current_payload: dict[str, Any], evidence: dict[str, Any]) -> dict[str, Any]:
+    validate_status(current_payload)
+    validate_run_evidence(evidence)
+
+    evidence_run_at = evidence["run_at"]
+    evidence_dt = parse_timestamp(evidence_run_at)
+    current_run_at = current_payload.get("last_run_at")
+    current_dt = parse_timestamp(current_run_at) if current_run_at else None
+
+    if current_dt is not None and evidence_dt is not None:
+        evidence_utc = evidence_dt.astimezone(timezone.utc)
+        current_utc = current_dt.astimezone(timezone.utc)
+
+        if evidence_utc < current_utc:
+            raise ValueError(f"evidence run_at ({evidence_run_at}) is older than current last_run_at ({current_run_at})")
+
+        if evidence_utc == current_utc:
+            is_match = (
+                current_payload.get("last_status") == evidence["status"]
+                and current_payload.get("news_delta") == evidence["news_delta"]
+                and current_payload.get("news_persisted") == evidence["news_persisted"]
+                and current_payload.get("persistence_status") == evidence["persistence_status"]
+            )
+            if is_match:
+                return dict(current_payload)
+            raise ValueError(f"conflicting evidence for same run_at ({evidence_run_at})")
+
+    updated = dict(current_payload)
+    status = evidence["status"]
+    news_delta = evidence["news_delta"]
+    news_persisted = evidence["news_persisted"]
+    persistence_status = evidence["persistence_status"]
+
+    updated["last_run_at"] = evidence_run_at
+    updated["last_status"] = status
+    updated["news_delta"] = news_delta
+    updated["news_persisted"] = news_persisted
+    updated["persistence_status"] = persistence_status
+
+    if status == "OK":
+        updated["last_success_at"] = evidence_run_at
+        if news_delta > 0:
+            updated["last_news_delta_at"] = evidence_run_at
+
+    validate_status(updated)
+    return updated
 
 
 def main() -> int:
