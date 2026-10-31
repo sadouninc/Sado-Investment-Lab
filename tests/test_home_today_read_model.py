@@ -234,3 +234,21 @@ def test_enrich_replaces_status_area_adds_market_and_portfolio_sections():
     assert module.STATUS_SECTION_END in rendered
     assert rendered.endswith("after\n")
     assert "WARMING 1件 / INFLOW 1件" in rendered
+
+
+def test_pages_build_restores_morning_dataset_before_home_status_enrichment():
+    """A clean checkout must restore the canonical JSON before Home reads it."""
+    workflow = (ROOT / ".github" / "workflows" / "publish-site.yml").read_text(
+        encoding="utf-8"
+    )
+    morning = (
+        "- name: Publish Morning Dataset diagnostics\n"
+        "        run: python3 .github/pages/build_morning_dataset.py"
+    )
+    risk_preflight = (
+        "- name: Publish risk preflight confirmation\n"
+        "        run: python3 .github/pages/build_risk_preflight.py"
+    )
+    assert workflow.count(morning) == 1
+    assert workflow.count(risk_preflight) == 1
+    assert workflow.index(morning) < workflow.index(risk_preflight)
