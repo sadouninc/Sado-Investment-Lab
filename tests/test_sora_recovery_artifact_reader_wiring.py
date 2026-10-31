@@ -110,3 +110,54 @@ def test_actual_reader_audit_logs_before_unchanged_unattested_gate():
         exec(code, {"json": json, "result": {"status": "UNKNOWN", "reason": "PROVENANCE_UNVERIFIED",
                                              "dispatch_allowed": False}})
     assert "READER_HOLD_UNVERIFIED_PROVENANCE" in out.getvalue()
+
+
+def test_b1_workflow_uses_run_owned_artifact_and_never_sets_dispatch_true():
+    source = WORKFLOW.read_text(encoding="utf-8")
+    assert "verify_copilot_assigned_linkage(" in source
+    assert "ai-production-assigned-linkage-{run_id}" in source
+    assert "COPILOT_B1_READER_AUDIT=" in source
+    assert 'assert copilot_projection["dispatch_allowed"] is False' in source
+    assert 'f.write("post_authorized=false' in source
+
+
+def test_b1_projection_fails_closed_on_missing_duplicate_and_foreign_linkages():
+    from scripts.recovery_rev2_read_bridge import project_verified_copilot_linkage_inventory
+
+    make = lambda observed, verified, complete=True: project_verified_copilot_linkage_inventory(
+        work_id="issue:859", observed_comment_ids=observed,
+        verified_linkages=verified, source_complete=complete)
+    valid = {"status": "ATTESTED_LINKAGE", "work_id": "issue:859",
+             "comment_id": 123, "dispatch_allowed": False}
+    for result in (
+        make([], []), make([123], [], True), make([123], [valid], False),
+        make([123, 123], [valid, valid]), make([123], [{**valid, "work_id": "issue:828"}]),
+    ):
+        assert result["status"] == "UNKNOWN"
+        assert result["dispatch_allowed"] is False
+    assert make([123], [valid])["status"] == "LINKAGE_ATTESTED"
+    assert make([123], [valid])["dispatch_allowed"] is False
+    protected = project_verified_copilot_linkage_inventory(
+        work_id="issue:79", observed_comment_ids=[123],
+        verified_linkages=[valid], source_complete=True)
+    assert protected["status"] == "BLOCKED"
+
+
+def test_b1_expired_artifact_is_filtered_before_zip_download():
+    source = WORKFLOW.read_text(encoding="utf-8")
+    start = source.index('named = [item for item in artifacts')
+    end = source.index('if len(named) != 1:', start)
+    filter_source = source[start:end]
+    assert 'item.get("expired") is False' in filter_source
+    assert 'MISSING_OR_DUPLICATE_COPILOT_ARTIFACT' in source
+
+
+def test_b1_protected_issue_projection_has_uniform_shape():
+    from scripts.recovery_rev2_read_bridge import project_verified_copilot_linkage_inventory
+
+    result = project_verified_copilot_linkage_inventory(
+        work_id="issue:79", observed_comment_ids=[123],
+        verified_linkages=[], source_complete=False)
+    assert result == {"status": "BLOCKED", "reason": "PROTECTED_ISSUE_79",
+                      "observed_count": 0, "authenticated_count": 0,
+                      "dispatch_allowed": False}
