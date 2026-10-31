@@ -40,6 +40,10 @@ Issue contract
 - PRは最新head SHAでCI、必要なreview、Issue固有Gate、mergeabilityを確認する。古いheadの証跡を流用しない。
 - 一般のCOMMENTED reviewを、根拠なくGitHubの正式な`APPROVED`必須条件へ昇格しない。一方でbranch protection、CODEOWNERS、Issue contractが要求するreviewは省略しない。
 - `AUTO_GREEN` は適格PRだけに適用する。merge直前にexpected head、CI、blocking review、required Gate、mergeabilityを再確認する。
+- **One-pass finalization (同一runで完結)**: 適格PRでexact-head CI、既存の独立技術レビュー、Issue固有Gate、正規Owner/path排他とGitHub必須条件を満たしたら、別の「ルナ確認待ち」工程を挟まずDraft解除（必要時）→fresh mergeability確認→expected-head SHA指定merge→merge SHA照合まで連続実行する。Draft解除後の一時的なmergeability=falseは再取得して判定する。
+- **GitHub approvalと技術レビューは別物**: GitHubが実際に要求するAPPROVEDを省略しない。ただし、正式APPROVEDが必須か不明なことだけを理由に架空のAPPROVED>=1ルールを追加しない。必須保護条件を検証できない場合はUNKNOWNのままマージせず、確認不能な正規source・担当・解除条件を1件記録する。
+- **反復キック防止**: HEAD、CI、レビュー、保護条件、Owner Gateの証拠が前回と同一なら同じレビュー依頼・HOLD投稿を再生成しない。新しい証拠がない場合は既存BLOCKED_ESCAPEを参照して非競合作業へ進む。新HEADまたは条件変更時のみ最終判定を再開する。
+- **完了の定義**: Draft解除、レビュー依頼、CI成功だけを「マージ完了」と報告しない。GitHubのmerged=trueとmerge SHAを確認したときだけMERGEDとする。
 - merge後は実際のmerge SHAを親Issueへ記録する。IssueがOwner Acceptanceを明示要求する場合、Owner本人のPASS前にcompleted Closeしない。
 - run終了時は次の安全な一手を `NEXT_AUTO` として具体化する。PR作成や確認だけを通常の停止条件にしない。
 
