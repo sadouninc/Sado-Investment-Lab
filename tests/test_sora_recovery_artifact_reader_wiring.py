@@ -141,3 +141,23 @@ def test_b1_projection_fails_closed_on_missing_duplicate_and_foreign_linkages():
         work_id="issue:79", observed_comment_ids=[123],
         verified_linkages=[valid], source_complete=True)
     assert protected["status"] == "BLOCKED"
+
+
+def test_b1_expired_artifact_is_filtered_before_zip_download():
+    source = WORKFLOW.read_text(encoding="utf-8")
+    start = source.index('named = [item for item in artifacts')
+    end = source.index('if len(named) != 1:', start)
+    filter_source = source[start:end]
+    assert 'item.get("expired") is False' in filter_source
+    assert 'MISSING_OR_DUPLICATE_COPILOT_ARTIFACT' in source
+
+
+def test_b1_protected_issue_projection_has_uniform_shape():
+    from scripts.recovery_rev2_read_bridge import project_verified_copilot_linkage_inventory
+
+    result = project_verified_copilot_linkage_inventory(
+        work_id="issue:79", observed_comment_ids=[123],
+        verified_linkages=[], source_complete=False)
+    assert result == {"status": "BLOCKED", "reason": "PROTECTED_ISSUE_79",
+                      "observed_count": 0, "authenticated_count": 0,
+                      "dispatch_allowed": False}
