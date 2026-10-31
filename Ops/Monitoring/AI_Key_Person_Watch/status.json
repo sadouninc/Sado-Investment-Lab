@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T11:31:12+09:00",
-  "last_success_at": "2026-10-31T11:31:12+09:00",
+  "last_run_at": "2026-10-31T12:27:40+09:00",
+  "last_success_at": "2026-10-31T12:27:40+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-10-31T11:31:12+09:00",
+  "last_news_delta_at": "2026-10-31T12:27:40+09:00",
   "news_persisted": true,
   "persistence_status": "COMPLETED",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 11:31 JST scheduled natural Research. TEAM_RULES 79a43dc1 → TEAM_STATE f3b71b55 (AWAY/LUNA) → #99 head 6405435565 270/270 VERIFIED; #892/#861/#124 read. New Foxconn official AI Factory 10/26 + Young Liu/Sam Altman 10/30 statement; additional deal and Japanese supplier orders UNKNOWN. Research append verified commit c4cb87d225c3696c2596901a660b2f2287a0cdc3. Direct GitHub connector; Issue #79 untouched. Historical 10/11 execution path UNKNOWN."
+  "note": "2026-10-31 12:27 JST chatgpt_scheduled Research. TEAM_RULES 79a43dc1 → TEAM_STATE f3b71b55 (AWAY/LUNA) → #99 broadcast-head 6405435565 270/270 VERIFIED; #861/#124 read. TDK official 2026-10-30 TMR sensor Physical AI capex ¥100bn, factory start plan 2029; MRAM memory distinct, customer orders/profit UNKNOWN. Research direct GitHub connector SUCCESS commit 02659879e40eca91ef8d4b463665af043ca1edfc. Issue #79 untouched. Historical 10/11 execution path UNKNOWN."
 }
