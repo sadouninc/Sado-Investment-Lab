@@ -49,6 +49,38 @@ def _related_event(body: str, issue_number: int) -> bool:
 
 
 
+def _ambiguous_malformed_event(body: str, issue_number: int) -> bool:
+    """Hold malformed event envelopes, without treating explanatory prose as events."""
+    decoder = json.JSONDecoder()
+    for match in re.finditer(r"\{", body):
+        fragment = body[match.start():]
+        try:
+            obj, _ = decoder.raw_decode(fragment)
+            if isinstance(obj, dict):
+                continue  # Valid events are handled by _related_event.
+        except (ValueError, TypeError):
+            pass
+        # An actual JSON-shaped lease event must contain quoted keys inside an
+        # object. Loose prose containing both tokens is not an event envelope.
+        if not re.search(r'"canonical_lease_id"\s*:', fragment):
+            continue
+        target_match = re.search(
+            r'"(?:work_ref|work_id|owner_slice)"\s*:\s*("(?:\\.|[^"\\])*")',
+            fragment,
+        )
+        if target_match is None:
+            return True  # Truncated event: its target cannot be established.
+        try:
+            target = json.loads(target_match.group(1))
+        except (ValueError, TypeError):
+            return True
+        if target in (f"issue:{issue_number}", f"issue-{issue_number}"):
+            return True
+        if isinstance(target, str) and re.fullmatch(r"issue[:\-]\d+", target):
+            continue  # Explicitly unrelated issue, even if the event is partial.
+        return True  # Unknown target provenance remains fail-closed.
+    return False
+
 # This is a narrow, immutable completed-slice attestation, NOT a rule to ignore
 # all merged PRs. PR #860 and any unverified/incomplete work still block.
 def _attested_completed_859_guard_repair(pr: Mapping, issue_number: int) -> bool:
@@ -98,11 +130,8 @@ def check_candidate(issue: Mapping, comments: list, prs: list) -> dict:
             return _block("PRIOR_DISPATCH_REQUIRES_RECONCILIATION")
         if _related_event(text, number):
             return _block("UNRECONCILED_WORK_EVENT")
-        # Malformed related JSON must not masquerade as an empty event history.
-        if ("AUTO_ROUTER_DISPATCH" in text or "canonical_lease_id" in text) and (
-            f"issue:{number}" in text or f"issue-{number}" in text or
-            re.search(r"target_issue\s*=\s*" + str(number) + r"\b", text)
-        ):
+        # Only malformed event-shaped JSON is ambiguous; prose is not.
+        if _ambiguous_malformed_event(text, number):
             return _block("AMBIGUOUS_RELATED_EVENT")
     issue_ref = re.compile(r"(?<!\d)#" + str(number) + r"(?!\d)")
     branch_ref = re.compile(r"(?:^|[/_-])(?:issue[-_])?" + str(number) + r"(?:$|[/_-])")
