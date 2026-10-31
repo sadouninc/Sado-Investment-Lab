@@ -292,6 +292,38 @@ jobs:
           assert copilot_projection["dispatch_allowed"] is False
           with open("/tmp/copilot-b1-projection.json", "w", encoding="utf-8") as f:
               json.dump(copilot_projection, f, sort_keys=True)
+          # #859: observe Actions artifacts as *candidates* only. No artifact
+          # name, run ID or comment can authorize a canonical Owner/Lease claim.
+          from scripts.recovery_rev2_owner_claim_source import diagnose_owner_ledger_source
+          current_run_id = int(os.environ["GITHUB_RUN_ID"])
+          artifact_inventory = None
+          try:
+              artifact_pages = []
+              page = 1
+              while page <= 100:
+                  response = subprocess.run(
+                      ["gh", "api", f"repos/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{current_run_id}/artifacts?per_page=100&page={page}"],
+                      check=True, capture_output=True, text=True)
+                  payload = json.loads(response.stdout)
+                  chunk = payload.get("artifacts")
+                  if not isinstance(chunk, list):
+                      raise ValueError("INVALID_ARTIFACT_PAGE")
+                  artifact_pages.extend(chunk)
+                  if len(chunk) < 100:
+                      if payload.get("total_count") != len(artifact_pages):
+                          raise ValueError("INCOMPLETE_ARTIFACT_INVENTORY")
+                      artifact_inventory = {"total_count": len(artifact_pages),
+                                            "artifacts": artifact_pages}
+                      break
+                  page += 1
+          except (subprocess.CalledProcessError, ValueError, OSError, KeyError,
+                  json.JSONDecodeError) as exc:
+              print("OWNER_LEDGER_ARTIFACT_FETCH_UNVERIFIED=" + type(exc).__name__)
+          diagnostic = diagnose_owner_ledger_source(
+              repository=os.environ["GITHUB_REPOSITORY"],
+              workflow_run_id=current_run_id, artifact_inventory=artifact_inventory)
+          print("OWNER_LEDGER_SOURCE_DIAGNOSTIC=" + json.dumps(diagnostic, sort_keys=True))
+          assert diagnostic["dispatch_allowed"] is False
           from scripts.recovery_rev2_read_bridge import project_attested_owner_inventory
           # No canonical complete Owner/Lease ledger is connected yet. Missing
           # input is UNKNOWN even if there are no open PRs or artifact records.
