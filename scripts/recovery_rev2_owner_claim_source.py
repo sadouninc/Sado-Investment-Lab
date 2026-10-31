@@ -13,6 +13,37 @@ DOMAINS = ("issues", "pull_requests", "branches", "actions_runs", "owner_lease_l
 ACTIVE = frozenset(("ASSIGNED", "ACKNOWLEDGED", "FALLBACK_ASSIGNED"))
 
 
+def diagnose_owner_ledger_source(*, repository: str, workflow_run_id: int | None,
+                                 artifact_inventory: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Observe a candidate Actions artifact inventory; never certify its authority.
+
+    The caller must retrieve the inventory via read-only GitHub API. An artifact
+    name or self-declared run ID cannot establish a canonical Owner/Lease issuer.
+    """
+    result = {"status": "UNKNOWN", "reason": "SOURCE_UNVERIFIED",
+              "dispatch_allowed": False, "candidate_artifacts": [],
+              "first_missing_source": "canonical_owner_lease_ledger_issuer"}
+    if not isinstance(repository, str) or "/" not in repository:
+        return {**result, "reason": "INVALID_REPOSITORY"}
+    if type(workflow_run_id) is not int or workflow_run_id <= 0:
+        return {**result, "reason": "ACTIONS_RUN_UNVERIFIED"}
+    if not isinstance(artifact_inventory, Mapping):
+        return {**result, "reason": "ARTIFACT_INVENTORY_UNAVAILABLE"}
+    artifacts = artifact_inventory.get("artifacts")
+    total = artifact_inventory.get("total_count")
+    if not isinstance(artifacts, list) or type(total) is not int or total != len(artifacts):
+        return {**result, "reason": "INCOMPLETE_ARTIFACT_INVENTORY"}
+    candidates = []
+    for artifact in artifacts:
+        if not isinstance(artifact, Mapping):
+            return {**result, "reason": "MALFORMED_ARTIFACT_INVENTORY"}
+        name = artifact.get("name")
+        if isinstance(name, str) and any(token in name.lower() for token in ("owner", "lease", "ledger")):
+            candidates.append({"id": artifact.get("id"), "name": name,
+                               "expired": artifact.get("expired")})
+    return {**result, "candidate_artifacts": candidates}
+
+
 def _overlap(a: str, b: str) -> bool:
     """Conservatively reject exact and directory/file nested path ownership."""
     a, b = a.rstrip("/"), b.rstrip("/")
