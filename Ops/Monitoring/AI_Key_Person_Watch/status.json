@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-01T03:28:00+09:00",
-  "last_success_at": "2026-11-01T03:28:00+09:00",
+  "last_run_at": "2026-11-01T04:30:19+09:00",
+  "last_success_at": "2026-11-01T04:30:19+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-01T00:26:50+09:00",
-  "news_persisted": false,
-  "persistence_status": "NOT_REQUIRED",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-01T04:30:19+09:00",
+  "news_persisted": true,
+  "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-11-01 03:28 JST scheduled run, direct GitHub connector. TEAM_RULES 79a43dc1 -> TEAM_STATE f3b71b55 AWAY/LUNA -> #99 broadcast-head 6405435565/comments270, fetched270/tail6405435565 VERIFIED -> #892/#861/#124. Fresh primary checks: Rapidus news latest 2026-10-26 HCLTech; Google XREAL AURA Japan orders scheduled 2026-11-02, not yet begun; TDK 2026-10-30 TMR investment; DeepMind Genie 4 2026-10-27. No newly verified material delta, confirmed Japanese company order/profit conversion, or fresh OpenAI funding primary disclosure found. XR consumer community pricing concerns anecdotal/previously known. No duplicate Research write. #79 untouched; historical 2026-10-11 execution route UNKNOWN."
+  "note": "2026-11-01 04:30 JST scheduled run; direct GitHub connector. TEAM_RULES blob79a43dc1 -> TEAM_STATE blobf3b71b55 AWAY/LUNA -> #99 broadcast-head6405435565/comments270, fetched270/tail6405435565 VERIFIED -> #892/#861/#124. New material primary policy delta: 2026-10-31 Quad joint release commits to launch semiconductor/AI hardware supply-chain chokepoint identification; SI/AI access support >$85m, not Japanese orders. Research saved 06_Research/News/AI_Key_Person_Watch/2026-11.md commit34a4266c2460f7351efa4fc8e9e917a535522694. Japanese beneficiaries hypothetical; actual procurement/profit UNKNOWN. No new MRAM/customer or XREAL order-start confirmation; #79 untouched. Historical 2026-10-11 route UNKNOWN."
 }
