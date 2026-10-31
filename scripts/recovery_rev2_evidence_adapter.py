@@ -258,7 +258,8 @@ def verify_copilot_assigned_linkage(*, artifact_zip: bytes,
             or artifact.get("name") != f"ai-production-assigned-linkage-{run_id}"
             or artifact.get("expired") is not False):
         return unknown("ARTIFACT_PROVENANCE_MISMATCH")
-    if utc(artifact.get("expires_at")) is None or now >= utc(artifact.get("expires_at")):
+    artifact_expires = utc(artifact.get("expires_at"))
+    if artifact_expires is None or now >= artifact_expires:
         return unknown("ARTIFACT_EXPIRED_OR_UNKNOWN")
 
     try:
@@ -295,7 +296,7 @@ def verify_copilot_assigned_linkage(*, artifact_zip: bytes,
             or comment["user"].get("login") != "github-actions[bot]"):
         return unknown("COMMENT_PROVENANCE_MISMATCH")
     body = comment.get("body")
-    if not isinstance(body, str) or not body.startswith("<!-- flow-dispatch-lease -->\\n"):
+    if not isinstance(body, str) or not body.startswith("<!-- flow-dispatch-lease -->\n"):
         return unknown("INVALID_COMMENT_ENVELOPE")
     events = []
     for line in body.splitlines():
