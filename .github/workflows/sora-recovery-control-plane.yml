@@ -328,6 +328,43 @@ jobs:
               workflow_run_id=current_run_id, artifact_inventory=artifact_inventory)
           print("OWNER_LEDGER_SOURCE_DIAGNOSTIC=" + json.dumps(diagnostic, sort_keys=True))
           assert diagnostic["dispatch_allowed"] is False
+          # Repository-wide read-only artifact discovery is separate from the
+          # current-run diagnostic. Candidate names never authenticate issuer.
+          from scripts.recovery_rev2_owner_claim_source import diagnose_repository_owner_ledger_candidates
+          repository_artifact_inventory = None
+          try:
+              repo_artifacts = []
+              repo_total = None
+              for repo_page in range(1, 11):  # bounded: at most 1,000 artifacts
+                  response = subprocess.run(
+                      ["gh", "api", f"repos/{os.environ['GITHUB_REPOSITORY']}/actions/artifacts?per_page=100&page={repo_page}"],
+                      check=True, capture_output=True, text=True)
+                  payload = json.loads(response.stdout)
+                  chunk, total = payload.get("artifacts"), payload.get("total_count")
+                  if not isinstance(chunk, list) or type(total) is not int or total < 0:
+                      raise ValueError("INVALID_REPOSITORY_ARTIFACT_PAGE")
+                  if repo_total is not None and repo_total != total:
+                      raise ValueError("CHANGING_REPOSITORY_ARTIFACT_INVENTORY")
+                  repo_total = total
+                  repo_artifacts.extend(chunk)
+                  if len(repo_artifacts) == repo_total:
+                      repository_artifact_inventory = {
+                          "total_count": repo_total, "artifacts": repo_artifacts}
+                      break
+                  if len(chunk) != 100 or len(repo_artifacts) > repo_total:
+                      raise ValueError("INCOMPLETE_REPOSITORY_ARTIFACT_INVENTORY")
+              if repository_artifact_inventory is None:
+                  repository_artifact_inventory = {
+                      "total_count": repo_total, "artifacts": repo_artifacts}
+          except (subprocess.CalledProcessError, ValueError, OSError, KeyError,
+                  json.JSONDecodeError) as exc:
+              print("OWNER_LEDGER_REPOSITORY_FETCH_UNVERIFIED=" + type(exc).__name__)
+          repository_diagnostic = diagnose_repository_owner_ledger_candidates(
+              repository=os.environ["GITHUB_REPOSITORY"],
+              artifact_inventory=repository_artifact_inventory)
+          print("OWNER_LEDGER_REPOSITORY_DIAGNOSTIC=" + json.dumps(
+              repository_diagnostic, sort_keys=True))
+          assert repository_diagnostic["dispatch_allowed"] is False
           from scripts.recovery_rev2_read_bridge import project_attested_owner_inventory
           # No canonical complete Owner/Lease ledger is connected yet. Missing
           # input is UNKNOWN even if there are no open PRs or artifact records.
