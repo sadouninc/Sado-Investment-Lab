@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-10-31T19:34:30+09:00",
-  "last_success_at": "2026-10-31T19:34:30+09:00",
+  "last_run_at": "2026-10-31T20:33:39+09:00",
+  "last_success_at": "2026-10-31T20:33:39+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-10-31T16:27:39+09:00",
-  "news_persisted": false,
-  "persistence_status": "NOT_REQUIRED",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-10-31T20:33:39+09:00",
+  "news_persisted": true,
+  "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-10-31 19:34 JST chatgpt_scheduled; direct GitHub connector. Startup TEAM_RULES 79a43dc1 -> TEAM_STATE f3b71b55 (AWAY/LUNA) -> #99 broadcast-head 6405435565, 270/270 fetched, tail 6405435565 VERIFIED -> #861/#124. Fresh primary checks: Rapidus latest news 10/26 HCLTech; 10/27 BOK downside AI capex scenario via Reuters (primary BOK document not independently obtained); no verified distinct material primary-source delta or Japan earnings conversion. Research write NOT_ATTEMPTED. #79 untouched; 10/11 historical execution path UNKNOWN."
+  "note": "2026-10-31 20:33 JST chatgpt_scheduled direct GitHub connector. TEAM_RULES 79a43dc1 -> TEAM_STATE f3b71b55 (AWAY/LUNA) -> #99 broadcast-head 6405435565, 270/270 fetched VERIFIED -> #892/#861/#124. New primary 2026-10-27 Google DeepMind Genie 4 world-model robotics preview; #861 second-order sim-to-real validation hypothesis, Japanese listed orders/revenue UNKNOWN. Research commit fc4b24f23bf80c7d0088d9625a5e77f673abaa58. Rapidus 10/26, Kioxia 10/30, Everspin 10/28 already tracked; no new Japan semiconductor orders/profits. #79 untouched; historical 10/11 path UNKNOWN."
 }
