@@ -84,6 +84,58 @@ def test_repository_diagnostic_rejects_unverified_candidate_run():
     assert result["dispatch_allowed"] is False
 
 
+
+def test_repository_diagnostic_21_candidates_reports_truncation_fail_closed():
+    from scripts.recovery_rev2_owner_claim_source import diagnose_repository_owner_ledger_candidates
+    artifacts = [
+        {"id": i, "name": "owner-lease-ledger", "workflow_run": {"id": 987}}
+        for i in range(1, 22)
+    ]
+    result = diagnose_repository_owner_ledger_candidates(
+        repository="sadouninc/Sado-Investment-Lab",
+        artifact_inventory={"total_count": 21, "artifacts": artifacts})
+    assert result["status"] == "UNKNOWN"
+    assert result["reason"] == "INCOMPLETE_CANDIDATE_LIST"
+    assert result["candidate_count"] == 21
+    assert result["returned_count"] == len(result["candidate_artifacts"]) == 20
+    assert result["truncated"] is True
+    assert result["dispatch_allowed"] is False
+
+
+def test_repository_diagnostic_1001_total_with_1000_fetched_is_incomplete():
+    from scripts.recovery_rev2_owner_claim_source import diagnose_repository_owner_ledger_candidates
+    artifacts = [{"id": i, "name": "other"} for i in range(1, 1001)]
+    result = diagnose_repository_owner_ledger_candidates(
+        repository="sadouninc/Sado-Investment-Lab",
+        artifact_inventory={"total_count": 1001, "artifacts": artifacts})
+    assert result["reason"] == "INCOMPLETE_ARTIFACT_INVENTORY"
+    assert result["candidate_artifacts"] == []
+    assert result["dispatch_allowed"] is False
+
+
+def test_repository_diagnostic_rejects_duplicate_across_page_boundary():
+    from scripts.recovery_rev2_owner_claim_source import diagnose_repository_owner_ledger_candidates
+    artifacts = [{"id": i, "name": "other"} for i in range(1, 101)]
+    artifacts.append({"id": 1, "name": "owner-lease-ledger",
+                      "workflow_run": {"id": 987}})
+    result = diagnose_repository_owner_ledger_candidates(
+        repository="sadouninc/Sado-Investment-Lab",
+        artifact_inventory={"total_count": 101, "artifacts": artifacts})
+    assert result["reason"] == "DUPLICATE_ARTIFACT_ID"
+    assert result["dispatch_allowed"] is False
+
+
+def test_repository_workflow_has_explicit_page_limit_and_total_drift_guards():
+    from pathlib import Path
+    workflow = (Path(__file__).resolve().parents[1]
+                / ".github/workflows/sora-recovery-control-plane.yml").read_text()
+    assert 'repo_total is not None and repo_total != total' in workflow
+    assert 'CHANGING_REPOSITORY_ARTIFACT_INVENTORY' in workflow
+    assert 'OWNER_LEDGER_REPOSITORY_PAGE_LIMIT_EXCEEDED=INCOMPLETE' in workflow
+    assert 'raise ValueError("REPOSITORY_ARTIFACT_PAGE_LIMIT_EXCEEDED")' in workflow
+    assert 'raise ValueError("INCOMPLETE_REPOSITORY_ARTIFACT_INVENTORY")' in workflow
+
+
 NOW = datetime(2026, 10, 28, tzinfo=timezone.utc)
 
 
