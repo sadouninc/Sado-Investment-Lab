@@ -268,3 +268,35 @@ def test_885_missing_merged_flag_remains_held():
     pr.pop("merged")
     result = check_candidate(issue(), [], [pr])
     assert result["reason"] == "RELATED_PR_EXISTS"
+
+
+def test_prose_with_lease_terms_is_not_a_work_event():
+    prose = "Documentation: canonical_lease_id is required for issue:859 recovery."
+    result = check_candidate(issue(), [{"id": 31, "body": prose}], [])
+    assert result["status"] == "ALLOW_PRELIMINARY"
+    assert result["dispatch_authorized"] is False
+
+
+def test_malformed_unicode_escaped_related_event_fails_closed():
+    body = '{"canonical_lease_id":"lease-123","work_ref":"issue:\\u0038\\u0035\\u0039",'
+    result = check_candidate(issue(), [{"id": 32, "body": body}], [])
+    assert result["reason"] == "AMBIGUOUS_RELATED_EVENT"
+
+
+def test_malformed_unicode_escaped_unrelated_event_is_not_attributed():
+    body = '{"canonical_lease_id":"lease-123","work_ref":"issue:\\u0038\\u0036\\u0030",'
+    result = check_candidate(issue(), [{"id": 33, "body": body}], [])
+    assert result["status"] == "ALLOW_PRELIMINARY"
+    assert result["dispatch_authorized"] is False
+
+
+def test_malformed_lease_event_without_provable_target_remains_held():
+    body = '{"canonical_lease_id":"lease-123","work_ref":'
+    result = check_candidate(issue(), [{"id": 34, "body": body}], [])
+    assert result["reason"] == "AMBIGUOUS_RELATED_EVENT"
+
+
+def test_valid_unicode_escaped_related_event_stays_blocked():
+    body = '{"canonical_lease_id":"lease-123","work_ref":"issue:\\u0038\\u0035\\u0039","status":"ACK"}'
+    result = check_candidate(issue(), [{"id": 35, "body": body}], [])
+    assert result["reason"] == "UNRECONCILED_WORK_EVENT"
