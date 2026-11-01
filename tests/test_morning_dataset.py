@@ -9,9 +9,11 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / ".github" / "pages"))
 
 from scripts.morning_dataset.generator import build_dataset, write_dataset
 from scripts.morning_dataset.validator import MorningDatasetValidationError, validate_dataset
+from build_morning_dataset import build_page
 
 
 class MorningDatasetTest(unittest.TestCase):
@@ -94,6 +96,22 @@ class MorningDatasetTest(unittest.TestCase):
         self.assertEqual("data/generated/investor-dna.json", row["source_reference"])
         self.assertEqual("2026-08-07T07:00:00+09:00", row["as_of"])
         self.assertIsNone(row["reason"])
+
+    def test_diagnostics_sector_rotation_source_is_visible(self) -> None:
+        payload = build_dataset(
+            sector_rotation={"as_of": "2026-11-01", "sectors": [{"name": "電機・精密", "state": "WARMING"}]}
+        )
+        rendered = build_page(payload)
+        self.assertIn("### sector_rotation — OK", rendered)
+        self.assertIn("Raw JSONを見る — sector_rotation", rendered)
+        self.assertIn("WARMING", rendered)
+
+    def test_diagnostics_missing_sector_rotation_remains_missing(self) -> None:
+        payload = build_dataset()
+        rendered = build_page(payload)
+        self.assertIn("### sector_rotation — MISSING", rendered)
+        self.assertIn("- Status: MISSING", rendered)
+        self.assertNotIn("### sector_rotation — OK", rendered)
 
     def test_validator_rejects_bad_schema(self) -> None:
         payload = build_dataset()
