@@ -101,6 +101,7 @@ class DaihenOperationalReadModelTests(unittest.TestCase):
         payload = copy.deepcopy(self.fixture)
         payload["valuation"]["status"] = "OK"
         payload["valuation"]["freshness"] = "STALE"
+        payload["valuation"]["price_as_of"] = "2026-07-29"
         payload["valuation"]["warnings"] = ["PRICE_STALE_FOR_E2E"]
         result = build_daihen_operational_read_model(payload, generated_at=GENERATED_AT)
         self.assertEqual(result["valuation"]["status"], "PARTIAL")
