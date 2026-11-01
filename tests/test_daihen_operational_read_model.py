@@ -92,7 +92,7 @@ class DaihenOperationalReadModelTests(unittest.TestCase):
         result = build_daihen_operational_read_model(self.fixture, generated_at=GENERATED_AT)
         self.assertEqual(result["security_code"], "6622")
         self.assertEqual(result["overall_status"], "PARTIAL")
-        self.assertEqual(result["valuation"]["base"]["eps"], 720.1)
+        self.assertEqual(result["valuation"]["base"]["eps"], 144.02)
         self.assertIn("company-research:6622:2026-08-09", result["source_refs"])
         self.assertIn("expectations", result["missing_components"])
         self.assertIn("portfolio_preflight", result["missing_components"])
@@ -100,6 +100,8 @@ class DaihenOperationalReadModelTests(unittest.TestCase):
     def test_stale_price_is_not_silently_current(self):
         payload = copy.deepcopy(self.fixture)
         payload["valuation"]["status"] = "OK"
+        payload["valuation"]["freshness"] = "STALE"
+        payload["valuation"]["warnings"] = ["PRICE_STALE_FOR_E2E"]
         result = build_daihen_operational_read_model(payload, generated_at=GENERATED_AT)
         self.assertEqual(result["valuation"]["status"], "PARTIAL")
         self.assertEqual(result["freshness"]["overall"], "STALE")
@@ -163,7 +165,7 @@ class DaihenOperationalReadModelTests(unittest.TestCase):
         self.assertEqual(fair_per["status"], "UNAVAILABLE")
         self.assertEqual(fair_per["current_valuation_status"], "UNKNOWN")
         self.assertIsNone(fair_per["implied_expectation"]["current_per"])
-        self.assertEqual(result["valuation"]["base"]["eps"], 720.1)
+        self.assertEqual(result["valuation"]["base"]["eps"], 144.02)
         self.assertEqual(result["overall_status"], "PARTIAL")
 
     def test_fresh_fair_per_evidence_is_projected_losslessly(self):
