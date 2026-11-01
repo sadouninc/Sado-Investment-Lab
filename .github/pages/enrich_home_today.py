@@ -279,8 +279,9 @@ def render_status_section(
     market = _source_status(dataset, "market")
     sector = _source_status(dataset, "sector_rotation")
     sector_payload = dataset.get("sector_rotation") if isinstance(dataset.get("sector_rotation"), Mapping) else {}
+    sector_status = str(sector.get("status") or "MISSING").upper()
     sector_usable = (
-        str(sector.get("status") or "MISSING").upper() in {"OK", "PARTIAL"}
+        sector_status in {"OK", "PARTIAL"}
         and isinstance(sector_payload.get("sectors"), list)
         and bool(sector_payload["sectors"])
     )
@@ -291,11 +292,20 @@ def render_status_section(
     )
     warming = sum(1 for row in sectors if isinstance(row, Mapping) and row.get("state") == "WARMING")
     inflow = sum(1 for row in sectors if isinstance(row, Mapping) and row.get("state") == "INFLOW")
-    sector_detail = (
-        f"Canonical snapshot内の WARMING {warming}件 / INFLOW {inflow}件。順位や推奨はHomeで生成しません。"
-        if sector_usable
-        else "sourceがSTALE/MISSING/UNKNOWNのため、状態件数を集計しません。順位や推奨はHomeで生成しません。"
-    )
+    if sector_usable:
+        sector_detail = (
+            f"Canonical snapshot内の WARMING {warming}件 / INFLOW {inflow}件。順位や推奨はHomeで生成しません。"
+        )
+    elif sector_status in {"OK", "PARTIAL"}:
+        sector_detail = (
+            "source状態はOK/PARTIALですが、公開JSONのSector Rotation payloadが欠損または空のため、"
+            "状態件数を集計しません。順位や推奨はHomeで生成しません。"
+        )
+    else:
+        sector_detail = (
+            "sourceがSTALE/MISSING/UNKNOWNのため、状態件数を集計しません。"
+            "順位や推奨はHomeで生成しません。"
+        )
     warnings = [str(item) for item in (dataset.get("warnings") or []) if item]
     warning_html = (
         '<div class="codex-alert" data-state="caution"><strong>既存Dataset warning</strong><ul>'
