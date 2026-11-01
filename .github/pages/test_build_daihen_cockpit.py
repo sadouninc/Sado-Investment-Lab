@@ -15,12 +15,12 @@ SPEC.loader.exec_module(MODULE)
 
 
 class DaihenCockpitPageTests(unittest.TestCase):
-    def test_model_preserves_partial_current_and_unavailable_states(self):
+    def test_model_preserves_partial_current_expectation_and_portfolio_not_run(self):
         model = MODULE.load_model()
         self.assertEqual(model["security_code"], "6622")
         self.assertEqual(model["overall_status"], "PARTIAL")
         self.assertEqual(model["valuation"]["freshness"], "CURRENT")
-        self.assertEqual(model["expectations"]["status"], "UNAVAILABLE")
+        self.assertEqual(model["expectations"]["status"], "PARTIAL")
         self.assertEqual(model["portfolio_preflight"]["status"], "NOT_RUN")
 
     def test_page_is_japanese_first_and_surfaces_first_viewport_questions(self):
@@ -30,7 +30,7 @@ class DaihenCockpitPageTests(unittest.TestCase):
         self.assertIn("市場期待との差は？", page)
         self.assertIn("Warning / Thesis Health", page)
         self.assertIn("株価情報が古い場合", page)
-        self.assertIn("Consensusを取得できない場合", page)
+        self.assertIn("二次データによる観測可能なproxy", page)
         self.assertIn("この画面は売買指示を生成しません", page)
 
     def test_approved_first_view_hierarchy_is_preserved(self):
@@ -45,10 +45,11 @@ class DaihenCockpitPageTests(unittest.TestCase):
         self.assertIn("情報鮮度:", page)
         self.assertIn("株価基準日:", page)
 
-    def test_unavailable_expectation_is_visible_and_not_coerced_to_zero_gap(self):
+    def test_partial_expectation_proxy_is_visible_and_not_presented_as_truth(self):
         page = MODULE.page_content(MODULE.load_model())
-        self.assertIn("市場期待データは現在取得できません。差なし・0として扱いません。", page)
-        self.assertIn("現在取得できません <code>UNAVAILABLE</code>", page)
+        self.assertIn("161.20円", page)
+        self.assertIn("一部情報不足 <code>PARTIAL</code>", page)
+        self.assertIn("二次データによる観測可能なproxy", page)
         self.assertNotIn("gap=0", page.split("## 3. 市場期待との差", 1)[0])
 
     def test_page_preserves_historical_snapshot_and_no_auto_trade_language(self):
