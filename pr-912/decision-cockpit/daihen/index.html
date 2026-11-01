@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #912 · NOT PRODUCTION</strong>
-  <span>Head 30e6077cff45 · Built 2026-11-01T03:16:37Z</span>
+  <span>Head 055d66b47325 · Built 2026-11-01T09:24:19Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -182,8 +182,8 @@
   <span class="muted">Previous snapshot値はCanonical sourceに存在する場合だけ表示します。現在値から過去値を逆算しません。比較ref: <code>decision-comparison:6622:current-vs-latest</code></span>
 </div>
 
-  <div class="content-card cockpit-expectation-summary"><strong>市場期待との差は？</strong><span class="status-chip">現在取得できません <code>UNAVAILABLE</code></span><span>市場期待データは現在取得できません。差なし・0として扱いません。</span></div>
-  <div class="content-card cockpit-thesis-summary"><strong>今の投資仮説は？ / Warning / Thesis Health</strong><span>Health: <code>INTACT</code></span><span>仮説状態: 一部情報不足 <code>PARTIAL</code></span><span>確認すべきwarning: 2件</span></div>
+  <div class="content-card cockpit-expectation-summary"><strong>市場期待との差は？</strong><span class="status-chip">一部情報不足 <code>PARTIAL</code></span><span>市場期待との差は情報不足または鮮度制約付きです。根拠を確認してから判断します。</span></div>
+  <div class="content-card cockpit-thesis-summary"><strong>今の投資仮説は？ / Warning / Thesis Health</strong><span>Health: <code>INTACT</code></span><span>仮説状態: 一部情報不足 <code>PARTIAL</code></span><span>確認すべきwarning: 3件</span></div>
 </div>
 <div class="content-card cockpit-decision-loop">
   <strong>判断ループ — 次にどこを見る？</strong>
@@ -202,9 +202,9 @@
   <li>全体状態: 一部情報不足 <code>PARTIAL</code></li>
   <li>情報鮮度: 一部情報不足 <code>PARTIAL</code></li>
   <li>古いcomponent: なし</li>
-  <li>鮮度不明component: expectations, portfolio_preflight</li>
+  <li>鮮度不明component: portfolio_preflight</li>
 </ul>
-<ul><li>earnings_driver: DRIVER_COVERAGE_PARTIAL</li><li>expectations: CONSENSUS_UNAVAILABLE</li></ul>
+<ul><li>earnings_driver: DRIVER_COVERAGE_PARTIAL</li><li>expectations: SECONDARY_SOURCE</li><li>expectations: CONSENSUS_IS_PROXY_NOT_TRUTH</li></ul>
 
 <h2 id="1-利益予想--なぜこのbase">1. 利益予想 — なぜこのBase？</h2>
 <div class="content-grid"><div class="content-card"><strong>Base純利益</strong><span>17,000百万円</span><span>一部情報不足 <code>PARTIAL</code></span></div><div class="content-card"><strong>Base EPS</strong><span>144.02円</span><span>対象: FY2027</span></div><div class="content-card"><strong>会社予想 純利益</strong><span>20,000百万円</span><span>説明coverage: <code>PARTIAL</code></span></div></div>
@@ -225,13 +225,22 @@ Source: <code>company-research:6622:2026-08-09</code> / <code>https://www.daihen
 </ul>
 
 <h2 id="3-市場期待との差">3. 市場期待との差</h2>
-<p>状態: 現在取得できません <code>UNAVAILABLE</code></p>
+<p>状態: 一部情報不足 <code>PARTIAL</code></p>
+<div class="table-scroll"><table>
+<thead><tr><th>比較軸</th><th>FY2027 EPS</th><th>Consensusとの差</th></tr></thead>
+<tbody>
+<tr><th>External Consensus</th><td>161.20円</td><td>基準</td></tr>
+<tr><th>会社予想</th><td>169.42円</td><td>+5.1%</td></tr>
+<tr><th>Sado Base</th><td>144.02円</td><td>-10.7%</td></tr>
+</tbody></table></div>
 <ul>
+  <li>Consensus coverage: <strong>5名</strong> / range <strong>144.87〜178.27円</strong></li>
+  <li>Revision direction: <strong>UP</strong></li>
   <li>Company Guidance: <code>company-research:6622:guidance:FY2027</code></li>
-  <li>External Consensus: <span class="muted">参照なし</span></li>
+  <li>External Consensus: <code>expectation:6622:FY2027:2928b83379f74318</code></li>
   <li>Sado Base: <code>company-research:6622:scenario:base:FY2027</code></li>
   <li>Latest Actual: <code>company-research:6622:FY2027-Q1</code>
-<strong>Consensusを取得できない場合、gap=0や「差なし」とは表示しません。</strong></li>
+<strong>Consensusは二次データによる観測可能なproxyであり、市場全体の真の期待とは断定しません。取得できない場合もgap=0や「差なし」とは表示しません。</strong></li>
 </ul>
 
 <h2 id="4-投資仮説は生きているか">4. 投資仮説は生きているか</h2>
@@ -262,7 +271,7 @@ Challenging evidence: <span class="muted">参照なし</span></p>
   <li>利益予想の根拠: <code>company-research:6622:earnings-engine</code></li>
   <li>次checkpoint: <code>company-research:6622:FY2027-Q2</code></li>
   <li>仮説source: <code>hypothesis:6622:FY2027</code></li>
-  <li>全source refs: <code>company-research:6622:2026-08-09</code> / <code>decision-snapshot:6622:latest:immutable</code> / <code>decision:6622:latest</code> / <code>forward-per:6622:FY2027:2026-10-30</code> / <code>https://finance.yahoo.co.jp/quote/6622.T/history</code> / <code>https://www.daihen.co.jp/ir/ir_pdf/2026_0804_bunkatsu.pdf</code> / <code>https://www.daihen.co.jp/ir/summary_pdf/2026_1029_gyosekiyosou.pdf</code> / <code>hypothesis:6622:FY2027</code> / <a href="https://github.com/sadouninc/Sado-Investment-Lab/issues/214">issue:214</a></li>
+  <li>全source refs: <code>company-research:6622:2026-08-09</code> / <code>decision-snapshot:6622:latest:immutable</code> / <code>decision:6622:latest</code> / <code>expectation:6622:FY2027:2928b83379f74318</code> / <code>forward-per:6622:FY2027:2026-10-30</code> / <code>https://finance.yahoo.co.jp/quote/6622.T/history</code> / <code>https://twelvedata.com/markets/101127/stock/jpx/6622/analysis</code> / <code>https://www.daihen.co.jp/ir/ir_pdf/2026_0804_bunkatsu.pdf</code> / <code>https://www.daihen.co.jp/ir/summary_pdf/2026_1029_gyosekiyosou.pdf</code> / <code>hypothesis:6622:FY2027</code> / <a href="https://github.com/sadouninc/Sado-Investment-Lab/issues/214">issue:214</a></li>
 </ul>
 
 <!-- cockpit-drilldown:start -->
