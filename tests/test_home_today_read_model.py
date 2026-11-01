@@ -265,6 +265,12 @@ def test_home_load_uses_published_read_model_without_home_only_sector_collection
     assert "home-heatmap-cell" not in rendered
 
 
+def test_home_load_invalid_utf8_fails_closed(tmp_path):
+    path = tmp_path / "morning-dataset.json"
+    path.write_bytes(b"\\xff\\xfeinvalid")
+    assert module.load_dataset(path) is None
+
+
 def test_missing_source_status_is_not_promoted_to_ok():
     payload = dataset()
     payload["source_status"] = []
@@ -303,3 +309,10 @@ def test_pages_build_restores_morning_dataset_before_home_status_enrichment():
     assert workflow.count(morning) == 1
     assert workflow.count(risk_preflight) == 1
     assert workflow.index(morning) < workflow.index(risk_preflight)
+    # Home enrichment is called inside the risk-preflight build step, not
+    # from a separate workflow step. Preserve that call as part of ordering.
+    risk_builder = (ROOT / ".github" / "pages" / "build_risk_preflight.py").read_text(
+        encoding="utf-8"
+    )
+    assert "from enrich_home_today import enrich_home_from_morning" in risk_builder
+    assert "enrich_home_from_morning()" in risk_builder
