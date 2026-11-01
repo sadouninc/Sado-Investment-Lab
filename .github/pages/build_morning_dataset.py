@@ -114,6 +114,12 @@ def build_page(payload: dict) -> str:
     completeness_label = quality.get("completeness_label") or f"{ok_sources} / {total_sources}"
     completeness_percent = fmt(quality.get("completeness"))
     source_counts = quality.get("source_counts") or {}
+    reported_total = quality.get("total_sources")
+    source_total_label = (
+        f"全{reported_total}ソース"
+        if isinstance(reported_total, int) and not isinstance(reported_total, bool) and reported_total > 0
+        else "全ソース"
+    )
 
     page = """---
 layout: site
@@ -163,7 +169,7 @@ permalink: /research/morning-dataset/
 
     page += (
         "\n`OK` は当日判断に利用可能、`PARTIAL` は一部不足、`STALE` は値はあるが鮮度不足、"
-        "`MISSING` は利用可能な入力がない状態です。Completeness は **OK のソース数 / 全7ソース** で計算します。\n\n"
+        f"`MISSING` は利用可能な入力がない状態です。Completeness は **OK のソース数 / {source_total_label}** で計算します。\n\n"
     )
 
     page += "## Warnings\n\n"
