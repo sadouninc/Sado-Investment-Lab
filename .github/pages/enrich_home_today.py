@@ -127,16 +127,28 @@ def render_sector_heatmap(dataset: Mapping[str, Any]) -> str:
     source = _source_status(dataset, "sector_rotation")
     status, token, label = _status(source.get("status"))
     payload = dataset.get("sector_rotation") if isinstance(dataset.get("sector_rotation"), Mapping) else {}
-    sectors = payload.get("sectors") if isinstance(payload.get("sectors"), list) else []
+    # Do not project old or unverified sector cells as current market signals.
+    source_usable = status in {"OK", "PARTIAL"}
+    sectors = (
+        payload.get("sectors")
+        if source_usable and isinstance(payload.get("sectors"), list)
+        else []
+    )
     as_of = payload.get("as_of") or source.get("as_of") or "時点不明"
 
     if not sectors:
+        unavailable_title = (
+            "Sector Rotationのデータは古いため表示しません"
+            if status == "STALE"
+            else "Sector Rotationは取得できません"
+        )
+        alert_token = "stale" if status == "STALE" else "unavailable"
         return f'''  <section class="home-os-section home-heatmap" aria-labelledby="heatmap-title">
     <p class="eyebrow">MARKET HEATMAP</p>
     <h2 id="heatmap-title">市場・テーマの動き</h2>
     <p>今日の判断に影響しそうな変化を、既存Canonical stateだけで俯瞰します。</p>
-    <div class="codex-alert" data-state="unavailable">
-      <strong>Sector Rotationは取得できません</strong>
+    <div class="codex-alert" data-state="{alert_token}">
+      <strong>{unavailable_title}</strong>
       <p>{_e(source.get('reason') or 'canonical Sector snapshotが未接続です。')}</p>
     </div>
   </section>
@@ -291,9 +303,19 @@ def render_status_section(
     market = _source_status(dataset, "market")
     sector = _source_status(dataset, "sector_rotation")
     sector_payload = dataset.get("sector_rotation") if isinstance(dataset.get("sector_rotation"), Mapping) else {}
-    sectors = sector_payload.get("sectors") if isinstance(sector_payload.get("sectors"), list) else []
+    sector_usable = str(sector.get("status") or "MISSING").upper() in {"OK", "PARTIAL"}
+    sectors = (
+        sector_payload.get("sectors")
+        if sector_usable and isinstance(sector_payload.get("sectors"), list)
+        else []
+    )
     warming = sum(1 for row in sectors if isinstance(row, Mapping) and row.get("state") == "WARMING")
     inflow = sum(1 for row in sectors if isinstance(row, Mapping) and row.get("state") == "INFLOW")
+    sector_detail = (
+        f"Canonical snapshot内の WARMING {warming}件 / INFLOW {inflow}件。順位や推奨はHomeで生成しません。"
+        if sector_usable
+        else "sourceがSTALE/MISSING/UNKNOWNのため、状態件数を集計しません。順位や推奨はHomeで生成しません。"
+    )
     warnings = [str(item) for item in (dataset.get("warnings") or []) if item]
     warning_html = (
         '<div class="codex-alert" data-state="caution"><strong>既存Dataset warning</strong><ul>'
@@ -308,7 +330,7 @@ def render_status_section(
         _status_card(
             "Sector Rotation",
             sector,
-            f"最新canonical set内の WARMING {warming}件 / INFLOW {inflow}件。順位や推奨はHomeで生成しません。",
+            sector_detail,
         ),
     ])
     if freshness == "NOT_GENERATED_TODAY":
