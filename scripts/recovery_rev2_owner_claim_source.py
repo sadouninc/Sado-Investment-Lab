@@ -44,6 +44,59 @@ def diagnose_owner_ledger_source(*, repository: str, workflow_run_id: int | None
     return {**result, "candidate_artifacts": candidates}
 
 
+
+def diagnose_repository_owner_ledger_candidates(
+    *, repository: str, artifact_inventory: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    """Observe repository-wide Actions artifacts without asserting issuer authority.
+
+    Unlike the current-run diagnostic, this can locate *candidate* artifacts
+    from other workflow runs. A matching name is never a canonical ledger,
+    run attestation, lease, or permission to dispatch.
+    """
+    result = {"status": "UNKNOWN", "reason": "SOURCE_UNVERIFIED",
+              "dispatch_allowed": False, "candidate_artifacts": [],
+              "candidate_count": 0, "inventory_scope": "repository",
+              "first_missing_source": "canonical_owner_lease_ledger_issuer"}
+    if not isinstance(repository, str) or repository.count("/") != 1:
+        return {**result, "reason": "INVALID_REPOSITORY"}
+    if not isinstance(artifact_inventory, Mapping):
+        return {**result, "reason": "ARTIFACT_INVENTORY_UNAVAILABLE"}
+    artifacts = artifact_inventory.get("artifacts")
+    total = artifact_inventory.get("total_count")
+    if (not isinstance(artifacts, list) or type(total) is not int
+            or total < 0 or total != len(artifacts)):
+        return {**result, "reason": "INCOMPLETE_ARTIFACT_INVENTORY"}
+    seen_ids: set[int] = set()
+    candidates: list[dict[str, Any]] = []
+    for artifact in artifacts:
+        if not isinstance(artifact, Mapping):
+            return {**result, "reason": "MALFORMED_ARTIFACT_INVENTORY"}
+        artifact_id, name = artifact.get("id"), artifact.get("name")
+        if (type(artifact_id) is not int or artifact_id <= 0
+                or not isinstance(name, str) or not name):
+            return {**result, "reason": "MALFORMED_ARTIFACT_INVENTORY"}
+        if artifact_id in seen_ids:
+            return {**result, "reason": "DUPLICATE_ARTIFACT_ID"}
+        seen_ids.add(artifact_id)
+        if not any(token in name.lower() for token in ("owner", "lease", "ledger")):
+            continue
+        run = artifact.get("workflow_run")
+        if (not isinstance(run, Mapping) or type(run.get("id")) is not int
+                or run["id"] <= 0):
+            return {**result, "reason": "CANDIDATE_RUN_UNVERIFIED"}
+        candidates.append({"id": artifact_id, "name": name,
+                           "run_id": run["id"], "expired": artifact.get("expired")})
+    # Keep the bounded diagnostic payload explicit: an omitted candidate is
+    # never mistaken for a complete or authenticated issuer inventory.
+    truncated = len(candidates) > 20
+    return {**result, "candidate_artifacts": candidates[:20],
+            "candidate_count": len(candidates),
+            "returned_count": min(len(candidates), 20),
+            "truncated": truncated,
+            "reason": "INCOMPLETE_CANDIDATE_LIST" if truncated else "SOURCE_UNVERIFIED"}
+
+
 def _overlap(a: str, b: str) -> bool:
     """Conservatively reject exact and directory/file nested path ownership."""
     a, b = a.rstrip("/"), b.rstrip("/")
