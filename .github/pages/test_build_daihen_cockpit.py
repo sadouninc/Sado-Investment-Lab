@@ -75,7 +75,14 @@ class DaihenCockpitPageTests(unittest.TestCase):
         page = MODULE.page_content(model)
         self.assertEqual(delta.current.eps, 144.02)
         self.assertEqual(delta.current.forward_per, 16.68)
-        self.assertIn("Scenario: UNKNOWN", page)
+        self.assertEqual(delta.previous.eps, 144.02)
+        self.assertEqual(delta.previous.price, 2380)
+        self.assertEqual(delta.previous.forward_per, 16.53)
+        self.assertEqual(delta.current.price, 2402)
+        self.assertEqual(delta.earnings_direction, "UNCHANGED")
+        self.assertEqual(delta.price_direction, "IMPROVED")
+        self.assertEqual(delta.valuation_direction, "NARROWED")
+        self.assertIn("Scenario: Base維持", page)
         self.assertIn("業績見通し", page)
         self.assertIn("Valuation余地", page)
         self.assertIn("Previous / Current の詳細値", page)
@@ -84,6 +91,7 @@ class DaihenCockpitPageTests(unittest.TestCase):
 
     def test_missing_previous_snapshot_fails_closed_instead_of_reconstructing_history(self):
         model = MODULE.load_model()
+        model["decision_history"].pop("previous_snapshot")
         delta = MODULE._scenario_delta(model)
         self.assertEqual(delta.previous.scenario, "UNKNOWN")
         self.assertIsNone(delta.previous.eps)
