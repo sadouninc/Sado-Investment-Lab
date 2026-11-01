@@ -181,7 +181,7 @@ permalink: /research/morning-dataset/
 
     page += "\n## Source Summaries\n\n"
     page += "日次確認では要約を先に表示します。検証・デバッグ時だけ各セクションの Raw JSON を展開してください。\n\n"
-    sections = ("market", "portfolio", "capital", "candidates", "investor_dna", "events", "watchlist")
+    sections = ("market", "portfolio", "capital", "candidates", "investor_dna", "events", "watchlist", "sector_rotation")
     status_by_name = {row.get("name"): row.get("status") for row in sources}
     source_by_name = {row.get("name"): row for row in sources}
     for key in sections:
