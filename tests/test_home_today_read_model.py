@@ -247,6 +247,24 @@ def test_expected_business_date_uses_jst_and_skips_weekend():
     assert module.expected_jst_business_date(saturday_utc) == date(2026, 8, 14)
 
 
+def test_home_load_uses_published_read_model_without_home_only_sector_collection(tmp_path):
+    import json
+
+    payload = dataset()
+    payload.pop("sector_rotation")
+    path = tmp_path / "morning-dataset.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    loaded = module.load_dataset(path)
+    assert loaded == payload
+    assert loaded["source_status"][1]["status"] == "OK"
+    rendered = module.render_status_section(loaded, expected_as_of=date(2026, 8, 11))
+    assert "Sector Rotationは取得できません" in rendered
+    assert "状態件数を集計しません" in rendered
+    assert "WARMING 0件" not in rendered
+    assert "home-heatmap-cell" not in rendered
+
+
 def test_missing_source_status_is_not_promoted_to_ok():
     payload = dataset()
     payload["source_status"] = []
