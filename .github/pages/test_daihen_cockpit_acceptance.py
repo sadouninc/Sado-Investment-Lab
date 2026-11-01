@@ -41,7 +41,7 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         self.assertIn("なぜ今日見る？", first_view)
         self.assertIn("前回から何が変わった？", first_view)
         self.assertIn("今の投資仮説は？", first_view)
-        self.assertIn("FY2027 Q1決算後の利益ドライバーとForward PERを再確認する", first_view)
+        self.assertIn("2026-10-29の通期業績予想上方修正と2026-10-01の1:5株式分割を反映し、利益ドライバーとForward PERを再確認する", first_view)
         self.assertIn("INTACT", first_view)
 
     def test_known_cta_resolves_and_unknown_routes_fail_closed(self):
@@ -53,11 +53,15 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         self.assertNotIn("/hypothesis/6622", self.page)
         self.assertNotIn("/decision-history/6622", self.page)
 
-    def test_stale_price_is_explicit_not_silent_current(self):
-        self.assertEqual(self.model["valuation"]["freshness"], "STALE")
-        self.assertIn("情報が古いため再確認が必要", self.page)
-        self.assertIn("PRICE_STALE_FOR_E2E", self.page)
-        self.assertIn("株価情報が古い場合、現在の割安度として無警告では使用しません", self.page)
+    def test_split_adjusted_price_and_per_are_current(self):
+        valuation = self.model["valuation"]
+        self.assertEqual(valuation["freshness"], "CURRENT")
+        self.assertEqual(valuation["price_as_of"], "2026-10-30")
+        self.assertEqual(valuation["share_basis"]["diluted_shares"], 118_039_880)
+        self.assertEqual(valuation["share_basis"]["split_adjustment"]["ratio"], 5)
+        self.assertEqual(valuation["base"]["eps"], 144.02)
+        self.assertEqual(valuation["base"]["forward_per"], 16.68)
+        self.assertNotIn("PRICE_STALE_FOR_E2E", self.page)
 
     def test_consensus_unavailable_is_not_zero_gap(self):
         self.assertEqual(self.model["expectations"]["status"], "UNAVAILABLE")
