@@ -132,6 +132,39 @@ def test_heatmap_missing_sector_source_fails_closed_without_invented_cells():
     assert "home-heatmap-cell" not in rendered
 
 
+def test_heatmap_stale_payload_is_not_presented_as_current_sector_signal():
+    payload = dataset()
+    payload["source_status"][1]["status"] = "STALE"
+    payload["source_status"][1]["reason"] = "canonical history is old"
+    before = deepcopy(payload)
+
+    rendered = module.render_status_section(
+        payload, expected_as_of=date(2026, 8, 11)
+    )
+    assert "Sector Rotationのデータは古いため表示しません" in rendered
+    assert 'data-state="stale"' in rendered
+    assert "canonical history is old" in rendered
+    assert "状態件数を集計しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
+    assert payload == before
+
+
+def test_heatmap_missing_source_with_leftover_payload_hides_old_cells():
+    payload = dataset()
+    payload["source_status"][1]["status"] = "MISSING"
+    payload["source_status"][1]["reason"] = "source unavailable"
+
+    rendered = module.render_status_section(
+        payload, expected_as_of=date(2026, 8, 11)
+    )
+    assert "Sector Rotationは取得できません" in rendered
+    assert "source unavailable" in rendered
+    assert "状態件数を集計しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
+
+
 def test_heatmap_mobile_does_not_depend_on_horizontal_scroll():
     css = CSS_PATH.read_text(encoding="utf-8")
     assert ".home-heatmap-grid" in css
