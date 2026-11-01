@@ -71,6 +71,16 @@ def _source_status(dataset: Mapping[str, Any], name: str) -> Mapping[str, Any]:
     return {"name": name, "status": "MISSING", "reason": "source status not available"}
 
 
+def _sector_dates_match(source: Mapping[str, Any], payload: Mapping[str, Any]) -> bool:
+    """A source status cannot validate sector rows with a different or invalid date."""
+    try:
+        source_date = date.fromisoformat(str(source.get("as_of") or ""))
+        payload_date = date.fromisoformat(str(payload.get("as_of") or ""))
+    except (TypeError, ValueError):
+        return False
+    return source_date == payload_date
+
+
 def _status_card(title: str, source: Mapping[str, Any], detail: str) -> str:
     status, token, label = _status(source.get("status"))
     as_of = source.get("as_of") or "時点不明"
@@ -105,18 +115,29 @@ def render_sector_heatmap(dataset: Mapping[str, Any]) -> str:
     payload = dataset.get("sector_rotation") if isinstance(dataset.get("sector_rotation"), Mapping) else {}
     # Do not project old or unverified sector cells as current market signals.
     source_usable = status in {"OK", "PARTIAL"}
+    dates_match = _sector_dates_match(source, payload)
     sectors = (
         payload.get("sectors")
-        if source_usable and isinstance(payload.get("sectors"), list)
+        if source_usable and dates_match and isinstance(payload.get("sectors"), list)
         else []
     )
     as_of = payload.get("as_of") or source.get("as_of") or "時点不明"
 
     if not sectors:
+        date_mismatch = (
+            source_usable and bool(payload.get("sectors")) and not dates_match
+        )
         unavailable_title = (
+            "Sector Rotationの日付が一致しないため表示しません"
+            if date_mismatch else
             "Sector Rotationのデータは古いため表示しません"
-            if status == "STALE"
-            else "Sector Rotationは取得できません"
+            if status == "STALE" else
+            "Sector Rotationは取得できません"
+        )
+        unavailable_reason = (
+            "source_status.as_ofとsector_rotation.as_ofが不一致または無効です。"
+            if date_mismatch else
+            str(source.get("reason") or "canonical Sector snapshotが未接続です。")
         )
         alert_token = "stale" if status == "STALE" else "unavailable"
         return f'''  <section class="home-os-section home-heatmap" aria-labelledby="heatmap-title">
@@ -125,7 +146,7 @@ def render_sector_heatmap(dataset: Mapping[str, Any]) -> str:
     <p>今日の判断に影響しそうな変化を、既存Canonical stateだけで俯瞰します。</p>
     <div class="codex-alert" data-state="{alert_token}">
       <strong>{unavailable_title}</strong>
-      <p>{_e(source.get('reason') or 'canonical Sector snapshotが未接続です。')}</p>
+      <p>{_e(unavailable_reason)}</p>
     </div>
   </section>
 
@@ -284,6 +305,7 @@ def render_status_section(
         sector_status in {"OK", "PARTIAL"}
         and isinstance(sector_payload.get("sectors"), list)
         and bool(sector_payload["sectors"])
+        and _sector_dates_match(sector, sector_payload)
     )
     sectors = (
         sector_payload.get("sectors")
@@ -295,6 +317,15 @@ def render_status_section(
     if sector_usable:
         sector_detail = (
             f"Canonical snapshot内の WARMING {warming}件 / INFLOW {inflow}件。順位や推奨はHomeで生成しません。"
+        )
+    elif (
+        sector_status in {"OK", "PARTIAL"}
+        and bool(sector_payload.get("sectors"))
+        and not _sector_dates_match(sector, sector_payload)
+    ):
+        sector_detail = (
+            "source_status.as_ofとsector_rotation.as_ofが不一致または無効のため、"
+            "状態件数を集計しません。順位や推奨はHomeで生成しません。"
         )
     elif sector_status in {"OK", "PARTIAL"}:
         sector_detail = (
