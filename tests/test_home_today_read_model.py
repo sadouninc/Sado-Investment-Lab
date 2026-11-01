@@ -267,7 +267,7 @@ def test_home_load_uses_published_read_model_without_home_only_sector_collection
 
 def test_home_load_invalid_utf8_fails_closed(tmp_path):
     path = tmp_path / "morning-dataset.json"
-    path.write_bytes(b"\\xff\\xfeinvalid")
+    path.write_bytes(b"\xff\xfeinvalid")
     assert module.load_dataset(path) is None
 
 
