@@ -63,11 +63,17 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         self.assertEqual(valuation["base"]["forward_per"], 16.68)
         self.assertNotIn("PRICE_STALE_FOR_E2E", self.page)
 
-    def test_consensus_unavailable_is_not_zero_gap(self):
-        self.assertEqual(self.model["expectations"]["status"], "UNAVAILABLE")
-        self.assertIsNone(self.model["expectations"]["external_consensus_ref"])
-        self.assertIn("現在取得できません", self.page)
-        self.assertIn("Consensusを取得できない場合、gap=0や「差なし」とは表示しません", self.page)
+    def test_consensus_proxy_is_visible_with_coverage_and_guardrail(self):
+        expectations = self.model["expectations"]
+        self.assertEqual(expectations["status"], "PARTIAL")
+        self.assertEqual(expectations["freshness"], "CURRENT")
+        self.assertEqual(expectations["consensus_value"], 161.20)
+        self.assertEqual(expectations["analyst_count"], 5)
+        self.assertEqual(expectations["external_consensus_ref"], "expectation:6622:FY2027:2928b83379f74318")
+        self.assertIn("161.20円", self.page)
+        self.assertIn("+5.1%", self.page)
+        self.assertIn("-10.7%", self.page)
+        self.assertIn("二次データによる観測可能なproxy", self.page)
 
     def test_portfolio_not_run_is_not_presented_as_safe(self):
         self.assertEqual(self.model["portfolio_preflight"]["status"], "NOT_RUN")
