@@ -165,6 +165,39 @@ def test_heatmap_missing_source_with_leftover_payload_hides_old_cells():
     assert "WARMING 1件" not in rendered
 
 
+def test_sector_source_payload_date_mismatch_fails_closed_without_changing_metadata():
+    payload = dataset()
+    payload["source_status"][1]["as_of"] = "2026-08-10"
+    before = deepcopy(payload)
+
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    assert "source_status.as_ofとsector_rotation.as_ofが不一致または無効" in rendered
+    assert "Sector Rotationの日付が一致しないため表示しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
+    assert "状態件数を集計しません" in rendered
+    assert payload == before
+
+
+def test_sector_missing_or_invalid_source_date_does_not_publish_current_heatmap():
+    for source_date in (None, "not-a-date"):
+        payload = dataset()
+        payload["source_status"][1]["as_of"] = source_date
+        rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+        assert "Sector Rotationの日付が一致しないため表示しません" in rendered
+        assert "home-heatmap-cell" not in rendered
+        assert "WARMING 1件" not in rendered
+
+
+def test_sector_payload_date_mismatch_fails_closed_even_when_status_is_partial():
+    payload = dataset()
+    payload["source_status"][1]["status"] = "PARTIAL"
+    payload["sector_rotation"]["as_of"] = "2026-08-10"
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    assert "状態件数を集計しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+
+
 def test_heatmap_mobile_does_not_depend_on_horizontal_scroll():
     css = CSS_PATH.read_text(encoding="utf-8")
     assert ".home-heatmap-grid" in css
