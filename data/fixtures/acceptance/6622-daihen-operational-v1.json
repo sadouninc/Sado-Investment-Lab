@@ -81,7 +81,8 @@
       "https://www.daihen.co.jp/ir/ir_pdf/2026_0804_bunkatsu.pdf",
       "https://www.daihen.co.jp/ir/summary_pdf/2026_1029_gyosekiyosou.pdf",
       "https://finance.yahoo.co.jp/quote/6622.T/history"
-    ]
+    ],
+    "reference_price": 2402
   },
   "expectations": {
     "status": "PARTIAL",
@@ -153,6 +154,21 @@
     "source_refs": [
       "decision:6622:latest",
       "decision-snapshot:6622:latest:immutable"
-    ]
+    ],
+    "previous_snapshot": {
+      "ref": "decision-snapshot:6622:latest:immutable",
+      "scenario": "Base",
+      "as_of": "2026-08-09",
+      "basis": "split_adjusted_2026-10-01",
+      "eps": 144.02,
+      "price": 2380,
+      "forward_per": 16.53,
+      "source_values_pre_split": {
+        "eps": 720.1,
+        "price": 11900,
+        "split_ratio": 5
+      },
+      "note": "2026-08-09 snapshotのEPS・株価を2026-10-01の1:5株式分割後basisへ機械的に正規化。過去snapshot原値は変更しない。"
+    }
   }
 }
