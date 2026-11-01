@@ -348,7 +348,7 @@ def load_dataset(path: Path = MORNING_DATASET) -> Mapping[str, Any] | None:
         return None
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return None
     if not isinstance(payload, Mapping):
         return None
