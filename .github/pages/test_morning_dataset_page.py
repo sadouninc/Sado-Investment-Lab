@@ -72,6 +72,27 @@ class MorningDatasetPageTest(unittest.TestCase):
         self.assertNotIn("714.3%", page)
         self.assertNotIn("Today Strategy", page)
 
+    def test_completeness_explanation_uses_reported_eight_source_total(self) -> None:
+        payload = self.build_payload()
+        payload["data_quality"].update({
+            "total_sources": 8,
+            "ok_sources": 4,
+            "completeness": 0.5,
+            "completeness_label": "4 / 8",
+        })
+        page = module.build_page(payload)
+        self.assertIn("4 / 8 sources", page)
+        self.assertIn("OK のソース数 / 全8ソース", page)
+        self.assertNotIn("全7ソース", page)
+
+    def test_completeness_explanation_unknown_total_does_not_invent_count(self) -> None:
+        payload = self.build_payload()
+        payload["data_quality"].pop("total_sources")
+        payload["data_quality"].pop("completeness_label")
+        page = module.build_page(payload)
+        self.assertIn("OK のソース数 / 全ソース", page)
+        self.assertNotIn("全7ソース", page)
+
     def test_source_sections_are_summary_first_with_collapsed_raw_json(self) -> None:
         page = module.build_page(self.build_payload())
         self.assertIn("## Source Summaries", page)
