@@ -198,6 +198,13 @@ permalink: /research/morning-dataset/
         )
         for label, summary_value in section_summary(key, value):
             page += f"- {esc(label)}: {summary_value}\n"
+        if value is None:
+            # A canonical status may be OK even when published JSON lacks the payload.
+            # Keep the source status verbatim; disclose unavailable raw data.
+            page += (
+                f"- Source status {esc(section_status)} / Payload UNAVAILABLE: "
+                "top-level JSONなし。Raw JSONは表示できません。\n"
+            )
         page += "\n"
         if value is not None:
             page += raw_details(key, value)
