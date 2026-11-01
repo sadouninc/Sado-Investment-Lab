@@ -9,6 +9,7 @@ from scripts.daihen_operational_read_model import (
     DaihenOperationalReadModelError,
     build_daihen_operational_read_model,
 )
+from scripts.expectation_revision import validate_snapshot
 from scripts.fair_per_evidence import (
     FACTOR_OPTIONALITY,
     REQUIRED_FACTORS,
@@ -24,6 +25,7 @@ from scripts.fair_per_evidence import (
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "data/fixtures/acceptance/6622-daihen-operational-v1.json"
+EXPECTATION_HISTORY = ROOT / "data/expectations/6622/history.jsonl"
 GENERATED_AT = "2026-08-09T19:20:00+09:00"
 
 
@@ -96,6 +98,19 @@ class DaihenOperationalReadModelTests(unittest.TestCase):
         self.assertIn("company-research:6622:2026-08-09", result["source_refs"])
         self.assertNotIn("expectations", result["missing_components"])
         self.assertIn("portfolio_preflight", result["missing_components"])
+
+    def test_external_consensus_snapshot_matches_canonical_contract(self):
+        rows = [
+            json.loads(line)
+            for line in EXPECTATION_HISTORY.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        self.assertEqual(len(rows), 1)
+        snapshot = validate_snapshot(rows[0])
+        self.assertEqual(snapshot["expectation_id"], "expectation:6622:FY2027:2928b83379f74318")
+        self.assertEqual(snapshot["value"], 161.20)
+        self.assertEqual(snapshot["coverage"]["analyst_count"], 5)
+        self.assertTrue(snapshot["provenance"]["not_market_truth"])
 
     def test_stale_price_is_not_silently_current(self):
         payload = copy.deepcopy(self.fixture)
