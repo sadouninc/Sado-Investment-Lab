@@ -38,6 +38,49 @@ def _observable_result(result: dict, *, issue_post: str) -> dict:
     return output
 
 
+
+class _RecordingClient:
+    """Preserve the exact first-pass GET inputs for a fail-closed recheck."""
+    def __init__(self, client):
+        self.client = client
+        self.calls = []
+
+    def all_pages(self, endpoint, key, params):
+        from copy import deepcopy
+        value = self.client.all_pages(endpoint, key, params)
+        self.calls.append((endpoint, key, deepcopy(params), deepcopy(value)))
+        return value
+
+
+def _revalidate_before_post(client, first_calls, result):
+    """Recheck the four logical GET boundaries; never infer missing bindings."""
+    from copy import deepcopy
+    from scripts.actions_failure_collector import IncompleteInventory
+    from scripts.actions_failure_analyzer import decide_issue_action
+
+    if len(first_calls) != 4:
+        raise IncompleteInventory("initial GET boundaries incomplete")
+    expected = ("pulls", "actions/runs", None, "issues")
+    if tuple(x[0] if i != 2 else None for i, x in enumerate(first_calls)) != expected:
+        raise IncompleteInventory("unexpected initial GET order")
+    run_id = result.get("analysis", {}).get("source_run_id")
+    if type(run_id) is not int or run_id <= 0 or first_calls[2][0] != f"actions/runs/{run_id}/jobs":
+        raise IncompleteInventory("source run binding unverified")
+    if not isinstance(result.get("analysis"), dict) or not isinstance(result.get("issue_draft"), dict):
+        raise IncompleteInventory("proposal binding unavailable")
+    # Fresh order: issues, pulls, runs, jobs. All GETs must succeed.
+    fresh = {}
+    for index in (3, 0, 1, 2):
+        endpoint, key, params, previous = first_calls[index]
+        current = client.all_pages(endpoint, key, deepcopy(params))
+        if current != previous:
+            raise IncompleteInventory("pre-POST source changed")
+        fresh[index] = current
+    if decide_issue_action(result["analysis"], fresh[3], inventory_complete=True) != "ISSUE_DRAFT_ELIGIBLE":
+        raise IncompleteInventory("duplicate or proposal no longer eligible")
+    return fresh[3]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--enable-post", action="store_true")
@@ -57,7 +100,7 @@ def main(argv=None):
         print(json.dumps({"decision": "HOLD_MISSING_ENV", "issue_post": "SKIPPED" if scheduled else "DISABLED"}, sort_keys=True))
         return 2
     try:
-        client = GitHubReadOnlyClient(repo, token)
+        client = _RecordingClient(GitHubReadOnlyClient(repo, token))
         result = collect_current_failure(client, as_of=datetime.now(timezone.utc), max_age_hours=args.max_age_hours)
         decision = result.get("decision")
         if decision != "ISSUE_DRAFT_ELIGIBLE":
@@ -68,7 +111,7 @@ def main(argv=None):
             print(json.dumps(_observable_result(result, issue_post=post_state), sort_keys=True))
             return 0
         # Fresh all-state inventory after proposal creation, immediately before POST.
-        issues = client.all_pages("issues", None, {"state": "all"})
+        issues = _revalidate_before_post(client, client.calls, result)
         created = post_validated_issue(repo, token, result, issues, inventory_complete=True, enable_post=True)
         print(json.dumps({"decision": "ISSUE_CREATED", "issue_number": created.get("number"), "request_id": result["analysis"]["request_id"]}, sort_keys=True))
         return 0
