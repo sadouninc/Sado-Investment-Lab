@@ -181,7 +181,7 @@ permalink: /research/morning-dataset/
 
     page += "\n## Source Summaries\n\n"
     page += "日次確認では要約を先に表示します。検証・デバッグ時だけ各セクションの Raw JSON を展開してください。\n\n"
-    sections = ("market", "portfolio", "capital", "candidates", "investor_dna", "events", "watchlist")
+    sections = ("market", "portfolio", "capital", "candidates", "investor_dna", "events", "watchlist", "sector_rotation")
     status_by_name = {row.get("name"): row.get("status") for row in sources}
     source_by_name = {row.get("name"): row for row in sources}
     for key in sections:
@@ -198,6 +198,13 @@ permalink: /research/morning-dataset/
         )
         for label, summary_value in section_summary(key, value):
             page += f"- {esc(label)}: {summary_value}\n"
+        if value is None:
+            # A canonical status may be OK even when published JSON lacks the payload.
+            # Keep the source status verbatim; disclose unavailable raw data.
+            page += (
+                f"- Source status {esc(section_status)} / Payload UNAVAILABLE: "
+                "top-level JSONなし。Raw JSONは表示できません。\n"
+            )
         page += "\n"
         if value is not None:
             page += raw_details(key, value)
