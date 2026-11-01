@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from copy import deepcopy
 from datetime import date, datetime, timedelta
 import html
 import json
@@ -9,7 +8,6 @@ from typing import Any, Mapping
 from zoneinfo import ZoneInfo
 
 from scripts.home_portfolio_impact import project_portfolio_impact
-from scripts.morning_dataset.providers import SectorRotationProvider
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE_HOME = ROOT / "site-src" / "index.md"
@@ -85,28 +83,6 @@ def _status_card(title: str, source: Mapping[str, Any], detail: str) -> str:
         f'<p class="codex-evidence__meta">as of: {_e(as_of)}</p>{reason_html}'
         '</article>'
     )
-
-
-def with_sector_rotation(dataset: Mapping[str, Any]) -> dict[str, Any]:
-    """Attach the existing #359 read provider for Home only, without mutating Morning."""
-    merged = deepcopy(dict(dataset))
-    existing = _source_status(merged, "sector_rotation")
-    if existing.get("status") in {"OK", "PARTIAL", "STALE"} and isinstance(
-        merged.get("sector_rotation"), Mapping
-    ):
-        return merged
-
-    result = SectorRotationProvider().collect()
-    rows = [
-        deepcopy(dict(row))
-        for row in merged.get("source_status") or []
-        if isinstance(row, Mapping) and row.get("name") != "sector_rotation"
-    ]
-    rows.append(result.metadata() | {"name": result.name})
-    merged["source_status"] = rows
-    if result.data is not None:
-        merged["sector_rotation"] = deepcopy(result.data)
-    return merged
 
 
 def _transition_text(row: Mapping[str, Any]) -> tuple[str, str]:
@@ -303,7 +279,11 @@ def render_status_section(
     market = _source_status(dataset, "market")
     sector = _source_status(dataset, "sector_rotation")
     sector_payload = dataset.get("sector_rotation") if isinstance(dataset.get("sector_rotation"), Mapping) else {}
-    sector_usable = str(sector.get("status") or "MISSING").upper() in {"OK", "PARTIAL"}
+    sector_usable = (
+        str(sector.get("status") or "MISSING").upper() in {"OK", "PARTIAL"}
+        and isinstance(sector_payload.get("sectors"), list)
+        and bool(sector_payload["sectors"])
+    )
     sectors = (
         sector_payload.get("sectors")
         if sector_usable and isinstance(sector_payload.get("sectors"), list)
@@ -372,7 +352,9 @@ def load_dataset(path: Path = MORNING_DATASET) -> Mapping[str, Any] | None:
         return None
     if not isinstance(payload, Mapping):
         return None
-    return with_sector_rotation(payload)
+    # Home consumes the same published read model as Morning Diagnostics.
+    # Do not independently collect or replace sector source metadata here.
+    return payload
 
 
 def enrich_text(
