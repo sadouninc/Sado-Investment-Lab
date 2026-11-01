@@ -9,6 +9,7 @@ from scripts.daihen_operational_read_model import (
     DaihenOperationalReadModelError,
     build_daihen_operational_read_model,
 )
+from scripts.expectation_revision import validate_snapshot
 from scripts.fair_per_evidence import (
     FACTOR_OPTIONALITY,
     REQUIRED_FACTORS,
@@ -24,6 +25,7 @@ from scripts.fair_per_evidence import (
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "data/fixtures/acceptance/6622-daihen-operational-v1.json"
+EXPECTATION_HISTORY = ROOT / "data/expectations/6622/history.jsonl"
 GENERATED_AT = "2026-08-09T19:20:00+09:00"
 
 
@@ -94,8 +96,21 @@ class DaihenOperationalReadModelTests(unittest.TestCase):
         self.assertEqual(result["overall_status"], "PARTIAL")
         self.assertEqual(result["valuation"]["base"]["eps"], 144.02)
         self.assertIn("company-research:6622:2026-08-09", result["source_refs"])
-        self.assertIn("expectations", result["missing_components"])
+        self.assertNotIn("expectations", result["missing_components"])
         self.assertIn("portfolio_preflight", result["missing_components"])
+
+    def test_external_consensus_snapshot_matches_canonical_contract(self):
+        rows = [
+            json.loads(line)
+            for line in EXPECTATION_HISTORY.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        self.assertEqual(len(rows), 1)
+        snapshot = validate_snapshot(rows[0])
+        self.assertEqual(snapshot["expectation_id"], "expectation:6622:FY2027:2928b83379f74318")
+        self.assertEqual(snapshot["value"], 161.20)
+        self.assertEqual(snapshot["coverage"]["analyst_count"], 5)
+        self.assertTrue(snapshot["provenance"]["not_market_truth"])
 
     def test_stale_price_is_not_silently_current(self):
         payload = copy.deepcopy(self.fixture)
@@ -109,11 +124,15 @@ class DaihenOperationalReadModelTests(unittest.TestCase):
         self.assertIn("valuation", result["freshness"]["stale_components"])
         self.assertIn("PRICE_STALE_FOR_E2E", result["valuation"]["warnings"])
 
-    def test_consensus_unavailable_does_not_create_zero_gap(self):
+    def test_consensus_proxy_preserves_partial_status_and_explicit_gap(self):
         result = build_daihen_operational_read_model(self.fixture, generated_at=GENERATED_AT)
-        self.assertEqual(result["expectations"]["status"], "UNAVAILABLE")
-        self.assertIsNone(result["expectations"]["external_consensus_ref"])
-        self.assertNotIn("gap", result["expectations"])
+        expectations = result["expectations"]
+        self.assertEqual(expectations["status"], "PARTIAL")
+        self.assertEqual(expectations["freshness"], "CURRENT")
+        self.assertEqual(expectations["external_consensus_ref"], "expectation:6622:FY2027:2928b83379f74318")
+        self.assertEqual(expectations["consensus_value"], 161.20)
+        self.assertAlmostEqual(expectations["sado_vs_consensus_pct"], -0.1065756824)
+        self.assertIn("CONSENSUS_IS_PROXY_NOT_TRUTH", expectations["warnings"])
         self.assertNotEqual(result["overall_status"], "UNAVAILABLE")
 
     def test_historical_decision_snapshot_is_copied_not_rewritten(self):

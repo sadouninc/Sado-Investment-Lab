@@ -84,18 +84,30 @@
     ]
   },
   "expectations": {
-    "status": "UNAVAILABLE",
-    "freshness": "UNKNOWN",
+    "status": "PARTIAL",
+    "freshness": "CURRENT",
     "company_guidance_ref": "company-research:6622:guidance:FY2027",
-    "external_consensus_ref": null,
+    "external_consensus_ref": "expectation:6622:FY2027:2928b83379f74318",
     "sado_base_ref": "company-research:6622:scenario:base:FY2027",
     "latest_actual_ref": "company-research:6622:FY2027-Q1",
-    "direction": null,
+    "metric": "EPS",
+    "unit": "JPY",
+    "consensus_value": 161.2,
+    "analyst_count": 5,
+    "consensus_low": 144.87,
+    "consensus_high": 178.27,
+    "company_guidance_value": 169.42,
+    "sado_base_value": 144.02,
+    "company_vs_consensus_pct": 0.0508684864,
+    "sado_vs_consensus_pct": -0.1065756824,
+    "direction": "UP",
     "warnings": [
-      "CONSENSUS_UNAVAILABLE"
+      "SECONDARY_SOURCE",
+      "CONSENSUS_IS_PROXY_NOT_TRUTH"
     ],
     "source_refs": [
-      "company-research:6622:2026-08-09"
+      "expectation:6622:FY2027:2928b83379f74318",
+      "https://twelvedata.com/markets/101127/stock/jpx/6622/analysis"
     ]
   },
   "hypothesis": {
