@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import importlib.util
 import sys
 import unittest
@@ -74,6 +75,28 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         self.assertIn("+5.1%", self.page)
         self.assertIn("-10.7%", self.page)
         self.assertIn("二次データによる観測可能なproxy", self.page)
+
+    def test_unavailable_consensus_still_fails_closed_without_zero_gap(self):
+        model = copy.deepcopy(self.model)
+        expectations = model["expectations"]
+        expectations.update({
+            "status": "UNAVAILABLE",
+            "freshness": "UNKNOWN",
+            "external_consensus_ref": None,
+            "consensus_value": None,
+            "analyst_count": None,
+            "consensus_low": None,
+            "consensus_high": None,
+            "company_vs_consensus_pct": None,
+            "sado_vs_consensus_pct": None,
+            "direction": "UNKNOWN",
+        })
+        page = BUILDER.page_content(model)
+        expectation_section = page.split("## 3. 市場期待との差", 1)[1].split("## 4.", 1)[0]
+        self.assertIn("現在取得できません", expectation_section)
+        self.assertIn("比較できません", expectation_section)
+        self.assertNotIn("0.00%", expectation_section)
+        self.assertNotIn("gap=0", expectation_section)
 
     def test_portfolio_not_run_is_not_presented_as_safe(self):
         self.assertEqual(self.model["portfolio_preflight"]["status"], "NOT_RUN")
