@@ -260,6 +260,8 @@ def test_home_load_uses_published_read_model_without_home_only_sector_collection
     assert loaded["source_status"][1]["status"] == "OK"
     rendered = module.render_status_section(loaded, expected_as_of=date(2026, 8, 11))
     assert "Sector Rotationは取得できません" in rendered
+    assert "公開JSONのSector Rotation payloadが欠損または空" in rendered
+    assert "sourceがSTALE/MISSING/UNKNOWNのため" not in rendered
     assert "状態件数を集計しません" in rendered
     assert "WARMING 0件" not in rendered
     assert "home-heatmap-cell" not in rendered
