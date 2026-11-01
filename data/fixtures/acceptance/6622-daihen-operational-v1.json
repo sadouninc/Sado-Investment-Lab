@@ -5,14 +5,15 @@
     "status": "PARTIAL",
     "freshness": "CURRENT",
     "why_now": [
-      "FY2027 Q1決算後の利益ドライバーとForward PERを再確認する"
+      "2026-10-29の通期業績予想上方修正と2026-10-01の1:5株式分割を反映し、利益ドライバーとForward PERを再確認する"
     ],
-    "last_material_change_at": "2026-08-04T15:00:00+09:00",
+    "last_material_change_at": "2026-10-29T15:00:00+09:00",
     "next_checkpoint_refs": [
       "company-research:6622:FY2027-Q2"
     ],
     "source_refs": [
-      "company-research:6622:2026-08-09"
+      "company-research:6622:2026-08-09",
+      "https://www.daihen.co.jp/ir/summary_pdf/2026_1029_gyosekiyosou.pdf"
     ]
   },
   "earnings_driver": {
@@ -29,7 +30,7 @@
       "target_fiscal_year": "FY2027"
     },
     "company_guidance": {
-      "net_income_million_jpy": 16500,
+      "net_income_million_jpy": 20000,
       "target_fiscal_year": "FY2027"
     },
     "explanation_coverage": "PARTIAL",
@@ -41,40 +42,45 @@
     ],
     "source_refs": [
       "company-research:6622:2026-08-09",
-      "issue:214"
+      "issue:214",
+      "https://www.daihen.co.jp/ir/summary_pdf/2026_1029_gyosekiyosou.pdf"
     ]
   },
   "valuation": {
     "status": "PARTIAL",
-    "freshness": "STALE",
-    "price_as_of": "2026-07-29",
+    "freshness": "CURRENT",
+    "price_as_of": "2026-10-30",
     "target_fiscal_year": "FY2027",
     "share_basis": {
-      "diluted_shares": 23607976,
-      "as_of": "2026-06-30"
+      "diluted_shares": 118039880,
+      "as_of": "2026-06-30",
+      "split_adjustment": {
+        "ratio": 5,
+        "effective_date": "2026-10-01",
+        "source_ref": "https://www.daihen.co.jp/ir/ir_pdf/2026_0804_bunkatsu.pdf"
+      }
     },
     "bear": {
-      "eps": 571.84,
-      "forward_per": 20.81
+      "eps": 114.37,
+      "forward_per": 21
     },
     "base": {
-      "eps": 720.1,
-      "forward_per": 16.53,
-      "implied_price_per20": 14401.91
+      "eps": 144.02,
+      "forward_per": 16.68,
+      "implied_price_per20": 2880.38
     },
     "bull": {
-      "eps": 847.17,
-      "forward_per": 14.05
+      "eps": 169.43,
+      "forward_per": 14.18
     },
-    "warnings": [
-      "PRICE_STALE_FOR_E2E"
-    ],
-    "reason_codes": [
-      "PRICE_STALE"
-    ],
+    "warnings": [],
+    "reason_codes": [],
     "source_refs": [
-      "forward-per:6622:FY2027:2026-07-29",
-      "company-research:6622:2026-08-09"
+      "forward-per:6622:FY2027:2026-10-30",
+      "company-research:6622:2026-08-09",
+      "https://www.daihen.co.jp/ir/ir_pdf/2026_0804_bunkatsu.pdf",
+      "https://www.daihen.co.jp/ir/summary_pdf/2026_1029_gyosekiyosou.pdf",
+      "https://finance.yahoo.co.jp/quote/6622.T/history"
     ]
   },
   "expectations": {
