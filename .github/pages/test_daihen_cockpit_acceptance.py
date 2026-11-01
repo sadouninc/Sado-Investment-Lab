@@ -96,7 +96,7 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         self.assertIn("現在取得できません", expectation_section)
         self.assertIn("比較できません", expectation_section)
         self.assertNotIn("0.00%", expectation_section)
-        self.assertNotIn("gap=0", expectation_section)
+        self.assertNotIn("<td>0.00%</td>", expectation_section)
 
     def test_portfolio_not_run_is_not_presented_as_safe(self):
         self.assertEqual(self.model["portfolio_preflight"]["status"], "NOT_RUN")
