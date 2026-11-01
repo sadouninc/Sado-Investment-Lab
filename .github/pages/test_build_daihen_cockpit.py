@@ -15,11 +15,11 @@ SPEC.loader.exec_module(MODULE)
 
 
 class DaihenCockpitPageTests(unittest.TestCase):
-    def test_model_preserves_partial_stale_and_unavailable_states(self):
+    def test_model_preserves_partial_current_and_unavailable_states(self):
         model = MODULE.load_model()
         self.assertEqual(model["security_code"], "6622")
         self.assertEqual(model["overall_status"], "PARTIAL")
-        self.assertEqual(model["valuation"]["freshness"], "STALE")
+        self.assertEqual(model["valuation"]["freshness"], "CURRENT")
         self.assertEqual(model["expectations"]["status"], "UNAVAILABLE")
         self.assertEqual(model["portfolio_preflight"]["status"], "NOT_RUN")
 
@@ -63,17 +63,17 @@ class DaihenCockpitPageTests(unittest.TestCase):
     def test_page_uses_canonical_values_without_recalculation(self):
         model = MODULE.load_model()
         page = MODULE.page_content(model)
-        self.assertIn("720.10円", page)
-        self.assertIn("16.53倍", page)
-        self.assertIn("20.81倍", page)
-        self.assertIn("14.05倍", page)
+        self.assertIn("144.02円", page)
+        self.assertIn("16.68倍", page)
+        self.assertIn("21.00倍", page)
+        self.assertIn("14.18倍", page)
 
     def test_scenario_delta_is_in_first_view_and_reuses_read_model(self):
         model = MODULE.load_model()
         delta = MODULE._scenario_delta(model)
         page = MODULE.page_content(model)
-        self.assertEqual(delta.current.eps, 720.1)
-        self.assertEqual(delta.current.forward_per, 16.53)
+        self.assertEqual(delta.current.eps, 144.02)
+        self.assertEqual(delta.current.forward_per, 16.68)
         self.assertIn("Scenario: UNKNOWN", page)
         self.assertIn("業績見通し", page)
         self.assertIn("Valuation余地", page)
