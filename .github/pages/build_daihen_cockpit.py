@@ -85,8 +85,22 @@ def _scenario_card(label: str, scenario: Mapping[str, Any]) -> str:
 def _scenario_delta(model: Mapping[str, Any]):
     valuation = model["valuation"]
     base = valuation.get("base") or {}
-    previous = ScenarioSnapshot(scenario="UNKNOWN", eps=None, price=None, forward_per=None)
-    current = ScenarioSnapshot(scenario="Base" if base else "UNKNOWN", eps=base.get("eps"), price=None, forward_per=base.get("forward_per"))
+    previous_raw = (model.get("decision_history") or {}).get("previous_snapshot") or {}
+    if previous_raw.get("basis") != "split_adjusted_2026-10-01":
+        previous_raw = {}
+    previous = ScenarioSnapshot(
+        scenario=previous_raw.get("scenario") if previous_raw.get("scenario") in {"Bear", "Base", "Bull"} else "UNKNOWN",
+        eps=previous_raw.get("eps"),
+        price=previous_raw.get("price"),
+        forward_per=previous_raw.get("forward_per"),
+        premise=previous_raw.get("note"),
+    )
+    current = ScenarioSnapshot(
+        scenario="Base" if base else "UNKNOWN",
+        eps=base.get("eps"),
+        price=valuation.get("reference_price"),
+        forward_per=base.get("forward_per"),
+    )
     return build_scenario_delta(previous, current)
 
 

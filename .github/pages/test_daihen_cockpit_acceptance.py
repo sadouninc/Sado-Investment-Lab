@@ -45,6 +45,20 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         self.assertIn("2026-10-29の通期業績予想上方修正と2026-10-01の1:5株式分割を反映し、利益ドライバーとForward PERを再確認する", first_view)
         self.assertIn("INTACT", first_view)
 
+    def test_previous_current_comparison_is_split_adjusted_and_visible(self):
+        delta = BUILDER._scenario_delta(self.model)
+        self.assertEqual(delta.scenario_transition, "Base維持")
+        self.assertEqual(delta.previous.price, 2380)
+        self.assertEqual(delta.current.price, 2402)
+        self.assertEqual(delta.earnings_direction, "UNCHANGED")
+        self.assertEqual(delta.price_direction, "IMPROVED")
+        self.assertEqual(delta.valuation_direction, "NARROWED")
+        first_view = self.page.split("## ⚠ 先に確認する注意点", 1)[0]
+        self.assertIn("Scenario: Base維持", first_view)
+        self.assertIn("144.02円", first_view)
+        self.assertIn("16.53倍", first_view)
+        self.assertIn("16.68倍", first_view)
+
     def test_known_cta_resolves_and_unknown_routes_fail_closed(self):
         self.assertIn("/companies/infrastructure/6622-daihen/", self.page)
         self.assertIn("Forward PER専用ページはまだありません", self.page)
