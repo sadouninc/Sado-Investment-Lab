@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import importlib.util
 import sys
 import unittest
@@ -88,6 +89,22 @@ class DaihenCockpitPageTests(unittest.TestCase):
         self.assertIn("Previous / Current の詳細値", page)
         self.assertIn("progressive-disclosure", page)
         self.assertIn("delta-indicator", page)
+
+    def test_incompatible_previous_snapshot_basis_fails_closed(self):
+        model = copy.deepcopy(MODULE.load_model())
+        model["decision_history"]["previous_snapshot"].update({
+            "basis": "pre_split",
+            "eps": 720.10,
+            "price": 11900,
+            "forward_per": 16.53,
+        })
+        delta = MODULE._scenario_delta(model)
+        self.assertEqual(delta.previous.scenario, "UNKNOWN")
+        self.assertIsNone(delta.previous.eps)
+        self.assertIsNone(delta.previous.price)
+        self.assertIsNone(delta.previous.forward_per)
+        self.assertEqual(delta.earnings_direction, "UNKNOWN")
+        self.assertEqual(delta.valuation_direction, "UNKNOWN")
 
     def test_missing_previous_snapshot_fails_closed_instead_of_reconstructing_history(self):
         model = MODULE.load_model()
