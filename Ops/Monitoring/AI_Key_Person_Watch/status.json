@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-02T20:33:43+09:00",
-  "last_success_at": "2026-11-02T20:33:43+09:00",
+  "last_run_at": "2026-11-02T21:35:35+09:00",
+  "last_success_at": "2026-11-02T21:35:35+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-02T18:37:19+09:00",
-  "news_persisted": false,
-  "persistence_status": "NOT_REQUIRED",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-02T21:35:35+09:00",
+  "news_persisted": true,
+  "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-11-02 20:33 JST scheduled Research/Discovery. Startup Sync TEAM_RULES 79a43dc1 -> TEAM_STATE f3b71b55 AWAY/AUTO_GREEN/LUNA -> #99 broadcast-head 6405435565/270 fetched270 tail verified -> W45 #917. Primary-source monitoring Kioxia/Sandisk, Rapidus/HCLTech, AISIN/Tohoku STT-MRAM and Panasonic AI materials; no new material unrecorded earnings/customer adoption delta. MRAM 50.7mJ/frame and 65.7ms previously recorded accurately; no duplicate Research. #892 3/15 VERIFIED, no proxy POST; #909 merged cb23cdca, one-time closed; #916 remains Draft with new HEAD (W45 comment 6566051548), no repeat review. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; target=Ops/Monitoring/AI_Key_Person_Watch/status.json; execution_path=direct GitHub connector; historic Oct11 execution origin UNKNOWN."
+  "note": "2026-11-02 scheduled Research/Discovery: TEAM_RULES 79a43dc1 -> TEAM_STATE f3b71b55 AWAY/AUTO_GREEN/LUNA -> #99 broadcast-head 6405435565/comments270 fetched270/tail VERIFIED -> W45 #917. New primary-source material event: Marvell/Lumentum definitive all-stock merger agreement announced Nov2 EV $115bn, pending approvals, planned H1 2028; Japanese InP optical material opportunities JX Advanced Metals 5016, Mitsubishi Electric 6503, Sumitomo Electric 5802, Furukawa Electric 5801 are HYPOTHESES, not new orders. Research appended 06_Research/News/AI_Key_Person_Watch/2026-11.md commit b7eca82f8539eb9b2af3cd9399dfe714abbee513 readback verified. #892 official W44 report 3/15 and 0 production closed-loop; no proxy POST. #909 previously merged, no repeat review. #79 untouched. run_context=chatgpt_scheduled; role=レイ; operation=update_file; target=Ops/Monitoring/AI_Key_Person_Watch/status.json; execution_path=direct GitHub connector; historic Oct11 origin UNKNOWN."
 }
