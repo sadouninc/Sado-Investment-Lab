@@ -275,6 +275,30 @@ def test_previous_business_day_dataset_is_not_shown_as_normal_partial():
     assert 'data-state="stale"' in rendered
 
 
+def test_global_stale_morning_dataset_hides_internally_matching_sector_cells_and_counts():
+    payload = dataset()
+    before = deepcopy(payload)
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 12))
+    assert "NOT_GENERATED_TODAY" in rendered
+    assert "Morning Datasetが古いためSector Rotationを表示しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
+    assert "INFLOW 1件" not in rendered
+    assert "過去のセクター状態件数を今日の値として集計しません" in rendered
+    assert payload == before
+
+
+def test_invalid_global_morning_date_hides_current_sector_cells_and_counts():
+    payload = dataset()
+    payload["as_of"] = "invalid-date"
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    assert "DATASET_DATE_INVALID" in rendered
+    assert "Morning Datasetの日付を検証できないためSector Rotationを表示しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
+    assert "INFLOW 1件" not in rendered
+
+
 def test_expected_business_date_uses_jst_and_skips_weekend():
     saturday_utc = datetime.fromisoformat("2026-08-15T01:00:00+00:00")
     assert module.expected_jst_business_date(saturday_utc) == date(2026, 8, 14)
