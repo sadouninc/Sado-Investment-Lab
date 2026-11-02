@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-03T07:31:55+09:00",
-  "last_success_at": "2026-11-03T07:31:55+09:00",
+  "last_run_at": "2026-11-03T08:34:13+09:00",
+  "last_success_at": "2026-11-03T08:34:13+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-02T21:35:35+09:00",
-  "news_persisted": false,
-  "persistence_status": "NOT_REQUIRED",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-03T08:34:13+09:00",
+  "news_persisted": true,
+  "persistence_status": "SUCCESS",
   "updated_by": "❤️レイ",
-  "note": "2026-11-03 07:31 JST natural scheduled Research/Discovery. Startup TEAM_RULES blob79a43dc1 -> TEAM_STATE blobf3b71b55 AWAY/AUTO_GREEN/LUNA -> #99 broadcast-head 6405435565/comments270, fetched270, tail6405435565 VERIFIED -> W45 #917. #892 READ_ONLY checklist 3/15 (873-1,873-2,859-1), 0 natural production closed-loops. News delta=0: fresh 2026-11-02/03 primary/source review of Marvell-Lumentum $115bn transaction, optical connectivity/InP supplier conversion, Kioxia AI SSD, Rapidus 2nm, US-China/Japan semiconductor policy, MRAM, AI key persons and smart glasses found no additional verified material order, earnings change or customer adoption beyond already recorded developments. No duplicate Research. PR #909 previously merged; no repeated review. #79 untouched; #892 no proxy post. run_context=chatgpt_scheduled; role=レイ; operation=update_file; target=Ops/Monitoring/AI_Key_Person_Watch/status.json; execution_path=direct GitHub connector; historical 2026-10-11 execution route remains UNKNOWN."
+  "note": "2026-11-03 08:34 JST natural scheduled Research/Discovery. Startup TEAM_RULES blob79a43dc1 -> TEAM_STATE blobf3b71b55 AWAY/AUTO_GREEN/LUNA -> #99 broadcast-head 6405435565/comments270, fetched270, tail6405435565 VERIFIED -> W45 #917. Material news delta=1: XREAL 2026-11-02 Japan general AURA preorder confirmed, price JPY229800/269800, 11/27 scheduled retail; NTT docomo officially announced 11/27 online and December nationwide shops. Existing Oct31 Research expected Japan 11/2; this update confirms transition and new carrier distribution; shipment/sell-through/Japan supplier profit UNKNOWN. Research append commit 05d154dfa14dda8af4cbb52693d91fc07d032625 readback VERIFIED at 06_Research/News/AI_Key_Person/2026/2026-10.md. Kioxia AI SSD, Rapidus 2nm, MRAM, geopolitics: no further verified material new Japanese orders/profit; no duplicate Research. #892 READ_ONLY checklist 3/15 (873-1,873-2,859-1), 0 natural production closed-loops; #909 already merged and not re-reviewed. #79 untouched, #892 no proxy post. run_context=chatgpt_scheduled; role=レイ; operation=update_file; target=Ops/Monitoring/AI_Key_Person_Watch/status.json; execution_path=direct GitHub connector; 2026-10-11 historical route remains UNKNOWN."
 }
