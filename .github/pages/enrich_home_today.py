@@ -71,14 +71,24 @@ def _source_status(dataset: Mapping[str, Any], name: str) -> Mapping[str, Any]:
     return {"name": name, "status": "MISSING", "reason": "source status not available"}
 
 
-def _sector_dates_match(source: Mapping[str, Any], payload: Mapping[str, Any]) -> bool:
-    """A source status cannot validate sector rows with a different or invalid date."""
+def _sector_dates_match(
+    source: Mapping[str, Any],
+    payload: Mapping[str, Any],
+    *,
+    dataset_as_of: Any = None,
+) -> bool:
+    """Require consistent valid source/payload dates and, when known, report date."""
     try:
         source_date = date.fromisoformat(str(source.get("as_of") or ""))
         payload_date = date.fromisoformat(str(payload.get("as_of") or ""))
+        report_date = (
+            date.fromisoformat(str(dataset_as_of))
+            if dataset_as_of is not None
+            else source_date
+        )
     except (TypeError, ValueError):
         return False
-    return source_date == payload_date
+    return source_date == payload_date == report_date
 
 
 def _status_card(title: str, source: Mapping[str, Any], detail: str) -> str:
@@ -117,7 +127,7 @@ def render_sector_heatmap(
     payload = dataset.get("sector_rotation") if isinstance(dataset.get("sector_rotation"), Mapping) else {}
     # Do not project old or unverified sector cells as current market signals.
     source_usable = status in {"OK", "PARTIAL"} and dataset_freshness == "CURRENT"
-    dates_match = _sector_dates_match(source, payload)
+    dates_match = _sector_dates_match(source, payload, dataset_as_of=dataset.get("as_of"))
     sectors = (
         payload.get("sectors")
         if source_usable and dates_match and isinstance(payload.get("sectors"), list)
@@ -144,7 +154,7 @@ def render_sector_heatmap(
         unavailable_reason = (
             "Morning Dataset全体の鮮度が確認できないため、過去のセクター状態を今日の状態として表示しません。"
             if dataset_freshness != "CURRENT" else
-            "source_status.as_ofとsector_rotation.as_ofが不一致または無効です。"
+            "source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofと不一致です。"
             if date_mismatch else
             str(source.get("reason") or "canonical Sector snapshotが未接続です。")
         )
@@ -315,7 +325,7 @@ def render_status_section(
         and sector_status in {"OK", "PARTIAL"}
         and isinstance(sector_payload.get("sectors"), list)
         and bool(sector_payload["sectors"])
-        and _sector_dates_match(sector, sector_payload)
+        and _sector_dates_match(sector, sector_payload, dataset_as_of=dataset.get("as_of"))
     )
     sectors = (
         sector_payload.get("sectors")
@@ -336,10 +346,10 @@ def render_status_section(
     elif (
         sector_status in {"OK", "PARTIAL"}
         and bool(sector_payload.get("sectors"))
-        and not _sector_dates_match(sector, sector_payload)
+        and not _sector_dates_match(sector, sector_payload, dataset_as_of=dataset.get("as_of"))
     ):
         sector_detail = (
-            "source_status.as_ofとsector_rotation.as_ofが不一致または無効のため、"
+            "source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofと不一致のため、"
             "状態件数を集計しません。順位や推奨はHomeで生成しません。"
         )
     elif sector_status in {"OK", "PARTIAL"}:
