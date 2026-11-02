@@ -86,6 +86,8 @@ def _scenario_delta(model: Mapping[str, Any]):
     valuation = model["valuation"]
     base = valuation.get("base") or {}
     previous_raw = (model.get("decision_history") or {}).get("previous_snapshot") or {}
+    if previous_raw.get("basis") != "split_adjusted_2026-10-01":
+        previous_raw = {}
     previous = ScenarioSnapshot(
         scenario=previous_raw.get("scenario") if previous_raw.get("scenario") in {"Bear", "Base", "Bull"} else "UNKNOWN",
         eps=previous_raw.get("eps"),
