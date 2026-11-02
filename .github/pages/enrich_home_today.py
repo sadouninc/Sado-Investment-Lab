@@ -109,12 +109,14 @@ def _transition_text(row: Mapping[str, Any]) -> tuple[str, str]:
     return f"{previous} → {current}", change
 
 
-def render_sector_heatmap(dataset: Mapping[str, Any]) -> str:
+def render_sector_heatmap(
+    dataset: Mapping[str, Any], *, dataset_freshness: str = "CURRENT"
+) -> str:
     source = _source_status(dataset, "sector_rotation")
     status, token, label = _status(source.get("status"))
     payload = dataset.get("sector_rotation") if isinstance(dataset.get("sector_rotation"), Mapping) else {}
     # Do not project old or unverified sector cells as current market signals.
-    source_usable = status in {"OK", "PARTIAL"}
+    source_usable = status in {"OK", "PARTIAL"} and dataset_freshness == "CURRENT"
     dates_match = _sector_dates_match(source, payload)
     sectors = (
         payload.get("sectors")
@@ -125,9 +127,14 @@ def render_sector_heatmap(dataset: Mapping[str, Any]) -> str:
 
     if not sectors:
         date_mismatch = (
-            source_usable and bool(payload.get("sectors")) and not dates_match
+            dataset_freshness == "CURRENT" and source_usable
+            and bool(payload.get("sectors")) and not dates_match
         )
         unavailable_title = (
+            "Morning Datasetが古いためSector Rotationを表示しません"
+            if dataset_freshness == "NOT_GENERATED_TODAY" else
+            "Morning Datasetの日付を検証できないためSector Rotationを表示しません"
+            if dataset_freshness != "CURRENT" else
             "Sector Rotationの日付が一致しないため表示しません"
             if date_mismatch else
             "Sector Rotationのデータは古いため表示しません"
@@ -135,11 +142,13 @@ def render_sector_heatmap(dataset: Mapping[str, Any]) -> str:
             "Sector Rotationは取得できません"
         )
         unavailable_reason = (
+            "Morning Dataset全体の鮮度が確認できないため、過去のセクター状態を今日の状態として表示しません。"
+            if dataset_freshness != "CURRENT" else
             "source_status.as_ofとsector_rotation.as_ofが不一致または無効です。"
             if date_mismatch else
             str(source.get("reason") or "canonical Sector snapshotが未接続です。")
         )
-        alert_token = "stale" if status == "STALE" else "unavailable"
+        alert_token = "stale" if status == "STALE" or dataset_freshness == "NOT_GENERATED_TODAY" else "unavailable"
         return f'''  <section class="home-os-section home-heatmap" aria-labelledby="heatmap-title">
     <p class="eyebrow">MARKET HEATMAP</p>
     <h2 id="heatmap-title">市場・テーマの動き</h2>
@@ -302,7 +311,8 @@ def render_status_section(
     sector_payload = dataset.get("sector_rotation") if isinstance(dataset.get("sector_rotation"), Mapping) else {}
     sector_status = str(sector.get("status") or "MISSING").upper()
     sector_usable = (
-        sector_status in {"OK", "PARTIAL"}
+        freshness == "CURRENT"
+        and sector_status in {"OK", "PARTIAL"}
         and isinstance(sector_payload.get("sectors"), list)
         and bool(sector_payload["sectors"])
         and _sector_dates_match(sector, sector_payload)
@@ -317,6 +327,11 @@ def render_status_section(
     if sector_usable:
         sector_detail = (
             f"Canonical snapshot内の WARMING {warming}件 / INFLOW {inflow}件。順位や推奨はHomeで生成しません。"
+        )
+    elif freshness != "CURRENT":
+        sector_detail = (
+            "Morning Dataset全体が当日未生成または日付不正のため、"
+            "過去のセクター状態件数を今日の値として集計しません。"
         )
     elif (
         sector_status in {"OK", "PARTIAL"}
@@ -381,7 +396,7 @@ def render_status_section(
 {warning_html}
   </section>
 
-{render_sector_heatmap(dataset)}{render_portfolio_impact(dataset)}'''
+{render_sector_heatmap(dataset, dataset_freshness=freshness)}{render_portfolio_impact(dataset)}'''
 
 
 def load_dataset(path: Path = MORNING_DATASET) -> Mapping[str, Any] | None:
