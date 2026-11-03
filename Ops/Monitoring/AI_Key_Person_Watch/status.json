@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-03T23:28:17.277+09:00",
-  "last_success_at": "2026-11-03T23:28:17.277+09:00",
+  "last_run_at": "2026-11-03T23:35:31.324+09:00",
+  "last_success_at": "2026-11-03T23:35:31.324+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-03T09:29:18.957+09:00",
   "news_persisted": false,
   "persistence_status": "NOT_NEEDED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-03T23:28:17.277+09:00 manual regular monitoring heartbeat: TEAM_RULES→TEAM_STATE AWAY/AUTO_GREEN/LUNA→#99 broadcast-head 6405435565, 270/270 tail verified; W45 #917 checked. No independently verified new material Research delta in this run; no duplicate Research append. #79 untouched, #892 read-only, #909 no repeat review. run_context=chatgpt_manual; role=レイ; operation=update_file; target=Ops/Monitoring/AI_Key_Person_Watch/status.json; execution_path=direct GitHub connector; Oct 11 historical path UNKNOWN."
+  "note": "2026-11-03T23:35:31.324+09:00 scheduled Research/Discovery heartbeat. TEAM_RULES→TEAM_STATE AWAY/AUTO_GREEN/LUNA→#99 broadcast-head=6405435565 270/270 tail verified; W45 #917 checked. Fresh primary-source checks Kioxia AI SSD June 2, Rapidus NEDO April 11 and funding June 5, METI export control: no newly verified Nov 3 adoption/orders/profit delta. No duplicate Research. #79 untouched, #892 read-only, #909 no repeated review. run_context=chatgpt_scheduled; role=レイ; operation=update_file; target=Ops/Monitoring/AI_Key_Person_Watch/status.json; execution_path=direct GitHub connector; Oct 11 historical path UNKNOWN."
 }
