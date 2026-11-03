@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-03T20:30:43.573+09:00",
-  "last_success_at": "2026-11-03T20:30:43.573+09:00",
+  "last_run_at": "2026-11-03T20:34:07.471+09:00",
+  "last_success_at": "2026-11-03T20:34:07.471+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-03T09:29:18.957+09:00",
   "news_persisted": false,
   "persistence_status": "NOT_NEEDED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-03T20:30:43.573+09:00 manual lane-local monitoring: prior Startup Sync v2 verified TEAM_RULES/TEAM_STATE/#99 broadcast-head 6405435565, 270/270 comments; W45 #917 and Discovery #861 checked. No new independently verified Research finding this run; no Research append. #79 untouched; #892 read-only; #909 no duplicate review. run_context=chatgpt_manual; role=レイ; operation=update_file; target=Ops/Monitoring/AI_Key_Person_Watch/status.json; execution_path=direct GitHub connector; historical 2026-10-11 path UNKNOWN."
+  "note": "2026-11-03T20:34:07.471+09:00 manual regular heartbeat. Startup Sync TEAM_RULES→TEAM_STATE (AWAY/AUTO_GREEN/LUNA)→#99 broadcast-head=6405435565, fetched 270/270, tail verified. Primary-source Kioxia IR latest Oct 30 and Rapidus news latest Oct 26; no new material Nov 3 verified Research delta; no Research append. #79 untouched, #892 read-only, #909 no repeat review. run_context=chatgpt_manual; role=レイ; operation=update_file; target=Ops/Monitoring/AI_Key_Person_Watch/status.json; execution_path=direct GitHub connector; Oct 11 historical path UNKNOWN."
 }
