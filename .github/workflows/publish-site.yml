@@ -52,6 +52,9 @@ on:
       - ".github/workflows/publish-site.yml"
       - ".github/workflows/update-market-phase.yml"
       - ".github/workflows/ai-morning-analyst.yml"
+  workflow_run:
+    workflows: ["AI Morning Analyst"]
+    types: [completed]
   schedule:
     # 23:40 UTC Sunday-Thursday = 08:40 JST Monday-Friday.
     - cron: "40 23 * * 0-4"
@@ -70,11 +73,16 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # workflow_run starts after Morning Analyst has committed the canonical
+          # dataset, so publish the latest default-branch state.
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.sha }}
 
       - name: Install test dependencies
         run: python3 -m pip install --disable-pip-version-check pytest==8.4.1
