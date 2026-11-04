@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-05T05:27:43+09:00",
-  "last_success_at": "2026-11-05T05:27:43+09:00",
+  "last_run_at": "2026-11-05T06:28:38+09:00",
+  "last_success_at": "2026-11-05T06:28:38+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-04T10:26:49+09:00",
   "news_persisted": false,
   "persistence_status": "NO_MATERIAL_PRIMARY_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-05 05:27 JST. Startup Sync TEAM_RULES→TEAM_STATE (AWAY/AUTO_GREEN/LUNA)→#99 broadcast-head 270/270 final 6405435565 VERIFIED; #892 read-only 3/15 (873-1,873-2,859-1). Official-source limited check: Kioxia latest Nov2; existing June2 AI SSD strategy; Rapidus existing June5 funding. No new material earnings-linked primary delta verified. AI key persons, consumer/field, MRAM not exhaustively rescanned. #79 untouched, #909 prior merged. No research duplicate. run_context=chatgpt_scheduled; role=レイ; execution_path=direct GitHub connector; historical Oct11 route UNKNOWN."
+  "note": "2026-11-05 06:28 JST. TEAM_RULES→TEAM_STATE (AWAY/AUTO_GREEN/LUNA)→#99 broadcast-head 270/270 final comment 6405435565 VERIFIED; #892 READ_ONLY 3/15 (873-1,873-2,859-1). PR #909 merged SHA cb23cdcac09f8fd55758f5e76980fb8b3d61496d. Limited official source check: Kioxia May25 rating, Rapidus Apr11 budget and Jun5 funding, Renesas historical MRAM; no new material earnings-linked delta verified. AI key persons/consumer field not exhaustive. No research duplicate; #79 untouched. run_context=chatgpt_scheduled; execution_path=direct GitHub connector; Oct11 historical path UNKNOWN."
 }
