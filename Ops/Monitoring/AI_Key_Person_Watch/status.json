@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-05T12:27:08+09:00",
-  "last_success_at": "2026-11-05T12:27:08+09:00",
+  "last_run_at": "2026-11-05T13:29:09+09:00",
+  "last_success_at": "2026-11-05T13:29:09+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-04T10:26:49+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-05T13:29:09+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_MATERIAL_PRIMARY_DELTA",
+  "persistence_status": "MATERIAL_DELTA_RESEARCH_PATH_UNVERIFIED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-05 12:27 JST. TEAM_RULES/TEAM_STATE LUNA AWAY AUTO_GREEN; #99 broadcast-head 270/270 final 6405435565 verified, no new To ALL/Rei. #892 3/15 read-only; #909 previously merged. Limited fresh AI/semiconductor/MRAM scan: Reuters Nov3 OpenAI Dan Driscoll national security appointment observed, but no verified Japan listed-company earnings linkage; other primary sources known. No Research duplication. #79 untouched. Direct GitHub connector observed; Oct11 path unknown."
+  "note": "2026-11-05 13:29 JST. Startup TEAM_RULES/TEAM_STATE; #99 broadcast-head 270/270 final comment 6405435565 verified; Luna Flow AWAY/AUTO_GREEN. Material MRAM signal: Aisin + Tohoku Univ Nov 2 STT-MRAM 32MB embedded 16nm AI SoC prototype, 7ms OS startup, 7mJ/frame claimed, commercialization/orders/earnings UNKNOWN. Source https://prtimes.jp/main/html/rd/p/000000227.000112940.html. #892 3/15 read-only; #909 merged previously; #79 untouched. No duplicate Research write; canonical research target not verified. Direct GitHub connector heartbeat."
 }
