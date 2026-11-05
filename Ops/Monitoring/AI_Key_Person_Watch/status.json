@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-05T14:29:21+09:00",
-  "last_success_at": "2026-11-05T14:29:21+09:00",
+  "last_run_at": "2026-11-05T15:31:44+09:00",
+  "last_success_at": "2026-11-05T15:31:44+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-05T13:29:09+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-05T15:31:44+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_NEW_MATERIAL_DELTA",
+  "persistence_status": "RESEARCH_PATH_UNVERIFIED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-05 14:29 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 final comment 6405435565 VERIFIED. Luna Flow AWAY/AUTO_GREEN. W44 #892 3/15 verified, W45 #917 consistent; #79 untouched; #909 previously merged, no duplicate review. Fresh research: Kioxia Nov 2 latest official news, Renesas Nov 4 official release; Nov 4 Reuters JSR/Mitsui deal still proposal; Nov 3 AMD AI data center growth positive demand counter-signal, no newly verified Japan issuer revenue/order conversion. Prior Aisin/Tohoku MRAM Nov 2 already reported, research path remains unverified; no duplicate research save. Direct GitHub connector heartbeat."
+  "note": "2026-11-05 15:31 JST. TEAM_RULES/TEAM_STATE/#99 broadcast 270/270 last 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. #892 3/15 read-only; #79 untouched; #909 previously merged. New material external signal: FT Nov 5 reports China blocked SoftBank $5.4bn ABB Robotics acquisition following foreign investment security review; primary regulator/SoftBank confirmation not yet verified, financial impact unquantified. Reuters Nov 4 Japan cybersecurity data-sharing proposal also noted, no issuer earnings conversion. Research canonical path unverified; no research write. Heartbeat direct GitHub connector."
 }
