@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-06T03:36:32+09:00",
-  "last_success_at": "2026-11-06T03:36:32+09:00",
+  "last_run_at": "2026-11-06T04:30:51+09:00",
+  "last_success_at": "2026-11-06T04:30:51+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-11-06T03:36:32+09:00",
   "news_persisted": false,
-  "persistence_status": "RESEARCH_CONVERSION_UNVERIFIED",
+  "persistence_status": "NO_NEW_MATERIAL_RESEARCH",
   "updated_by": "❤️レイ",
-  "note": "2026-11-06 03:36 JST. TEAM_RULES/TEAM_STATE/#99 verified 270/270 through 6405435565; Luna AWAY/AUTO_GREEN. Nov 5 Sony Q2 operating profit +45%, full-year forecast raised 9%, chip division forecast improved (Reuters); AI memory shortage pressures gaming hardware. Kioxia/Rapidus direct earnings conversion not verified. #892 READ_ONLY, #79 untouched, #909 previously merged. No separate Research write. Direct GitHub scheduled heartbeat."
+  "note": "2026-11-06 04:30 JST. Startup Sync TEAM_RULES/TEAM_STATE/#99 270/270 through 6405435565 verified; Luna AWAY/AUTO_GREEN. Sony I&SS Q2 sales -6% YoY to JPY577.6bn despite operating profit +12% to JPY154.6bn; FX/cost/mix matter; chip profit uplift is not proof of sensor volume expansion. Nov 5 results, EE Times Japan/TECH+. Kioxia Nov 5 integrated report release already known. #861 second-order hypothesis: AI memory tightness -> gaming device cost pressure; no verified new Japanese NAND order conversion. #892 READ_ONLY, #79 untouched, #909 previously merged. No separate Research write. Direct GitHub scheduled heartbeat."
 }
