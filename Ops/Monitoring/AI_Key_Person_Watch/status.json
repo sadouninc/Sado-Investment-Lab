@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-05T19:27:40+09:00",
-  "last_success_at": "2026-11-05T19:27:40+09:00",
+  "last_run_at": "2026-11-05T20:33:30+09:00",
+  "last_success_at": "2026-11-05T20:33:30+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-05T15:31:44+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-05 19:27 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270, last comment 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. #892 3/15 READ_ONLY; #79 untouched; #909 merged already verified. Reuters Nov 5 ABB China-unit prohibition is previously reported; YMTC IPO-delay report is unconfirmed company-primary, monitor only. No newly verified material earnings conversion, no duplicate Research write. Direct GitHub heartbeat."
+  "note": "2026-11-05 20:33 JST. TEAM_RULES/TEAM_STATE/#99 270/270 last 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. #892 3/15 READ_ONLY; #79 untouched; #909 merged previously verified. Reuters Nov 4-5 JSR/Mitsui potential deal, AI infrastructure policy risk and wafer capacity shifts monitored; no new primary-confirmed Japan earnings conversion. No duplicate Research write. Direct GitHub heartbeat."
 }
