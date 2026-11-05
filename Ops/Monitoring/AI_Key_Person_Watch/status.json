@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-06T00:33:16+09:00",
-  "last_success_at": "2026-11-06T00:33:16+09:00",
+  "last_run_at": "2026-11-06T01:33:03+09:00",
+  "last_success_at": "2026-11-06T01:33:03+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-11-06T00:33:16+09:00",
   "news_persisted": false,
-  "persistence_status": "RESEARCH_CONVERSION_UNVERIFIED",
+  "persistence_status": "NO_MATERIAL_NEW_RESEARCH",
   "updated_by": "❤️レイ",
-  "note": "2026-11-06 00:33 JST. TEAM_RULES/TEAM_STATE/#99 270/270 through 6405435565 verified; Luna Flow. #892 3/15 READ_ONLY, #79 untouched, #909 previously merged. Nov 5 US AI equity selloff (AP: Nasdaq -3.6%, Nvidia -6.3%, AMD -13.1%); Reuters: Microsoft Nscale Texas optional expansion not exercised months ago, existing deal intact. Japan NAND earnings impact unverified. No separate Research write. Direct GitHub heartbeat."
+  "note": "2026-11-06 01:33 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 through 6405435565 verified; Luna Flow, AWAY/AUTO_GREEN. #892 3/15 READ_ONLY, #79 untouched, #909 prior merged. Checked Nov 5 Kioxia Integrated Report 2026 publication and semiconductor/MRAM research; no new verified earnings-impact delta. Existing AI data-center capex concern remains hypothesis, not verified Japan NAND order decline. No Research write. Direct GitHub heartbeat."
 }
