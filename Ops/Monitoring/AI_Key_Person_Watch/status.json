@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-06T04:30:51+09:00",
-  "last_success_at": "2026-11-06T04:30:51+09:00",
+  "last_run_at": "2026-11-06T05:32:47+09:00",
+  "last_success_at": "2026-11-06T05:32:47+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-06T03:36:32+09:00",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-11-06T05:32:47+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_NEW_MATERIAL_RESEARCH",
+  "persistence_status": "EARLY_STAGE_RESEARCH_NOT_EARNINGS_MATERIAL",
   "updated_by": "❤️レイ",
-  "note": "2026-11-06 04:30 JST. Startup Sync TEAM_RULES/TEAM_STATE/#99 270/270 through 6405435565 verified; Luna AWAY/AUTO_GREEN. Sony I&SS Q2 sales -6% YoY to JPY577.6bn despite operating profit +12% to JPY154.6bn; FX/cost/mix matter; chip profit uplift is not proof of sensor volume expansion. Nov 5 results, EE Times Japan/TECH+. Kioxia Nov 5 integrated report release already known. #861 second-order hypothesis: AI memory tightness -> gaming device cost pressure; no verified new Japanese NAND order conversion. #892 READ_ONLY, #79 untouched, #909 previously merged. No separate Research write. Direct GitHub scheduled heartbeat."
+  "note": "2026-11-06 05:32 JST. Startup Sync TEAM_RULES/TEAM_STATE/#99 270/270 through comment 6405435565 verified; Luna AWAY/AUTO_GREEN. New primary research dated Nov 5: University of Tokyo ferromagnetic-semiconductor superconducting diode voltage control; Tohoku/JAEA room-temperature nonlinear Hall state electrical control. Both basic research, not commercial MRAM adoption, revenue or Japanese equity earnings conversion. Sony Nov 5 results and AI memory cost pressure already reported; no new Kioxia/Rapidus revenue conversion. #892 READ_ONLY, #79 untouched, #909 previously merged. No separate Research write. Direct GitHub scheduled heartbeat."
 }
