@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-06T06:28:20+09:00",
-  "last_success_at": "2026-11-06T06:28:20+09:00",
+  "last_run_at": "2026-11-06T07:35:56+09:00",
+  "last_success_at": "2026-11-06T07:35:56+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-06T05:32:47+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-06 06:28 JST. TEAM_RULES/TEAM_STATE/#99 verified broadcast-head 270/270 through 6405435565; Luna AWAY/AUTO_GREEN. #892 READ_ONLY, #79 untouched, #909 previously merged. Fresh primary-source review: Kioxia June 2 AI inference SSD strategy and Oct 13 BBB upgrade; METI Feb 27 Rapidus funding. These are prior-known historical facts, not new Nov 6 revenue or order evidence. No new material Research delta, no Research write. Direct scheduled GitHub heartbeat."
+  "note": "2026-11-06 07:35 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 through comment 6405435565 verified; Luna Flow, AWAY/AUTO_GREEN. Official Kioxia IR reviewed: Nov 5 Integrated Report 2026 already noted, Oct 30 earnings/dividend prior-known. No verified new Nov 6 Japanese semiconductor order/profit delta; no separate Research write. #892 READ_ONLY, #79 untouched, #909 previously merged; direct GitHub heartbeat."
 }
