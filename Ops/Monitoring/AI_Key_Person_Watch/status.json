@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-06T02:30:23+09:00",
-  "last_success_at": "2026-11-06T02:30:23+09:00",
+  "last_run_at": "2026-11-06T03:36:32+09:00",
+  "last_success_at": "2026-11-06T03:36:32+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-06T00:33:16+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-06T03:36:32+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_MATERIAL_NEW_RESEARCH",
+  "persistence_status": "RESEARCH_CONVERSION_UNVERIFIED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-06 02:30 JST. Startup Sync TEAM_RULES/TEAM_STATE/#99 verified broadcast 270/270 through comment 6405435565. Luna Flow, AWAY/AUTO_GREEN. Reviewed Nov 5 AI semiconductor selloff and JSR/Mitsui Chemicals transaction reporting; no newly verified company earnings impact, no separate Research save. #892 read-only, #79 untouched, #909 previously merged. Direct GitHub scheduled heartbeat."
+  "note": "2026-11-06 03:36 JST. TEAM_RULES/TEAM_STATE/#99 verified 270/270 through 6405435565; Luna AWAY/AUTO_GREEN. Nov 5 Sony Q2 operating profit +45%, full-year forecast raised 9%, chip division forecast improved (Reuters); AI memory shortage pressures gaming hardware. Kioxia/Rapidus direct earnings conversion not verified. #892 READ_ONLY, #79 untouched, #909 previously merged. No separate Research write. Direct GitHub scheduled heartbeat."
 }
