@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from scripts.actions_failure_collector import IncompleteInventory
-from scripts.actions_failure_issue_orchestrator import _revalidate_before_post
+from scripts.actions_failure_issue_orchestrator import _RecordingClient, _revalidate_before_post
 
 
 def fixture():
@@ -29,6 +29,22 @@ def test_eight_logical_gets_revalidated_before_writer(monkeypatch):
     assert _revalidate_before_post(client, calls, result) == []
     assert [x.args[0] for x in client.all_pages.call_args_list] == [
         "issues", "pulls", "actions/runs", "actions/runs/123/jobs"]
+
+
+def test_production_recording_client_keeps_first_pass_log_immutable(monkeypatch):
+    calls, result, inner = fixture()
+    inner.repository = "acme/repo"
+    recorder = _RecordingClient(inner)
+    recorder.calls = list(calls)
+    monkeypatch.setattr(
+        "scripts.actions_failure_analyzer.decide_issue_action",
+        lambda analysis, issues, inventory_complete: "ISSUE_DRAFT_ELIGIBLE",
+    )
+
+    assert recorder.repository == "acme/repo"
+    assert _revalidate_before_post(recorder.client, list(recorder.calls), result) == []
+    assert recorder.calls == calls
+    assert len(recorder.calls) == 4
 
 
 @pytest.mark.parametrize("changed", ["issues", "pulls", "actions/runs", "actions/runs/123/jobs"])
@@ -62,3 +78,4 @@ def test_get_error_holds():
     client.all_pages.side_effect = IncompleteInventory("API unavailable")
     with pytest.raises(IncompleteInventory):
         _revalidate_before_post(client, calls, result)
+
