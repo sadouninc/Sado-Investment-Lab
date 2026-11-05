@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-05T15:31:44+09:00",
-  "last_success_at": "2026-11-05T15:31:44+09:00",
+  "last_run_at": "2026-11-05T16:33:46+09:00",
+  "last_success_at": "2026-11-05T16:33:46+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-11-05T15:31:44+09:00",
   "news_persisted": false,
-  "persistence_status": "RESEARCH_PATH_UNVERIFIED",
+  "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-05 15:31 JST. TEAM_RULES/TEAM_STATE/#99 broadcast 270/270 last 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. #892 3/15 read-only; #79 untouched; #909 previously merged. New material external signal: FT Nov 5 reports China blocked SoftBank $5.4bn ABB Robotics acquisition following foreign investment security review; primary regulator/SoftBank confirmation not yet verified, financial impact unquantified. Reuters Nov 4 Japan cybersecurity data-sharing proposal also noted, no issuer earnings conversion. Research canonical path unverified; no research write. Heartbeat direct GitHub connector."
+  "note": "2026-11-05 16:33 JST. TEAM_RULES/TEAM_STATE/#99 broadcast 270/270 last comment 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. #892 3/15 read-only; #917 current W45; #79 untouched. SoftBank/ABB China regulatory block already reported 15:31; Reuters and ABB corroboration adds source confidence but no verified earnings conversion. Kioxia/Rapidus/MRAM no new independently established earnings-conversion delta in bounded scan. No duplicate Research write. Heartbeat direct GitHub connector."
 }
