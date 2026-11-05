@@ -43,6 +43,9 @@ class _RecordingClient:
     """Preserve the exact first-pass GET inputs for a fail-closed recheck."""
     def __init__(self, client):
         self.client = client
+        # collect_current_failure relies on the read-only client's repository
+        # identity when binding runs back to the current open PR inventory.
+        self.repository = client.repository
         self.calls = []
 
     def all_pages(self, endpoint, key, params):
@@ -111,7 +114,10 @@ def main(argv=None):
             print(json.dumps(_observable_result(result, issue_post=post_state), sort_keys=True))
             return 0
         # Fresh all-state inventory after proposal creation, immediately before POST.
-        issues = _revalidate_before_post(client, client.calls, result)
+        # Revalidation must not mutate the first-pass evidence log. Use the
+        # underlying GET-only client and an immutable snapshot of recorded calls.
+        from copy import deepcopy
+        issues = _revalidate_before_post(client.client, deepcopy(client.calls), result)
         created = post_validated_issue(repo, token, result, issues, inventory_complete=True, enable_post=True)
         print(json.dumps({"decision": "ISSUE_CREATED", "issue_number": created.get("number"), "request_id": result["analysis"]["request_id"]}, sort_keys=True))
         return 0
@@ -123,3 +129,4 @@ def main(argv=None):
 
 if __name__ == "__main__":
     sys.exit(main())
+
