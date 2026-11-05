@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-05T17:34:20+09:00",
-  "last_success_at": "2026-11-05T17:34:20+09:00",
+  "last_run_at": "2026-11-05T18:32:52+09:00",
+  "last_success_at": "2026-11-05T18:32:52+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-05T15:31:44+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-05 17:34 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 latest 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. #892 3/15 read-only; #79 untouched. PR #909 closed, merge SHA not established in this read. Reuters/ABB SoftBank China robotics regulatory block remains existing 15:31 discovery; no newly verified earnings conversion. Limited Kioxia/Rapidus/MRAM/AI scan: no additional material delta. No duplicate Research write. Direct scheduled GitHub heartbeat."
+  "note": "2026-11-05 18:32 JST. TEAM_RULES/TEAM_STATE/#99 270 comments, latest 6405435565 verified; Luna Flow AWAY/AUTO_GREEN. #892 verified 3/15 READ_ONLY; #79 untouched. PR #909 confirmed merged at exact head 066652bc, merge SHA cb23cdcac09f8fd55758f5e76980fb8b3d61496d (2026-11-01), no repeat review. No newly verified material Research delta; no duplicate Research write. Direct GitHub heartbeat."
 }
