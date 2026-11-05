@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-05T21:32:17+09:00",
-  "last_success_at": "2026-11-05T21:32:17+09:00",
+  "last_run_at": "2026-11-05T22:31:09+09:00",
+  "last_success_at": "2026-11-05T22:31:09+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-05T15:31:44+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-05T22:31:09+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_NEW_MATERIAL_DELTA",
+  "persistence_status": "RESEARCH_CONVERSION_UNVERIFIED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-05 21:32 JST. TEAM_RULES/TEAM_STATE/#99 270/270 through 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. #892 3/15 READ_ONLY; #79 untouched; #909 previously verified merged. Reuters Nov 5 AI semiconductor chemical and industrial gas suppliers report European growth; Japanese company earnings conversion not evidenced. No new material Research delta; no duplicate save. Direct GitHub heartbeat."
+  "note": "2026-11-05 22:31 JST. TEAM_RULES/TEAM_STATE/#99 270/270 through 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. #892 3/15 READ_ONLY; #79 untouched; #909 merged previously. New Reuters Nov 5: OpenAI public outreach/ending NDAs with officials amid US data-center opposition; permitting and infrastructure pace downside scenario for AI chip demand, Japan earnings impact unproven. Research canonical path not verified; no Research write. Direct GitHub heartbeat."
 }
