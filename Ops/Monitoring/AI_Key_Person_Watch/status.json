@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-05T22:31:09+09:00",
-  "last_success_at": "2026-11-05T22:31:09+09:00",
+  "last_run_at": "2026-11-05T23:31:52+09:00",
+  "last_success_at": "2026-11-05T23:31:52+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-11-05T22:31:09+09:00",
+  "last_news_delta_at": "2026-11-05T23:31:52+09:00",
   "news_persisted": false,
   "persistence_status": "RESEARCH_CONVERSION_UNVERIFIED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-05 22:31 JST. TEAM_RULES/TEAM_STATE/#99 270/270 through 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. #892 3/15 READ_ONLY; #79 untouched; #909 merged previously. New Reuters Nov 5: OpenAI public outreach/ending NDAs with officials amid US data-center opposition; permitting and infrastructure pace downside scenario for AI chip demand, Japan earnings impact unproven. Research canonical path not verified; no Research write. Direct GitHub heartbeat."
+  "note": "2026-11-05 23:31 JST. TEAM_RULES/TEAM_STATE/#99 270/270 through 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. #892 3/15 READ_ONLY; #79 untouched; #909 merged previously. Reuters Nov 5: Microsoft declined optional Nscale Texas AI capacity expansion (decision months earlier; existing contract unchanged); distinct from general data-center opposition. Japan semiconductor earnings impact UNKNOWN. No separate Research write; canonical destination unverified. Direct GitHub heartbeat."
 }
