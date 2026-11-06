@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-06T13:27:37+09:00",
-  "last_success_at": "2026-11-06T13:27:37+09:00",
+  "last_run_at": "2026-11-06T14:32:36+09:00",
+  "last_success_at": "2026-11-06T14:32:36+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-06T11:26:51+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-06 13:27 JST. TEAM_RULES/TEAM_STATE/#99 verified 270/270 through comment 6405435565; Luna Flow AWAY/AUTO_GREEN. Nov 6 11:00 KIOXIA Forum 2026 announcement (Nov 26; NVIDIA/NTT presentations) is a new event notice, not evidence of contracts, NAND orders or profit change. AP/FT/Reuters AI-semiconductor selloff is continuation of prior monitored theme. Rapidus primary news latest Oct 26. #892 READ_ONLY; #79 untouched; #909 no duplicate review. No separate Research write."
+  "note": "2026-11-06 14:32 JST. TEAM_RULES/TEAM_STATE/#99 verified 270/270 through comment 6405435565; Luna Flow AWAY/AUTO_GREEN. Reuters/FT Nov 6 Asia AI semiconductor selloff is continuation of previously recorded intraday risk, not new confirmed NAND orders or earnings impairment. Nov 5 Tokyo/Tohoku spintronics research already monitored; no new MRAM commercialization. #861 second-order hypothesis: AI capex risk -> hyperscaler spending repricing -> NAND orders/pricing potential; unverified. #892 READ_ONLY; #79 untouched; #909 already closed, no repeat review. No separate Research write."
 }
