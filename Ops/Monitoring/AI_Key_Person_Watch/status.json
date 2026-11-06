@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-06T20:34:00+09:00",
-  "last_success_at": "2026-11-06T20:34:00+09:00",
+  "last_run_at": "2026-11-06T21:26:48+09:00",
+  "last_success_at": "2026-11-06T21:26:48+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-06T16:30:25+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-06T21:26:48+09:00",
   "news_persisted": false,
-  "persistence_status": "HEARTBEAT_ONLY_NO_NEW_RESEARCH",
+  "persistence_status": "HEARTBEAT_ONLY_RESEARCH_PATH_UNVERIFIED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-06 20:34 JST. TEAM_RULES/TEAM_STATE/#99 verified broadcast-head 270/270, final comment 6405435565; Luna Flow AWAY/AUTO_GREEN. #892 official 3/15 READ_ONLY; #79 untouched. Kioxia Nov 6 statutory half-year filing and forum previously noted. Reuters Nov 6 Korea selloff and memory supply constraints reviewed: no newly verified NAND order contraction, Rapidus customer adoption, or MRAM commercialization. #909 closed, merge SHA unverified. No separate Research write."
+  "note": "2026-11-06 21:26 JST. TEAM_RULES/TEAM_STATE/#99 verified broadcast 270/270 final 6405435565; Luna AWAY/AUTO_GREEN. Reuters Nov 6 new advanced-packaging capacity bottleneck and $28bn 2026 capex estimate; Tokyo Electron equipment opportunity is a hypothesis, not verified orders/earnings. Source https://www.reuters.com/world/asia-pacific/ai-boom-turns-chip-packaging-into-next-battleground-semiconductors-2026-11-06/ . #892 body 3/15 READ_ONLY; #79 untouched. #909 closed, merge SHA not independently verified. No separate Research write; canonical research path not verified."
 }
