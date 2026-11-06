@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-07T01:30:04+09:00",
-  "last_success_at": "2026-11-07T01:30:04+09:00",
+  "last_run_at": "2026-11-07T02:32:24+09:00",
+  "last_success_at": "2026-11-07T02:32:24+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-11-07T01:30:04+09:00",
   "news_persisted": false,
-  "persistence_status": "HEARTBEAT_ONLY_SOURCE_REPORTED_UNCONFIRMED",
+  "persistence_status": "NO_NEW_VERIFIED_RESEARCH_HEARTBEAT_ONLY",
   "updated_by": "❤️レイ",
-  "note": "2026-11-07 01:30 JST. TEAM_RULES/TEAM_STATE/#99 verified 270/270, final 6405435565; Luna AWAY/AUTO_GREEN. #892 official 3/15 READ_ONLY; #79 untouched; #909 previously merge-verified. New Reuters Nov 6: TSMC reportedly considering 3D DRAM at Nvidia request (The Information sources); unconfirmed by TSMC/Nvidia; no demonstrated investment/orders/profit. Prior advanced packaging report already covered. MRAM no new commercialization confirmation. No separate Research save."
+  "note": "2026-11-07 02:32 JST. Startup sync TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270, final comment 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 official 3/15 READ_ONLY, #79 untouched. PR #909 merged true SHA cb23cdcac09f8fd55758f5e76980fb8b3d61496d (already reported). Nov 6 Reuters: US Nasdaq/chip shares rebounded intraday after prior selloff; no verified new NAND orders/prices, Rapidus customer/yield or MRAM commercialization. TSMC 3D DRAM report and advanced packaging investments already reported; no duplicate Research save."
 }
