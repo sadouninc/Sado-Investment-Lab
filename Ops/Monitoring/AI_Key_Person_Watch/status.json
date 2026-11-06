@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-06T15:31:01+09:00",
-  "last_success_at": "2026-11-06T15:31:01+09:00",
+  "last_run_at": "2026-11-06T16:30:25+09:00",
+  "last_success_at": "2026-11-06T16:30:25+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-06T11:26:51+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-06T16:30:25+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_NEW_RESEARCH_DELTA",
+  "persistence_status": "HEARTBEAT_ONLY_RESEARCH_NOT_PERSISTED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-06 15:31 JST. TEAM_RULES/TEAM_STATE/#99 verified 270/270 through 6405435565; Luna Flow AWAY/AUTO_GREEN. Nov 6 AI/semiconductor selloff continues; Reuters Japan strategic investment funding via BOJ ETF sale proceeds is policy signal but no confirmed Kioxia/Rapidus contract, NAND orders or earnings impact. Kioxia Nov 26 Forum notice already reported; Rapidus latest official news Oct 26; MRAM no new commercial evidence. #892 READ_ONLY verified body 3/15 (873-1,873-2,859-1); #79 untouched; #909 closed, merge SHA unverified. No separate Research write."
+  "note": "2026-11-06 16:30 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 through comment 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. Nov 6 Reuters: SoftBank five-year CDS 466bp, four-year high; credit stress adds financing-risk evidence to AI capex -> memory demand hypothesis, but Kioxia NAND order/price impact NOT VERIFIED. Nikkei Nov 6 close 57434.77 (-6.0%), Kioxia -8.7% (WSJ). #892 READ_ONLY; #79 untouched; #909 closed, merge SHA not verified. No separate Research write."
 }
