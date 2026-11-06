@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-06T22:34:03+09:00",
-  "last_success_at": "2026-11-06T22:34:03+09:00",
+  "last_run_at": "2026-11-06T23:32:26+09:00",
+  "last_success_at": "2026-11-06T23:32:26+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-06T21:26:48+09:00",
   "news_persisted": false,
   "persistence_status": "HEARTBEAT_ONLY_NO_NEW_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-06 22:34 JST. TEAM_RULES/TEAM_STATE/#99 verified 270/270, final comment 6405435565; Luna AWAY/AUTO_GREEN. Reuters Nov 6 advanced packaging bottleneck remains previously reported; no independently verified additional earnings/order delta. PR #909 merged=true, merged_at=2026-11-01T02:16:08Z, merge SHA cb23cdcac09f8fd55758f5e76980fb8b3d61496d verified via GitHub PR metadata. #892 READ_ONLY; #79 untouched. No separate Research write."
+  "note": "2026-11-06 23:32 JST. TEAM_RULES/TEAM_STATE/#99 verified 270/270; last comment 6405435565; Luna AWAY/AUTO_GREEN. Nov 6 Reuters advanced packaging and Japan policy items already reported; KIOXIA Forum announcement previously known. No new confirmed corporate order/profit or MRAM commercialization delta. #892 READ_ONLY; #79 untouched; #909 merge previously verified. No separate Research write."
 }
