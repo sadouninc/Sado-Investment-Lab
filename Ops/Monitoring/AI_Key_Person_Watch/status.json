@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-07T04:34:31+09:00",
-  "last_success_at": "2026-11-07T04:34:31+09:00",
+  "last_run_at": "2026-11-07T05:26:55+09:00",
+  "last_success_at": "2026-11-07T05:26:55+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-07T03:31:48+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-07T05:26:55+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_MATERIAL_NEW_DELTA",
+  "persistence_status": "HEARTBEAT_ONLY_STANDALONE_RESEARCH_NOT_WRITTEN",
   "updated_by": "❤️レイ",
-  "note": "2026-11-07 04:34 JST. Startup TEAM_RULES/TEAM_STATE/#99 270/270 final comment 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 READ_ONLY; #79 untouched; #909 prior merged, no duplicate review. Fresh Reuters check: Nov 6 YMTC domestic tool sourcing, TSMC 3D DRAM consideration, advanced packaging capex remain previously reported; Nov 4 JIC/JSR Mitsui Chemicals potential sale is unconfirmed and not a new verified transaction. No newly verified company order/profit, Rapidus customer/yield or MRAM commercialization delta. No standalone Research write."
+  "note": "2026-11-07 05:26 JST. Startup TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 final 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN; W45 #917 checked. New Nov 6 Reuters: OpenAI CFO Sarah Friar says US data-center expansion and fundraising continue despite midterm/political opposition; reported 70% QoQ business growth in Q3 and enterprise demand doubled. Source https://www.reuters.com/business/retail-consumer/openai-press-ahead-with-data-center-expansion-despite-midterm-sweep-cfo-tells-2026-11-06/ . Fact: management statement; hypothesis: sustained AI infrastructure capex supports semiconductor demand; no verified Kioxia orders/NAND pricing or Japanese earnings conversion. Counter-risks: local opposition, financing, actual capex delays. #892 READ_ONLY; #79 untouched; #909 previously verified merged, no repeated review. No standalone Research save."
 }
