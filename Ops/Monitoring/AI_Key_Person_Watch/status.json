@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-06T14:32:36+09:00",
-  "last_success_at": "2026-11-06T14:32:36+09:00",
+  "last_run_at": "2026-11-06T15:31:01+09:00",
+  "last_success_at": "2026-11-06T15:31:01+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-06T11:26:51+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-06 14:32 JST. TEAM_RULES/TEAM_STATE/#99 verified 270/270 through comment 6405435565; Luna Flow AWAY/AUTO_GREEN. Reuters/FT Nov 6 Asia AI semiconductor selloff is continuation of previously recorded intraday risk, not new confirmed NAND orders or earnings impairment. Nov 5 Tokyo/Tohoku spintronics research already monitored; no new MRAM commercialization. #861 second-order hypothesis: AI capex risk -> hyperscaler spending repricing -> NAND orders/pricing potential; unverified. #892 READ_ONLY; #79 untouched; #909 already closed, no repeat review. No separate Research write."
+  "note": "2026-11-06 15:31 JST. TEAM_RULES/TEAM_STATE/#99 verified 270/270 through 6405435565; Luna Flow AWAY/AUTO_GREEN. Nov 6 AI/semiconductor selloff continues; Reuters Japan strategic investment funding via BOJ ETF sale proceeds is policy signal but no confirmed Kioxia/Rapidus contract, NAND orders or earnings impact. Kioxia Nov 26 Forum notice already reported; Rapidus latest official news Oct 26; MRAM no new commercial evidence. #892 READ_ONLY verified body 3/15 (873-1,873-2,859-1); #79 untouched; #909 closed, merge SHA unverified. No separate Research write."
 }
