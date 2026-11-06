@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-06T10:35:28+09:00",
-  "last_success_at": "2026-11-06T10:35:28+09:00",
+  "last_run_at": "2026-11-06T11:26:51+09:00",
+  "last_success_at": "2026-11-06T11:26:51+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-11-06T10:35:28+09:00",
+  "last_news_delta_at": "2026-11-06T11:26:51+09:00",
   "news_persisted": false,
   "persistence_status": "MARKET_RISK_SIGNAL_RESEARCH_CONVERSION_UNVERIFIED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-06 10:35 JST. TEAM_RULES/TEAM_STATE/#99 270/270 through 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. Reuters Nov 6 Asia semiconductor/AI equity rout: Nikkei ~-5%, KOSPI >-8%, US SOX -12.2%; market repricing risk, NOT verified Kioxia orders/earnings deterioration. Nov 4 JSR/Mitsui deal consideration previously known. No separate Research write; #892 READ_ONLY, #79 untouched, #909 no duplicate review. Direct GitHub connector heartbeat."
+  "note": "2026-11-06 11:26 JST. Startup Sync TEAM_RULES/TEAM_STATE/#99 270/270 through 6405435565 VERIFIED; Luna Flow AWAY/AUTO_GREEN. Nov 6 Reuters/AP/WSJ report further AI-semiconductor equity rout: Nikkei >6% morning fall, Kioxia ~10% and Advantest ~12% in early trading (time-sensitive), KOSPI circuit breaker. This is market repricing, not confirmed NAND order/earnings deterioration. #892 body 3/15; READ_ONLY. No separate Research write, #79 untouched, #909 no duplicate review. Direct connector heartbeat."
 }
