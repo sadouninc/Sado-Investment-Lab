@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-07T15:32:54+09:00",
-  "last_success_at": "2026-11-07T15:32:54+09:00",
+  "last_run_at": "2026-11-07T16:36:25+09:00",
+  "last_success_at": "2026-11-07T16:36:25+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-11-07T15:32:54+09:00",
   "news_persisted": false,
   "persistence_status": "HEARTBEAT_ONLY_RESEARCH_PERSISTENCE_PENDING",
   "updated_by": "❤️レイ",
-  "note": "2026-11-07 15:32 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head verified 270/270 through comment 6405435565; Luna AWAY/AUTO_GREEN. New-to-watch primary-source finding: AISIN and Tohoku University Nov 2 announcement 16nm AI SoC with embedded 32MB STT-MRAM; 65.7ms boot and 1/50 object detection energy claimed, prototype R&D not verified commercial sales. https://prtimes.jp/main/html/rd/p/000000227.000112940.html. #892 READ_ONLY; #79 untouched; #909 prior merged evidence. Standalone Research persistence pending canonical path validation."
+  "note": "2026-11-07 16:36 JST. TEAM_RULES/TEAM_STATE/#99 270/270 through 6405435565 verified; Luna AWAY/AUTO_GREEN. #892 READ_ONLY 3/15 (873-1,873-2,859-1); #79 untouched. AISIN/Tohoku 2026-11-02 STT-MRAM prototype primary source reconfirmed, no newly verified commercialization. Kioxia 2026-11-06 Forum announcement (Nov 26 event, NVIDIA/NTT participation) is event information, not verified orders or profits: https://www.kioxia.com/ja-jp/about/news/2026/20261106-1.html. No new material delta; standalone Research persistence remains pending canonical path confirmation."
 }
