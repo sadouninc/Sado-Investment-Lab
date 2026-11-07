@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-07T17:36:10+09:00",
-  "last_success_at": "2026-11-07T17:36:10+09:00",
+  "last_run_at": "2026-11-07T18:27:32+09:00",
+  "last_success_at": "2026-11-07T18:27:32+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-07T15:32:54+09:00",
   "news_persisted": false,
-  "persistence_status": "HEARTBEAT_ONLY_RESEARCH_PERSISTENCE_PENDING",
+  "persistence_status": "HEARTBEAT_ONLY_NO_NEW_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-07 17:36 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head verified 270/270 through comment 6405435565; Luna AWAY/AUTO_GREEN; #79 untouched. AISIN/Tohoku 2026-11-02 STT-MRAM prototype official release verified (https://www.aisin.com/jp/news/2026/010739.html); no new mass-production/customer/revenue evidence. Kioxia AI SSD June strategy and Rapidus funding are prior disclosures, no newly verified material delta. #892 READ_ONLY maintained; no proxy post. Standalone Research canonical path remains unverified; no standalone persistence."
+  "note": "2026-11-07 18:27 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head verified 270/270 through comment 6405435565; Luna AWAY/AUTO_GREEN; #79 untouched. Official AISIN 2026-11-02 MRAM research and Kioxia 2026-11-06 Forum already known; no new verified commercial adoption, orders, earnings conversion or material research delta. #892 READ_ONLY; no proxy post. Canonical Research path identified from Issue #124: 06_Research/News/AI_Key_Person/; no new news saved."
 }
