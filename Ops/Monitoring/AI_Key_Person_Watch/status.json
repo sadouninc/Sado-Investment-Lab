@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-07T14:26:51+09:00",
-  "last_success_at": "2026-11-07T14:26:51+09:00",
+  "last_run_at": "2026-11-07T15:32:54+09:00",
+  "last_success_at": "2026-11-07T15:32:54+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-07T05:26:55+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-07T15:32:54+09:00",
   "news_persisted": false,
-  "persistence_status": "HEARTBEAT_ONLY_NO_IMPORTANT_RESEARCH_DELTA",
+  "persistence_status": "HEARTBEAT_ONLY_RESEARCH_PERSISTENCE_PENDING",
   "updated_by": "❤️レイ",
-  "note": "2026-11-07 14:26 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 verified through 6405435565; Luna AWAY/AUTO_GREEN. #892 3/15 verified read-only; #79 untouched. PR #909 merged=true, merge SHA cb23cdcac09f8fd55758f5e76980fb8b3d61496d. Nov 7 research: no newly verified Japan semiconductor orders/profits, Rapidus customer/yield milestone, or MRAM commercialization. Reuters Nov 6 packaging and Nov 4 JSR are already known; Nov 6 SoftBank AI financing risk remains a counterindicator. No standalone Research write."
+  "note": "2026-11-07 15:32 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head verified 270/270 through comment 6405435565; Luna AWAY/AUTO_GREEN. New-to-watch primary-source finding: AISIN and Tohoku University Nov 2 announcement 16nm AI SoC with embedded 32MB STT-MRAM; 65.7ms boot and 1/50 object detection energy claimed, prototype R&D not verified commercial sales. https://prtimes.jp/main/html/rd/p/000000227.000112940.html. #892 READ_ONLY; #79 untouched; #909 prior merged evidence. Standalone Research persistence pending canonical path validation."
 }
