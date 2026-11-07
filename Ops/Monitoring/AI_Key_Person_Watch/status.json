@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-07T13:31:16+09:00",
-  "last_success_at": "2026-11-07T13:31:16+09:00",
+  "last_run_at": "2026-11-07T14:26:51+09:00",
+  "last_success_at": "2026-11-07T14:26:51+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-07T05:26:55+09:00",
   "news_persisted": false,
   "persistence_status": "HEARTBEAT_ONLY_NO_IMPORTANT_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-07 13:31 JST. TEAM_RULES/TEAM_STATE/#99 verified 270/270 through comment 6405435565; Luna AWAY/AUTO_GREEN. #892 official 3/15 (873-1,873-2,859-1) read-only; #79 untouched. #909 closed (merge SHA not freshly verified). Nov 7 research scan: Reuters Nov 6 advanced packaging, Japan policy, YMTC and Rapidus customer conversion are existing observations; no independently verified new Japan supplier order/profit or MRAM commercialization. No standalone Research write."
+  "note": "2026-11-07 14:26 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 verified through 6405435565; Luna AWAY/AUTO_GREEN. #892 3/15 verified read-only; #79 untouched. PR #909 merged=true, merge SHA cb23cdcac09f8fd55758f5e76980fb8b3d61496d. Nov 7 research: no newly verified Japan semiconductor orders/profits, Rapidus customer/yield milestone, or MRAM commercialization. Reuters Nov 6 packaging and Nov 4 JSR are already known; Nov 6 SoftBank AI financing risk remains a counterindicator. No standalone Research write."
 }
