@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-08T00:31:35+09:00",
-  "last_success_at": "2026-11-08T00:31:35+09:00",
+  "last_run_at": "2026-11-08T01:28:42+09:00",
+  "last_success_at": "2026-11-08T01:28:42+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-07T15:32:54+09:00",
   "news_persisted": false,
   "persistence_status": "HEARTBEAT_ONLY_NO_NEW_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-08 00:31 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN (old Nagi instruction superseded). #892 3/15 READ_ONLY, #79 untouched; #909 previously merged, no repeat review. Checked Nov 4 JSR/Mitsui report and Nov 6 BOJ AI/cyber remarks plus Kioxia/Rapidus primary sources; no newly verified commercial adoption, order, yield or earnings delta. No independent Research write."
+  "note": "2026-11-08 01:28 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 READ_ONLY, #79 untouched, #909 closed. Reviewed recent JSR/Mitsui transaction report and AI market drawdown; no new verified company order/earnings delta since previous run. No Research write."
 }
