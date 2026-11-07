@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-07T08:35:35+09:00",
-  "last_success_at": "2026-11-07T08:35:35+09:00",
+  "last_run_at": "2026-11-07T09:33:24+09:00",
+  "last_success_at": "2026-11-07T09:33:24+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-07T05:26:55+09:00",
   "news_persisted": false,
   "persistence_status": "HEARTBEAT_ONLY_NO_IMPORTANT_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-07 08:35 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 final 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. Nov 6 Reuters final US close: Nasdaq rebound but fourth consecutive weekly decline; market valuation/rule-risk distinct from NAND orders. Prior YMTC 60-70% local equipment goal and TSMC 3D DRAM exploration remain unconfirmed orders. No fresh verified Japanese equipment/material order, Rapidus customer/yield or MRAM commercial evidence. #892 READ_ONLY 873-1/873-2/859-1=3/15 as prior official; #79 untouched; #909 previously merged, no repeat review. No standalone Research save."
+  "note": "2026-11-07 09:33 JST. TEAM_RULES/TEAM_STATE and #99 broadcast-head 270/270 final comment 6405435565 VERIFIED; Luna is current Flow Authority, AWAY/AUTO_GREEN. #892 official 873-1/873-2/859-1=3/15, READ_ONLY; #79 untouched; #909 prior merged, no repeat review. Nov 6 Reuters JSR sale discussion, AI packaging capex, TSMC 3D DRAM exploration, SoftBank AI financing risks are previously reported; no newly confirmed Japanese semiconductor order/profit conversion, Rapidus customer/yield or MRAM commercialization. No standalone Research save."
 }
