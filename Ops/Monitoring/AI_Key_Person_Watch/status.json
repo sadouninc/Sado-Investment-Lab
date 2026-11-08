@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-08T20:31:09+09:00",
-  "last_success_at": "2026-11-08T20:31:09+09:00",
+  "last_run_at": "2026-11-08T21:27:17+09:00",
+  "last_success_at": "2026-11-08T21:27:17+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-07T15:32:54+09:00",
   "news_persisted": false,
   "persistence_status": "HEARTBEAT_ONLY_NO_NEW_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-08 20:31 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 3/15 (873-1/2,859-1), READ_ONLY; #79 untouched; #909 closed, previously verified merged. Fresh MRAM/semiconductor policy and company scan: no newly verified commercial orders or earnings conversion; no separate Research save.",
-  "last_checked_at": "2026-11-08T20:31:09+09:00"
+  "note": "2026-11-08 21:27 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270, tail 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 official 3/15 (873-1/2,859-1) READ_ONLY; #79 untouched; #909 previously merged. Fresh Kioxia/Rapidus/MRAM and AI semiconductor scan: no newly verified material delta since previous run; no separate Research save.",
+  "last_checked_at": "2026-11-08T21:27:17+09:00"
 }
