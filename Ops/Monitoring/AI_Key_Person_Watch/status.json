@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-08T08:29:22+09:00",
-  "last_success_at": "2026-11-08T08:29:22+09:00",
+  "last_run_at": "2026-11-08T09:26:45+09:00",
+  "last_success_at": "2026-11-08T09:26:45+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-07T15:32:54+09:00",
   "news_persisted": false,
   "persistence_status": "HEARTBEAT_ONLY_NO_NEW_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-08 08:29 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 6405435565, 270/270 comments VERIFIED; Luna AWAY/AUTO_GREEN. #892 READ_ONLY; no new acceptance evidence verified; #79 untouched; #909 prior merged, no repeat review. Checked Kioxia IR (Nov 6 semiannual report, Nov 5 integrated report, Oct 30 dividend decision), Rapidus official and semiconductor geopolitical coverage; no new material adoption/order/yield/earnings delta since prior run. No independent Research write."
+  "note": "2026-11-08 09:26 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 6405435565, 270/270 VERIFIED; Luna AWAY/AUTO_GREEN. #892 official 3/15 (873-1,873-2,859-1), READ_ONLY; #79 untouched; #909 previously merged. Checked Rapidus official 2026-10-26 partnership and FY2026 R&D budget, Nov 4 JSR transaction report, Nov 6 Japan strategic investment policy and AI market concerns. No newly verified adoption/order/yield/earnings conversion since prior run. No independent Research write."
 }
