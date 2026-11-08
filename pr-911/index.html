@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #911 · NOT PRODUCTION</strong>
-  <span>Head cfd1662a144f · Built 2026-11-08T14:00:05Z</span>
+  <span>Head 5b1b6f2ec434 · Built 2026-11-08T15:49:16Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -181,13 +181,14 @@
   <section class="home-os-section" aria-labelledby="status-title">
     <p class="eyebrow">STATUS</p>
     <h2 id="status-title">重要な変化・状態</h2>
-    <div class="codex-alert" data-state="caution">
-      <strong>Morning Dataset: 一部情報不足 / PARTIAL</strong>
-      <p>Dataset as of: 2026-11-06 / completeness: 4 / 8</p>
+    <div class="codex-alert" data-state="stale">
+      <strong>今日のMorning Datasetはまだ生成されていません / NOT_GENERATED_TODAY</strong>
+      <p>表示中: 2026-11-06 / 期待営業日: 2026-11-09</p>
+      <p>source completenessのPARTIALとは別の、当日pipeline未生成状態です。</p>
     </div>
     <div class="codex-summary-grid home-primary-grid">
 <article class="codex-summary-card"><span class="codex-status-chip" data-state="normal">確認可能 / OK</span><h3>市場データ</h3><p>Morning Datasetの既存market source状態を表示します。</p><p class="codex-evidence__meta">as of: 2026-11-05T14:30:00+00:00</p></article>
-<article class="codex-summary-card"><span class="codex-status-chip" data-state="normal">確認可能 / OK</span><h3>Sector Rotation</h3><p>source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofと不一致のため、状態件数を集計しません。順位や推奨はHomeで生成しません。</p><p class="codex-evidence__meta">as of: 2026-11-05</p></article>
+<article class="codex-summary-card"><span class="codex-status-chip" data-state="normal">確認可能 / OK</span><h3>Sector Rotation</h3><p>Morning Dataset全体が当日未生成または日付不正のため、過去のセクター状態件数を今日の値として集計しません。</p><p class="codex-evidence__meta">as of: 2026-11-05</p></article>
     </div>
 <div class="codex-alert" data-state="caution"><strong>既存Dataset warning</strong><ul><li>portfolio source is stale: portfolio snapshot is 90 days old (freshness limit 3)</li><li>capital source is missing: capital_snapshots table not found in canonical history database</li><li>events source is missing: event calendar contains no events and does not explicitly confirm complete empty coverage</li><li>watchlist source is stale: watchlist snapshot is 87 days old (freshness limit 3)</li></ul></div>
   </section>
@@ -196,9 +197,9 @@
     <p class="eyebrow">MARKET HEATMAP</p>
     <h2 id="heatmap-title">市場・テーマの動き</h2>
     <p>今日の判断に影響しそうな変化を、既存Canonical stateだけで俯瞰します。</p>
-    <div class="codex-alert" data-state="unavailable">
-      <strong>Sector Rotationの日付が一致しないため表示しません</strong>
-      <p>source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofと不一致です。</p>
+    <div class="codex-alert" data-state="stale">
+      <strong>Morning Datasetが古いためSector Rotationを表示しません</strong>
+      <p>Morning Dataset全体の鮮度が確認できないため、過去のセクター状態を今日の状態として表示しません。</p>
     </div>
   </section>
 
