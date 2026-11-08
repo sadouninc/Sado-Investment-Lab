@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-09T05:26:54+09:00",
-  "last_success_at": "2026-11-09T05:26:54+09:00",
+  "last_run_at": "2026-11-09T06:28:09+09:00",
+  "last_success_at": "2026-11-09T06:28:09+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-07T15:32:54+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-09T06:28:09+09:00",
   "news_persisted": false,
-  "persistence_status": "HEARTBEAT_ONLY_NO_NEW_RESEARCH_DELTA",
+  "persistence_status": "HEARTBEAT_ONLY_UNCONFIRMED_NEWS_SIGNAL",
   "updated_by": "❤️レイ",
-  "note": "2026-11-09 05:26 JST scheduled. TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; Luna authority AWAY/AUTO_GREEN. #124 and #861 checked. No fresh external news scan in this run; no new verified Research delta claimed. #892 READ_ONLY, #79 untouched. No duplicate PR reviews.",
-  "last_checked_at": "2026-11-09T05:26:54+09:00"
+  "note": "2026-11-09 06:28 JST. TEAM_RULES→TEAM_STATE→#99 270 comments, tail 6405435565; Luna AWAY/AUTO_GREEN. External scan: Reuters Nov 6 TSMC considering 3D DRAM per The Information, unconfirmed, no Japanese earnings attribution; monitor confirmation. #892 READ_ONLY; #79 untouched. No Research write pending primary confirmation.",
+  "last_checked_at": "2026-11-09T06:28:09+09:00"
 }
