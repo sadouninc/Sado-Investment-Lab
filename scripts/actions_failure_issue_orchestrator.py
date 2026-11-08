@@ -115,13 +115,6 @@ def _revalidate_before_post(
         if current != previous:
             raise IncompleteInventory("pre-POST source changed")
         fresh[index] = current
-    finished = clock()
-    if isinstance(finished, bool) or not isinstance(finished, (int, float)):
-        raise IncompleteInventory("invalid monotonic clock")
-    elapsed = finished - started
-    if elapsed < 0 or elapsed > max_revalidation_seconds:
-        raise IncompleteInventory("pre-POST revalidation duration invalid")
-
     _positive_unique_numbers(fresh[0], label="pull request")
     _positive_unique_numbers(fresh[3], label="issue")
     run_ids = [item.get("id") if isinstance(item, dict) else None for item in fresh[1]]
@@ -180,6 +173,12 @@ def _revalidate_before_post(
     fresh_draft = build_issue_draft(fresh_result["analysis"])
     if fresh_result["analysis"] != result["analysis"] or fresh_draft != result["issue_draft"]:
         raise IncompleteInventory("fresh proposal semantic identity changed")
+    finished = clock()
+    if isinstance(finished, bool) or not isinstance(finished, (int, float)):
+        raise IncompleteInventory("invalid monotonic clock")
+    elapsed = finished - started
+    if elapsed < 0 or elapsed > max_revalidation_seconds:
+        raise IncompleteInventory("pre-POST revalidation duration invalid")
     return fresh[3]
 
 
