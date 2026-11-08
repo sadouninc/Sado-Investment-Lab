@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-09T00:32:52+09:00",
-  "last_success_at": "2026-11-09T00:32:52+09:00",
+  "last_run_at": "2026-11-09T01:29:01+09:00",
+  "last_success_at": "2026-11-09T01:29:01+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-07T15:32:54+09:00",
   "news_persisted": false,
   "persistence_status": "HEARTBEAT_ONLY_NO_NEW_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-09 00:32 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; Luna authority AWAY/AUTO_GREEN. Checked Kioxia official IR Nov 6, Rapidus official FY2026/Oct 26, JSR Nov 4 report: no newly verified material customer order/earnings conversion. W45 #917 official checkpoints 3/15 READ_ONLY; #79 untouched; #909 already merged, no duplicate review. No separate Research save.",
-  "last_checked_at": "2026-11-09T00:32:52+09:00"
+  "note": "2026-11-09 01:29 JST scheduled. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; Luna authority AWAY/AUTO_GREEN. PR #911 exact HEAD 5b1b6f2 merged (merge SHA 3dfe9cb724b2f8dc1239d1faadbdde8d6406bcc4); PR Preflight and Publish completed/success; Queue Refill on PR Close completed/success. This is a development milestone, not a new Research news delta or natural POST acceptance. #79 untouched, #892 READ_ONLY, #909 not revisited. No separate Research save.",
+  "last_checked_at": "2026-11-09T01:29:01+09:00"
 }
