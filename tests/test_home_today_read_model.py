@@ -132,6 +132,88 @@ def test_heatmap_missing_sector_source_fails_closed_without_invented_cells():
     assert "home-heatmap-cell" not in rendered
 
 
+def test_heatmap_stale_payload_is_not_presented_as_current_sector_signal():
+    payload = dataset()
+    payload["source_status"][1]["status"] = "STALE"
+    payload["source_status"][1]["reason"] = "canonical history is old"
+    before = deepcopy(payload)
+
+    rendered = module.render_status_section(
+        payload, expected_as_of=date(2026, 8, 11)
+    )
+    assert "Sector Rotationのデータは古いため表示しません" in rendered
+    assert 'data-state="stale"' in rendered
+    assert "canonical history is old" in rendered
+    assert "状態件数を集計しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
+    assert payload == before
+
+
+def test_heatmap_missing_source_with_leftover_payload_hides_old_cells():
+    payload = dataset()
+    payload["source_status"][1]["status"] = "MISSING"
+    payload["source_status"][1]["reason"] = "source unavailable"
+
+    rendered = module.render_status_section(
+        payload, expected_as_of=date(2026, 8, 11)
+    )
+    assert "Sector Rotationは取得できません" in rendered
+    assert "source unavailable" in rendered
+    assert "状態件数を集計しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
+
+
+def test_sector_source_payload_date_mismatch_fails_closed_without_changing_metadata():
+    payload = dataset()
+    payload["source_status"][1]["as_of"] = "2026-08-10"
+    before = deepcopy(payload)
+
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    assert "source_status.as_ofとsector_rotation.as_ofが不一致または無効" in rendered
+    assert "Sector Rotationの日付が一致しないため表示しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
+    assert "状態件数を集計しません" in rendered
+    assert payload == before
+
+
+def test_current_morning_rejects_matching_but_old_sector_source_and_payload_dates():
+    payload = dataset()
+    payload["source_status"][1]["as_of"] = "2026-08-10"
+    payload["sector_rotation"]["as_of"] = "2026-08-10"
+    before = deepcopy(payload)
+
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    assert "Sector Rotationの日付が一致しないため表示しません" in rendered
+    assert "Morning Dataset as_ofと不一致" in rendered
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
+    assert "INFLOW 1件" not in rendered
+    assert "状態件数を集計しません" in rendered
+    assert payload == before
+
+
+def test_sector_missing_or_invalid_source_date_does_not_publish_current_heatmap():
+    for source_date in (None, "not-a-date"):
+        payload = dataset()
+        payload["source_status"][1]["as_of"] = source_date
+        rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+        assert "Sector Rotationの日付が一致しないため表示しません" in rendered
+        assert "home-heatmap-cell" not in rendered
+        assert "WARMING 1件" not in rendered
+
+
+def test_sector_payload_date_mismatch_fails_closed_even_when_status_is_partial():
+    payload = dataset()
+    payload["source_status"][1]["status"] = "PARTIAL"
+    payload["sector_rotation"]["as_of"] = "2026-08-10"
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    assert "状態件数を集計しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+
+
 def test_heatmap_mobile_does_not_depend_on_horizontal_scroll():
     css = CSS_PATH.read_text(encoding="utf-8")
     assert ".home-heatmap-grid" in css
@@ -209,9 +291,59 @@ def test_previous_business_day_dataset_is_not_shown_as_normal_partial():
     assert 'data-state="stale"' in rendered
 
 
+def test_global_stale_morning_dataset_hides_internally_matching_sector_cells_and_counts():
+    payload = dataset()
+    before = deepcopy(payload)
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 12))
+    assert "NOT_GENERATED_TODAY" in rendered
+    assert "Morning Datasetが古いためSector Rotationを表示しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
+    assert "INFLOW 1件" not in rendered
+    assert "過去のセクター状態件数を今日の値として集計しません" in rendered
+    assert payload == before
+
+
+def test_invalid_global_morning_date_hides_current_sector_cells_and_counts():
+    payload = dataset()
+    payload["as_of"] = "invalid-date"
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    assert "DATASET_DATE_INVALID" in rendered
+    assert "Morning Datasetの日付を検証できないためSector Rotationを表示しません" in rendered
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
+    assert "INFLOW 1件" not in rendered
+
+
 def test_expected_business_date_uses_jst_and_skips_weekend():
     saturday_utc = datetime.fromisoformat("2026-08-15T01:00:00+00:00")
     assert module.expected_jst_business_date(saturday_utc) == date(2026, 8, 14)
+
+
+def test_home_load_uses_published_read_model_without_home_only_sector_collection(tmp_path):
+    import json
+
+    payload = dataset()
+    payload.pop("sector_rotation")
+    path = tmp_path / "morning-dataset.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    loaded = module.load_dataset(path)
+    assert loaded == payload
+    assert loaded["source_status"][1]["status"] == "OK"
+    rendered = module.render_status_section(loaded, expected_as_of=date(2026, 8, 11))
+    assert "Sector Rotationは取得できません" in rendered
+    assert "公開JSONのSector Rotation payloadが欠損または空" in rendered
+    assert "sourceがSTALE/MISSING/UNKNOWNのため" not in rendered
+    assert "状態件数を集計しません" in rendered
+    assert "WARMING 0件" not in rendered
+    assert "home-heatmap-cell" not in rendered
+
+
+def test_home_load_invalid_utf8_fails_closed(tmp_path):
+    path = tmp_path / "morning-dataset.json"
+    path.write_bytes(b"\xff\xfeinvalid")
+    assert module.load_dataset(path) is None
 
 
 def test_missing_source_status_is_not_promoted_to_ok():
@@ -252,3 +384,10 @@ def test_pages_build_restores_morning_dataset_before_home_status_enrichment():
     assert workflow.count(morning) == 1
     assert workflow.count(risk_preflight) == 1
     assert workflow.index(morning) < workflow.index(risk_preflight)
+    # Home enrichment is called inside the risk-preflight build step, not
+    # from a separate workflow step. Preserve that call as part of ordering.
+    risk_builder = (ROOT / ".github" / "pages" / "build_risk_preflight.py").read_text(
+        encoding="utf-8"
+    )
+    assert "from enrich_home_today import enrich_home_from_morning" in risk_builder
+    assert "enrich_home_from_morning()" in risk_builder

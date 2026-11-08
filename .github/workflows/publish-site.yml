@@ -52,6 +52,9 @@ on:
       - ".github/workflows/publish-site.yml"
       - ".github/workflows/update-market-phase.yml"
       - ".github/workflows/ai-morning-analyst.yml"
+  workflow_run:
+    workflows: ["AI Morning Analyst"]
+    types: [completed]
   schedule:
     # 23:40 UTC Sunday-Thursday = 08:40 JST Monday-Friday.
     - cron: "40 23 * * 0-4"
@@ -70,11 +73,16 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # workflow_run starts after Morning Analyst has committed the canonical
+          # dataset, so publish the latest default-branch state.
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.sha }}
 
       - name: Install test dependencies
         run: python3 -m pip install --disable-pip-version-check pytest==8.4.1
@@ -165,7 +173,7 @@ jobs:
           grep -q "Sado Investment Codex / 5 判断" site-src/concepts/investment-decision-cockpit/index.md
           grep -q "Warning・Thesis Health" site-src/concepts/investment-decision-cockpit/index.md
           grep -q "前回から何が変わった？" site-src/decision-cockpit/daihen/index.md
-          grep -q "Scenario: UNKNOWN" site-src/decision-cockpit/daihen/index.md
+          grep -q "Scenario: Base維持" site-src/decision-cockpit/daihen/index.md
           grep -q "BLOCK_REVIEW" site-src/risk-preflight/index.md
           grep -q "Decision Journal" site-src/risk-preflight/index.md
           grep -q "これは売買指示ではありません" site-src/risk-preflight/index.md
@@ -212,7 +220,7 @@ jobs:
           grep -q "Warning・Thesis Health" _site/concepts/investment-decision-cockpit/index.html
           test -f _site/decision-cockpit/daihen/index.html
           grep -q "前回から何が変わった？" _site/decision-cockpit/daihen/index.html
-          grep -q "Scenario: UNKNOWN" _site/decision-cockpit/daihen/index.html
+          grep -q "Scenario: Base維持" _site/decision-cockpit/daihen/index.html
           test -f _site/risk-preflight/index.html
           grep -q "売買前のポートフォリオ確認" _site/risk-preflight/index.html
           test -f _site/research/investor-dna/index.html

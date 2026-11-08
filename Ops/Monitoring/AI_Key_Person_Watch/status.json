@@ -3,13 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-01T10:26:42+09:00",
-  "last_success_at": "2026-11-01T10:26:42+09:00",
+  "last_run_at": "2026-11-09T00:32:52+09:00",
+  "last_success_at": "2026-11-09T00:32:52+09:00",
   "last_status": "OK",
   "news_delta": 0,
-  "last_news_delta_at": "2026-11-01T04:30:19+09:00",
+  "last_news_delta_at": "2026-11-07T15:32:54+09:00",
   "news_persisted": false,
-  "persistence_status": "NOT_REQUIRED",
+  "persistence_status": "HEARTBEAT_ONLY_NO_NEW_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-01 10:26 JST scheduled monitoring. Startup TEAM_RULES 79a43dc1 -> TEAM_STATE f3b71b55 AWAY/LUNA -> #99 broadcast-head 6405435565/comments270, fetched270/tail6405435565 VERIFIED -> #892/#861/#124. Fresh primary-source/news checks: TDK Oct30 ~JPY100bn TMR investment and Foxconn robot sensors, Quad Oct31 semiconductor supply-chain resilience, Rapidus existing 2nm R&D/funding, Kioxia existing earnings; no newly verified Japan-listed customer order or earnings conversion beyond previously watched sources. news_delta=0; Research not duplicated. #892 15-checkpoint PR metadata READ_ONLY cross-check: official VERIFIED_DONE=873-1/859-1 (2/15); PR #893/#894 merged related #873, #891/#895/#896/#905/#906/#908 merged related #859, #865 draft FLOW, #907 merged outside 15. Merge does not prove natural closed-loop; #79 untouched. Historical Oct11 execution origin UNKNOWN."
+  "note": "2026-11-09 00:32 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; Luna authority AWAY/AUTO_GREEN. Checked Kioxia official IR Nov 6, Rapidus official FY2026/Oct 26, JSR Nov 4 report: no newly verified material customer order/earnings conversion. W45 #917 official checkpoints 3/15 READ_ONLY; #79 untouched; #909 already merged, no duplicate review. No separate Research save.",
+  "last_checked_at": "2026-11-09T00:32:52+09:00"
 }

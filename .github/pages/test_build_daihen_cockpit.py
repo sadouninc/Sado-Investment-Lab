@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import importlib.util
 import sys
 import unittest
@@ -15,12 +16,12 @@ SPEC.loader.exec_module(MODULE)
 
 
 class DaihenCockpitPageTests(unittest.TestCase):
-    def test_model_preserves_partial_current_and_unavailable_states(self):
+    def test_model_preserves_partial_current_expectation_and_portfolio_not_run(self):
         model = MODULE.load_model()
         self.assertEqual(model["security_code"], "6622")
         self.assertEqual(model["overall_status"], "PARTIAL")
         self.assertEqual(model["valuation"]["freshness"], "CURRENT")
-        self.assertEqual(model["expectations"]["status"], "UNAVAILABLE")
+        self.assertEqual(model["expectations"]["status"], "PARTIAL")
         self.assertEqual(model["portfolio_preflight"]["status"], "NOT_RUN")
 
     def test_page_is_japanese_first_and_surfaces_first_viewport_questions(self):
@@ -30,7 +31,7 @@ class DaihenCockpitPageTests(unittest.TestCase):
         self.assertIn("市場期待との差は？", page)
         self.assertIn("Warning / Thesis Health", page)
         self.assertIn("株価情報が古い場合", page)
-        self.assertIn("Consensusを取得できない場合", page)
+        self.assertIn("二次データによる観測可能なproxy", page)
         self.assertIn("この画面は売買指示を生成しません", page)
 
     def test_approved_first_view_hierarchy_is_preserved(self):
@@ -45,10 +46,11 @@ class DaihenCockpitPageTests(unittest.TestCase):
         self.assertIn("情報鮮度:", page)
         self.assertIn("株価基準日:", page)
 
-    def test_unavailable_expectation_is_visible_and_not_coerced_to_zero_gap(self):
+    def test_partial_expectation_proxy_is_visible_and_not_presented_as_truth(self):
         page = MODULE.page_content(MODULE.load_model())
-        self.assertIn("市場期待データは現在取得できません。差なし・0として扱いません。", page)
-        self.assertIn("現在取得できません <code>UNAVAILABLE</code>", page)
+        self.assertIn("161.20円", page)
+        self.assertIn("一部情報不足 <code>PARTIAL</code>", page)
+        self.assertIn("二次データによる観測可能なproxy", page)
         self.assertNotIn("gap=0", page.split("## 3. 市場期待との差", 1)[0])
 
     def test_page_preserves_historical_snapshot_and_no_auto_trade_language(self):
@@ -74,15 +76,39 @@ class DaihenCockpitPageTests(unittest.TestCase):
         page = MODULE.page_content(model)
         self.assertEqual(delta.current.eps, 144.02)
         self.assertEqual(delta.current.forward_per, 16.68)
-        self.assertIn("Scenario: UNKNOWN", page)
+        self.assertEqual(delta.previous.eps, 144.02)
+        self.assertEqual(delta.previous.price, 2380)
+        self.assertEqual(delta.previous.forward_per, 16.53)
+        self.assertEqual(delta.current.price, 2402)
+        self.assertEqual(delta.earnings_direction, "UNCHANGED")
+        self.assertEqual(delta.price_direction, "IMPROVED")
+        self.assertEqual(delta.valuation_direction, "NARROWED")
+        self.assertIn("Scenario: Base維持", page)
         self.assertIn("業績見通し", page)
         self.assertIn("Valuation余地", page)
         self.assertIn("Previous / Current の詳細値", page)
         self.assertIn("progressive-disclosure", page)
         self.assertIn("delta-indicator", page)
 
+    def test_incompatible_previous_snapshot_basis_fails_closed(self):
+        model = copy.deepcopy(MODULE.load_model())
+        model["decision_history"]["previous_snapshot"].update({
+            "basis": "pre_split",
+            "eps": 720.10,
+            "price": 11900,
+            "forward_per": 16.53,
+        })
+        delta = MODULE._scenario_delta(model)
+        self.assertEqual(delta.previous.scenario, "UNKNOWN")
+        self.assertIsNone(delta.previous.eps)
+        self.assertIsNone(delta.previous.price)
+        self.assertIsNone(delta.previous.forward_per)
+        self.assertEqual(delta.earnings_direction, "UNKNOWN")
+        self.assertEqual(delta.valuation_direction, "UNKNOWN")
+
     def test_missing_previous_snapshot_fails_closed_instead_of_reconstructing_history(self):
         model = MODULE.load_model()
+        model["decision_history"].pop("previous_snapshot")
         delta = MODULE._scenario_delta(model)
         self.assertEqual(delta.previous.scenario, "UNKNOWN")
         self.assertIsNone(delta.previous.eps)

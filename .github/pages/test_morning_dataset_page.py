@@ -5,6 +5,9 @@ from pathlib import Path
 import unittest
 
 MODULE_PATH = Path(__file__).with_name("build_morning_dataset.py")
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+AI_MORNING_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "ai-morning-analyst.yml"
+PUBLISH_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "publish-site.yml"
 spec = importlib.util.spec_from_file_location("build_morning_dataset", MODULE_PATH)
 module = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
@@ -153,6 +156,28 @@ class MorningDatasetPageTest(unittest.TestCase):
                  patch.object(module, "SITE", site_dir):
                 with self.assertRaises(FileNotFoundError):
                     module.main()
+
+
+    def test_ai_morning_persists_canonical_dataset_for_pages_handoff(self) -> None:
+        workflow = AI_MORNING_WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn(
+            "git add -f data/generated/public/morning-dataset.json",
+            workflow,
+        )
+
+    def test_pages_publish_runs_after_successful_ai_morning_completion(self) -> None:
+        workflow = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("workflow_run:", workflow)
+        self.assertIn('workflows: ["AI Morning Analyst"]', workflow)
+        self.assertIn("types: [completed]", workflow)
+        self.assertIn(
+            "github.event.workflow_run.conclusion == 'success'",
+            workflow,
+        )
+        self.assertIn(
+            "github.event_name == 'workflow_run' && 'main' || github.sha",
+            workflow,
+        )
 
 
 if __name__ == "__main__":

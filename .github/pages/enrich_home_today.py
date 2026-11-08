@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from copy import deepcopy
 from datetime import date, datetime, timedelta
 import html
 import json
@@ -9,7 +8,6 @@ from typing import Any, Mapping
 from zoneinfo import ZoneInfo
 
 from scripts.home_portfolio_impact import project_portfolio_impact
-from scripts.morning_dataset.providers import SectorRotationProvider
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE_HOME = ROOT / "site-src" / "index.md"
@@ -73,6 +71,26 @@ def _source_status(dataset: Mapping[str, Any], name: str) -> Mapping[str, Any]:
     return {"name": name, "status": "MISSING", "reason": "source status not available"}
 
 
+def _sector_dates_match(
+    source: Mapping[str, Any],
+    payload: Mapping[str, Any],
+    *,
+    dataset_as_of: Any = None,
+) -> bool:
+    """Require consistent valid source/payload dates and, when known, report date."""
+    try:
+        source_date = date.fromisoformat(str(source.get("as_of") or ""))
+        payload_date = date.fromisoformat(str(payload.get("as_of") or ""))
+        report_date = (
+            date.fromisoformat(str(dataset_as_of))
+            if dataset_as_of is not None
+            else source_date
+        )
+    except (TypeError, ValueError):
+        return False
+    return source_date == payload_date == report_date
+
+
 def _status_card(title: str, source: Mapping[str, Any], detail: str) -> str:
     status, token, label = _status(source.get("status"))
     as_of = source.get("as_of") or "時点不明"
@@ -85,28 +103,6 @@ def _status_card(title: str, source: Mapping[str, Any], detail: str) -> str:
         f'<p class="codex-evidence__meta">as of: {_e(as_of)}</p>{reason_html}'
         '</article>'
     )
-
-
-def with_sector_rotation(dataset: Mapping[str, Any]) -> dict[str, Any]:
-    """Attach the existing #359 read provider for Home only, without mutating Morning."""
-    merged = deepcopy(dict(dataset))
-    existing = _source_status(merged, "sector_rotation")
-    if existing.get("status") in {"OK", "PARTIAL", "STALE"} and isinstance(
-        merged.get("sector_rotation"), Mapping
-    ):
-        return merged
-
-    result = SectorRotationProvider().collect()
-    rows = [
-        deepcopy(dict(row))
-        for row in merged.get("source_status") or []
-        if isinstance(row, Mapping) and row.get("name") != "sector_rotation"
-    ]
-    rows.append(result.metadata() | {"name": result.name})
-    merged["source_status"] = rows
-    if result.data is not None:
-        merged["sector_rotation"] = deepcopy(result.data)
-    return merged
 
 
 def _transition_text(row: Mapping[str, Any]) -> tuple[str, str]:
@@ -123,21 +119,53 @@ def _transition_text(row: Mapping[str, Any]) -> tuple[str, str]:
     return f"{previous} → {current}", change
 
 
-def render_sector_heatmap(dataset: Mapping[str, Any]) -> str:
+def render_sector_heatmap(
+    dataset: Mapping[str, Any], *, dataset_freshness: str = "CURRENT"
+) -> str:
     source = _source_status(dataset, "sector_rotation")
     status, token, label = _status(source.get("status"))
     payload = dataset.get("sector_rotation") if isinstance(dataset.get("sector_rotation"), Mapping) else {}
-    sectors = payload.get("sectors") if isinstance(payload.get("sectors"), list) else []
+    # Do not project old or unverified sector cells as current market signals.
+    source_usable = status in {"OK", "PARTIAL"} and dataset_freshness == "CURRENT"
+    dates_match = _sector_dates_match(source, payload, dataset_as_of=dataset.get("as_of"))
+    sectors = (
+        payload.get("sectors")
+        if source_usable and dates_match and isinstance(payload.get("sectors"), list)
+        else []
+    )
     as_of = payload.get("as_of") or source.get("as_of") or "時点不明"
 
     if not sectors:
+        date_mismatch = (
+            dataset_freshness == "CURRENT" and source_usable
+            and bool(payload.get("sectors")) and not dates_match
+        )
+        unavailable_title = (
+            "Morning Datasetが古いためSector Rotationを表示しません"
+            if dataset_freshness == "NOT_GENERATED_TODAY" else
+            "Morning Datasetの日付を検証できないためSector Rotationを表示しません"
+            if dataset_freshness != "CURRENT" else
+            "Sector Rotationの日付が一致しないため表示しません"
+            if date_mismatch else
+            "Sector Rotationのデータは古いため表示しません"
+            if status == "STALE" else
+            "Sector Rotationは取得できません"
+        )
+        unavailable_reason = (
+            "Morning Dataset全体の鮮度が確認できないため、過去のセクター状態を今日の状態として表示しません。"
+            if dataset_freshness != "CURRENT" else
+            "source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofと不一致です。"
+            if date_mismatch else
+            str(source.get("reason") or "canonical Sector snapshotが未接続です。")
+        )
+        alert_token = "stale" if status == "STALE" or dataset_freshness == "NOT_GENERATED_TODAY" else "unavailable"
         return f'''  <section class="home-os-section home-heatmap" aria-labelledby="heatmap-title">
     <p class="eyebrow">MARKET HEATMAP</p>
     <h2 id="heatmap-title">市場・テーマの動き</h2>
     <p>今日の判断に影響しそうな変化を、既存Canonical stateだけで俯瞰します。</p>
-    <div class="codex-alert" data-state="unavailable">
-      <strong>Sector Rotationは取得できません</strong>
-      <p>{_e(source.get('reason') or 'canonical Sector snapshotが未接続です。')}</p>
+    <div class="codex-alert" data-state="{alert_token}">
+      <strong>{unavailable_title}</strong>
+      <p>{_e(unavailable_reason)}</p>
     </div>
   </section>
 
@@ -291,9 +319,49 @@ def render_status_section(
     market = _source_status(dataset, "market")
     sector = _source_status(dataset, "sector_rotation")
     sector_payload = dataset.get("sector_rotation") if isinstance(dataset.get("sector_rotation"), Mapping) else {}
-    sectors = sector_payload.get("sectors") if isinstance(sector_payload.get("sectors"), list) else []
+    sector_status = str(sector.get("status") or "MISSING").upper()
+    sector_usable = (
+        freshness == "CURRENT"
+        and sector_status in {"OK", "PARTIAL"}
+        and isinstance(sector_payload.get("sectors"), list)
+        and bool(sector_payload["sectors"])
+        and _sector_dates_match(sector, sector_payload, dataset_as_of=dataset.get("as_of"))
+    )
+    sectors = (
+        sector_payload.get("sectors")
+        if sector_usable and isinstance(sector_payload.get("sectors"), list)
+        else []
+    )
     warming = sum(1 for row in sectors if isinstance(row, Mapping) and row.get("state") == "WARMING")
     inflow = sum(1 for row in sectors if isinstance(row, Mapping) and row.get("state") == "INFLOW")
+    if sector_usable:
+        sector_detail = (
+            f"Canonical snapshot内の WARMING {warming}件 / INFLOW {inflow}件。順位や推奨はHomeで生成しません。"
+        )
+    elif freshness != "CURRENT":
+        sector_detail = (
+            "Morning Dataset全体が当日未生成または日付不正のため、"
+            "過去のセクター状態件数を今日の値として集計しません。"
+        )
+    elif (
+        sector_status in {"OK", "PARTIAL"}
+        and bool(sector_payload.get("sectors"))
+        and not _sector_dates_match(sector, sector_payload, dataset_as_of=dataset.get("as_of"))
+    ):
+        sector_detail = (
+            "source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofと不一致のため、"
+            "状態件数を集計しません。順位や推奨はHomeで生成しません。"
+        )
+    elif sector_status in {"OK", "PARTIAL"}:
+        sector_detail = (
+            "source状態はOK/PARTIALですが、公開JSONのSector Rotation payloadが欠損または空のため、"
+            "状態件数を集計しません。順位や推奨はHomeで生成しません。"
+        )
+    else:
+        sector_detail = (
+            "sourceがSTALE/MISSING/UNKNOWNのため、状態件数を集計しません。"
+            "順位や推奨はHomeで生成しません。"
+        )
     warnings = [str(item) for item in (dataset.get("warnings") or []) if item]
     warning_html = (
         '<div class="codex-alert" data-state="caution"><strong>既存Dataset warning</strong><ul>'
@@ -308,7 +376,7 @@ def render_status_section(
         _status_card(
             "Sector Rotation",
             sector,
-            f"最新canonical set内の WARMING {warming}件 / INFLOW {inflow}件。順位や推奨はHomeで生成しません。",
+            sector_detail,
         ),
     ])
     if freshness == "NOT_GENERATED_TODAY":
@@ -338,7 +406,7 @@ def render_status_section(
 {warning_html}
   </section>
 
-{render_sector_heatmap(dataset)}{render_portfolio_impact(dataset)}'''
+{render_sector_heatmap(dataset, dataset_freshness=freshness)}{render_portfolio_impact(dataset)}'''
 
 
 def load_dataset(path: Path = MORNING_DATASET) -> Mapping[str, Any] | None:
@@ -346,11 +414,13 @@ def load_dataset(path: Path = MORNING_DATASET) -> Mapping[str, Any] | None:
         return None
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return None
     if not isinstance(payload, Mapping):
         return None
-    return with_sector_rotation(payload)
+    # Home consumes the same published read model as Morning Diagnostics.
+    # Do not independently collect or replace sector source metadata here.
+    return payload
 
 
 def enrich_text(

@@ -89,6 +89,10 @@
       const renderTime = (value) => value
         ? new Date(value).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }) + ' JST'
         : '未記録';
+
+      // AI_WATCH_CONTRACT_START
+      const validRunStatuses = new Set(['OK', 'ERROR', 'UNKNOWN']);
+      const validPersistenceStatuses = new Set(['COMPLETED', 'PENDING_PERSIST', 'NOT_REQUIRED']);
       const parseJst = (value) => {
         if (!value) return null;
         const normalized = value.trim().replace(/\s*JST$/i, '').replace(' ', 'T');
@@ -97,6 +101,21 @@
         return Number.isNaN(parsed.getTime()) ? null : parsed;
       };
       const isTooFarFuture = (date) => date && date.getTime() > Date.now() + maxFutureSkewMinutes * 60000;
+      const validateFields = ({ status, newsDelta, newsPersisted, persistenceStatus }) => {
+        if (!validRunStatuses.has(status)) return 'statusが正規enumではありません。';
+        if (!Number.isInteger(newsDelta) || newsDelta < 0) return 'news_deltaが非負整数ではありません。';
+        if (typeof newsPersisted !== 'boolean') return 'news_persistedがbooleanではありません。';
+        if (!validPersistenceStatuses.has(persistenceStatus)) return 'persistence_statusが正規enumではありません。';
+        if (newsDelta === 0 && (newsPersisted || persistenceStatus !== 'NOT_REQUIRED')) {
+          return '差分0件と保存状態が矛盾しています。';
+        }
+        if (newsDelta > 0) {
+          const completed = newsPersisted && persistenceStatus === 'COMPLETED';
+          const pending = !newsPersisted && persistenceStatus === 'PENDING_PERSIST';
+          if (!completed && !pending) return 'ニュース差分と保存状態が矛盾しています。';
+        }
+        return null;
+      };
       const parseAuditComment = (comment) => {
         const author = String(comment?.user?.login || '').toLowerCase();
         if (!trustedAuditAuthors.has(author)) return null;
@@ -107,78 +126,107 @@
           return match ? match[1].trim() : null;
         };
         const runAt = parseJst(field('run_at_jst'));
-        const status = field('status');
+        const status = String(field('status') || '').toUpperCase();
+        const deltaText = field('news_delta');
+        const persistedText = String(field('news_persisted') || '').toLowerCase();
         if (!runAt || !status) return null;
         return {
           runAt,
-          status: status.toUpperCase(),
-          newsDelta: Number(field('news_delta') || 0),
-          newsPersisted: String(field('news_persisted') || '').toLowerCase() === 'true',
-          persistenceStatus: (field('persistence_status') || 'NOT_REQUIRED').toUpperCase()
+          status,
+          newsDelta: deltaText !== null && /^\d+$/.test(deltaText) ? Number(deltaText) : Number.NaN,
+          newsPersisted: persistedText === 'true' ? true : persistedText === 'false' ? false : null,
+          persistenceStatus: String(field('persistence_status') || '').toUpperCase()
         };
       };
       const classifyAudit = (audit) => {
+        const invalid = validateFields(audit);
+        if (invalid) return { state: 'DEGRADED', reason: invalid };
         if (isTooFarFuture(audit.runAt)) {
-          return { state: 'DEGRADED', reason: `直近run時刻が現在より${maxFutureSkewMinutes}分超先です。時計・timezone・入力を確認してください。` };
+          return { state: 'DEGRADED', reason: `直近run時刻が現在より${maxFutureSkewMinutes}分超先です。` };
         }
+        if (audit.status === 'ERROR') return { state: 'DEGRADED', reason: '直近runがERRORです。' };
+        if (audit.status === 'UNKNOWN') return { state: 'DEGRADED', reason: '直近runがUNKNOWNです。' };
+        if (audit.persistenceStatus === 'PENDING_PERSIST') return { state: 'DEGRADED', reason: 'ニュース保存がPENDING_PERSISTです。' };
         const ageMinutes = (Date.now() - audit.runAt.getTime()) / 60000;
         if (ageMinutes > staleAfterMinutes) {
           return { state: 'STALE', reason: `最終runから約${Math.floor(ageMinutes)}分経過しています。` };
         }
-        if (audit.status === 'ERROR') return { state: 'DEGRADED', reason: '直近runがERRORです。' };
-        if (audit.persistenceStatus === 'PENDING_PERSIST') return { state: 'DEGRADED', reason: 'ニュース保存がPENDING_PERSISTです。' };
         return { state: 'HEALTHY', reason: 'Issue #124の直近Run Auditは監視閾値内です。' };
       };
-      const renderAudit = (audit, sourceLabel) => {
-        const health = classifyAudit(audit);
+      const classifyStatusFile = (payload) => {
+        const lastRun = payload?.last_run_at ? new Date(payload.last_run_at) : null;
+        const lastSuccess = payload?.last_success_at ? new Date(payload.last_success_at) : null;
+        const lastNewsDelta = payload?.last_news_delta_at ? new Date(payload.last_news_delta_at) : null;
+        if (!lastRun || Number.isNaN(lastRun.getTime())) return { state: 'UNKNOWN', reason: 'last_run_atが無効です。' };
+        if (!lastSuccess || Number.isNaN(lastSuccess.getTime())) return { state: 'UNKNOWN', reason: '成功runを確認できません。' };
+        if (lastNewsDelta && Number.isNaN(lastNewsDelta.getTime())) return { state: 'DEGRADED', reason: 'last_news_delta_atが無効です。' };
+        const status = String(payload.last_status || '').toUpperCase();
+        const persistenceStatus = String(payload.persistence_status || '').toUpperCase();
+        const invalid = validateFields({
+          status,
+          newsDelta: payload.news_delta,
+          newsPersisted: payload.news_persisted,
+          persistenceStatus
+        });
+        if (invalid) return { state: 'DEGRADED', reason: invalid };
+        const staleAfter = Number(payload.stale_after_minutes);
+        if (!Number.isFinite(staleAfter) || staleAfter <= 0) return { state: 'DEGRADED', reason: 'stale_after_minutesが無効です。' };
+        if (isTooFarFuture(lastRun) || isTooFarFuture(lastSuccess) || isTooFarFuture(lastNewsDelta)) {
+          return { state: 'DEGRADED', reason: `Heartbeat timestampが現在より${maxFutureSkewMinutes}分超先です。` };
+        }
+        if (lastSuccess.getTime() > lastRun.getTime()) return { state: 'DEGRADED', reason: 'last_success_atがlast_run_atより後です。' };
+        if (lastNewsDelta && lastNewsDelta.getTime() > lastRun.getTime()) {
+          return { state: 'DEGRADED', reason: 'last_news_delta_atがlast_run_atより後です。' };
+        }
+        if (status === 'ERROR') return { state: 'DEGRADED', reason: '直近runがERRORです。' };
+        if (status === 'UNKNOWN') return { state: 'DEGRADED', reason: '直近runがUNKNOWNです。' };
+        if (persistenceStatus === 'PENDING_PERSIST') return { state: 'DEGRADED', reason: 'ニュース保存がPENDING_PERSISTです。' };
+        const ageMinutes = (Date.now() - lastSuccess.getTime()) / 60000;
+        if (ageMinutes > staleAfter) return { state: 'STALE', reason: `最終成功runから約${Math.floor(ageMinutes)}分経過しています。` };
+        return { state: 'HEALTHY', reason: 'status.jsonの直近成功runは監視閾値内です。' };
+      };
+      const stateRank = { DEGRADED: 3, UNKNOWN: 2, STALE: 1, HEALTHY: 0 };
+      const selectMonitoringSource = (audit, statusPayload) => {
+        const candidates = [];
+        if (audit) candidates.push({
+          kind: 'audit',
+          observedAt: audit.runAt,
+          data: audit,
+          health: classifyAudit(audit)
+        });
+        if (statusPayload) {
+          const observedAt = statusPayload.last_run_at ? new Date(statusPayload.last_run_at) : null;
+          candidates.push({
+            kind: 'status',
+            observedAt,
+            data: statusPayload,
+            health: classifyStatusFile(statusPayload)
+          });
+        }
+        return candidates.sort((a, b) => {
+          const aTime = a.observedAt && !Number.isNaN(a.observedAt.getTime()) ? a.observedAt.getTime() : -Infinity;
+          const bTime = b.observedAt && !Number.isNaN(b.observedAt.getTime()) ? b.observedAt.getTime() : -Infinity;
+          return bTime - aTime || (stateRank[b.health.state] || 0) - (stateRank[a.health.state] || 0);
+        })[0] || null;
+      };
+      // AI_WATCH_CONTRACT_END
+
+      const renderAudit = (audit, health) => {
         panel.innerHTML = `<strong>Monitoring status: ${escapeHtml(health.state)}</strong><dl>`
           + `<dt>直近run</dt><dd>${escapeHtml(renderTime(audit.runAt.toISOString()))}</dd>`
           + `<dt>ニュース差分</dt><dd>${escapeHtml(audit.newsDelta)}</dd>`
           + `<dt>Persistence</dt><dd>${escapeHtml(audit.persistenceStatus)}</dd>`
-          + `<dt>監視ソース</dt><dd>${escapeHtml(sourceLabel)}</dd>`
+          + '<dt>監視ソース</dt><dd>Issue #124 Run Audit (freshest validated)</dd>'
           + `<dt>状態理由</dt><dd>${escapeHtml(health.reason)}</dd></dl>`;
       };
-      const classifyStatusFile = (payload) => {
-        const lastRun = payload.last_run_at ? new Date(payload.last_run_at) : null;
-        const lastSuccess = payload.last_success_at ? new Date(payload.last_success_at) : null;
-        const lastNewsDelta = payload.last_news_delta_at ? new Date(payload.last_news_delta_at) : null;
-        if (!lastSuccess || Number.isNaN(lastSuccess.getTime())) {
-          return { state: 'UNKNOWN', reason: 'Run Audit APIとstatus.jsonのどちらからも成功runを確認できません。' };
-        }
-        if (isTooFarFuture(lastRun) || isTooFarFuture(lastSuccess) || isTooFarFuture(lastNewsDelta)) {
-          return { state: 'DEGRADED', reason: `Heartbeat timestampが現在より${maxFutureSkewMinutes}分超先です。` };
-        }
-        if (lastRun && !Number.isNaN(lastRun.getTime()) && lastSuccess.getTime() > lastRun.getTime()) {
-          return { state: 'DEGRADED', reason: 'last_success_atがlast_run_atより後です。' };
-        }
-        if (lastRun && lastNewsDelta && !Number.isNaN(lastNewsDelta.getTime()) && lastNewsDelta.getTime() > lastRun.getTime()) {
-          return { state: 'DEGRADED', reason: 'last_news_delta_atがlast_run_atより後です。' };
-        }
-        const ageMinutes = (Date.now() - lastSuccess.getTime()) / 60000;
-        const staleAfter = Number(payload.stale_after_minutes || staleAfterMinutes);
-        if (ageMinutes > staleAfter) return { state: 'STALE', reason: `最終成功runから約${Math.floor(ageMinutes)}分経過しています。` };
-        if (payload.last_status === 'ERROR') return { state: 'DEGRADED', reason: '直近runがERRORです。' };
-        if (payload.persistence_status === 'PENDING_PERSIST') return { state: 'DEGRADED', reason: 'ニュース保存がPENDING_PERSISTです。' };
-        return { state: 'HEALTHY', reason: 'status.jsonの直近成功runは監視閾値内です。' };
-      };
-      const renderStatusFile = (payload) => {
-        const health = classifyStatusFile(payload);
+      const renderStatusFile = (payload, health) => {
         panel.innerHTML = `<strong>Monitoring status: ${escapeHtml(health.state)}</strong><dl>`
           + `<dt>最終監視成功</dt><dd>${escapeHtml(renderTime(payload.last_success_at))}</dd>`
           + `<dt>最終ニュース差分</dt><dd>${escapeHtml(renderTime(payload.last_news_delta_at))}</dd>`
           + `<dt>直近run</dt><dd>${escapeHtml(renderTime(payload.last_run_at))}</dd>`
-          + `<dt>監視ソース</dt><dd>status.json fallback</dd>`
+          + '<dt>監視ソース</dt><dd>status.json (freshest validated)</dd>'
           + `<dt>状態理由</dt><dd>${escapeHtml(health.reason)}</dd></dl>`;
       };
-      const loadStatusFallback = (issueError) => fetch(`${statusUrl}?t=${Date.now()}`, { cache: 'no-store' })
-        .then((response) => {
-          if (!response.ok) throw new Error(`status.json HTTP ${response.status}`);
-          return response.json();
-        })
-        .then(renderStatusFile)
-        .catch((statusError) => {
-          panel.innerHTML = `<strong>Monitoring status: UNKNOWN</strong><p>Heartbeat取得に失敗しました: ${escapeHtml(issueError.message)} / ${escapeHtml(statusError.message)}</p>`;
-        });
 
       const linkedPage = (header, rel) => {
         for (const part of String(header || '').split(',')) {
@@ -194,9 +242,11 @@
         cache: 'no-store',
         headers: { Accept: 'application/vnd.github+json' }
       }).then((response) => {
-        if (!response.ok) throw new Error(`Issue #124 API HTTP ${response.status}`);
-        const link = response.headers.get('Link');
-        return response.json().then((comments) => ({ comments, link }));
+        if (!response.ok) throw new Error(`Issue API HTTP ${response.status}`);
+        return response.json().then((comments) => ({
+          comments,
+          link: response.headers.get('link')
+        }));
       });
       const latestTrustedAudit = (comments) => {
         const audits = comments.map(parseAuditComment).filter(Boolean);
@@ -209,19 +259,34 @@
         if (page <= 1) throw new Error('Issue #124に信頼済みRun Auditがありません');
         return findLatestTrustedAudit(page - 1);
       });
-      const loadLatestIssueAudit = () => fetchIssuePage(1)
-        .then(({ comments, link }) => {
-          const lastPage = linkedPage(link, 'last') || linkedPage(link, 'next') || 1;
-          if (lastPage === 1) {
-            const audit = latestTrustedAudit(comments);
-            if (!audit) throw new Error('Issue #124に信頼済みRun Auditがありません');
-            return audit;
-          }
-          return findLatestTrustedAudit(lastPage);
-        })
-        .then((audit) => renderAudit(audit, 'Issue #124 Run Audit (trusted/latest page)'));
+      const loadLatestIssueAudit = () => fetchIssuePage(1).then(({ comments, link }) => {
+        const lastPage = linkedPage(link, 'last') || linkedPage(link, 'next') || 1;
+        if (lastPage === 1) {
+          const audit = latestTrustedAudit(comments);
+          if (!audit) throw new Error('Issue #124に信頼済みRun Auditがありません');
+          return audit;
+        }
+        return findLatestTrustedAudit(lastPage);
+      });
+      const loadStatusFile = () => fetch(`${statusUrl}?t=${Date.now()}`, { cache: 'no-store' })
+        .then((response) => {
+          if (!response.ok) throw new Error(`status.json HTTP ${response.status}`);
+          return response.json();
+        });
 
-      loadLatestIssueAudit().catch(loadStatusFallback);
+      Promise.allSettled([loadLatestIssueAudit(), loadStatusFile()]).then(([auditResult, statusResult]) => {
+        const audit = auditResult.status === 'fulfilled' ? auditResult.value : null;
+        const statusPayload = statusResult.status === 'fulfilled' ? statusResult.value : null;
+        const selected = selectMonitoringSource(audit, statusPayload);
+        if (!selected) {
+          const issueError = auditResult.reason?.message || 'Issue audit unavailable';
+          const statusError = statusResult.reason?.message || 'status.json unavailable';
+          panel.innerHTML = `<strong>Monitoring status: UNKNOWN</strong><p>Heartbeat取得に失敗しました: ${escapeHtml(issueError)} / ${escapeHtml(statusError)}</p>`;
+          return;
+        }
+        if (selected.kind === 'audit') renderAudit(selected.data, selected.health);
+        else renderStatusFile(selected.data, selected.health);
+      });
     })();
   </script>
 </body>

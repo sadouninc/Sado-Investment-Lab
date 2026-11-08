@@ -1,30 +1,31 @@
 # User Mode v2 — Presence / Merge Policy / Flow Authority
 
-担当: 🌊ナギ  
-種別: Process / Mode Contract / Productivity
+初版担当: 🌊ナギ / 現行Flow整合: 🌙ルナ  
+種別: Process / Mode Contract / Productivity  
+現行の権限・運用状態は [`TEAM_RULES.md`](../../TEAM_RULES.md) と [`TEAM_STATE.md`](../../TEAM_STATE.md) が正。本書は旧Mode設計の説明であり、権限・Gate・Leaseを新設しない。
 
-Refs: #617 #602 #587 #479
+Refs: #617 #602 #587 #479 #871 / PR #869
 
 ## Goal
 Ownerの在席状態、merge policy、Flow Authorityを分離し、次の3つの利用者向けModeを安全に運用する。
 
 | User Mode | presence | merge_policy | default Flow Authority |
 | --- | --- | --- | --- |
-| `ACTIVE_MANUAL` | ACTIVE | MANUAL | 🌊ナギ |
-| `ACTIVE_AUTO` | ACTIVE | AUTO_GREEN | 🌊ナギ |
-| `AWAY` | AWAY | AUTO_GREEN | 🌊ナギ / event-driven ♦️ソラ delegation |
+| `ACTIVE_MANUAL` | ACTIVE | MANUAL | 🌙ルナ |
+| `ACTIVE_AUTO` | ACTIVE | AUTO_GREEN | 🌙ルナ |
+| `AWAY` | AWAY | AUTO_GREEN | 🌙ルナ / event-driven ♦️ソラ delegation |
 
 旧 `ACTIVE` はmigration時のみ `ACTIVE_MANUAL` と解釈する。
 
 ## ACTIVE_MANUAL
 - 👑サドは在席
 - GREEN PRもOwner/manual mergeを待つ
-- 🌊ナギがSingle Flow Authority
+- 🌙ルナが暫定Single Flow Authority
 - 各専門workerは#602どおりlocal discovery / executionへ集中
 
 ## ACTIVE_AUTO
 - 👑サドは在席
-- 🌊ナギがSingle Flow Authority
+- 🌙ルナが暫定Single Flow Authority
 - `AUTO_GREEN` Merge Gateを満たす低リスクPRだけ自動merge候補
 - Owner/Investment Authority、explicit Owner Acceptance、security/secrets/permissions/paid/destructive等は自動mergeしない
 
@@ -32,8 +33,8 @@ Ownerの在席状態、merge policy、Flow Authorityを分離し、次の3つの
 - 👑サドは非在席
 - Owner-only判断はAuthority backlogへ隔離
 - GREEN Merge Gateを満たす範囲は`AUTO_GREEN`候補
-- 🌊ナギが実行可能ならglobal Flow Authorityを維持
-- 🌊ナギが非実行時に交通整理イベントが起きた場合のみ♦️ソラがDelegated Flow Authorityを一時的に担う
+- 🌙ルナが実行可能ならglobal Flow Authorityを維持
+- 🌙ルナが実行不能かつ交通整理イベントが起きた場合のみ♦️ソラがDelegated Flow Authorityを一時的に担う
 
 ### ♦️ソラ Delegated Flow Authority trigger
 - `QUEUE_STARVATION`
@@ -78,7 +79,7 @@ mode_to: ACTIVE_MANUAL|ACTIVE_AUTO|AWAY
 changed_at: <timestamp>
 transition_id: <unique id>
 merge_policy: MANUAL|AUTO_GREEN
-global_flow_authority: NAGI|SORA_DELEGATED
+global_flow_authority: LUNA|SORA_DELEGATED
 authority_backlog: <refs or none>
 material_blockers: <refs or none>
 ```

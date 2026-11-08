@@ -31,8 +31,15 @@ def test_ai_morning_runtime_reads_canonical_sector_history() -> None:
     assert "'sector_rotation'" in text
 
 
-def test_pages_home_supply_uses_existing_provider_not_fake_fixture() -> None:
+def test_pages_home_consumes_published_sector_read_model_not_fake_fixture() -> None:
+    """Home must not silently collect a sector snapshot different from Diagnostics."""
     text = (ROOT / ".github" / "pages" / "enrich_home_today.py").read_text(encoding="utf-8")
-    assert "SectorRotationProvider().collect()" in text
+    provider = (
+        ROOT / "scripts" / "morning_dataset" / "providers" / "sector_rotation.py"
+    ).read_text(encoding="utf-8")
+    assert "SectorRotationProvider().collect()" not in text
+    assert "return payload" in text
+    assert "sector-history.jsonl" in provider
+    assert "class SectorRotationProvider" in provider
     assert "sampleSnapshots" not in text
     assert "DEMO_" not in text

@@ -81,21 +81,34 @@
       "https://www.daihen.co.jp/ir/ir_pdf/2026_0804_bunkatsu.pdf",
       "https://www.daihen.co.jp/ir/summary_pdf/2026_1029_gyosekiyosou.pdf",
       "https://finance.yahoo.co.jp/quote/6622.T/history"
-    ]
+    ],
+    "reference_price": 2402
   },
   "expectations": {
-    "status": "UNAVAILABLE",
-    "freshness": "UNKNOWN",
+    "status": "PARTIAL",
+    "freshness": "CURRENT",
     "company_guidance_ref": "company-research:6622:guidance:FY2027",
-    "external_consensus_ref": null,
+    "external_consensus_ref": "expectation:6622:FY2027:2928b83379f74318",
     "sado_base_ref": "company-research:6622:scenario:base:FY2027",
     "latest_actual_ref": "company-research:6622:FY2027-Q1",
-    "direction": null,
+    "metric": "EPS",
+    "unit": "JPY",
+    "consensus_value": 161.2,
+    "analyst_count": 5,
+    "consensus_low": 144.87,
+    "consensus_high": 178.27,
+    "company_guidance_value": 169.42,
+    "sado_base_value": 144.02,
+    "company_vs_consensus_pct": 0.0508684864,
+    "sado_vs_consensus_pct": -0.1065756824,
+    "direction": "UP",
     "warnings": [
-      "CONSENSUS_UNAVAILABLE"
+      "SECONDARY_SOURCE",
+      "CONSENSUS_IS_PROXY_NOT_TRUTH"
     ],
     "source_refs": [
-      "company-research:6622:2026-08-09"
+      "expectation:6622:FY2027:2928b83379f74318",
+      "https://twelvedata.com/markets/101127/stock/jpx/6622/analysis"
     ]
   },
   "hypothesis": {
@@ -141,6 +154,21 @@
     "source_refs": [
       "decision:6622:latest",
       "decision-snapshot:6622:latest:immutable"
-    ]
+    ],
+    "previous_snapshot": {
+      "ref": "decision-snapshot:6622:latest:immutable",
+      "scenario": "Base",
+      "as_of": "2026-08-09",
+      "basis": "split_adjusted_2026-10-01",
+      "eps": 144.02,
+      "price": 2380,
+      "forward_per": 16.53,
+      "source_values_pre_split": {
+        "eps": 720.1,
+        "price": 11900,
+        "split_ratio": 5
+      },
+      "note": "2026-08-09 snapshotのEPS・株価を2026-10-01の1:5株式分割後basisへ機械的に正規化。過去snapshot原値は変更しない。"
+    }
   }
 }

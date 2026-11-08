@@ -85,8 +85,22 @@ def _scenario_card(label: str, scenario: Mapping[str, Any]) -> str:
 def _scenario_delta(model: Mapping[str, Any]):
     valuation = model["valuation"]
     base = valuation.get("base") or {}
-    previous = ScenarioSnapshot(scenario="UNKNOWN", eps=None, price=None, forward_per=None)
-    current = ScenarioSnapshot(scenario="Base" if base else "UNKNOWN", eps=base.get("eps"), price=None, forward_per=base.get("forward_per"))
+    previous_raw = (model.get("decision_history") or {}).get("previous_snapshot") or {}
+    if previous_raw.get("basis") != "split_adjusted_2026-10-01":
+        previous_raw = {}
+    previous = ScenarioSnapshot(
+        scenario=previous_raw.get("scenario") if previous_raw.get("scenario") in {"Bear", "Base", "Bull"} else "UNKNOWN",
+        eps=previous_raw.get("eps"),
+        price=previous_raw.get("price"),
+        forward_per=previous_raw.get("forward_per"),
+        premise=previous_raw.get("note"),
+    )
+    current = ScenarioSnapshot(
+        scenario="Base" if base else "UNKNOWN",
+        eps=base.get("eps"),
+        price=valuation.get("reference_price"),
+        forward_per=base.get("forward_per"),
+    )
     return build_scenario_delta(previous, current)
 
 
@@ -208,11 +222,20 @@ Source: {_refs(earnings.get('source_refs'))}
 
 ## 3. 市場期待との差
 状態: {_status(expectations.get('status'))}
+<div class="table-scroll"><table>
+<thead><tr><th>比較軸</th><th>FY2027 EPS</th><th>Consensusとの差</th></tr></thead>
+<tbody>
+<tr><th>External Consensus</th><td>{_e(f"{float(expectations['consensus_value']):,.2f}円" if expectations.get('consensus_value') is not None else "取得できません")}</td><td>基準</td></tr>
+<tr><th>会社予想</th><td>{_e(f"{float(expectations['company_guidance_value']):,.2f}円" if expectations.get('company_guidance_value') is not None else "取得できません")}</td><td>{_e(f"{float(expectations['company_vs_consensus_pct']) * 100:+.1f}%" if expectations.get('company_vs_consensus_pct') is not None else "比較できません")}</td></tr>
+<tr><th>Sado Base</th><td>{_e(f"{float(expectations['sado_base_value']):,.2f}円" if expectations.get('sado_base_value') is not None else "取得できません")}</td><td>{_e(f"{float(expectations['sado_vs_consensus_pct']) * 100:+.1f}%" if expectations.get('sado_vs_consensus_pct') is not None else "比較できません")}</td></tr>
+</tbody></table></div>
+- Consensus coverage: **{_e(expectations.get('analyst_count') or '不明')}名** / range **{_e(f"{float(expectations['consensus_low']):,.2f}〜{float(expectations['consensus_high']):,.2f}円" if expectations.get('consensus_low') is not None and expectations.get('consensus_high') is not None else "取得できません")}**
+- Revision direction: **{_e(expectations.get('direction') or 'UNKNOWN')}**
 - Company Guidance: {_refs([expectations.get('company_guidance_ref')] if expectations.get('company_guidance_ref') else [])}
 - External Consensus: {_refs([expectations.get('external_consensus_ref')] if expectations.get('external_consensus_ref') else [])}
 - Sado Base: {_refs([expectations.get('sado_base_ref')] if expectations.get('sado_base_ref') else [])}
 - Latest Actual: {_refs([expectations.get('latest_actual_ref')] if expectations.get('latest_actual_ref') else [])}
-**Consensusを取得できない場合、gap=0や「差なし」とは表示しません。**
+**Consensusは二次データによる観測可能なproxyであり、市場全体の真の期待とは断定しません。取得できない場合もgap=0や「差なし」とは表示しません。**
 
 ## 4. 投資仮説は生きているか
 ### Must happen
