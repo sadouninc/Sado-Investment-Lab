@@ -7,6 +7,7 @@ import pytest
 from scripts.actions_failure_analyzer import analyze_completed_failure, build_issue_draft
 from scripts.actions_failure_collector import IncompleteInventory
 from scripts.actions_failure_issue_orchestrator import _RecordingClient, _revalidate_before_post
+from scripts.actions_failure_selection import select_open_pr_failure
 
 NOW = datetime(2026, 11, 5, 16, 0, tzinfo=timezone.utc)
 
@@ -148,6 +149,31 @@ def test_revalidation_duration_is_bounded_and_monotonic(ticks):
             result,
             as_of=NOW,
             monotonic_clock=lambda: next(values),
+        )
+
+
+def test_revalidation_duration_includes_semantic_checks(monkeypatch):
+    calls, result, client = fixture()
+    semantic_checks_started = False
+    real_selector = select_open_pr_failure
+
+    def delayed_selector(*args, **kwargs):
+        nonlocal semantic_checks_started
+        semantic_checks_started = True
+        return real_selector(*args, **kwargs)
+
+    monkeypatch.setattr(
+        "scripts.actions_failure_selection.select_open_pr_failure",
+        delayed_selector,
+    )
+
+    with pytest.raises(IncompleteInventory, match="duration invalid"):
+        _revalidate_before_post(
+            client,
+            calls,
+            result,
+            as_of=NOW,
+            monotonic_clock=lambda: 121.0 if semantic_checks_started else 0.0,
         )
 
 
