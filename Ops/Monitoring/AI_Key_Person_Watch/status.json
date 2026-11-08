@@ -3,13 +3,13 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-08T14:28:21+09:00",
-  "last_success_at": "2026-11-08T14:28:21+09:00",
+  "last_run_at": "2026-11-08T15:28:47+09:00",
+  "last_success_at": "2026-11-08T15:28:47+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-07T15:32:54+09:00",
   "news_persisted": false,
   "persistence_status": "HEARTBEAT_ONLY_NO_NEW_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-08 14:28 JST. TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 official 3/15 READ_ONLY; #79 untouched. Nov 7 reported Japan cybersecurity package is policy-stage, primary confirmation/beneficiary earnings conversion pending. No newly verified commercial adoption/order/profit delta; no Research save."
+  "note": "2026-11-08 15:28 JST. TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; Luna is current Flow Authority (not Nagi). #892 3/15 READ_ONLY; #79 untouched. Nov 6 cybersecurity emergency package confirmed by Cabinet Office primary source, but already reported prior run; no newly verified commercial orders/adoption/profit impact. No Research save."
 }
