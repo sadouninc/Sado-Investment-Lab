@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-09T18:06:11+09:00",
-  "last_success_at": "2026-11-09T18:06:11+09:00",
+  "last_run_at": "2026-11-09T18:40:50+09:00",
+  "last_success_at": "2026-11-09T18:40:50+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T09:31:00+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_VERIFIED_DELTA_RESEARCH_NOT_WRITTEN",
   "updated_by": "❤️レイ",
-  "note": "2026-11-09 18:06 JST. TEAM_RULES→TEAM_STATE→#99 verified: 270 comments, final id 6405435565 matches broadcast-head; Luna AWAY/AUTO_GREEN. #861/#124/#892 checked. Rapidus official latest 2026-10-26, Tohoku/Aisin 2026-11-02 MRAM previously reported. Limited fresh primary-source scan: no newly verified material delta. #892 READ_ONLY, #79 untouched. No duplicate Research.",
-  "last_checked_at": "2026-11-09T18:06:11+09:00"
+  "note": "2026-11-09 18:40 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270, last comment 6405435565. Luna AWAY/AUTO_GREEN. #861/#124 checked; Rapidus official latest Oct 26, Tohoku/Aisin MRAM Nov 2 already known. No newly verified material news in limited scan; no Research write. #892 read-only, #79 untouched.",
+  "last_checked_at": "2026-11-09T18:40:50+09:00"
 }
