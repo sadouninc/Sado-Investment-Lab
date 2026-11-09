@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-09T16:41:15+09:00",
-  "last_success_at": "2026-11-09T16:41:15+09:00",
+  "last_run_at": "2026-11-09T18:06:11+09:00",
+  "last_success_at": "2026-11-09T18:06:11+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T09:31:00+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_VERIFIED_DELTA_RESEARCH_NOT_WRITTEN",
   "updated_by": "❤️レイ",
-  "note": "2026-11-09 16:41 JST. TEAM_RULES→TEAM_STATE→#99 verified: body head comment_id 6405435565/comments 270; fetched 270, final id matches. Luna AWAY/AUTO_GREEN. #861 and #124 checked; Rapidus latest official 2026-10-26 and Tohoku/Aisin 2026-11-02 MRAM previously reported; no new verified material delta in scoped primary-source scan. #892 READ_ONLY, #79 untouched; no duplicate Research.",
-  "last_checked_at": "2026-11-09T16:41:15+09:00"
+  "note": "2026-11-09 18:06 JST. TEAM_RULES→TEAM_STATE→#99 verified: 270 comments, final id 6405435565 matches broadcast-head; Luna AWAY/AUTO_GREEN. #861/#124/#892 checked. Rapidus official latest 2026-10-26, Tohoku/Aisin 2026-11-02 MRAM previously reported. Limited fresh primary-source scan: no newly verified material delta. #892 READ_ONLY, #79 untouched. No duplicate Research.",
+  "last_checked_at": "2026-11-09T18:06:11+09:00"
 }
