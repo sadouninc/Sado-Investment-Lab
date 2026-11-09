@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-09T22:41:00+09:00",
-  "last_success_at": "2026-11-09T22:41:00+09:00",
+  "last_run_at": "2026-11-09T23:40:42+09:00",
+  "last_success_at": "2026-11-09T23:40:42+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA_ALREADY_PERSISTED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-09 22:41 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 through comment 6405435565 VERIFIED; Luna Flow Authority. Mitsui Chemicals–JSR 2026-11-09 agreement already persisted in prior run; JSR issuer announcement reconfirmed; no new material delta. #892 READ_ONLY; #79 untouched. PR #909 previously reported merged; not re-reviewed.",
-  "last_checked_at": "2026-11-09T22:41:00+09:00"
+  "note": "2026-11-09 23:40 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 through comment 6405435565 VERIFIED; Luna Flow Authority. JSR/Mitsui Nov 9 issuer release already persisted, no newer material delta; Kioxia IR Nov 6 half-year report checked. #892 READ_ONLY; #79 untouched. PR #909 closed, previously confirmed merged; no repeated review.",
+  "last_checked_at": "2026-11-09T23:40:42+09:00"
 }
