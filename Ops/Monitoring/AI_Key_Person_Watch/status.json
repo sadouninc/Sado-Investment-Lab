@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-09T09:31:00+09:00",
-  "last_success_at": "2026-11-09T09:31:00+09:00",
+  "last_run_at": "2026-11-09T10:31:00+09:00",
+  "last_success_at": "2026-11-09T10:31:00+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-11-09T09:31:00+09:00",
   "news_persisted": false,
-  "persistence_status": "VERIFIED_MRAM_RESEARCH_FOUND_CANONICAL_RESEARCH_PATH_NOT_CONFIRMED",
+  "persistence_status": "NO_NEW_VERIFIED_DELTA_RESEARCH_NOT_WRITTEN",
   "updated_by": "❤️レイ",
-  "note": "2026-11-09 09:31 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 tail 6405435565; Luna Flow Authority AWAY/AUTO_GREEN. Fresh primary source: Tohoku University Nov 2 STT-MRAM 32MB 16nm AI SoC with AISIN; 65.7ms boot, 50.7mJ/frame (1/50), prototype/research not commercial orders or earnings. Research path not verified; no speculative Research write. #892 READ_ONLY; #79 untouched.",
-  "last_checked_at": "2026-11-09T09:31:00+09:00"
+  "note": "2026-11-09 10:31 JST. Startup sync TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED. Luna interim Flow Authority AWAY/AUTO_GREEN; prompt's Nagi authority stale. Verified Nov 2 Tohoku/AISIN MRAM primary release already reported 09:31; no duplicate Research. Kioxia Nov 6 half-year report, Rapidus Oct 26 announcement checked; no new confirmed earnings/order delta. PR #909 merged cb23cdca; #892 READ_ONLY, #79 untouched.",
+  "last_checked_at": "2026-11-09T10:31:00+09:00"
 }
