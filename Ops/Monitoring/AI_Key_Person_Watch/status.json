@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-10T02:32:11+09:00",
-  "last_success_at": "2026-11-10T02:32:11+09:00",
+  "last_run_at": "2026-11-10T03:35:15+09:00",
+  "last_success_at": "2026-11-10T03:35:15+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA_ALREADY_PERSISTED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-10 02:32 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 through 6405435565; Luna Flow Authority. Scoped JSR Nov 9 primary disclosure and semiconductor searches: no newly confirmed material delta. #892 READ_ONLY, #79 untouched; #909 already closed, no repeated review.",
-  "last_checked_at": "2026-11-10T02:32:11+09:00"
+  "note": "2026-11-10 03:35 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 through 6405435565; Luna Flow Authority. #861/#124/#892 read; Nov 9 JSR primary disclosure rechecked, no incremental material delta; #892 READ_ONLY, #79 untouched; #909 previously merged, no duplicate review.",
+  "last_checked_at": "2026-11-10T03:35:15+09:00"
 }
