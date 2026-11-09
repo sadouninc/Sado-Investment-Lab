@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-09T10:31:00+09:00",
-  "last_success_at": "2026-11-09T10:31:00+09:00",
+  "last_run_at": "2026-11-09T11:34:00+09:00",
+  "last_success_at": "2026-11-09T11:34:00+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T09:31:00+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_VERIFIED_DELTA_RESEARCH_NOT_WRITTEN",
   "updated_by": "❤️レイ",
-  "note": "2026-11-09 10:31 JST. Startup sync TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED. Luna interim Flow Authority AWAY/AUTO_GREEN; prompt's Nagi authority stale. Verified Nov 2 Tohoku/AISIN MRAM primary release already reported 09:31; no duplicate Research. Kioxia Nov 6 half-year report, Rapidus Oct 26 announcement checked; no new confirmed earnings/order delta. PR #909 merged cb23cdca; #892 READ_ONLY, #79 untouched.",
-  "last_checked_at": "2026-11-09T10:31:00+09:00"
+  "note": "2026-11-09 11:34 JST. Startup TEAM_RULES→TEAM_STATE→#99 verified 270/270 tail 6405435565; no To:ALL/レイ delta. Luna authority AWAY/AUTO_GREEN. Checked Tohoku/AISIN Nov 2 MRAM release (already reported), Kioxia IR Nov 6 and Rapidus official sources; no newly verified material order/earnings delta. #892 READ_ONLY, #79 untouched. No duplicate Research.",
+  "last_checked_at": "2026-11-09T11:34:00+09:00"
 }
