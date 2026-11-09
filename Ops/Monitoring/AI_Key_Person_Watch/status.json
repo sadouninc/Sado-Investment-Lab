@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-09T19:27:09+09:00",
-  "last_success_at": "2026-11-09T19:27:09+09:00",
+  "last_run_at": "2026-11-09T20:30:53+09:00",
+  "last_success_at": "2026-11-09T20:30:53+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-11-09T19:27:09+09:00",
-  "news_persisted": false,
-  "persistence_status": "MATERIAL_DELTA_FOUND_RESEARCH_PATH_NOT_VERIFIED",
+  "last_news_delta_at": "2026-11-09T20:30:53+09:00",
+  "news_persisted": true,
+  "persistence_status": "PRIMARY_VERIFIED_RESEARCH_PERSISTED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-09 19:27 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 through 6405435565; Luna Flow Authority. Nov 9 Reuters: Mitsui Chemicals/DBJ JSR acquisition 1.84tn yen; material semiconductor supply-chain and balance-sheet event, primary issuer disclosure not yet verified. Research not written pending canonical path/source verification. #892 READ_ONLY; #79 untouched.",
-  "last_checked_at": "2026-11-09T19:27:09+09:00"
+  "note": "2026-11-09 20:30 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 through 6405435565; Luna Flow Authority. Mitsui Chemicals–JSR share transfer agreement verified with JSR 2026-11-09 issuer disclosure; material deal evidence appended to 06_Research/News/AI_Key_Person_Watch/2026-11.md commit 3c2b5558f678072f1045923168d033f52773bc49. #892 READ_ONLY; #79 untouched.",
+  "last_checked_at": "2026-11-09T20:30:53+09:00"
 }
