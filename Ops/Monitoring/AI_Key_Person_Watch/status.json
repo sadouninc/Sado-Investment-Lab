@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-09T20:30:53+09:00",
-  "last_success_at": "2026-11-09T20:30:53+09:00",
+  "last_run_at": "2026-11-09T21:30:05+09:00",
+  "last_success_at": "2026-11-09T21:30:05+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
-  "news_persisted": true,
-  "persistence_status": "PRIMARY_VERIFIED_RESEARCH_PERSISTED",
+  "news_persisted": false,
+  "persistence_status": "NO_NEW_MATERIAL_DELTA_ALREADY_PERSISTED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-09 20:30 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 through 6405435565; Luna Flow Authority. Mitsui Chemicals–JSR share transfer agreement verified with JSR 2026-11-09 issuer disclosure; material deal evidence appended to 06_Research/News/AI_Key_Person_Watch/2026-11.md commit 3c2b5558f678072f1045923168d033f52773bc49. #892 READ_ONLY; #79 untouched.",
-  "last_checked_at": "2026-11-09T20:30:53+09:00"
+  "note": "2026-11-09 21:30 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 through 6405435565 VERIFIED; Luna Flow Authority. PR #909 merged cb23cdcac09f8fd55758f5e76980fb8b3d61496d. Mitsui Chemicals–JSR 2026-11-09 issuer agreement previously persisted at 20:30; no duplicate Research. #892 READ_ONLY; #79 untouched.",
+  "last_checked_at": "2026-11-09T21:30:05+09:00"
 }
