@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-09T13:30:38+09:00",
-  "last_success_at": "2026-11-09T13:30:38+09:00",
+  "last_run_at": "2026-11-09T14:31:40+09:00",
+  "last_success_at": "2026-11-09T14:31:40+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T09:31:00+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_VERIFIED_DELTA_RESEARCH_NOT_WRITTEN",
   "updated_by": "❤️レイ",
-  "note": "2026-11-09 13:30 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270, last comment 6405435565; no new To:ALL/レイ. Luna AWAY/AUTO_GREEN. Fresh limited primary-source scan: Tohoku/AISIN 2026-11-02 MRAM already known; Kioxia AI SSD strategy and Rapidus roadmap no newly verified material delta. #892 READ_ONLY; #79 untouched. No duplicate Research.",
-  "last_checked_at": "2026-11-09T13:30:38+09:00"
+  "note": "2026-11-09 14:31 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270, head/last comment 6405435565; no new To:ALL/レイ. Luna AWAY/AUTO_GREEN. #861/#124 checked. Fresh primary-source search: Tohoku/AISIN 11/02 MRAM existing known; Rapidus FY2026 plan already known; no newly verified material delta in scoped scan. #892 READ_ONLY; #79 untouched. No duplicate Research.",
+  "last_checked_at": "2026-11-09T14:31:40+09:00"
 }
