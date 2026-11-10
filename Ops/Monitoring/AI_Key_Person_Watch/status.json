@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-11T06:34:24+09:00",
-  "last_success_at": "2026-11-11T06:34:24+09:00",
+  "last_run_at": "2026-11-11T07:35:36+09:00",
+  "last_success_at": "2026-11-11T07:35:36+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA_ALREADY_PERSISTED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-11 06:34 JST. TEAM_RULES/TEAM_STATE and #99 broadcast-head 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 body 3/15 READ_ONLY; #909 closed, prior merged evidence; #79 untouched. Fresh limited Rapidus/Everspin primary-source review: no material new earnings-linked delta. No duplicate Research.",
-  "last_checked_at": "2026-11-11T06:34:24+09:00"
+  "note": "2026-11-11 07:35 JST. TEAM_RULES/TEAM_STATE and #99 broadcast-head 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 body 3/15 READ_ONLY; #909 merged cb23cdc; #79 untouched. Limited primary-source Rapidus/Everspin review: no newly verified material earnings-linked delta; no duplicate Research.",
+  "last_checked_at": "2026-11-11T07:35:36+09:00"
 }
