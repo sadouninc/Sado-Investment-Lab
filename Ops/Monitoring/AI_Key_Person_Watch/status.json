@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-11T04:30:31+09:00",
-  "last_success_at": "2026-11-11T04:30:31+09:00",
+  "last_run_at": "2026-11-11T05:30:22+09:00",
+  "last_success_at": "2026-11-11T05:30:22+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA_ALREADY_PERSISTED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-11 04:30 JST. TEAM_RULES/TEAM_STATE synced; #99 head and 270/270 comments verified, tail 6405435565; LUNA AWAY/AUTO_GREEN. #892 body 3/15 (873-1,873-2,859-1), READ_ONLY. #909 merged cb23cdcac09f8fd55758f5e76980fb8b3d61496d; #79 untouched. Limited Rapidus/Everspin primary-source scan: no newly confirmed material Japanese-equity earnings delta. No duplicate Research save.",
-  "last_checked_at": "2026-11-11T04:30:31+09:00"
+  "note": "2026-11-11 05:30 JST. TEAM_RULES/TEAM_STATE and #99 head 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 body 3/15 (873-1,873-2,859-1), READ_ONLY; #909 previously merged; #79 untouched. Limited fresh Rapidus/Everspin primary-source check found no new material Japanese-equity earnings evidence. No Research duplication.",
+  "last_checked_at": "2026-11-11T05:30:22+09:00"
 }
