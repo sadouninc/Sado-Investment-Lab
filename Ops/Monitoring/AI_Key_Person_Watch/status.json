@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-10T22:29:33+09:00",
-  "last_success_at": "2026-11-10T22:29:33+09:00",
+  "last_run_at": "2026-11-10T23:31:57+09:00",
+  "last_success_at": "2026-11-10T23:31:57+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA_ALREADY_PERSISTED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-10 22:29 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 tail 6405435565; Luna AWAY/AUTO_GREEN. #892 READ_ONLY, no verified new checkpoint; #909 closed; #79 untouched. Rapidus official latest Oct 26 HCLTech, no new material verified from scoped primary-source review. No duplicate Research save.",
-  "last_checked_at": "2026-11-10T22:29:33+09:00"
+  "note": "2026-11-10 23:31 JST. TEAM_RULES→TEAM_STATE→#99 verified body broadcast-head 6405435565/comments270, fetched270/tail6405435565. LUNA AWAY/AUTO_GREEN. #892 3/15 (873-1/2,859-1) no new proof, READ_ONLY; #909 merged cb23cdca; #79 untouched. Rapidus primary news latest 2026-10-26 HCLTech; no newly verified material investment delta in scoped check. No duplicate Research save.",
+  "last_checked_at": "2026-11-10T23:31:57+09:00"
 }
