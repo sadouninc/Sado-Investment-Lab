@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-10T19:30:19+09:00",
-  "last_success_at": "2026-11-10T19:30:19+09:00",
+  "last_run_at": "2026-11-10T20:34:14+09:00",
+  "last_success_at": "2026-11-10T20:34:14+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA_ALREADY_PERSISTED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-10 19:30 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270, tail 6405435565; Luna AWAY/AUTO_GREEN. #892 READ_ONLY, 3/15 as documented; #909 closed. Rapidus/Kioxia/MRAM limited current-source scan; Everspin Nov 6 blog editorial update not evidence of new adoption or revenue. No material Research delta; #79 untouched.",
-  "last_checked_at": "2026-11-10T19:30:19+09:00"
+  "note": "2026-11-10 20:34 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 tail 6405435565; Luna AWAY/AUTO_GREEN. #892 READ_ONLY no new verified checkpoints; #909 previously merged; #79 untouched. Rapidus Oct 26 HCLTech, Kioxia Oct 13 credit rating, Everspin MRAM prior materials checked; no new material delta or duplicate Research save.",
+  "last_checked_at": "2026-11-10T20:34:14+09:00"
 }
