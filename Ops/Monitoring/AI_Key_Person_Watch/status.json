@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-11T17:31:37+09:00",
-  "last_success_at": "2026-11-11T17:31:37+09:00",
+  "last_run_at": "2026-11-11T18:36:35+09:00",
+  "last_success_at": "2026-11-11T18:36:35+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-11 17:31 JST. TEAM_RULES→TEAM_STATE→#99 broadcast 270/270 final 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 READ_ONLY 3/15 (873-1,873-2,859-1); #79 untouched. Rapidus and Everspin primary sources checked; no new material verified delta. Consumer/Field and AI key-person coverage limited.",
-  "last_checked_at": "2026-11-11T17:31:37+09:00"
+  "note": "2026-11-11 18:36 JST. TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 READ_ONLY 3/15 (873-1,873-2,859-1). #79 untouched. Rapidus official news through Oct 26 checked; no verified new commercial adoption or earnings delta. Other radar coverage limited.",
+  "last_checked_at": "2026-11-11T18:36:35+09:00"
 }
