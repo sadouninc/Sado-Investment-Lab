@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-12T01:35:30+09:00",
-  "last_success_at": "2026-11-12T01:35:30+09:00",
+  "last_run_at": "2026-11-12T02:31:40+09:00",
+  "last_success_at": "2026-11-12T02:31:40+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-12 01:35 JST. Startup TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 READ_ONLY 3/15, #79 untouched. Limited primary-source scan Rapidus/Everspin; no newly confirmed commercial adoption or Japanese equity earnings impact. Other watch domains not exhaustive.",
-  "last_checked_at": "2026-11-12T01:35:30+09:00"
+  "note": "2026-11-12 02:31 JST. TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 READ_ONLY 3/15, #79 untouched. Limited primary-source Rapidus/Everspin scan: no new confirmed commercial adoption or Japanese listed-company earnings transmission; other watch domains not exhaustive.",
+  "last_checked_at": "2026-11-12T02:31:40+09:00"
 }
