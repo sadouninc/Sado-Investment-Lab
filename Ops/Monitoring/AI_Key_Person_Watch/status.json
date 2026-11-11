@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-11T11:27:57+09:00",
-  "last_success_at": "2026-11-11T11:27:57+09:00",
+  "last_run_at": "2026-11-11T12:30:20+09:00",
+  "last_success_at": "2026-11-11T12:30:20+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-11 11:27 JST. TEAM_RULES/TEAM_STATE read; #99 head 270/comment_id 6405435565 seen in body but comment tail not independently retrieved: BROADCAST_SYNC_UNVERIFIED. #892 body 3/15, READ_ONLY. Rapidus/Everspin primary-source limited check no material new delta. #79 untouched.",
-  "last_checked_at": "2026-11-11T11:27:57+09:00"
+  "note": "2026-11-11 12:30 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270, final comment_id 6405435565. Luna Flow Authority/AWAY/AUTO_GREEN. #892 READ_ONLY 3/15. Limited Rapidus/Everspin primary-source check: no new material delta; no Research duplication. #79 untouched.",
+  "last_checked_at": "2026-11-11T12:30:20+09:00"
 }
