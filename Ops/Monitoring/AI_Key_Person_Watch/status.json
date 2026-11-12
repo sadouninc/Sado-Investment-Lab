@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-12T13:30:21+09:00",
-  "last_success_at": "2026-11-12T13:30:21+09:00",
+  "last_run_at": "2026-11-12T14:27:16+09:00",
+  "last_success_at": "2026-11-12T14:27:16+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-12 13:30 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 READ_ONLY 3/15 prior baseline, no new completion claim; #909 closed. Rapidus and Everspin official-source spot-check: no new material delta; broader Kioxia/consumer/key-person coverage not exhaustive. #79 untouched.",
-  "last_checked_at": "2026-11-12T13:30:21+09:00"
+  "note": "2026-11-12 14:27 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 READ_ONLY 3/15 baseline; no new completion claim. Rapidus/Everspin primary-source spot-check: no new material delta; broader coverage not exhaustive. #79 untouched.",
+  "last_checked_at": "2026-11-12T14:27:16+09:00"
 }
