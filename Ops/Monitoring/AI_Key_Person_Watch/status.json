@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-13T00:34:55+09:00",
-  "last_success_at": "2026-11-13T00:34:55+09:00",
+  "last_run_at": "2026-11-13T01:32:00+09:00",
+  "last_success_at": "2026-11-13T01:32:00+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-13 00:34 JST. Startup Sync v2 verified TEAM_RULES→TEAM_STATE→#99 broadcast 270/270 tail 6405435565; LUNA AWAY/AUTO_GREEN. Limited official Rapidus/Everspin scan: no new material delta. Kioxia, consumer and key-person full scan not performed. #892 read-only; #909 previously confirmed merged; #79 untouched.",
-  "last_checked_at": "2026-11-13T00:34:55+09:00"
+  "note": "2026-11-13 01:32 JST. GitHub Startup Sync v2 verified TEAM_RULES→TEAM_STATE→#99 broadcast 270/270 tail 6405435565; LUNA AWAY/AUTO_GREEN. #861 Discovery Radar causal-chain contract reviewed. No fresh external-source scan in this run; no new material Research finding established. #892 read-only; #909 previously confirmed merged; #79 untouched.",
+  "last_checked_at": "2026-11-13T01:32:00+09:00"
 }
