@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-12T15:32:37+09:00",
-  "last_success_at": "2026-11-12T15:32:37+09:00",
+  "last_run_at": "2026-11-12T16:33:31+09:00",
+  "last_success_at": "2026-11-12T16:33:31+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-12 15:32 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 READ_ONLY baseline 3/15; no new completion. Rapidus 10/26 and Everspin 10/28 primary-source checks: no new material delta; other lanes not exhaustive. #79 untouched.",
-  "last_checked_at": "2026-11-12T15:32:37+09:00"
+  "note": "2026-11-12 16:33 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 READ_ONLY, no newly verified checkpoint. Rapidus official 10/26 remains latest; no verified new material delta in limited semiconductor scan. #79 untouched.",
+  "last_checked_at": "2026-11-12T16:33:31+09:00"
 }
