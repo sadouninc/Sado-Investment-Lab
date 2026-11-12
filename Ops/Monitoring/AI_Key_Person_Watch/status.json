@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-13T02:35:22+09:00",
-  "last_success_at": "2026-11-13T02:35:22+09:00",
+  "last_run_at": "2026-11-13T03:27:28+09:00",
+  "last_success_at": "2026-11-13T03:27:28+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-13 02:35 JST scheduled run. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. Official Rapidus news listing checked through Nov 13, latest Oct 26 HCLTech; no new material delta in checked sources. #892 73 comments read-only, natural closed-loop not proven; #909 previously merged; #79 untouched. Kioxia/consumer/key-person full coverage not established.",
-  "last_checked_at": "2026-11-13T02:35:22+09:00"
+  "note": "2026-11-13 03:27 JST scheduled. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. Rapidus official news checked, latest 2026-10-26 HCLTech; FY2026 NEDO plan confirms development goals, not mass-production yield or revenue. No newly verified material delta within checked sources; other radar areas not exhaustively scanned. #892 read-only; #909 previously merged; #79 untouched.",
+  "last_checked_at": "2026-11-13T03:27:28+09:00"
 }
