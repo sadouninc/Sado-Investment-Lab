@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-13T07:28:31+09:00",
-  "last_success_at": "2026-11-13T07:28:31+09:00",
+  "last_run_at": "2026-11-13T08:35:31+09:00",
+  "last_success_at": "2026-11-13T08:35:31+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-13 07:28 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 verified; LUNA AWAY/AUTO_GREEN. Limited fresh official-source MRAM search: Everspin 2026-10-28 Q3 remains latest relevant release found, prior 2026-09-29 CXL MRAM demo and 2026-08-04 MaxLinear MOU reviewed; no newly dated material delta. Other watch domains not exhaustively checked. #892 READ_ONLY; #909 previously merged; #79 untouched.",
-  "last_checked_at": "2026-11-13T07:28:31+09:00"
+  "note": "2026-11-13 08:35 JST. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 broadcast 270/270 tail 6405435565 verified; LUNA AWAY/AUTO_GREEN. Limited fresh official-source search for Kioxia/Rapidus/Everspin: no newly dated material change established; Kioxia June 2 AI inference strategy, Rapidus existing funding and Everspin Oct 28 Q3 remain background. Consumer/Field and AI key-person full sweep not performed. #892 READ_ONLY; #909 previously merged; #79 untouched.",
+  "last_checked_at": "2026-11-13T08:35:31+09:00"
 }
