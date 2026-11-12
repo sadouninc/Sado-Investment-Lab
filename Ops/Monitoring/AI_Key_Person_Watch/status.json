@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-13T04:35:21+09:00",
-  "last_success_at": "2026-11-13T04:35:21+09:00",
+  "last_run_at": "2026-11-13T05:31:38+09:00",
+  "last_success_at": "2026-11-13T05:31:38+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-13 04:35 JST scheduled. Startup Sync TEAM_RULES→TEAM_STATE→#99 broadcast 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. Fresh Rapidus official news page checked (latest 2026-10-26); NEDO FY2026 plan confirms 2nm development and PDK progress, not verified mass-production yield, customers or revenue. No new material delta in checked sources; Kioxia/Consumer/Key-person/MRAM not exhaustively checked. #892 READ_ONLY, #909 previously merged, #79 untouched.",
-  "last_checked_at": "2026-11-13T04:35:21+09:00"
+  "note": "2026-11-13 05:31 JST scheduled. Startup Sync TEAM_RULES→TEAM_STATE→#99 broadcast 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. Official Rapidus news page latest 2026-10-26; Kioxia June 2 AI inference SSD strategy and Oct 13 rating reviewed; no newly confirmed material change in checked sources. Not exhaustive consumer/key-person/MRAM scan. #892 READ_ONLY, #909 previously merged, #79 untouched.",
+  "last_checked_at": "2026-11-13T05:31:38+09:00"
 }
