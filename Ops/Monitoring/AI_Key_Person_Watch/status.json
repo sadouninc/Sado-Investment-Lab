@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-12T08:32:05+09:00",
-  "last_success_at": "2026-11-12T08:32:05+09:00",
+  "last_run_at": "2026-11-12T09:28:27+09:00",
+  "last_success_at": "2026-11-12T09:28:27+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-12 08:32 JST. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 READ_ONLY 3/15 (873-1,873-2,859-1); #909 merged; #79 untouched. Targeted Rapidus/Everspin primary-source check: no new material commercialization delta. Other domains not exhaustively checked.",
-  "last_checked_at": "2026-11-12T08:32:05+09:00"
+  "note": "2026-11-12 09:28 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 body VERIFIED_DONE 3/15 (873-1,873-2,859-1), read-only; #79 untouched. Targeted Rapidus/Everspin official sources show no new material delta. Consumer/Field, Kioxia and key-person domains not exhaustively checked.",
+  "last_checked_at": "2026-11-12T09:28:27+09:00"
 }
