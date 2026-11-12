@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-12T23:29:00+09:00",
-  "last_success_at": "2026-11-12T23:29:00+09:00",
+  "last_run_at": "2026-11-13T00:34:55+09:00",
+  "last_success_at": "2026-11-13T00:34:55+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-12 23:29 JST. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #861 causal-chain contract read. Rapidus official 2026-10-26 HCLTech latest; Everspin official 2026-10-28 Q3 latest in limited source scan, no material new delta. Kioxia/consumer/key-person full scan not completed. #892 READ_ONLY no completion added; #909 merged prior verification; #79 untouched.",
-  "last_checked_at": "2026-11-12T23:29:00+09:00"
+  "note": "2026-11-13 00:34 JST. Startup Sync v2 verified TEAM_RULES→TEAM_STATE→#99 broadcast 270/270 tail 6405435565; LUNA AWAY/AUTO_GREEN. Limited official Rapidus/Everspin scan: no new material delta. Kioxia, consumer and key-person full scan not performed. #892 read-only; #909 previously confirmed merged; #79 untouched.",
+  "last_checked_at": "2026-11-13T00:34:55+09:00"
 }
