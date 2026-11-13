@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-14T01:35:14+09:00",
-  "last_success_at": "2026-11-14T01:35:14+09:00",
+  "last_run_at": "2026-11-14T02:32:35+09:00",
+  "last_success_at": "2026-11-14T02:32:35+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_VERIFIED_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-14 01:35 JST. TEAM_RULES→TEAM_STATE→#99 270 comments, tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 official 3/15 READ_ONLY; #909 closed; #79 untouched. Rapidus official Oct 26 remains latest, 2027 production target maintained; no new independently verified material delta in limited primary-source scan. Consumer/AI-person/MRAM full sweep incomplete. No Research save.",
-  "last_checked_at": "2026-11-14T01:35:14+09:00"
+  "note": "2026-11-14 02:32 JST. TEAM_RULES→TEAM_STATE→#99 270 comments, tail 6405435565 verified; LUNA AWAY/AUTO_GREEN. #892 official 3/15 READ_ONLY, #79 untouched. Rapidus primary-source 2026-10-05 CORE and 2026-04-11 NEDO are known, 2027 target remains; no new independently verified material delta in limited scan. AI key-person/Consumer/MRAM full sweep incomplete. No Research save.",
+  "last_checked_at": "2026-11-14T02:32:35+09:00"
 }
