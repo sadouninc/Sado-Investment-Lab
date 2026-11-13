@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-13T16:37:17+09:00",
-  "last_success_at": "2026-11-13T16:37:17+09:00",
+  "last_run_at": "2026-11-13T17:40:06+09:00",
+  "last_success_at": "2026-11-13T17:40:06+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_VERIFIED_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-13 16:37 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 final comment 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 official 3/15 (873-1,873-2,859-1); READ_ONLY, no proxy POST. Prior Rapidus SRAM delay risk remains reported/unconfirmed; no newly independently verified market delta in this run. No new Research save. #909 prior merge evidence, #79 untouched. Consumer/Field, MRAM and key-person full sweep not completed.",
-  "last_checked_at": "2026-11-13T16:37:17+09:00"
+  "note": "2026-11-13 17:40 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 final 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 official 3/15 READ_ONLY; #909 previously merged; #79 untouched. Rapidus SRAM/delay press risk remains unconfirmed by company, no new independently verified material event. Everspin press release latest Oct 28. No Research save. Consumer/Field and key-person full sweep incomplete.",
+  "last_checked_at": "2026-11-13T17:40:06+09:00"
 }
