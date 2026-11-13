@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-13T15:34:35+09:00",
-  "last_success_at": "2026-11-13T15:34:35+09:00",
+  "last_run_at": "2026-11-13T16:37:17+09:00",
+  "last_success_at": "2026-11-13T16:37:17+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
-  "persistence_status": "MATERIAL_DELTA_IDENTIFIED_RESEARCH_PATH_UNVERIFIED",
+  "persistence_status": "NO_NEW_VERIFIED_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-13 15:34 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 final 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. Rapidus 2nm SRAM milestone delay reported by Bloomberg Nov 10, official FY2027 H2 target maintained; reported risk, NOT confirmed delay. Kioxia Oct 30 H1 amounts cross-checked via secondary disclosures; primary PDF numeric verification pending. #892 READ_ONLY 3/15 per issue body, #909 previously merged, #79 untouched. Consumer/Field and AI key-person broad scan incomplete. Material semiconductor finding not persisted to Research because canonical destination not verified.",
-  "last_checked_at": "2026-11-13T15:34:35+09:00"
+  "note": "2026-11-13 16:37 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 final comment 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 official 3/15 (873-1,873-2,859-1); READ_ONLY, no proxy POST. Prior Rapidus SRAM delay risk remains reported/unconfirmed; no newly independently verified market delta in this run. No new Research save. #909 prior merge evidence, #79 untouched. Consumer/Field, MRAM and key-person full sweep not completed.",
+  "last_checked_at": "2026-11-13T16:37:17+09:00"
 }
