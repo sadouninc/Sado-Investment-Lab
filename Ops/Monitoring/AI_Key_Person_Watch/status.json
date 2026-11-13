@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-14T03:27:09+09:00",
-  "last_success_at": "2026-11-14T03:27:09+09:00",
+  "last_run_at": "2026-11-14T04:27:08+09:00",
+  "last_success_at": "2026-11-14T04:27:08+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_VERIFIED_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-14 03:27 JST. TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 verified; LUNA AWAY/AUTO_GREEN. #892 3/15 verified in issue body, READ_ONLY; #909 closed, #79 untouched. Rapidus official news latest 2026-10-26; 2027 target unchanged. Limited primary-source scan no new material delta; full AI key-person/consumer/MRAM scan incomplete. No Research save.",
-  "last_checked_at": "2026-11-14T03:27:09+09:00"
+  "note": "2026-11-14 04:27 JST. TEAM_RULES→TEAM_STATE→#99 270/270 last 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 3/15 read-only; #909 closed; #79 untouched. Rapidus official news latest 2026-10-26, 2027 production target unchanged. Limited primary-source scan only; AI key persons, consumer trends, MRAM, Kioxia comprehensive scan incomplete. No new verified material delta; no Research save.",
+  "last_checked_at": "2026-11-14T04:27:08+09:00"
 }
