@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-14T06:32:31+09:00",
-  "last_success_at": "2026-11-14T06:32:31+09:00",
+  "last_run_at": "2026-11-14T07:35:41+09:00",
+  "last_success_at": "2026-11-14T07:35:41+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_VERIFIED_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-14 06:32 JST. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 270/270 last comment 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 3/15 READ_ONLY; #79 untouched. NVIDIA Nov 12 CEO transition already recorded; Nov 13 employee petition reported by WIRED, not yet independently verified as material earnings delta. No new verified material Research delta; no Research save. MRAM/Consumer and Japan semiconductor broad coverage incomplete.",
-  "last_checked_at": "2026-11-14T06:32:31+09:00"
+  "note": "2026-11-14 07:35 JST. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 270/270 final comment 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 3/15 READ_ONLY; #79 untouched. NVIDIA CEO transition confirmed Nov 12; Nov 13 Reuters reports Arm CEO Rene Haas approached as possible successor, NVIDIA says no formal candidate engagement; no confirmed appointment or financial impact. Nov 17 earnings next checkpoint. No new independently verified material Research delta; no Research save. Consumer/Field and MRAM broad scan incomplete.",
+  "last_checked_at": "2026-11-14T07:35:41+09:00"
 }
