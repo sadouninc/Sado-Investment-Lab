@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-13T12:33:48+09:00",
-  "last_success_at": "2026-11-13T12:33:48+09:00",
+  "last_run_at": "2026-11-13T13:29:17+09:00",
+  "last_success_at": "2026-11-13T13:29:17+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-09T20:30:53+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-13 12:33 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. Kioxia official IR confirms 2026-10-30 FY2027 H1 earnings/dividend announcements and 2026-11-06 half-year report; financial statement detail not fully primary-verified, no incremental material Research delta established. #861 causal radar ongoing; #892 READ_ONLY, #909 closed, #79 untouched. Consumer/Field, key persons and MRAM broad scans incomplete.",
-  "last_checked_at": "2026-11-13T12:33:48+09:00"
+  "note": "2026-11-13 13:29 JST. TEAM_RULES→TEAM_STATE→#99 270/270 final comment 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. Kioxia 2026-10-30 H1 results: revenue JPY 4.247152tn, operating profit JPY 3.264727tn (official disclosure cross-checked against financial data); already announced, no new material event. #909 merged SHA cb23cdcac09f8fd55758f5e76980fb8b3d61496d verified. #892 READ_ONLY, #79 untouched. Broad Consumer/Field and AI key person scan incomplete.",
+  "last_checked_at": "2026-11-13T13:29:17+09:00"
 }
