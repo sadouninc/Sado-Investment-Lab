@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-13T21:34:40+09:00",
-  "last_success_at": "2026-11-13T21:34:40+09:00",
+  "last_run_at": "2026-11-13T22:36:19+09:00",
+  "last_success_at": "2026-11-13T22:36:19+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_VERIFIED_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-13 21:34 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 last 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 3/15 READ_ONLY, #79 untouched. Rapidus Oct 26 official latest; Everspin Oct 28 Q3 known; no newly verified material delta. AI key-person/Consumer Field broad sweep incomplete; no Research save.",
-  "last_checked_at": "2026-11-13T21:34:40+09:00"
+  "note": "2026-11-13 22:36 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 last 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 3/15 READ_ONLY; #79 untouched. Official Rapidus Oct 26 and Kioxia Oct 30/Nov 6, Everspin known 2026 announcements checked; no new independently verified material delta. Broad AI key-person and Consumer/Field sweep incomplete; no Research save.",
+  "last_checked_at": "2026-11-13T22:36:19+09:00"
 }
