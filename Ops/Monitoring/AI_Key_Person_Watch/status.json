@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-13T14:35:46+09:00",
-  "last_success_at": "2026-11-13T14:35:46+09:00",
+  "last_run_at": "2026-11-13T15:34:35+09:00",
+  "last_success_at": "2026-11-13T15:34:35+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-09T20:30:53+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_NEW_MATERIAL_DELTA",
+  "persistence_status": "MATERIAL_DELTA_IDENTIFIED_RESEARCH_PATH_UNVERIFIED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-13 14:35 JST. TEAM_RULES→TEAM_STATE→#99 270/270 final comment 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 body now marks 873-2 VERIFIED in addition to 873-1 and 859-1 (3/15 checked; remaining acceptance unverified); READ_ONLY, no proxy post. #909 previously verified merged. No new material semiconductor event established in limited primary-source check. Prior Kioxia 13:29 financial amounts not independently validated this run; do not reuse without source reconciliation. #79 untouched. Broad Consumer/Field and AI key person scan incomplete.",
-  "last_checked_at": "2026-11-13T14:35:46+09:00"
+  "note": "2026-11-13 15:34 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 final 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. Rapidus 2nm SRAM milestone delay reported by Bloomberg Nov 10, official FY2027 H2 target maintained; reported risk, NOT confirmed delay. Kioxia Oct 30 H1 amounts cross-checked via secondary disclosures; primary PDF numeric verification pending. #892 READ_ONLY 3/15 per issue body, #909 previously merged, #79 untouched. Consumer/Field and AI key-person broad scan incomplete. Material semiconductor finding not persisted to Research because canonical destination not verified.",
+  "last_checked_at": "2026-11-13T15:34:35+09:00"
 }
