@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-13T18:28:15+09:00",
-  "last_success_at": "2026-11-13T18:28:15+09:00",
+  "last_run_at": "2026-11-13T19:32:51+09:00",
+  "last_success_at": "2026-11-13T19:32:51+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_VERIFIED_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-13 18:28 JST. TEAM_RULES→TEAM_STATE→#99 270/270 final 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. Rapidus SRAM/yield delay remains press-reported, no official revised mass-production date; Everspin press latest Oct 28. No newly verified material Research delta. #892 READ_ONLY; #79 untouched. Consumer/Field and key-person broad sweep incomplete.",
-  "last_checked_at": "2026-11-13T18:28:15+09:00"
+  "note": "2026-11-13 19:32 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 last id 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 3/15 confirmed READ_ONLY, #79 untouched. Rapidus SRAM delay remains press-reported, official FY2027 H2 target unchanged; Everspin Oct 28 latest release. No newly verified material delta; no Research save. Consumer/Field and AI key-person broad sweep incomplete.",
+  "last_checked_at": "2026-11-13T19:32:51+09:00"
 }
