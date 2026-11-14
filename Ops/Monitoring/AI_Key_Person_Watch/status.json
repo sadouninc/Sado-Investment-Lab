@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-15T07:36:11+09:00",
-  "last_success_at": "2026-11-15T07:36:11+09:00",
+  "last_run_at": "2026-11-15T08:27:17+09:00",
+  "last_success_at": "2026-11-15T08:27:17+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-15 07:36 JST. Startup Sync v2 verified TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 final 6405435565; LUNA AWAY/AUTO_GREEN. #892 READ_ONLY, #79 untouched. #926 prior technical review maintained. Fresh primary-source scan: NVIDIA Nov12 CEO transition and Nov17 earnings, Kioxia IR latest Nov06, Rapidus latest Oct26; Nov09 Mitsui Chemicals/JSR deal and Nov10 Reuters Tankan observed as previously dated developments, no new independently verified incremental Japan listed-company earnings delta. Consumer/Field and MRAM coverage partial. No Research save.",
-  "last_checked_at": "2026-11-15T07:36:11+09:00"
+  "note": "2026-11-15 08:27 JST. TEAM_RULES→TEAM_STATE→#99 270/270 final comment 6405435565 verified; LUNA AWAY/AUTO_GREEN, former Nagi authority obsolete. #892 READ_ONLY; #909 already merged cb23cdcac09f8fd55758f5e76980fb8b3d61496d; #926 open a2266242, no duplicate review. NVIDIA Nov12 CEO transition previously recorded, no new confirmed Japan listed earnings delta in bounded source check; MRAM/Consumer Field partial. #79 untouched. No Research save.",
+  "last_checked_at": "2026-11-15T08:27:17+09:00"
 }
