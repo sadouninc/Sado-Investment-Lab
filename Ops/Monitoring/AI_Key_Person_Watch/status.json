@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-14T22:31:44+09:00",
-  "last_success_at": "2026-11-14T22:31:44+09:00",
+  "last_run_at": "2026-11-14T23:27:42+09:00",
+  "last_success_at": "2026-11-14T23:27:42+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_EARNINGS_DELTA",
+  "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-14 22:31 JST. TEAM_RULES/TEAM_STATE/#99 latest 270/270 final comment 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN; #892 3/15 READ_ONLY; #79 untouched. NVIDIA Nov 12 CEO transition official and Nov 17 earnings upcoming; Reuters Nov 13 CEO search reporting, no verified Japan earnings effect. Kioxia Oct 30 IR and Aug 27 investment plan already known; Rapidus and MRAM no new verified material delta. Consumer/Field partial; no Research save.",
-  "last_checked_at": "2026-11-14T22:31:44+09:00"
+  "note": "2026-11-14 23:27 JST. Startup Sync TEAM_RULES/TEAM_STATE/#99 270/270 last 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 body 3/15 READ_ONLY, no POST; #79 untouched. NVIDIA Nov 12 CEO transition reconfirmed; Nov 17 17:00 ET earnings upcoming. MRAM Everspin manufacturing and IBM FCM5 context reviewed; no independently verified new Japan earnings impact. Consumer/Field partial. Research not saved.",
+  "last_checked_at": "2026-11-14T23:27:42+09:00"
 }
