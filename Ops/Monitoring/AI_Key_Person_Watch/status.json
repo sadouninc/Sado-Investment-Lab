@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-14T16:30:11+09:00",
-  "last_success_at": "2026-11-14T16:30:11+09:00",
+  "last_run_at": "2026-11-14T17:34:54+09:00",
+  "last_success_at": "2026-11-14T17:34:54+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-14 16:30 JST. TEAM_RULES/TEAM_STATE/#99 head 270 and all 270 comments tail 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN, Nagi superseded. #892 READ_ONLY; no checkpoint upgraded. PR #909 independently verified MERGED, exact head 066652bc, merge SHA cb23cdcac09f8fd55758f5e76980fb8b3d61496d. NVIDIA Nov12 CEO transition confirmed; Nov13 Reuters legal representation / board investigation update, no independently verified Japan earnings impact. #79 untouched; Research save skipped.",
-  "last_checked_at": "2026-11-14T16:30:11+09:00"
+  "note": "2026-11-14 17:34 JST. TEAM_RULES and TEAM_STATE checked; #99 broadcast-head 270, comments 270, tail 6405435565 VERIFIED. Luna is Single Flow Authority; AWAY/AUTO_GREEN. #892 official 3/15, READ_ONLY, no upgrade; #79 untouched. NVIDIA Nov12 CEO transition reconfirmed via official Japanese announcement; Nov14 reporting adds no verified Japan earnings delta. Rapidus/Everspin checked, no new qualifying primary-source delta; consumer signal scan partial. PR #909 previously confirmed merged SHA cb23cdcac09f8fd55758f5e76980fb8b3d61496d, not re-reviewed. Research save skipped.",
+  "last_checked_at": "2026-11-14T17:34:54+09:00"
 }
