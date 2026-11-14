@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-14T21:26:52+09:00",
-  "last_success_at": "2026-11-14T21:26:52+09:00",
+  "last_run_at": "2026-11-14T22:31:44+09:00",
+  "last_success_at": "2026-11-14T22:31:44+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-14 21:26 JST. TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 final 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN; #892 official 3/15 READ_ONLY; #79 untouched. Rapidus Oct 5 CORE ecosystem verified as existing design-support milestone, not new customer revenue; no fresh independently verified Japan semiconductor earnings delta. NVIDIA prior CEO transition and Nov 17 earnings remain watch items; Consumer/Field and MRAM no newly verified material delta. No Research save.",
-  "last_checked_at": "2026-11-14T21:26:52+09:00"
+  "note": "2026-11-14 22:31 JST. TEAM_RULES/TEAM_STATE/#99 latest 270/270 final comment 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN; #892 3/15 READ_ONLY; #79 untouched. NVIDIA Nov 12 CEO transition official and Nov 17 earnings upcoming; Reuters Nov 13 CEO search reporting, no verified Japan earnings effect. Kioxia Oct 30 IR and Aug 27 investment plan already known; Rapidus and MRAM no new verified material delta. Consumer/Field partial; no Research save.",
+  "last_checked_at": "2026-11-14T22:31:44+09:00"
 }
