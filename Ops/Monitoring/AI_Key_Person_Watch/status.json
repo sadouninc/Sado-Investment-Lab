@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-15T04:31:55+09:00",
-  "last_success_at": "2026-11-15T04:31:55+09:00",
+  "last_run_at": "2026-11-15T05:31:56+09:00",
+  "last_success_at": "2026-11-15T05:31:56+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-15 04:31 JST. Startup Sync v2 #99 verified 270/270, last 6405435565; authority LUNA, AWAY/AUTO_GREEN. #892 official 3/15 READ_ONLY; #79 untouched. PR #926 remains open at a2266242; no duplicate review. #861/#124 contract checked. No independently verified new Research-worthy delta in this run; external semiconductor, MRAM, Consumer/Field news coverage not exhaustive. No Research save.",
-  "last_checked_at": "2026-11-15T04:31:55+09:00"
+  "note": "2026-11-15 05:31 JST. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 broadcast-head verified 270/270 last 6405435565; authority LUNA AWAY/AUTO_GREEN. #892 read-only; #79 untouched. PR #926 open HEAD a2266242, prior review maintained. NVIDIA Nov12 CEO transition and Nov17 earnings; Rapidus Oct26 HCLTech partnership and Oct05 CORE are previously known, no independently verified new Japan listed-company earnings delta. MRAM and Consumer/Field coverage non-exhaustive; no Research save.",
+  "last_checked_at": "2026-11-15T05:31:56+09:00"
 }
