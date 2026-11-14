@@ -137,7 +137,7 @@ def evaluate_auto_green_merge(
     sensitive_change: bool,
     explicit_owner_acceptance_required: bool,
     protected_issue_79: bool,
-    required_review_policy: str = "PASS",
+    required_review_policy: str = "UNKNOWN",
     github_approved: bool = False,
 ) -> AutoGreenMergeResult:
     """Evaluate AUTO_GREEN eligibility with fail-safe defaults.
@@ -193,6 +193,8 @@ def build_auto_green_evidence_fingerprint(
     unresolved_blockers: Iterable[str],
     required_review_policy: str,
     required_review_policy_source: str,
+    github_approved: bool,
+    github_approval_evidence_id: str,
     mergeable: bool,
     required_gates_pass: bool,
     owner_or_investment_authority: bool,
@@ -214,6 +216,7 @@ def build_auto_green_evidence_fingerprint(
         "technical_review_state": technical_review_state,
         "technical_review_evidence_id": technical_review_evidence_id,
         "required_review_policy_source": required_review_policy_source,
+        "github_approval_evidence_id": github_approval_evidence_id,
     }
     if pr_number <= 0 or any(not value.strip() for value in required_text.values()):
         raise ValueError("incomplete AUTO_GREEN evidence")
@@ -231,6 +234,8 @@ def build_auto_green_evidence_fingerprint(
         "unresolved_blockers": sorted({value.strip() for value in unresolved_blockers if value.strip()}),
         "required_review_policy": policy,
         "required_review_policy_source": required_review_policy_source.strip(),
+        "github_approved": github_approved,
+        "github_approval_evidence_id": github_approval_evidence_id.strip(),
         "mergeable": mergeable,
         "required_gates_pass": required_gates_pass,
         "owner_or_investment_authority": owner_or_investment_authority,
