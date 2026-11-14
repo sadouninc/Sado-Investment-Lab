@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass
 from typing import Iterable, Mapping
 
@@ -39,6 +41,13 @@ class ModeTransitionResult:
 class AutoGreenMergeResult:
     allowed: bool
     status: str
+    blocking_reasons: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class AutoGreenBlockerRecordResult:
+    action: str
+    fingerprint: str
     blocking_reasons: tuple[str, ...]
 
 
@@ -128,6 +137,8 @@ def evaluate_auto_green_merge(
     sensitive_change: bool,
     explicit_owner_acceptance_required: bool,
     protected_issue_79: bool,
+    required_review_policy: str = "PASS",
+    github_approved: bool = False,
 ) -> AutoGreenMergeResult:
     """Evaluate AUTO_GREEN eligibility with fail-safe defaults.
     
@@ -152,6 +163,11 @@ def evaluate_auto_green_merge(
         reasons.append("REQUIRED_GATE_NOT_PASS")
     if not latest_head_reviewed:
         reasons.append("LATEST_HEAD_NOT_REVIEWED")
+    review_policy = required_review_policy.strip().upper()
+    if review_policy not in {"PASS", "REQUIRED"}:
+        reasons.append("REQUIRED_REVIEW_POLICY_UNKNOWN")
+    elif review_policy == "REQUIRED" and not github_approved:
+        reasons.append("GITHUB_APPROVAL_REQUIRED")
     if owner_or_investment_authority:
         reasons.append("OWNER_OR_INVESTMENT_AUTHORITY")
     if sensitive_change:
@@ -163,6 +179,94 @@ def evaluate_auto_green_merge(
     if reasons:
         return AutoGreenMergeResult(False, "AUTO_GREEN_BLOCKED", tuple(reasons))
     return AutoGreenMergeResult(True, "AUTO_GREEN_ALLOWED", ())
+
+
+def build_auto_green_evidence_fingerprint(
+    *,
+    pr_number: int,
+    head_sha: str,
+    ci_state: str,
+    ci_contexts: Iterable[str],
+    technical_review_state: str,
+    technical_review_evidence_id: str,
+    request_changes: bool,
+    unresolved_blockers: Iterable[str],
+    required_review_policy: str,
+    required_review_policy_source: str,
+    mergeable: bool,
+    required_gates_pass: bool,
+    owner_or_investment_authority: bool,
+    path_conflict: bool,
+    sensitive_change: bool,
+    explicit_owner_acceptance_required: bool,
+    protected_issue_79: bool,
+) -> str:
+    """Hash the exact evidence that justified one AUTO_GREEN block.
+
+    Suppression is deliberately separate from merge eligibility: this digest
+    can only deduplicate an already-blocked notification. Missing or ambiguous
+    evidence raises instead of producing a suppressible fingerprint.
+    """
+    policy = required_review_policy.strip().upper()
+    required_text = {
+        "head_sha": head_sha,
+        "ci_state": ci_state,
+        "technical_review_state": technical_review_state,
+        "technical_review_evidence_id": technical_review_evidence_id,
+        "required_review_policy_source": required_review_policy_source,
+    }
+    if pr_number <= 0 or any(not value.strip() for value in required_text.values()):
+        raise ValueError("incomplete AUTO_GREEN evidence")
+    if policy not in {"PASS", "REQUIRED", "UNKNOWN"}:
+        raise ValueError("invalid required review policy state")
+
+    evidence = {
+        "pr_number": pr_number,
+        "head_sha": head_sha.strip(),
+        "ci_state": ci_state.strip().upper(),
+        "ci_contexts": sorted({value.strip() for value in ci_contexts if value.strip()}),
+        "technical_review_state": technical_review_state.strip().upper(),
+        "technical_review_evidence_id": technical_review_evidence_id.strip(),
+        "request_changes": request_changes,
+        "unresolved_blockers": sorted({value.strip() for value in unresolved_blockers if value.strip()}),
+        "required_review_policy": policy,
+        "required_review_policy_source": required_review_policy_source.strip(),
+        "mergeable": mergeable,
+        "required_gates_pass": required_gates_pass,
+        "owner_or_investment_authority": owner_or_investment_authority,
+        "path_conflict": path_conflict,
+        "sensitive_change": sensitive_change,
+        "explicit_owner_acceptance_required": explicit_owner_acceptance_required,
+        "protected_issue_79": protected_issue_79,
+    }
+    canonical = json.dumps(evidence, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def decide_auto_green_blocker_record(
+    *,
+    fingerprint: str,
+    blocking_reasons: Iterable[str],
+    previous_fingerprint: str | None = None,
+    previous_blocking_reasons: Iterable[str] | None = None,
+) -> AutoGreenBlockerRecordResult:
+    """Decide whether to emit or suppress an already-blocked escape record."""
+    reasons = tuple(sorted({value.strip() for value in blocking_reasons if value.strip()}))
+    if not reasons:
+        return AutoGreenBlockerRecordResult("NO_BLOCKER_RECORD", fingerprint, ())
+    valid_fingerprint = len(fingerprint) == 64 and all(char in "0123456789abcdef" for char in fingerprint)
+    if not valid_fingerprint:
+        raise ValueError("invalid AUTO_GREEN evidence fingerprint")
+    previous_reasons = tuple(
+        sorted({value.strip() for value in (previous_blocking_reasons or ()) if value.strip()})
+    )
+    if previous_fingerprint == fingerprint and previous_reasons == reasons:
+        action = "SUPPRESS_UNCHANGED_BLOCKER"
+    elif previous_fingerprint:
+        action = "REEVALUATE_CHANGED_EVIDENCE"
+    else:
+        action = "EMIT_BLOCKED_ESCAPE"
+    return AutoGreenBlockerRecordResult(action, fingerprint, reasons)
 
 
 def classify_blocker(blocker_class: str, *, detail: str, ref: str) -> dict[str, str]:
@@ -196,3 +300,4 @@ def split_away_blockers(blockers: Iterable[Mapping[str, str]]) -> dict[str, list
         else:
             autonomous.append(item)
     return {"owner_authority": owner, "autonomous": autonomous}
+
