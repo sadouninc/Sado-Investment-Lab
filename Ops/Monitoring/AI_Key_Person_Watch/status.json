@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-15T02:27:07+09:00",
-  "last_success_at": "2026-11-15T02:27:07+09:00",
+  "last_run_at": "2026-11-15T03:35:56+09:00",
+  "last_success_at": "2026-11-15T03:35:56+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-15 02:27 JST. TEAM_RULES→TEAM_STATE→#99 broadcast 270/270 last 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 remains READ_ONLY; #79 untouched. PR #926 open HEAD a2266242; no duplicate review. Rapidus official FY2026 NEDO funding and 2027 production target reviewed, not new verified customer revenue. Consumer/Field and MRAM coverage partial; no Research save.",
-  "last_checked_at": "2026-11-15T02:27:07+09:00"
+  "note": "2026-11-15 03:35 JST. Startup Sync v2 verified #99 broadcast 270/270 through comment 6405435565; current authority LUNA, mode AWAY/AUTO_GREEN. #892 3/15 READ_ONLY, #79 untouched. PR #926 open at a2266242, previous exact-head technical review retained; no duplicate review or merge. #861 causal discovery framework reviewed; no newly independently verified Japanese earnings impact or Research save. Consumer/Field and MRAM coverage partial.",
+  "last_checked_at": "2026-11-15T03:35:56+09:00"
 }
