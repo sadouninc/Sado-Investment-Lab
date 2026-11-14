@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-14T12:28:54+09:00",
-  "last_success_at": "2026-11-14T12:28:54+09:00",
+  "last_run_at": "2026-11-14T13:36:38+09:00",
+  "last_success_at": "2026-11-14T13:36:38+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-14 12:28 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270, final comment 6405435565 VERIFIED; Luna authority AWAY/AUTO_GREEN. NVIDIA Nov12 official CEO transition and Nov14 news follow-up; no verified customer contract/product roadmap changes or Japanese earnings impact. Everspin MRAM existing Apr8 manufacturing agreement and Sep29 CXL demonstration reviewed, no new delta. #892 READ_ONLY, #79 untouched. No Research save.",
-  "last_checked_at": "2026-11-14T12:28:54+09:00"
+  "note": "2026-11-14 13:36 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 final comment 6405435565 VERIFIED; Luna Flow Authority, AWAY/AUTO_GREEN. NVIDIA Nov12 CEO transition reconfirmed from official source; Nov14 media follow-ups do not independently establish contract, export-policy or Japan earnings changes. Everspin MRAM/Rapidus/Kioxia scan: no new independently verified material delta. #892 READ_ONLY; #909 merge status not newly verified; #79 untouched. No Research save.",
+  "last_checked_at": "2026-11-14T13:36:38+09:00"
 }
