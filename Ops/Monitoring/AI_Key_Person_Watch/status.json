@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-14T10:29:56+09:00",
-  "last_success_at": "2026-11-14T10:29:56+09:00",
+  "last_run_at": "2026-11-14T11:32:50+09:00",
+  "last_success_at": "2026-11-14T11:32:50+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-14 10:29 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 last comment 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN. #892 READ_ONLY 3/15; #79 untouched. NVIDIA Nov 12 CEO transition official; Nov 13 Reuters reports interim CEO Kress more financially cautious, potential AI financing strategy change remains inference, no confirmed contract cancellations/Japan earnings impact. Bloomberg Nov 10 Rapidus SRAM milestone delay report is unconfirmed by company; 2027/2028 production schedule risk watch, not independently verified. Research not saved; Consumer/Field and MRAM comprehensive scan incomplete.",
-  "last_checked_at": "2026-11-14T10:29:56+09:00"
+  "note": "2026-11-14 11:32 JST. TEAM_RULES→TEAM_STATE→#99 270/270 final 6405435565 VERIFIED; Luna Flow Authority AWAY/AUTO_GREEN. #892 READ_ONLY official 3/15; #79 untouched. NVIDIA Nov12 CEO transition official; Nov13 congressional scrutiny and Nov14 Reuters investigation report reviewed, no independently established change to customer contracts or Japan earnings. MRAM Everspin March5 product qualification is historical, no new material delta. Consumer/Field scan partial; no Research save.",
+  "last_checked_at": "2026-11-14T11:32:50+09:00"
 }
