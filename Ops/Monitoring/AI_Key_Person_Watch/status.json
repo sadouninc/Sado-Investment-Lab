@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-14T13:36:38+09:00",
-  "last_success_at": "2026-11-14T13:36:38+09:00",
+  "last_run_at": "2026-11-14T14:32:08+09:00",
+  "last_success_at": "2026-11-14T14:32:08+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-14 13:36 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 final comment 6405435565 VERIFIED; Luna Flow Authority, AWAY/AUTO_GREEN. NVIDIA Nov12 CEO transition reconfirmed from official source; Nov14 media follow-ups do not independently establish contract, export-policy or Japan earnings changes. Everspin MRAM/Rapidus/Kioxia scan: no new independently verified material delta. #892 READ_ONLY; #909 merge status not newly verified; #79 untouched. No Research save.",
-  "last_checked_at": "2026-11-14T13:36:38+09:00"
+  "note": "2026-11-14 14:32 JST. TEAM_RULES/TEAM_STATE/#99 270/270 tail 6405435565 VERIFIED; Luna AWAY/AUTO_GREEN. #892 3/15 from issue body, READ_ONLY; #909 closed, merge SHA not verified. NVIDIA Nov12 official transition and Nov14 congressional/export-control scrutiny: no verified formal export rule or Japan earnings change. Consumer/Field, MRAM, Rapidus/Kioxia material new delta not independently established. #79 untouched; no Research save.",
+  "last_checked_at": "2026-11-14T14:32:08+09:00"
 }
