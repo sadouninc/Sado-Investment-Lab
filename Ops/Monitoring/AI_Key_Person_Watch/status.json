@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-15T05:31:56+09:00",
-  "last_success_at": "2026-11-15T05:31:56+09:00",
+  "last_run_at": "2026-11-15T06:34:16+09:00",
+  "last_success_at": "2026-11-15T06:34:16+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-15 05:31 JST. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 broadcast-head verified 270/270 last 6405435565; authority LUNA AWAY/AUTO_GREEN. #892 read-only; #79 untouched. PR #926 open HEAD a2266242, prior review maintained. NVIDIA Nov12 CEO transition and Nov17 earnings; Rapidus Oct26 HCLTech partnership and Oct05 CORE are previously known, no independently verified new Japan listed-company earnings delta. MRAM and Consumer/Field coverage non-exhaustive; no Research save.",
-  "last_checked_at": "2026-11-15T05:31:56+09:00"
+  "note": "2026-11-15 06:34 JST. Startup Sync v2 TEAM_RULES→TEAM_STATE→#99 broadcast-head verified 270/270 last 6405435565; authority LUNA AWAY/AUTO_GREEN. #892 read-only, #79 untouched. PR #926 open HEAD a2266242, prior review maintained. NVIDIA Nov17 earnings scheduled; Rapidus Oct05 CORE/Oct26 HCLTech already known. No independently verified new Japan listed-company earnings delta. MRAM and Consumer/Field coverage non-exhaustive; no Research save.",
+  "last_checked_at": "2026-11-15T06:34:16+09:00"
 }
