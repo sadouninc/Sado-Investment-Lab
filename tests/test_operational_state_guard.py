@@ -22,6 +22,8 @@ def _auto_green_evidence(**overrides):
         "unresolved_blockers": ["REQUIRED_REVIEW_POLICY_UNKNOWN"],
         "required_review_policy": "UNKNOWN",
         "required_review_policy_source": "github:403",
+        "github_approved": False,
+        "github_approval_evidence_id": "github-review:none",
         "mergeable": True,
         "required_gates_pass": True,
         "owner_or_investment_authority": False,
@@ -104,6 +106,7 @@ def test_auto_green_allows_only_fully_green_pr_in_auto_mode():
         sensitive_change=False,
         explicit_owner_acceptance_required=False,
         protected_issue_79=False,
+        required_review_policy="PASS",
     )
     assert result.allowed is True
     assert result.status == "AUTO_GREEN_ALLOWED"
@@ -122,6 +125,7 @@ def test_manual_mode_blocks_auto_green_even_when_checks_are_green():
         sensitive_change=False,
         explicit_owner_acceptance_required=False,
         protected_issue_79=False,
+        required_review_policy="PASS",
     )
     assert result.allowed is False
     assert result.blocking_reasons == ("MERGE_POLICY_NOT_AUTO_GREEN",)
@@ -139,6 +143,7 @@ def test_auto_green_blocks_authority_and_sensitive_changes():
         sensitive_change=True,
         explicit_owner_acceptance_required=True,
         protected_issue_79=False,
+        required_review_policy="PASS",
     )
     assert result.allowed is False
     assert "OWNER_OR_INVESTMENT_AUTHORITY" in result.blocking_reasons
@@ -160,6 +165,23 @@ def test_technical_pass_with_scope_does_not_equal_github_approval():
         protected_issue_79=False,
         required_review_policy="UNKNOWN",
         github_approved=False,
+    )
+    assert result.allowed is False
+    assert result.blocking_reasons == ("REQUIRED_REVIEW_POLICY_UNKNOWN",)
+
+
+def test_omitted_required_review_policy_fails_closed():
+    result = evaluate_auto_green_merge(
+        mode="ACTIVE_AUTO",
+        ci_pass=True,
+        request_changes=False,
+        merge_conflict=False,
+        required_gates_pass=True,
+        latest_head_reviewed=True,
+        owner_or_investment_authority=False,
+        sensitive_change=False,
+        explicit_owner_acceptance_required=False,
+        protected_issue_79=False,
     )
     assert result.allowed is False
     assert result.blocking_reasons == ("REQUIRED_REVIEW_POLICY_UNKNOWN",)
@@ -207,6 +229,7 @@ def test_changed_evidence_is_reevaluated():
         {"ci_state": "FAIL"},
         {"technical_review_evidence_id": "review:124"},
         {"required_review_policy": "REQUIRED", "required_review_policy_source": "ruleset:main"},
+        {"github_approved": True, "github_approval_evidence_id": "github-review:456"},
         {"owner_or_investment_authority": True},
         {"path_conflict": True},
     ]
@@ -219,6 +242,32 @@ def test_changed_evidence_is_reevaluated():
             previous_blocking_reasons=["REQUIRED_REVIEW_POLICY_UNKNOWN"],
         )
         assert decision.action == "REEVALUATE_CHANGED_EVIDENCE"
+
+
+def test_github_approval_grant_and_revocation_change_fingerprint():
+    unapproved = build_auto_green_evidence_fingerprint(
+        **_auto_green_evidence(
+            required_review_policy="REQUIRED",
+            required_review_policy_source="ruleset:main",
+        )
+    )
+    approved = build_auto_green_evidence_fingerprint(
+        **_auto_green_evidence(
+            required_review_policy="REQUIRED",
+            required_review_policy_source="ruleset:main",
+            github_approved=True,
+            github_approval_evidence_id="github-review:456",
+        )
+    )
+    revoked = build_auto_green_evidence_fingerprint(
+        **_auto_green_evidence(
+            required_review_policy="REQUIRED",
+            required_review_policy_source="ruleset:main",
+            github_approved=False,
+            github_approval_evidence_id="github-review:456:DISMISSED",
+        )
+    )
+    assert len({unapproved, approved, revoked}) == 3
 
 
 def test_missing_or_malformed_evidence_cannot_suppress():
