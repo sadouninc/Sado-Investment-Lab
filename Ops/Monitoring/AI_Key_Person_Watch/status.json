@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-15T10:27:14+09:00",
-  "last_success_at": "2026-11-15T10:27:14+09:00",
+  "last_run_at": "2026-11-15T11:35:57+09:00",
+  "last_success_at": "2026-11-15T11:35:57+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-15 10:27 JST. TEAM_RULES→TEAM_STATE→#99 all 270 comments final 6405435565 verified; LUNA AWAY/AUTO_GREEN. #892 READ_ONLY official 3/15; #909 merged cb23cdca; #926 open a2266242; #79 untouched. Rapidus official news through Oct26: no newly confirmed listed-company earnings delta; MRAM/Consumer Field not exhaustive. Research save none.",
-  "last_checked_at": "2026-11-15T10:27:14+09:00"
+  "note": "2026-11-15 11:35 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270 and final comment 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN; #892 READ_ONLY, #79 untouched. #861/#124 reviewed. NVIDIA Oct28 Q3 call scheduled Nov17; Rapidus latest Oct26 HCLTech partnership. No newly independently verified Japan listed-company earnings delta in limited source check; MRAM/Consumer Field not exhaustive. Research save none.",
+  "last_checked_at": "2026-11-15T11:35:57+09:00"
 }
