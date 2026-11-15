@@ -33,6 +33,8 @@ AUTO_GREEN_BASE = {
     "sensitive_change": False,
     "explicit_owner_acceptance_required": False,
     "protected_issue_79": False,
+    # Synthetic green fixture: policy lookup is explicitly known to pass.
+    "required_review_policy": "PASS",
 }
 
 AUTO_GREEN_FIXTURES: tuple[dict[str, Any], ...] = (
@@ -193,3 +195,4 @@ if __name__ == "__main__":
         print("usage: operational_mode_telemetry.py TEAM_STATE.md [OUTPUT_JSON]")
         raise SystemExit(2)
     main(sys.argv[1], sys.argv[2] if len(sys.argv) == 3 else None)
+

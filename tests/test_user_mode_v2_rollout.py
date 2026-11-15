@@ -63,6 +63,8 @@ def auto_green(**overrides):
         sensitive_change=False,
         explicit_owner_acceptance_required=False,
         protected_issue_79=False,
+        # Synthetic green fixture: policy lookup is explicitly known to pass.
+        required_review_policy="PASS",
     )
     values.update(overrides)
     return evaluate_auto_green_merge(**values)
@@ -102,3 +104,4 @@ def test_auto_green_shadow_blocks_unknown_review_evidence_fail_closed():
     result = auto_green(latest_head_reviewed=False)
     assert result.allowed is False
     assert "LATEST_HEAD_NOT_REVIEWED" in result.blocking_reasons
+
