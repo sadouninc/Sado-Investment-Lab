@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-15T11:35:57+09:00",
-  "last_success_at": "2026-11-15T11:35:57+09:00",
+  "last_run_at": "2026-11-15T13:30:39+09:00",
+  "last_success_at": "2026-11-15T13:30:39+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-15 11:35 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270 and final comment 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN; #892 READ_ONLY, #79 untouched. #861/#124 reviewed. NVIDIA Oct28 Q3 call scheduled Nov17; Rapidus latest Oct26 HCLTech partnership. No newly independently verified Japan listed-company earnings delta in limited source check; MRAM/Consumer Field not exhaustive. Research save none.",
-  "last_checked_at": "2026-11-15T11:35:57+09:00"
+  "note": "2026-11-15 13:30 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 final 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN; #892 3/15 READ_ONLY; #79 untouched. Official NVIDIA Nov12 CEO transition previously known; Nov17 earnings pending. Kioxia IR latest Nov6, Rapidus Oct26 HCLTech; no newly verified Japan listed-company earnings delta. Consumer/Field and MRAM non-exhaustive; no Research save. PR #926 merged Nov15 11:46 JST, not proof of natural closed-loop.",
+  "last_checked_at": "2026-11-15T13:30:39+09:00"
 }
