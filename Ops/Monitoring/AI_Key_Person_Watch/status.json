@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-16T07:30:09+09:00",
-  "last_success_at": "2026-11-16T07:30:09+09:00",
+  "last_run_at": "2026-11-16T08:32:38+09:00",
+  "last_success_at": "2026-11-16T08:32:38+09:00",
   "last_status": "OK",
-  "news_delta": 0,
+  "news_delta": 1,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_JAPAN_EARNINGS_DELTA",
+  "persistence_status": "NEW_POLICY_RISK_SIGNAL_NOT_YET_VERIFIED_JAPAN_EARNINGS_IMPACT",
   "updated_by": "❤️レイ",
-  "note": "2026-11-16 07:30 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN; #79 untouched. #892 READ_ONLY 73 comments; 873-1/2 and 859-1 verified (3/15), natural production POST/closed-loop unproven. PR #909 merged cb23cdcac. Primary-source check: NVIDIA Nov12 CEO transition already known; Nov17 Q3 results upcoming, Kioxia AI SSD June2, Rapidus FY26 NEDO Apr11. No new independently verified Japan earnings delta. Research save none; Consumer/Field and MRAM comprehensive scan incomplete.",
-  "last_checked_at": "2026-11-16T07:30:09+09:00"
+  "note": "2026-11-16 08:32 JST. TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN, #79 untouched. #892 READ_ONLY official 3/15 (873-1/2,859-1); production POST/closed-loop unproven. Reuters Nov15: US Treasury Secretary Bessent called for external Nvidia CEO and export-control compliance answers within 10 days. NVIDIA Nov12 CEO transition already known. Policy/compliance risk signal; no independently verified Japanese company orders/earnings impact. Research news not persisted pending corroboration and established news record schema; Consumer/Field and MRAM full scans incomplete.",
+  "last_checked_at": "2026-11-16T08:32:38+09:00"
 }
