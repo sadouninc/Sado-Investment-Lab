@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-15T08:27:17+09:00",
-  "last_success_at": "2026-11-15T08:27:17+09:00",
+  "last_run_at": "2026-11-15T09:30:15+09:00",
+  "last_success_at": "2026-11-15T09:30:15+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-15 08:27 JST. TEAM_RULES→TEAM_STATE→#99 270/270 final comment 6405435565 verified; LUNA AWAY/AUTO_GREEN, former Nagi authority obsolete. #892 READ_ONLY; #909 already merged cb23cdcac09f8fd55758f5e76980fb8b3d61496d; #926 open a2266242, no duplicate review. NVIDIA Nov12 CEO transition previously recorded, no new confirmed Japan listed earnings delta in bounded source check; MRAM/Consumer Field partial. #79 untouched. No Research save.",
-  "last_checked_at": "2026-11-15T08:27:17+09:00"
+  "note": "2026-11-15 09:30 JST. TEAM_RULES→TEAM_STATE→#99 body/comments 270/270 final 6405435565 verified; LUNA AWAY/AUTO_GREEN (former Nagi authority obsolete). #892 READ_ONLY, #79 untouched. #926 open head a2266242; no duplicate review. Bounded NVIDIA/Rapidus primary-source check: no new verified Japan-listed earnings delta; MRAM and Consumer/Field not exhaustive. No Research save.",
+  "last_checked_at": "2026-11-15T09:30:15+09:00"
 }
