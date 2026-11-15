@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-16T02:35:11+09:00",
-  "last_success_at": "2026-11-16T02:35:11+09:00",
+  "last_run_at": "2026-11-16T04:29:33+09:00",
+  "last_success_at": "2026-11-16T04:29:33+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-16 02:35 JST. TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN; #79 untouched. NVIDIA Q3 results scheduled Nov 17 PT, not yet released. Kioxia Oct 13 rating BBB already known. No new independently verified Japanese listed-company earnings delta; Research save none. Consumer/Field and MRAM comprehensive scan incomplete.",
-  "last_checked_at": "2026-11-16T02:35:11+09:00"
+  "note": "2026-11-16 04:29 JST. TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN; #79 untouched. Reviewed NVIDIA Q2 FY2027 and Kioxia AI inference strategy / Oct 13 BBB rating; no new verified Japanese earnings delta. #892 read-only; Research save none. Consumer/Field and MRAM comprehensive scan incomplete.",
+  "last_checked_at": "2026-11-16T04:29:33+09:00"
 }
