@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-15T13:30:39+09:00",
-  "last_success_at": "2026-11-15T13:30:39+09:00",
+  "last_run_at": "2026-11-15T15:27:21+09:00",
+  "last_success_at": "2026-11-15T15:27:21+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_INDEPENDENTLY_VERIFIED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-15 13:30 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 final 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN; #892 3/15 READ_ONLY; #79 untouched. Official NVIDIA Nov12 CEO transition previously known; Nov17 earnings pending. Kioxia IR latest Nov6, Rapidus Oct26 HCLTech; no newly verified Japan listed-company earnings delta. Consumer/Field and MRAM non-exhaustive; no Research save. PR #926 merged Nov15 11:46 JST, not proof of natural closed-loop.",
-  "last_checked_at": "2026-11-15T13:30:39+09:00"
+  "note": "2026-11-15 15:27 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270, final 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN; #892 3/15 READ_ONLY; #79 untouched. Research checked Rapidus Oct26 HCLTech partnership, Kioxia Oct13 BBB rating, Everspin Mar5 xSPI MRAM qualification; older evidence, no new confirmed Japanese listed-company earnings impact. MRAM research-stage Nov5 preprint not commercial adoption. Consumer/Field not exhaustive; no new Research save. #909 merged, no duplicate review.",
+  "last_checked_at": "2026-11-15T15:27:21+09:00"
 }
