@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-17T03:30:41+09:00",
-  "last_success_at": "2026-11-17T03:30:41+09:00",
+  "last_run_at": "2026-11-17T04:33:03+09:00",
+  "last_success_at": "2026-11-17T04:33:03+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-16T14:29:41+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_PRIMARY_SOURCE_CONFIRMED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-17 03:30 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 through 6405435565; Luna Flow Authority AWAY/AUTO_GREEN, #79 untouched. #892 READ_ONLY 3/15; #909 merged cb23cdcac09f8fd55758f5e76980fb8b3d61496d. NVIDIA Nov17 13:20 PT earnings pending; Nov12 CEO transition existing. Rapidus Nov16 Koike comment maintains late 2027/early 2028 target, official delay not confirmed. No new confirmed Japan earnings delta; Research not saved.",
-  "last_checked_at": "2026-11-17T03:30:41+09:00"
+  "note": "2026-11-17 04:33 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 through 6405435565; Luna Flow Authority AWAY/AUTO_GREEN, #79 untouched. #892 READ_ONLY (last reported 3/15; current body not fully re-counted). NVIDIA Nov12 CEO transition official; Nov17 13:20 PT earnings pending. Rapidus official 2027 target remains, delay reports unconfirmed. Everspin CXL MRAM demonstration remains pre-commercial customer workload test. No new primary-source-confirmed Japan earnings delta; no Research save.",
+  "last_checked_at": "2026-11-17T04:33:03+09:00"
 }
