@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-16T13:29:35+09:00",
-  "last_success_at": "2026-11-16T13:29:35+09:00",
+  "last_run_at": "2026-11-16T14:29:41+09:00",
+  "last_success_at": "2026-11-16T14:29:41+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-13T15:34:35+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-16T14:29:41+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_NEW_MATERIAL_VERIFIED_JAPAN_EARNINGS_DELTA",
+  "persistence_status": "NEW_MATERIAL_NEEDS_PRIMARY_SOURCE_VERIFICATION",
   "updated_by": "❤️レイ",
-  "note": "2026-11-16 13:29 JST. Startup TEAM_RULES→TEAM_STATE→#99 270/270 final 6405435565 VERIFIED; Luna current Flow Authority, #79 untouched. NVIDIA Nov12 CEO transition official; Nov15 Bessent export compliance statement; Nov15/16 Megaspeed investigation known, no new verified Japan-listed earnings impact. Nov17 NVIDIA earnings pending. #892 READ_ONLY; no unproven checkpoint upgraded. #909 closed, previous merged evidence retained. Consumer/Field and MRAM full scan incomplete. No Research save.",
-  "last_checked_at": "2026-11-16T13:29:35+09:00"
+  "note": "2026-11-16 14:29 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 final 6405435565; Luna authority, #79 untouched. Reuters Breakingviews Nov16 reports Mitsui Chemicals proposed JSR acquisition and leverage/governance risk; independent primary issuer/filing verification pending, no Japan earnings impact established. NVIDIA CEO transition known; Everspin CXL MRAM Sep29 known; #892 READ_ONLY no checkpoint upgrade; #909 closed. Consumer/Field full scan incomplete. No Research save.",
+  "last_checked_at": "2026-11-16T14:29:41+09:00"
 }
