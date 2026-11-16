@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-16T14:29:41+09:00",
-  "last_success_at": "2026-11-16T14:29:41+09:00",
+  "last_run_at": "2026-11-16T15:34:05+09:00",
+  "last_success_at": "2026-11-16T15:34:05+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-11-16T14:29:41+09:00",
   "news_persisted": false,
-  "persistence_status": "NEW_MATERIAL_NEEDS_PRIMARY_SOURCE_VERIFICATION",
+  "persistence_status": "NO_NEW_MATERIAL_DELTA_PRIMARY_SOURCE_VERIFIED",
   "updated_by": "❤️レイ",
-  "note": "2026-11-16 14:29 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 final 6405435565; Luna authority, #79 untouched. Reuters Breakingviews Nov16 reports Mitsui Chemicals proposed JSR acquisition and leverage/governance risk; independent primary issuer/filing verification pending, no Japan earnings impact established. NVIDIA CEO transition known; Everspin CXL MRAM Sep29 known; #892 READ_ONLY no checkpoint upgrade; #909 closed. Consumer/Field full scan incomplete. No Research save.",
-  "last_checked_at": "2026-11-16T14:29:41+09:00"
+  "note": "2026-11-16 15:34 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 final 6405435565; Luna authority, #79 untouched. Mitsui Chemicals/JSR transaction independently verified against issuer Nov 9 disclosure: ¥1.84tn deal, FY2035 target ¥40bn annual incremental profit (forward-looking, not realized); funding/leverage risk remains. No new Nov16 issuer disclosure or confirmed incremental Japan earnings. NVIDIA Nov12 CEO change already known; no new official CEO appointment confirmed. #892 READ_ONLY 73 comments; no natural closed-loop upgrade. #909 merged cb23cdc. Consumer/Field and MRAM comprehensive scans incomplete; no Research save.",
+  "last_checked_at": "2026-11-16T15:34:05+09:00"
 }
