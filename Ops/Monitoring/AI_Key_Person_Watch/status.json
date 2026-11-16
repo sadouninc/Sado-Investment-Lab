@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-16T18:34:08+09:00",
-  "last_success_at": "2026-11-16T18:34:08+09:00",
+  "last_run_at": "2026-11-16T19:58:57+09:00",
+  "last_success_at": "2026-11-16T19:58:57+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-16T14:29:41+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_PRIMARY_SOURCE_CONFIRMED_JAPAN_EARNINGS_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-16 18:34 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 last 6405435565, Luna Flow Authority, #79 untouched. NVIDIA Nov12 official CEO transition, Nov17 earnings pending. Rapidus Nov10-13 media reports of possible 2nm schedule slip and SRAM milestone concern are unconfirmed, no issuer-confirmed schedule change; monitor primary sources. Everspin Sep29 CXL MRAM demo is known, customer production unverified. Mitsui/JSR Nov9 transaction known. #892 READ_ONLY 3/15, #909 closed; no duplicate review. No confirmed Japan earnings delta; no Research save.",
-  "last_checked_at": "2026-11-16T18:34:08+09:00"
+  "note": "2026-11-16 19:58 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head verified 270/270 through comment 6405435565; Luna Flow Authority (not Nagi), AWAY/AUTO_GREEN; #79 untouched. Rapidus official FY2027 H2 mass-production target unchanged despite reported SRAM/yield delays. Mitsui/JSR Nov9 agreement already known; Nov16 Reuters commentary adds financing/governance risk analysis, not confirmed new earnings. NVIDIA Nov17 earnings still pending. #892 READ_ONLY, no blocked proxy POST; #909 merged, no duplicate review. No new primary-confirmed Japan earnings delta, no Research save.",
+  "last_checked_at": "2026-11-16T19:58:57+09:00"
 }
