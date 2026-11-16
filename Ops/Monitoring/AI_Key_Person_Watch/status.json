@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-16T09:34:33+09:00",
-  "last_success_at": "2026-11-16T09:34:33+09:00",
+  "last_run_at": "2026-11-16T11:33:52+09:00",
+  "last_success_at": "2026-11-16T11:33:52+09:00",
   "last_status": "OK",
-  "news_delta": 0,
+  "news_delta": 1,
   "last_news_delta_at": "2026-11-13T15:34:35+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_NEW_MATERIAL_DELTA",
+  "persistence_status": "MATERIAL_NEWS_REVIEW_PENDING_DIRECT_JAPAN_EARNINGS_EVIDENCE",
   "updated_by": "❤️レイ",
-  "note": "2026-11-16 09:34 JST. TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN; #79 untouched. #892 READ_ONLY: 873-1/2 and 859-1 documented; no new production closed-loop evidence. NVIDIA Nov12 CEO transition verified in official release and SEC 8-K; Nov15 Bessent export compliance remarks Reuters verified, already reported prior run. No independently confirmed new Japan-listed earnings impact. No new Research write; Consumer/Field and MRAM full scans incomplete.",
-  "last_checked_at": "2026-11-16T09:34:33+09:00"
+  "note": "2026-11-16 11:33 JST. Startup TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; LUNA AWAY/AUTO_GREEN; #79 untouched. Nov16 AP/Guardian: Megaspeed says Alice Huang left Aug2025, denies illicit chip transfer and launches external investigation; allegations unresolved. NVIDIA Nov12 CEO transition official; Nov15 Huang comeback reported, not confirmed. Japan-listed revenue/earnings impact unverified. #892 READ_ONLY, no new checkpoint proof; #909 previously merged. Consumer/Field and MRAM full scans incomplete. No Research save pending stronger direct evidence.",
+  "last_checked_at": "2026-11-16T11:33:52+09:00"
 }
