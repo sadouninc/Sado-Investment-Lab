@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-17T10:33:38+09:00",
-  "last_success_at": "2026-11-17T10:33:38+09:00",
+  "last_run_at": "2026-11-17T12:30:36+09:00",
+  "last_success_at": "2026-11-17T12:30:36+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-16T14:29:41+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_CONFIRMED_PRIMARY_SOURCE_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-17 10:33 JST. TEAM_RULES→TEAM_STATE→#99 body broadcast-head 270 / fetched 270, tail comment 6405435565 VERIFIED; Luna Flow Authority AWAY/AUTO_GREEN, #79 untouched. #892 READ_ONLY, no POST; #909 already closed/merged per prior evidence. NVIDIA Nov 12 CEO transition confirmed, Nov 17 earnings 13:20 PT pending; Rapidus FY2026 NEDO April 11 previously known. No new confirmed Japan earnings/MRAM commercial delta; no Research save.",
-  "last_checked_at": "2026-11-17T10:33:38+09:00"
+  "note": "2026-11-17 12:30 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; Luna Flow Authority AWAY/AUTO_GREEN, #79 untouched. #892 READ_ONLY; #909 merged cb23cdc. NVIDIA Nov 17 13:20 PT earnings pending; Nov 12 leadership change known. Nov 17 Reuters reports expanded US AI-chip access restrictions via overseas data centers; primary policy text and direct Japanese earnings effect not yet confirmed, monitor without Research save. Rapidus delay remains unconfirmed official change; MRAM new commercial adoption unconfirmed.",
+  "last_checked_at": "2026-11-17T12:30:36+09:00"
 }
