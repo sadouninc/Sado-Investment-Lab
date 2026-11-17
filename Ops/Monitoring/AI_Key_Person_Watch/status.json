@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-17T08:34:24+09:00",
-  "last_success_at": "2026-11-17T08:34:24+09:00",
+  "last_run_at": "2026-11-17T10:33:38+09:00",
+  "last_success_at": "2026-11-17T10:33:38+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-16T14:29:41+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_NEW_PRIMARY_SOURCE_CONFIRMED_JAPAN_EARNINGS_DELTA",
+  "persistence_status": "NO_NEW_CONFIRMED_PRIMARY_SOURCE_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-17 08:34 JST. TEAM_RULES→TEAM_STATE→#99 verified 270/270 through 6405435565; Luna Flow Authority AWAY/AUTO_GREEN, despite stale Nagi instruction; #79 untouched. #892 READ_ONLY; no completion promotion. #909 merged cb23cdcac09f8fd55758f5e76980fb8b3d61496d. NVIDIA Nov12 CEO transition confirmed; Nov17 earnings pending (13:20 PT). Rapidus FY2026 NEDO approval previously known, no confirmed new Japan earnings impact. No Research save.",
-  "last_checked_at": "2026-11-17T08:34:24+09:00"
+  "note": "2026-11-17 10:33 JST. TEAM_RULES→TEAM_STATE→#99 body broadcast-head 270 / fetched 270, tail comment 6405435565 VERIFIED; Luna Flow Authority AWAY/AUTO_GREEN, #79 untouched. #892 READ_ONLY, no POST; #909 already closed/merged per prior evidence. NVIDIA Nov 12 CEO transition confirmed, Nov 17 earnings 13:20 PT pending; Rapidus FY2026 NEDO April 11 previously known. No new confirmed Japan earnings/MRAM commercial delta; no Research save.",
+  "last_checked_at": "2026-11-17T10:33:38+09:00"
 }
