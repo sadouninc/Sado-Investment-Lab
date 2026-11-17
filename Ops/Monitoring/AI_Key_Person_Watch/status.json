@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-17T16:37:28+09:00",
-  "last_success_at": "2026-11-17T16:37:28+09:00",
+  "last_run_at": "2026-11-17T17:37:09+09:00",
+  "last_success_at": "2026-11-17T17:37:09+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-16T14:29:41+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_CONFIRMED_PRIMARY_SOURCE_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-17 16:37 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270; tail 6405435565 VERIFIED, no new To: ALL/Rei. Luna Flow Authority AWAY/AUTO_GREEN; #79 untouched. #892 READ_ONLY, #909 previously merged. NVIDIA Nov 12 CEO transition confirmed; Nov 17 13:20 PT earnings not yet released. Nov 17 AP/FT reporting on governance and leadership is secondary and not a new official earnings/CEO appointment. Rapidus delay remains reported, not officially confirmed; no verified new Japanese listed-company orders/profit or MRAM commercial adoption. Research save skipped.",
-  "last_checked_at": "2026-11-17T16:37:28+09:00"
+  "note": "2026-11-17 17:37 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270; tail comment 6405435565 VERIFIED; no new To: ALL/Rei. Luna Flow Authority, AWAY/AUTO_GREEN; #79 untouched. #892 READ_ONLY; #909 merged previously. NVIDIA Nov 12 CEO transition official; Nov 17 earnings scheduled 13:20 PT, not yet released. Nov 17 Reuters reports expanded US AI-chip export restrictions to SE Asia/cloud access; official rule text and Japanese company orders/profit impact not yet verified. Rapidus delay remains reported, not official; no new confirmed MRAM adoption. No Research save.",
+  "last_checked_at": "2026-11-17T17:37:09+09:00"
 }
