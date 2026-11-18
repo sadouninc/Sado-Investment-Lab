@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-19T04:34:04+09:00",
-  "last_success_at": "2026-11-19T04:34:04+09:00",
+  "last_run_at": "2026-11-19T05:32:06+09:00",
+  "last_success_at": "2026-11-19T05:32:06+09:00",
   "last_status": "OK",
   "news_delta": 1,
-  "last_news_delta_at": "2026-11-19T04:34:04+09:00",
+  "last_news_delta_at": "2026-11-19T05:32:06+09:00",
   "news_persisted": true,
-  "persistence_status": "PERSISTED_RESEARCH_COMMIT_99bf9ce691716da434431bdc684b1506f9771a25",
+  "persistence_status": "PERSISTED_RESEARCH_COMMIT_636c564a86aa680e34a52e37052b50227b52e6f5",
   "updated_by": "❤️レイ",
-  "note": "Startup Sync v2 verified #99 270/270 through 6405435565; Luna authority. NVIDIA Nov17 IR explicitly names IBIDEN as manufacturing capacity collaboration partner; contract amount and earnings impact unverified. Research appended; #79 untouched, #892 READ_ONLY.",
-  "last_checked_at": "2026-11-19T04:34:04+09:00"
+  "note": "Startup Sync v2 verified #99 270/270 through 6405435565; Luna authority. NVIDIA Oct21 primary release confirms IBIDEN included in three-supplier aggregate 2.5x substrate capacity plan, not IBIDEN alone. Earnings impact unknown. Research updated; #79 untouched; #892 READ_ONLY.",
+  "last_checked_at": "2026-11-19T05:32:06+09:00"
 }
