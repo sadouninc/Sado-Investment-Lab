@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-18T14:29:11+09:00",
-  "last_success_at": "2026-11-18T14:29:11+09:00",
+  "last_run_at": "2026-11-18T15:31:36+09:00",
+  "last_success_at": "2026-11-18T15:31:36+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-18T07:34:03+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_MATERIAL_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-18 14:29 JST. TEAM_RULES→TEAM_STATE→#99 verified broadcast-head 270/270 tail comment 6405435565; Luna Flow Authority AWAY/AUTO_GREEN, #79 untouched, #892 READ_ONLY. Foxconn Nov17 official statement confirms Sony Semiconductor Solutions automotive camera module business transaction JPY7.24bn, expected close by Apr2027 conditional; already reported at 13:27 JST, no duplicate Research save. Sony image sensor business-wide sale NOT established. No independently verified incremental Japanese earnings impact or MRAM commercial adoption.",
-  "last_checked_at": "2026-11-18T14:29:11+09:00"
+  "note": "2026-11-18 15:31 JST. TEAM_RULES→TEAM_STATE→#99 verified broadcast-head 270/270 tail 6405435565; Luna Flow Authority AWAY/AUTO_GREEN. #79 untouched; #892 READ_ONLY. Foxconn Nov17 Sony automotive camera module acquisition confirmed but already reported; no new material Japanese earnings or MRAM adoption evidence. Kioxia Aug27 planned investment conditional on government support remains policy→investment intent, not earnings proof. No duplicate Research save.",
+  "last_checked_at": "2026-11-18T15:31:36+09:00"
 }
