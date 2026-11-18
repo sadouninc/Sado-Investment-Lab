@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-18T09:33:31+09:00",
-  "last_success_at": "2026-11-18T09:33:31+09:00",
+  "last_run_at": "2026-11-18T10:33:53+09:00",
+  "last_success_at": "2026-11-18T10:33:53+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-18T07:34:03+09:00",
   "news_persisted": false,
   "persistence_status": "NO_NEW_PRIMARY_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-18 09:33 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; no new To: ALL/レイ. Luna Flow Authority, AWAY/AUTO_GREEN; #79 untouched; #892 READ_ONLY. NVIDIA Nov 17 FY27 Q3 official IR reconfirmed: $115.8B revenue, $107.6B Data Center, Q4 $130B ±3%, 71-72% GM; China Data Center compute revenue excluded from outlook. Reuters Nov 17 reports board does not intend to reinstate Huang; official SEC Nov 12 confirms resignation and Kress interim CEO. Japan earnings transmission unverified; no duplicate Research save.",
-  "last_checked_at": "2026-11-18T09:33:31+09:00"
+  "note": "2026-11-18 10:33 JST. TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED; Luna Flow Authority AWAY/AUTO_GREEN; #79 untouched; #892 READ_ONLY 3 checked (873-1/2,859-1) without natural POST proof. NVIDIA Nov17 official Q3 IR reconfirmed ($115.8B revenue, $107.6B DC, Q4 $130B ±3%, China DC compute excluded). Nov18 Japan market press reports AI/chip-led rebound and Kioxia +5.1% intraday, market-price observation not company earnings conversion. No additional verified primary research delta; no duplicate save.",
+  "last_checked_at": "2026-11-18T10:33:53+09:00"
 }
