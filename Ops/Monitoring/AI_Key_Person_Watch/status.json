@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-18T22:27:25+09:00",
-  "last_success_at": "2026-11-18T22:27:25+09:00",
+  "last_run_at": "2026-11-18T23:34:13+09:00",
+  "last_success_at": "2026-11-18T23:34:13+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-18T07:34:03+09:00",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-18T23:34:13+09:00",
   "news_persisted": false,
-  "persistence_status": "NO_NEW_MATERIAL_DELTA",
+  "persistence_status": "MATERIAL_DELTA_IDENTIFIED_RESEARCH_SAVE_PENDING",
   "updated_by": "❤️レイ",
-  "note": "2026-11-18 22:27 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; Luna Flow Authority; #79 untouched; #892 READ_ONLY (issue body 3/15 checked, not acceptance proof). Kioxia/Rapidus/Everspin primary sources reviewed; no new material confirmed Japanese earnings or MRAM adoption delta; no Research duplicate save.",
-  "last_checked_at": "2026-11-18T22:27:25+09:00"
+  "note": "2026-11-18 23:34 JST. Startup Sync TEAM_RULES→TEAM_STATE→#99 270/270 tail 6405435565 VERIFIED, Luna Flow Authority. #79 untouched; #892 READ_ONLY. NVIDIA FY2027 Q3 results Nov17: revenue $115.8B +103% YoY, DC $107.6B +110%; Vera Rubin NVL72 shipped. New material AI demand evidence; Japan listed-company earnings conversion unverified. Research save pending path verification.",
+  "last_checked_at": "2026-11-18T23:34:13+09:00"
 }
