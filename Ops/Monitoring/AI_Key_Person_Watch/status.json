@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-18T07:34:03+09:00",
-  "last_success_at": "2026-11-18T07:34:03+09:00",
+  "last_run_at": "2026-11-18T09:33:31+09:00",
+  "last_success_at": "2026-11-18T09:33:31+09:00",
   "last_status": "OK",
-  "news_delta": 1,
+  "news_delta": 0,
   "last_news_delta_at": "2026-11-18T07:34:03+09:00",
-  "news_persisted": true,
-  "persistence_status": "PRIMARY_VERIFIED_RESEARCH_PERSISTED",
+  "news_persisted": false,
+  "persistence_status": "NO_NEW_PRIMARY_RESEARCH_DELTA",
   "updated_by": "❤️レイ",
-  "note": "2026-11-18 07:34 JST. TEAM_RULES→TEAM_STATE→#99 broadcast 270/270 tail 6405435565 verified. Luna Flow Authority AWAY/AUTO_GREEN; #79 untouched; #892 READ_ONLY. NVIDIA FY27 Q3 official IR+SEC verified: revenue $115.8B, Data Center $107.6B, Q4 guidance $130B ±3%; Vera Rubin NVL72 shipping. Japan supplier earnings transmission remains hypothesis. Research commit 0371957b87e5671fe6db73533bc35e916d536317.",
-  "last_checked_at": "2026-11-18T07:34:03+09:00"
+  "note": "2026-11-18 09:33 JST. TEAM_RULES→TEAM_STATE→#99 broadcast-head 270/270 tail 6405435565 VERIFIED; no new To: ALL/レイ. Luna Flow Authority, AWAY/AUTO_GREEN; #79 untouched; #892 READ_ONLY. NVIDIA Nov 17 FY27 Q3 official IR reconfirmed: $115.8B revenue, $107.6B Data Center, Q4 $130B ±3%, 71-72% GM; China Data Center compute revenue excluded from outlook. Reuters Nov 17 reports board does not intend to reinstate Huang; official SEC Nov 12 confirms resignation and Kress interim CEO. Japan earnings transmission unverified; no duplicate Research save.",
+  "last_checked_at": "2026-11-18T09:33:31+09:00"
 }
