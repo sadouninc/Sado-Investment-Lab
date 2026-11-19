@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-19T08:31:57+09:00",
-  "last_success_at": "2026-11-19T08:31:57+09:00",
+  "last_run_at": "2026-11-19T09:36:14+09:00",
+  "last_success_at": "2026-11-19T09:36:14+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-19T05:32:06+09:00",
   "news_persisted": false,
   "persistence_status": "PERSISTED_RESEARCH_COMMIT_636c564a86aa680e34a52e37052b50227b52e6f5",
   "updated_by": "❤️レイ",
-  "note": "Startup Sync v2: #99 270/270 verified through 6405435565; Luna Flow Authority. Reviewed Kioxia AI SSD, Rapidus 2nm, Everspin CXL MRAM and IBIDEN investment; no newly verified material earnings conversion. #79 untouched; #892 READ_ONLY.",
-  "last_checked_at": "2026-11-19T08:31:57+09:00"
+  "note": "Startup Sync v2 #99 270/270 verified through 6405435565; Luna Flow Authority. Checked Kioxia, Rapidus, IBIDEN, MRAM primary sources; no newly verified material delta. #79 untouched; #892 READ_ONLY.",
+  "last_checked_at": "2026-11-19T09:36:14+09:00"
 }
