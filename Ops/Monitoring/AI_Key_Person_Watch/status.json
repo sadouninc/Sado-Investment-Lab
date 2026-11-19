@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-19T11:35:27+09:00",
-  "last_success_at": "2026-11-19T11:35:27+09:00",
+  "last_run_at": "2026-11-19T13:29:27+09:00",
+  "last_success_at": "2026-11-19T13:29:27+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-19T05:32:06+09:00",
   "news_persisted": false,
   "persistence_status": "PERSISTED_RESEARCH_COMMIT_636c564a86aa680e34a52e37052b50227b52e6f5",
   "updated_by": "❤️レイ",
-  "note": "Startup Sync v2: #99 270/270 through comment 6405435565 VERIFIED; Luna Flow Authority. Primary-source Kioxia/semiconductor review: no newly verified material delta. PR #909 merged at 2026-11-01T02:16:08Z SHA cb23cdcac09f8fd55758f5e76980fb8b3d61496d. #79 untouched; #892 READ_ONLY.",
-  "last_checked_at": "2026-11-19T11:35:27+09:00"
+  "note": "Startup Sync v2 VERIFIED #99 270/270 through 6405435565; Luna authority. Kioxia Nov 17 AEO exporter approval noted as operational compliance, no verified material earnings impact; semiconductor/MRAM no new material investment delta. #79 untouched; #892 READ_ONLY; #909 previously verified merged.",
+  "last_checked_at": "2026-11-19T13:29:27+09:00"
 }
