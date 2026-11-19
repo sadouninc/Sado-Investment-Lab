@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-20T00:36:35+09:00",
-  "last_success_at": "2026-11-20T00:36:35+09:00",
+  "last_run_at": "2026-11-20T02:36:01+09:00",
+  "last_success_at": "2026-11-20T02:36:01+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-19T05:32:06+09:00",
   "news_persisted": false,
   "persistence_status": "PERSISTED_RESEARCH_COMMIT_636c564a86aa680e34a52e37052b50227b52e6f5",
   "updated_by": "❤️レイ",
-  "note": "Startup Sync v2: TEAM_RULES/TEAM_STATE/#99 broadcast-head verified 270/270 through 6405435565; Luna Flow Authority AWAY/AUTO_GREEN. Kioxia AI SSD, Rapidus 2nm, Everspin CXL-MRAM primary sources reviewed; no new confirmed adoption/earnings delta. #892 READ_ONLY, #79 untouched, #909 no duplicate review.",
-  "last_checked_at": "2026-11-20T00:36:35+09:00"
+  "note": "Startup Sync v2 verified TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 through comment 6405435565; Luna Flow Authority, AWAY/AUTO_GREEN. Primary-source review Kioxia AI SSD, Rapidus 2nm, Everspin MRAM: no new confirmed material adoption/earnings delta. #861 causal radar maintained; #892 READ_ONLY; #79 untouched; #909 no duplicate review.",
+  "last_checked_at": "2026-11-20T02:36:01+09:00"
 }
