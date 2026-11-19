@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-19T16:31:37+09:00",
-  "last_success_at": "2026-11-19T16:31:37+09:00",
+  "last_run_at": "2026-11-19T17:31:21+09:00",
+  "last_success_at": "2026-11-19T17:31:21+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-19T05:32:06+09:00",
   "news_persisted": false,
   "persistence_status": "PERSISTED_RESEARCH_COMMIT_636c564a86aa680e34a52e37052b50227b52e6f5",
   "updated_by": "❤️レイ",
-  "note": "Startup Sync v2 VERIFIED #99 270/270 through comment 6405435565; Luna Flow Authority per TEAM_RULES/STATE. Kioxia Nov 19 sustainability and Nov 17 AEO previously known; Rapidus 2nm and Everspin MRAM no newly verified material earnings/adoption delta. #79 untouched; #892 READ_ONLY; #909 merged previously verified.",
-  "last_checked_at": "2026-11-19T16:31:37+09:00"
+  "note": "Startup Sync v2 verified #99 270/270 through 6405435565; Luna Flow Authority. Nov 19 Kioxia sustainability update previously known; AI SSD/Rapidus/MRAM research no newly verified material earnings or adoption delta. #79 untouched; #892 READ_ONLY; #909 previously merged.",
+  "last_checked_at": "2026-11-19T17:31:21+09:00"
 }
