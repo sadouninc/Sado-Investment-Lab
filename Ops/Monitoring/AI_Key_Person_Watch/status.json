@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-20T10:30:09+09:00",
-  "last_success_at": "2026-11-20T10:30:09+09:00",
+  "last_run_at": "2026-11-20T11:31:07+09:00",
+  "last_success_at": "2026-11-20T11:31:07+09:00",
   "last_status": "OK",
   "news_delta": 0,
   "last_news_delta_at": "2026-11-19T05:32:06+09:00",
   "news_persisted": false,
   "persistence_status": "PERSISTED_RESEARCH_COMMIT_636c564a86aa680e34a52e37052b50227b52e6f5",
   "updated_by": "❤️レイ",
-  "note": "Startup Sync v2: TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 through comment 6405435565 VERIFIED; Luna interim Flow Authority, AWAY/AUTO_GREEN. Checked Kioxia AI SSD, Rapidus 2nm, Everspin CXL-MRAM/JEDEC primary sources; no newly verified material earnings/adoption delta. #79 untouched; #892 READ_ONLY; #909 previously merged, no repeat review.",
-  "last_checked_at": "2026-11-20T10:30:09+09:00"
+  "note": "Startup Sync v2: TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 through comment 6405435565 VERIFIED; Luna interim Flow Authority, AWAY/AUTO_GREEN. No fresh independently verified material Research delta this run; no duplicate Research write. #79 untouched; #892 READ_ONLY; #909 previously merged.",
+  "last_checked_at": "2026-11-20T11:31:07+09:00"
 }
