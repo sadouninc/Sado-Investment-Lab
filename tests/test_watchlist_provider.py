@@ -45,6 +45,32 @@ class WatchlistProviderTest(unittest.TestCase):
             self.assertEqual("STALE", result.status)
             self.assertEqual("送電網", result.data["items"][0]["text"])
 
+    def test_future_dated_focus_is_partial_not_current(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(tmp, """> 最終更新: 2026-08-08
+## Current Focus
+> as_of: 2026-08-09
+- 原子力
+""")
+            result = WatchlistProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertEqual("2026-08-09", result.as_of)
+            self.assertIn("future", result.reason)
+            self.assertEqual("原子力", result.data["items"][0]["text"])
+
+    def test_future_dated_focus_precedes_malformed_line(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(tmp, """> 最終更新: 2026-08-08
+## Current Focus
+> as_of: 2026-08-09
+- 原子力
+malformed line
+""")
+            result = WatchlistProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertIn("future", result.reason)
+            self.assertEqual("原子力", result.data["items"][0]["text"])
+
     def test_missing_section_is_missing(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self.write(tmp, "> 最終更新: 2026-08-08\n## Portfolio\n- 信越化学\n")
