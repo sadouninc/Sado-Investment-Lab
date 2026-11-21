@@ -100,7 +100,13 @@ jobs:
                   elif $target_hint then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   elif $lease_marker then {"status":"AMBIGUOUS_LEASE_EVENT"}
                   else empty end;
-              [ .[] | comment_event ] | last // {} |
+              [ .[] | comment_event ] as $comment_events |
+              # Without authenticated lease epochs, an ambiguous target event
+              # cannot be superseded by a later retryable or active event.
+              (if ($comment_events | any((.status // "") == "AMBIGUOUS_LEASE_EVENT"))
+               then {"status":"AMBIGUOUS_LEASE_EVENT"}
+               else ($comment_events | last // {})
+               end) |
               if ((.status // "") | IN("PROMOTION_DISPATCHED","PROMOTION_BRANCH_READY","PR_CREATE_REQUIRED","DUPLICATE_SUPERSEDED","PR_ALREADY_EXISTS","PR_ALREADY_EXISTS_RACE_RESOLVED")) then "TERMINALIZING"
               elif ((.status // "") | IN("DISPATCH_LEASE_EXPIRED","COPILOT_RETRYABLE_FAILURE","RETRYABLE_FAILURE","FALLBACK_RETRYABLE_FAILURE","BLOCKED_BASE_DRIFT","BLOCKED_CONTRACT_REPLAY","FAIL_CLOSED")) then "RETRYABLE"
               elif ((.status // "") | IN("ASSIGNED","ACKNOWLEDGED","FALLBACK_ASSIGNED")) then
@@ -144,16 +150,13 @@ jobs:
               | jq -r 'add // [] | .[].filename' >> /tmp/active-paths.jsonl
           done
           jq -R -s -c 'split("\n") | map(select(length > 0)) | unique' /tmp/active-paths.jsonl > /tmp/active-paths.json
-          # PR bodies are not a trustworthy canonical owner registry. Until an
-          # authoritative owner-slice reader is wired, block dispatch whenever
-          # any open PR exists rather than pretending the owner set is empty.
-          if [[ "$(jq 'length' /tmp/open-prs.json)" -gt 0 ]]; then
-            echo "::warning::OWNER_SLICE_INVENTORY_UNVERIFIED: open PRs present; dispatch disabled (fail-closed)"
-            echo '["__OWNER_SLICE_INVENTORY_UNVERIFIED__"]' > /tmp/active-owner-slices.json
-            echo "true" > /tmp/owner-inventory-blocked
-          else
-            echo '[]' > /tmp/active-owner-slices.json
-          fi
+          # Open PR count cannot prove that pre-PR owner claims are absent.
+          # Until an authenticated, exhaustive owner-slice reader is wired,
+          # zero and nonzero open-PR inventories both fail closed. The sentinel
+          # is diagnostic only and is never accepted as an authenticated input.
+          echo "::warning::OWNER_SLICE_INVENTORY_UNVERIFIED: authenticated complete inventory unavailable; dispatch disabled (fail-closed)"
+          echo '["__OWNER_SLICE_INVENTORY_UNVERIFIED__"]' > /tmp/active-owner-slices.json
+          echo "true" > /tmp/owner-inventory-blocked
 
       - name: Compute one safe queue-consumer tick (no GitHub writes)
         id: tick
@@ -226,3 +229,4 @@ jobs:
         shell: bash
         run: |
           echo "Queue consumer tick result: ${{ steps.tick.outputs.status }}. No executor dispatch this tick (fail-closed)."
+
