@@ -46,13 +46,13 @@ class WatchlistProvider:
         if not items:
             return ProviderResult.unavailable(self.name, status="MISSING", as_of=as_of, source_reference=str(self.path), reason="Current Focus section could not be parsed into watch items")
         payload = {"items": items}
-        if malformed:
-            return ProviderResult.unavailable(self.name, status="PARTIAL", as_of=as_of, source_reference=str(self.path), reason=f"{malformed} Current Focus line(s) were not parseable", data=payload)
         if as_of is None:
             return ProviderResult.unavailable(self.name, status="PARTIAL", source_reference=str(self.path), reason="watchlist parsed but section has no freshness date", data=payload)
         age = (self.today or date.today()) - datetime.strptime(as_of, "%Y-%m-%d").date()
         if age.days < 0:
             return ProviderResult.unavailable(self.name, status="PARTIAL", as_of=as_of, source_reference=str(self.path), reason="watchlist as_of date is in the future", data=payload)
+        if malformed:
+            return ProviderResult.unavailable(self.name, status="PARTIAL", as_of=as_of, source_reference=str(self.path), reason=f"{malformed} Current Focus line(s) were not parseable", data=payload)
         if age.days > self.max_age_days:
             return ProviderResult.unavailable(self.name, status="STALE", as_of=as_of, source_reference=str(self.path), reason=f"watchlist snapshot is {age.days} days old (freshness limit {self.max_age_days})", data=payload)
         return ProviderResult.ok(self.name, payload, as_of=as_of, source_reference=str(self.path))
