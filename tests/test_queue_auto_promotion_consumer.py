@@ -20,6 +20,10 @@ def tick(cands, workers={"copilot":"available"}, **kw):
 def test_safe_candidate_produces_a_canonical_dispatch_ready_plan():
     r=tick([candidate(600)]); assert r["status"]=="DISPATCH_READY" and r["selected"]["issue_number"]==600 and r["dispatch"]
 
+def test_explicit_empty_owner_inventory_is_safe():
+    r=tick([candidate(600)], active_owner_slices=[])
+    assert r["status"] == "DISPATCH_READY" and r["dispatch"] is not None
+
 def test_dispatch_payload_targets_existing_canonical_workflow_with_valid_lease():
     d=tick([candidate(600)])["dispatch"]; assert d["workflow_dispatch"]["workflow"]=="ai-production-dispatch.yml"; assert d["workflow_dispatch"]["ref"]=="main"; assert d["workflow_dispatch"]["inputs"]["issue_number"]=="600"; lid=d["workflow_dispatch"]["inputs"]["lease_id"]; assert lid.startswith("lease-") and len(lid)==38 and all(c in "0123456789abcdef" for c in lid[6:]); assert d["evidence_comment"]==f"<!-- AUTO_ROUTER_DISPATCH lease_id={lid} executor=COPILOT target_issue=600 -->"
 
