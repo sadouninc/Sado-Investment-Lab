@@ -74,6 +74,21 @@ class PortfolioProviderTest(unittest.TestCase):
             self.assertIn("future", result.reason)
             self.assertEqual("信越化学", result.data["positions"][0]["name"])
 
+    def test_future_dated_markdown_precedes_malformed_line(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(Path(tmp), """# Current Status
+> 最終更新: 2026-08-08
+
+## Portfolio
+> as_of: 2026-08-09
+- 信越化学
+needs-review
+""")
+            result = PortfolioProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertIn("future", result.reason)
+            self.assertEqual("信越化学", result.data["positions"][0]["name"])
+
     def test_future_dated_verified_json_is_partial(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "current.json"
