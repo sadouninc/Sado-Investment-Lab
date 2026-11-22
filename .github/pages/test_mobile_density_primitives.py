@@ -43,6 +43,20 @@ class MobileDensityPrimitivesContractTests(unittest.TestCase):
         self.assertIn("@media (max-width: 360px)", self.css)
         self.assertIn("width: min(100% - 20px, 840px)", self.css)
 
+    def test_inline_code_wraps_without_hiding_document_overflow(self):
+        self.assertIn("main.book-shell code {", self.css)
+        self.assertIn("overflow-wrap: anywhere", self.css)
+        self.assertIn("word-break: break-word", self.css)
+        self.assertIn("main.book-shell pre code {", self.css)
+        self.assertNotIn("overflow-x: hidden", self.css)
+
+    def test_narrow_fixed_controls_stay_within_visual_viewport(self):
+        narrow = self.css.split("@media (max-width: 360px) {", 1)[1].split("@media print", 1)[0]
+        self.assertIn("width: 100vw", narrow)
+        self.assertIn("max-width: 100%", narrow)
+        self.assertIn("right: 10px", narrow)
+        self.assertIn("max-width: calc(100vw - 20px)", narrow)
+
     def test_theme_toggle_has_mobile_clearance(self):
         self.assertIn(".theme-toggle { top: 108px; right: 12px; }", self.mobile)
         self.assertIn(".site-header", self.mobile)
