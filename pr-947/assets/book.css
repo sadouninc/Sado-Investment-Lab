@@ -252,6 +252,9 @@ main.book-shell pre code {
   word-break: normal;
   white-space: pre;
 }
+main.book-shell li {
+  overflow-wrap: anywhere;
+}
 .book-end { margin-top: 12vh; padding-top: 2rem; border-top: 1px solid var(--line); color: var(--muted); text-align: center; letter-spacing: .12em; }
 .reading-progress { position: fixed; z-index: 20; inset: 0 0 auto; height: 3px; background: transparent; }
 .reading-progress span { display: block; width: 0; height: 100%; background: var(--accent); }
