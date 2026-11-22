@@ -136,12 +136,18 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         })
 
         page = BUILDER.page_content(model)
-        valuation_section = page.split("## 2. Bear / Base / Bull とForward PER", 1)[1].split("## 3.", 1)[0]
-        expectation_section = page.split("## 3. 市場期待との差", 1)[1].split("## 4.", 1)[0]
+        valuation_parts = page.split("## 2. Bear / Base / Bull とForward PER", 1)
+        self.assertEqual(len(valuation_parts), 2, "valuation section heading is missing")
+        valuation_section = valuation_parts[1].split("## 3.", 1)[0]
+        expectation_parts = page.split("## 3. 市場期待との差", 1)
+        self.assertEqual(len(expectation_parts), 2, "expectation section heading is missing")
+        expectation_section = expectation_parts[1].split("## 4.", 1)[0]
+        source_refs = model["valuation"].get("source_refs") or []
+        self.assertTrue(source_refs, "valuation.source_refs must be non-empty")
 
         self.assertIn("2026-07-29", valuation_section)
         self.assertIn("情報が古いため再確認が必要", valuation_section)
-        self.assertIn(model["valuation"]["source_refs"][0], valuation_section)
+        self.assertIn(source_refs[0], valuation_section)
         self.assertIn("現在取得できません", expectation_section)
         self.assertIn("参照なし", expectation_section)
         self.assertNotIn("0.00%", expectation_section)
