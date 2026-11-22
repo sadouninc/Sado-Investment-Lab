@@ -58,6 +58,8 @@ class PortfolioProvider:
         if as_of is None:
             return ProviderResult.unavailable(self.name, status="PARTIAL", source_reference=str(self.path), reason="portfolio holdings parsed but section has no freshness date", data=payload)
         age = (self.today or date.today()) - datetime.strptime(as_of, "%Y-%m-%d").date()
+        if age.days < 0:
+            return ProviderResult.unavailable(self.name, status="PARTIAL", as_of=as_of, source_reference=str(self.path), reason="portfolio as_of date is in the future", data=payload)
         if age.days > self.max_age_days:
             return ProviderResult.unavailable(self.name, status="STALE", as_of=as_of, source_reference=str(self.path), reason=f"portfolio snapshot is {age.days} days old (freshness limit {self.max_age_days})", data=payload)
         return ProviderResult.ok(self.name, payload, as_of=as_of, source_reference=str(self.path))
@@ -112,6 +114,11 @@ class PortfolioProvider:
                 reason="canonical portfolio as_of is not YYYY-MM-DD", data=data,
             )
         age = (self.today or date.today()) - parsed_as_of
+        if age.days < 0:
+            return ProviderResult.unavailable(
+                self.name, status="PARTIAL", as_of=as_of, source_reference=str(self.path),
+                reason="canonical portfolio as_of date is in the future", data=data,
+            )
         if age.days > self.max_age_days:
             return ProviderResult.unavailable(
                 self.name, status="STALE", as_of=as_of, source_reference=str(self.path),
