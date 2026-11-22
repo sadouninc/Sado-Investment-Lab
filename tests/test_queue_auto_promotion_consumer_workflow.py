@@ -43,6 +43,25 @@ def test_pr_inventory_is_paginated_and_unverified_owner_inventory_always_holds()
     assert "if [[ \"$(jq 'length' /tmp/open-prs.json)\" -gt 0 ]]" not in t
 
 
+def test_unverified_owner_inventory_is_a_successful_no_dispatch_hold():
+    t = _read(CONSUMER)
+    guard = t.split('if [[ -f /tmp/owner-inventory-blocked ]]; then', 1)[1].split('\n          fi\n', 1)[0]
+    tick = t.split('- name: Compute one safe queue-consumer tick', 1)[1]
+    assert 'status=HOLD_OWNER_INVENTORY_UNVERIFIED' in guard
+    assert '>> "$GITHUB_OUTPUT"' in guard
+    assert "exit 0" in guard
+    assert "exit 1" not in guard
+    assert tick.index('if [[ -f /tmp/owner-inventory-blocked ]]') < tick.index(
+        'python -m scripts.queue_auto_promotion_consumer'
+    )
+    # No dispatch-ready output is emitted for unverified owner inventory.
+    assert "DISPATCH_READY" not in guard
+    assert "gh workflow run" not in guard
+    # Unrelated runtime errors still fail instead of being classified as HOLD.
+    assert 'if [[ "$rc" -gt 1 ]]' in tick
+    assert "QUEUE_CONSUMER_INVALID_PACKET" in tick
+
+
 def _lease_state(comments, issue="828"):
     source = _read(CONSUMER)
     prefix = 'LEASE_STATE="$(jq -r --arg n "$number" ' + chr(39) + "\n"
