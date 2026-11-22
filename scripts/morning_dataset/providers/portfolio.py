@@ -53,13 +53,13 @@ class PortfolioProvider:
         if not positions:
             return ProviderResult.unavailable(self.name, status="MISSING", as_of=as_of, source_reference=str(self.path), reason="Portfolio section could not be parsed into holdings")
         payload = {"positions": positions, "exposure": None, "pnl": None}
-        if malformed:
-            return ProviderResult.unavailable(self.name, status="PARTIAL", as_of=as_of, source_reference=str(self.path), reason=f"{malformed} Portfolio line(s) were not parseable", data=payload)
         if as_of is None:
             return ProviderResult.unavailable(self.name, status="PARTIAL", source_reference=str(self.path), reason="portfolio holdings parsed but section has no freshness date", data=payload)
         age = (self.today or date.today()) - datetime.strptime(as_of, "%Y-%m-%d").date()
         if age.days < 0:
             return ProviderResult.unavailable(self.name, status="PARTIAL", as_of=as_of, source_reference=str(self.path), reason="portfolio as_of date is in the future", data=payload)
+        if malformed:
+            return ProviderResult.unavailable(self.name, status="PARTIAL", as_of=as_of, source_reference=str(self.path), reason=f"{malformed} Portfolio line(s) were not parseable", data=payload)
         if age.days > self.max_age_days:
             return ProviderResult.unavailable(self.name, status="STALE", as_of=as_of, source_reference=str(self.path), reason=f"portfolio snapshot is {age.days} days old (freshness limit {self.max_age_days})", data=payload)
         return ProviderResult.ok(self.name, payload, as_of=as_of, source_reference=str(self.path))
