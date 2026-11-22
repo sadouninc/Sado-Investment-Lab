@@ -45,7 +45,7 @@ def test_pr_inventory_is_paginated_and_unverified_owner_inventory_always_holds()
 
 def test_unverified_owner_inventory_is_a_successful_no_dispatch_hold():
     t = _read(CONSUMER)
-    guard = t.split('if [[ -f /tmp/owner-inventory-blocked ]]; then', 1)[1].split('fi', 1)[0]
+    guard = t.split('if [[ -f /tmp/owner-inventory-blocked ]]; then', 1)[1].split('\n          fi\n', 1)[0]
     tick = t.split('- name: Compute one safe queue-consumer tick', 1)[1]
     assert 'status=HOLD_OWNER_INVENTORY_UNVERIFIED' in guard
     assert '>> "$GITHUB_OUTPUT"' in guard
