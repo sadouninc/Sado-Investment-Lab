@@ -117,7 +117,7 @@ def main() -> None:
         if args.repo_watchlist:
             providers.append(WatchlistProvider(Path("Current_Status.md"), today=target_date))
         if args.repo_sector_rotation:
-            providers.append(SectorRotationProvider())
+            providers.append(SectorRotationProvider(report_date=target_date))
         providers.extend(
             JsonFileProvider(name, Path(path))
             for name, path in source_paths.items()
@@ -153,3 +153,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
