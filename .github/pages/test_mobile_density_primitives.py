@@ -51,7 +51,13 @@ class MobileDensityPrimitivesContractTests(unittest.TestCase):
         self.assertNotIn("overflow-x: hidden", self.css)
 
     def test_narrow_fixed_controls_stay_within_visual_viewport(self):
-        narrow = self.css.split("@media (max-width: 360px) {", 1)[1].split("@media print", 1)[0]
+        start_anchor = "@media (max-width: 360px) {"
+        end_anchor = "@media print"
+        self.assertIn(start_anchor, self.css)
+        self.assertIn(end_anchor, self.css)
+        narrow_start = self.css.index(start_anchor) + len(start_anchor)
+        narrow_end = self.css.index(end_anchor, narrow_start)
+        narrow = self.css[narrow_start:narrow_end]
         self.assertIn("width: 100vw", narrow)
         self.assertIn("max-width: 100%", narrow)
         self.assertIn("right: 10px", narrow)
