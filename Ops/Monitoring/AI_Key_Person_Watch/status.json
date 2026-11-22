@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-20T11:31:07+09:00",
-  "last_success_at": "2026-11-20T11:31:07+09:00",
+  "last_run_at": "2026-11-22T09:28:17.430+09:00",
+  "last_success_at": "2026-11-22T09:28:17.430+09:00",
   "last_status": "OK",
-  "news_delta": 0,
-  "last_news_delta_at": "2026-11-19T05:32:06+09:00",
-  "news_persisted": false,
-  "persistence_status": "PERSISTED_RESEARCH_COMMIT_636c564a86aa680e34a52e37052b50227b52e6f5",
+  "news_delta": 1,
+  "last_news_delta_at": "2026-11-22T09:28:17.430+09:00",
+  "news_persisted": true,
+  "persistence_status": "PERSISTED_ISSUE_COMMENT_7071567900",
   "updated_by": "❤️レイ",
-  "note": "Startup Sync v2: TEAM_RULES/TEAM_STATE/#99 broadcast-head 270/270 through comment 6405435565 VERIFIED; Luna interim Flow Authority, AWAY/AUTO_GREEN. No fresh independently verified material Research delta this run; no duplicate Research write. #79 untouched; #892 READ_ONLY; #909 previously merged.",
-  "last_checked_at": "2026-11-20T11:31:07+09:00"
+  "note": "Interactive run: TEAM_RULES/TEAM_STATE/#99 broadcast-head 7063203362, 272/272 comments VERIFIED. GitHub formal technical reviews: private PR #1 review 6009170237 PASS_WITH_SCOPE; Lab #930 review 6009171684, #932 review 6009171805 PASS_WITH_SCOPE; #931 prior review reused. Discovery Radar #861 research comment 7071567900 records official Rapidus CORE/funding and unverified schedule risk, earnings hypotheses clearly separated. No production DB promotion, no investment execution, Issue #79 untouched.",
+  "last_checked_at": "2026-11-22T09:28:17.430+09:00"
 }
