@@ -242,6 +242,19 @@ table { width: 100%; border-collapse: collapse; margin: 2rem 0; font-size: .92re
 th, td { padding: .7rem .8rem; border: 1px solid var(--line); text-align: left; }
 pre { overflow-x: auto; padding: 1.2rem; background: var(--paper-deep); border: 1px solid var(--line); line-height: 1.6; }
 code { font-size: .9em; }
+main.book-shell code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+main.book-shell pre code {
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: pre;
+}
+main.book-shell li {
+  overflow-wrap: anywhere;
+}
 .book-end { margin-top: 12vh; padding-top: 2rem; border-top: 1px solid var(--line); color: var(--muted); text-align: center; letter-spacing: .12em; }
 .reading-progress { position: fixed; z-index: 20; inset: 0 0 auto; height: 3px; background: transparent; }
 .reading-progress span { display: block; width: 0; height: 100%; background: var(--accent); }
@@ -432,6 +445,15 @@ td { font-variant-numeric: tabular-nums; }
   .trade-filters { grid-template-columns: 1fr; gap: .7rem; }
 }
 @media (max-width: 360px) {
+  .reading-progress {
+    inset: 0 auto auto 0;
+    width: 100vw;
+    max-width: 100%;
+  }
+  .theme-toggle, .back-to-top {
+    right: 10px;
+    max-width: calc(100vw - 20px);
+  }
   .book-shell { width: min(100% - 20px, 840px); }
   .book-hero h1, .book-chapter > h1:first-of-type { font-size: 1.75rem; }
   .theme-toggle, .back-to-top { width: 40px; height: 40px; }

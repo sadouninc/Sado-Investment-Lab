@@ -43,6 +43,31 @@ class MobileDensityPrimitivesContractTests(unittest.TestCase):
         self.assertIn("@media (max-width: 360px)", self.css)
         self.assertIn("width: min(100% - 20px, 840px)", self.css)
 
+    def test_inline_code_wraps_without_hiding_document_overflow(self):
+        self.assertIn("main.book-shell code {", self.css)
+        self.assertIn("overflow-wrap: anywhere", self.css)
+        self.assertIn("word-break: break-word", self.css)
+        self.assertIn("main.book-shell pre code {", self.css)
+        self.assertNotIn("overflow-x: hidden", self.css)
+
+    def test_long_list_identifiers_wrap_without_hiding_content(self):
+        self.assertIn("main.book-shell li {", self.css)
+        self.assertIn("overflow-wrap: anywhere", self.css)
+        self.assertNotIn("text-overflow: clip", self.css)
+
+    def test_narrow_fixed_controls_stay_within_visual_viewport(self):
+        start_anchor = "@media (max-width: 360px) {"
+        end_anchor = "@media print"
+        self.assertIn(start_anchor, self.css)
+        self.assertIn(end_anchor, self.css)
+        narrow_start = self.css.index(start_anchor) + len(start_anchor)
+        narrow_end = self.css.index(end_anchor, narrow_start)
+        narrow = self.css[narrow_start:narrow_end]
+        self.assertIn("width: 100vw", narrow)
+        self.assertIn("max-width: 100%", narrow)
+        self.assertIn("right: 10px", narrow)
+        self.assertIn("max-width: calc(100vw - 20px)", narrow)
+
     def test_theme_toggle_has_mobile_clearance(self):
         self.assertIn(".theme-toggle { top: 108px; right: 12px; }", self.mobile)
         self.assertIn(".site-header", self.mobile)
