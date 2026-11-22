@@ -120,6 +120,15 @@ class CapitalProvider:
             )
 
         age = (self.today or date.today()) - datetime.strptime(as_of, "%Y-%m-%d").date()
+        if age.days < 0:
+            return ProviderResult.unavailable(
+                self.name,
+                status="PARTIAL",
+                as_of=as_of,
+                source_reference=str(self.path),
+                reason="capital snapshot date is in the future",
+                data=payload,
+            )
         if age.days > self.max_age_days:
             return ProviderResult.unavailable(
                 self.name,
