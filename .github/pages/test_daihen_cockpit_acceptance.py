@@ -112,6 +112,48 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         self.assertNotIn("0.00%", expectation_section)
         self.assertNotIn("<td>0.00%</td>", expectation_section)
 
+    def test_stale_valuation_and_unavailable_consensus_remain_explicit_together(self):
+        model = copy.deepcopy(self.model)
+        valuation = model["valuation"]
+        valuation.update({
+            "status": "PARTIAL",
+            "freshness": "STALE",
+            "price_as_of": "2026-07-29",
+            "warnings": ["PRICE_STALE_FOR_E2E"],
+        })
+        expectations = model["expectations"]
+        expectations.update({
+            "status": "UNAVAILABLE",
+            "freshness": "UNKNOWN",
+            "external_consensus_ref": None,
+            "consensus_value": None,
+            "analyst_count": None,
+            "consensus_low": None,
+            "consensus_high": None,
+            "company_vs_consensus_pct": None,
+            "sado_vs_consensus_pct": None,
+            "direction": "UNKNOWN",
+        })
+
+        page = BUILDER.page_content(model)
+        valuation_parts = page.split("## 2. Bear / Base / Bull とForward PER", 1)
+        self.assertEqual(len(valuation_parts), 2, "valuation section heading is missing")
+        valuation_section = valuation_parts[1].split("## 3.", 1)[0]
+        expectation_parts = page.split("## 3. 市場期待との差", 1)
+        self.assertEqual(len(expectation_parts), 2, "expectation section heading is missing")
+        expectation_section = expectation_parts[1].split("## 4.", 1)[0]
+        source_refs = model["valuation"].get("source_refs") or []
+        self.assertTrue(source_refs, "valuation.source_refs must be non-empty")
+
+        self.assertIn("2026-07-29", valuation_section)
+        self.assertIn("情報が古いため再確認が必要", valuation_section)
+        self.assertIn(source_refs[0], valuation_section)
+        self.assertIn("現在取得できません", expectation_section)
+        self.assertIn("参照なし", expectation_section)
+        self.assertNotIn("0.00%", expectation_section)
+        self.assertNotIn("推奨: BUY", page)
+        self.assertNotIn("推奨: SELL", page)
+
     def test_portfolio_not_run_is_not_presented_as_safe(self):
         self.assertEqual(self.model["portfolio_preflight"]["status"], "NOT_RUN")
         self.assertIn("まだ確認を実行していません", self.page)
