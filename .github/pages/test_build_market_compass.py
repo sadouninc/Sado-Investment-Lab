@@ -231,6 +231,51 @@ def test_mobile_responsive_layout_primitives():
     assert "@media (min-width: 768px)" in rendered
 
 
+def test_shared_visual_contract_and_japanese_primary_title():
+    """Verify Market Compass reuses shared primitives without hiding state semantics."""
+    evaluated = {
+        "as_of": "2026-08-15",
+        "macro_state": "UNKNOWN",
+        "current_holdings": [
+            {
+                "security_code": "6622",
+                "security_name": "ダイヘン",
+                "market_compass_state": None,
+                "evaluation_status": "UNKNOWN",
+                "fundamental_integrity": "UNKNOWN",
+                "portfolio_authority_status": "PROVISIONAL",
+                "score_total": None,
+                "scores": {},
+                "position": {"quantity": 100},
+            }
+        ],
+        "reentry_watch": [],
+        "membership_unknown": [],
+    }
+
+    rendered = bmc.render_market_compass_page(evaluated)
+
+    assert "title: 市場コンパス" in rendered
+    assert "<h1>🧭 市場コンパス</h1>" in rendered
+    assert "Market Compass v0.1 · 読み取り専用エビデンス" in rendered
+    assert 'class="mc-container codex-page-shell"' in rendered
+    assert "codex-page-header" in rendered
+    assert "codex-summary-grid" in rendered
+    assert "codex-alert" in rendered
+    assert 'codex-status-chip" data-state="unknown"' in rendered
+
+
+def test_status_badges_expose_text_and_shared_semantic_role():
+    """State remains understandable from text while shared data-state drives styling."""
+    ready = bmc._render_state_badge("REENTRY_READY", "EVALUATED")
+    unknown = bmc._render_authority_badge("UNKNOWN")
+
+    assert "再参入準備 (RE-ENTRY READY)" in ready
+    assert 'data-state="supportive"' in ready
+    assert "不明 (UNKNOWN)" in unknown
+    assert 'data-state="unknown"' in unknown
+
+
 def test_real_fixture_payload_is_not_globally_false_avoid():
     """Regression test proving real fixture projection does not evaluate non-FAIL/REVIEW securities as false AVOID."""
     evaluated = bmc.generate_market_compass_projection()
@@ -244,3 +289,4 @@ def test_real_fixture_payload_is_not_globally_false_avoid():
     assert reentry_6376["market_compass_state"] != "AVOID"
     assert reentry_6376["evaluation_status"] == "UNKNOWN"
     assert reentry_6376["evaluation_reason"] == "SCORE_UNKNOWN"
+
