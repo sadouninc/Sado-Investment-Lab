@@ -39,6 +39,34 @@ class EventCalendarCollectorTest(unittest.TestCase):
             self.assertFalse(result["coverage"]["company"])
             self.assertIn("malformed", result["collector_diagnostics"][0]["error"])
 
+    def test_malformed_source_cannot_claim_confirmed_coverage(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.source(tmp, "company.json", {
+                "coverage_confirmed": True,
+                "events": [
+                    {"title": "Verified company event", "date": "2026-08-08"},
+                    {"title": "No date"},
+                ],
+            })
+            result = collect([SourceSpec("company", path, "ir")], as_of="2026-08-08")
+            self.assertFalse(result["coverage"]["company"])
+            self.assertEqual(1, len(result["events"]["company"]))
+            self.assertIn("malformed", result["collector_diagnostics"][0]["error"])
+            self.assertFalse(result["collector_diagnostics"][0]["coverage_confirmed"])
+
+    def test_malformed_confirmed_inputs_never_produce_verified_empty_day(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            specs = []
+            for category in ("earnings", "economic", "policy", "market_calendar", "company"):
+                events = [{"title": "Missing date"}] if category == "company" else []
+                path = self.source(tmp, f"{category}.json", {
+                    "coverage_confirmed": True, "events": events,
+                })
+                specs.append(SourceSpec(category, path, category))
+            result = collect(specs, as_of="2026-08-08")
+            self.assertFalse(result["coverage"]["company"])
+            self.assertNotIn("empty_confirmed", result)
+
     def test_empty_confirmed_requires_all_categories(self):
         with tempfile.TemporaryDirectory() as tmp:
             specs = []
