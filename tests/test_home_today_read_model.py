@@ -208,7 +208,7 @@ def test_sector_missing_or_invalid_source_date_does_not_publish_current_heatmap(
 def test_sector_payload_date_mismatch_fails_closed_even_when_status_is_partial():
     payload = dataset()
     payload["source_status"][1]["status"] = "PARTIAL"
-    payload["sector_rotation"]["as_of"] = "2026-08-10"
+    payload["sector_rotation"]["as_of"] = "2026-08-07"
     rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
     assert "状態件数を集計しません" in rendered
     assert "home-heatmap-cell" not in rendered
