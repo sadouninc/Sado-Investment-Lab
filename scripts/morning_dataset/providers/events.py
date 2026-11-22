@@ -79,6 +79,15 @@ class EventsProvider:
             )
 
         age_days = ((self.today or date.today()) - datetime.strptime(as_of, "%Y-%m-%d").date()).days
+        if age_days < 0:
+            return ProviderResult.unavailable(
+                self.name,
+                status="PARTIAL",
+                as_of=as_of,
+                source_reference=str(self.path),
+                reason="event calendar as_of date is in the future",
+                data=payload,
+            )
         if age_days > self.max_age_days:
             return ProviderResult.unavailable(
                 self.name,
