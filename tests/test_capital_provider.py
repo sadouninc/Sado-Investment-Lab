@@ -63,6 +63,19 @@ class CapitalProviderTest(unittest.TestCase):
             self.assertEqual(500_000, result.data["target_reserve"])
             self.assertIsNone(result.data["cash_available"])
 
+    def test_future_dated_snapshot_is_partial_not_current(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.database(
+                Path(tmp),
+                ("2026-08-09T08:30:00+09:00", 100, 200, None, None, None, None, None, "synthetic", "v1"),
+            )
+            result = CapitalProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertEqual("2026-08-09", result.as_of)
+            self.assertIn("future", result.reason)
+            self.assertIsNotNone(result.data)
+            self.assertEqual(100, result.data["buying_power"]["cash"])
+
     def test_latest_snapshot_wins(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self.database(
