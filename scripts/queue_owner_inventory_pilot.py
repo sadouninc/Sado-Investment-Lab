@@ -14,11 +14,13 @@ from typing import Any, Mapping
 def _paths_overlap(a: str, b: str) -> bool:
     if not a or not b:
         return True  # Ambiguous path is not safe.
+    # Both glob scopes and bare directory scopes may denote descendants.
+    # A prefix ending at a path boundary is conservatively treated as a
+    # conflict. "scripts/foo.py" must not match "scripts/foo.py.bak".
     def prefix(s: str) -> str:
-        return s[:-3] if s.endswith("/**") else s
+        return s[:-3] if s.endswith("/**") else s.rstrip("/")
     left, right = prefix(a), prefix(b)
-    return (a == b or a.endswith("/**") and (right == left or right.startswith(left + "/"))
-            or b.endswith("/**") and (left == right or left.startswith(right + "/")))
+    return left == right or left.startswith(right + "/") or right.startswith(left + "/")
 
 
 def inspect_one_candidate(
@@ -90,8 +92,15 @@ def main() -> int:
         report = {"status": "HOLD", "reason": "INPUT_UNAVAILABLE", "dispatch_allowed": False,
                   "selected_issue": None, "candidate_count": 0, "conflicting_prs": [],
                   "missing_evidence": ["valid_readonly_inputs"]}
-    Path(args.output).write_text(json.dumps(report, ensure_ascii=False, sort_keys=True) + "\n",
-                                 encoding="utf-8")
+    try:
+        Path(args.output).write_text(json.dumps(report, ensure_ascii=False, sort_keys=True) + "\n",
+                                     encoding="utf-8")
+    except OSError:
+        # Do not suppress the failed artifact write as a successful HOLD run.
+        error = {**report, "status": "HOLD", "reason": "OUTPUT_UNAVAILABLE",
+                 "dispatch_allowed": False}
+        print(json.dumps(error, ensure_ascii=False, sort_keys=True))
+        return 2
     print(json.dumps(report, ensure_ascii=False, sort_keys=True))
     return 0
 
