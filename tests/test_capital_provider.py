@@ -73,6 +73,7 @@ class CapitalProviderTest(unittest.TestCase):
             self.assertEqual("PARTIAL", result.status)
             self.assertEqual("2026-08-09", result.as_of)
             self.assertIn("future", result.reason)
+            self.assertIsNotNone(result.data)
             self.assertEqual(100, result.data["buying_power"]["cash"])
 
     def test_latest_snapshot_wins(self):
