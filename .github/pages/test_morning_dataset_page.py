@@ -75,6 +75,13 @@ class MorningDatasetPageTest(unittest.TestCase):
         self.assertNotIn("714.3%", page)
         self.assertNotIn("Today Strategy", page)
 
+    def test_source_ok_explains_confirmed_session_not_intraday(self) -> None:
+        page = module.build_page(self.build_payload())
+        self.assertIn("各ソース固有の鮮度・検証契約", page)
+        self.assertIn("当日リアルタイムや売買判断への利用許可を意味しません", page)
+        self.assertIn("Sector Rotationは前の日本市場営業日の確定値", page)
+        self.assertNotIn("`OK` は当日判断に利用可能", page)
+
     def test_completeness_explanation_uses_reported_eight_source_total(self) -> None:
         payload = self.build_payload()
         payload["data_quality"].update({

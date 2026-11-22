@@ -168,7 +168,7 @@ permalink: /research/morning-dataset/
         )
 
     page += (
-        "\n`OK` は当日判断に利用可能、`PARTIAL` は一部不足、`STALE` は値はあるが鮮度不足、"
+        "\n`OK` は各ソース固有の鮮度・検証契約を満たす状態で、当日リアルタイムや売買判断への利用許可を意味しません。Sector Rotationは前の日本市場営業日の確定値を使用します。`PARTIAL` は一部不足、`STALE` は値はあるが鮮度不足、"
         f"`MISSING` は利用可能な入力がない状態です。Completeness は **OK のソース数 / {source_total_label}** で計算します。\n\n"
     )
 
