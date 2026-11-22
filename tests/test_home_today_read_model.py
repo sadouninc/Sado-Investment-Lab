@@ -364,6 +364,31 @@ def test_expected_business_date_uses_jst_and_skips_weekend():
     assert module.expected_jst_business_date(saturday_utc) == date(2026, 8, 14)
 
 
+def test_expected_business_date_skips_japan_holiday_and_year_end():
+    # 2026-11-23 is Labour Thanksgiving Day; 11/20 (Fri) is last trading day.
+    holiday_jst = datetime.fromisoformat("2026-11-23T09:00:00+09:00")
+    assert module.expected_jst_business_date(holiday_jst) == date(2026, 11, 20)
+
+    # Market is closed on Dec 31 and Jan 1-3, with Jan 4 reopening.
+    year_end_jst = datetime.fromisoformat("2026-12-31T09:00:00+09:00")
+    new_year_jst = datetime.fromisoformat("2027-01-03T09:00:00+09:00")
+    assert module.expected_jst_business_date(year_end_jst) == date(2026, 12, 30)
+    assert module.expected_jst_business_date(new_year_jst) == date(2026, 12, 30)
+
+
+def test_home_holiday_keeps_latest_verified_market_day_current():
+    payload = dataset()
+    payload["as_of"] = "2026-11-20"
+    payload["source_status"][1]["as_of"] = "2026-11-19"
+    payload["sector_rotation"]["as_of"] = "2026-11-19"
+    holiday_jst = datetime.fromisoformat("2026-11-23T09:00:00+09:00")
+    expected = module.expected_jst_business_date(holiday_jst)
+    rendered = module.render_status_section(payload, expected_as_of=expected)
+    assert "NOT_GENERATED_TODAY" not in rendered
+    assert "WARMING 1件 / INFLOW 1件" in rendered
+    assert 'data-sector-state="warming"' in rendered
+
+
 def test_home_load_uses_published_read_model_without_home_only_sector_collection(tmp_path):
     import json
 
