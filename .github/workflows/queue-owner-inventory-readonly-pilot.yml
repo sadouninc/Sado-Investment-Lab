@@ -1,0 +1,121 @@
+name: Queue Owner Inventory Read-only Pilot
+
+# Issue #943: observational workflow only. Not a dispatch or lease issuer.
+# This is distinct from the production Queue Auto-Promotion Consumer.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '21 * * * *'
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: queue-owner-inventory-readonly-pilot
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout diagnostic at triggering commit
+        uses: actions/checkout@v4
+
+      - name: Fetch bounded READY issues and complete open PR path inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Paginate first; no partial first-page claims.
+          gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/issues?state=open&labels=READY_FOR_IMPLEMENTATION&per_page=100" \
+            | jq 'add // [] | [.[] | select((.pull_request // null) == null and .number != 79)] | sort_by(.number) | .[:1]' \
+            > /tmp/ready-raw.json
+          gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=100" \
+            | jq 'add // [] | [.[] | {number}]' > /tmp/open-prs-raw.json
+          echo '{"complete":false,"prs":[]}' > /tmp/open-pr-paths.json
+          : > /tmp/pr-paths-staging.jsonl
+          # Stage all rows, validate the entire count, then atomically publish.
+          # A failed API read or invalid number never makes complete=true.
+          expected="$(jq -e 'length' /tmp/open-prs-raw.json)"
+          processed=0
+          jq -e 'all(.[]; (.number | type == "number" and . > 0 and floor == .))' /tmp/open-prs-raw.json >/dev/null
+          while IFS= read -r number; do
+            [[ -n "$number" ]] || continue
+            [[ "$number" =~ ^[1-9][0-9]*$ ]] || { echo "INVALID_PR_NUMBER" >&2; exit 78; }
+            gh api --paginate --slurp \
+              "repos/${GITHUB_REPOSITORY}/pulls/${number}/files?per_page=100" \
+              > "/tmp/pr-files-${number}.json"
+            jq -e 'type == "array" and all(.[]; type == "array")' "/tmp/pr-files-${number}.json" >/dev/null
+            jq -c --argjson number "$number" '{number:$number,paths:(add // [] | map(.filename))}' \
+              "/tmp/pr-files-${number}.json" >> /tmp/pr-paths-staging.jsonl
+            processed=$((processed + 1))
+          done < <(jq -r '.[].number' /tmp/open-prs-raw.json)
+          [[ "$processed" == "$expected" ]] || { echo "INCOMPLETE_PR_INVENTORY" >&2; exit 1; }
+          jq -s --argjson expected "$expected" \
+            'if length == $expected then {complete:true,prs:.} else error("incomplete inventory") end' \
+            /tmp/pr-paths-staging.jsonl > /tmp/open-pr-paths.next.json
+          mv /tmp/open-pr-paths.next.json /tmp/open-pr-paths.json
+
+      - name: Normalize claimed issue scope without treating it as authenticated
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          raw = json.loads(Path("/tmp/ready-raw.json").read_text())
+          normalized = []
+          for issue in raw[:1]:
+              body = issue.get("body") or ""
+              owner = ""
+              paths = []
+              in_paths = False
+              # Diagnostic-only extraction of work_contract-like text. A self-declared
+              # claim is not an authenticated Owner/Lease issuer.
+              for line in body.splitlines():
+                  stripped = line.strip()
+                  if stripped.startswith("owner_slice:"):
+                      owner = stripped.partition(":")[2].strip().strip('"\'')
+                  if stripped == "allowed_paths:":
+                      in_paths = True
+                      continue
+                  if in_paths:
+                      if stripped.startswith("- "):
+                          paths.append(stripped[2:].strip().strip('"\''))
+                      elif stripped and not stripped.startswith("#"):
+                          in_paths = False
+              normalized.append({"number": issue["number"],
+                                 "owner_slice": owner, "allowed_paths": paths})
+          Path("/tmp/ready-normalized.json").write_text(json.dumps(normalized))
+          PY
+
+      - name: Run HOLD-only pilot diagnostic and publish run summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m scripts.queue_owner_inventory_pilot \
+            --issues /tmp/ready-normalized.json \
+            --open-prs /tmp/open-pr-paths.json \
+            --output /tmp/owner-pilot-result.json
+          {
+            echo '## Queue Owner Inventory Read-only Pilot'
+            echo
+            echo "- Run: ${GITHUB_RUN_ID}"
+            echo "- Event: ${GITHUB_EVENT_NAME}"
+            echo "- Head: ${GITHUB_SHA}"
+            echo '- Dispatch attempts: **0** (workflow is read-only)'
+            echo '- Result:'
+            echo '~~~json'
+            cat /tmp/owner-pilot-result.json
+            echo '~~~'
+            echo 'A full open-PR path inventory is not an authenticated Owner/Lease ledger.'
+          } >> "${GITHUB_STEP_SUMMARY}"
+          # Always persist a diagnostic summary BEFORE rejecting unexpected output.
+          jq -e '.status == "HOLD" and .dispatch_allowed == false' /tmp/owner-pilot-result.json >/dev/null
