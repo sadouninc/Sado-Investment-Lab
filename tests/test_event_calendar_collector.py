@@ -54,6 +54,24 @@ class EventCalendarCollectorTest(unittest.TestCase):
             self.assertIn("malformed", result["collector_diagnostics"][0]["error"])
             self.assertFalse(result["collector_diagnostics"][0]["coverage_confirmed"])
 
+    def test_valid_source_does_not_mask_malformed_peer_category(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            valid = self.source(tmp, "clean.json", {
+                "coverage_confirmed": True,
+                "events": [{"title": "BOJ meeting", "date": "2026-08-08"}],
+            })
+            malformed = self.source(tmp, "bad.json", {
+                "coverage_confirmed": True,
+                "events": [{"title": "Missing date"}],
+            })
+            result = collect([
+                SourceSpec("policy", valid, "official"),
+                SourceSpec("policy", malformed, "reviewed"),
+            ], as_of="2026-08-08")
+            self.assertEqual(1, len(result["events"]["policy"]))
+            self.assertFalse(result["coverage"]["policy"])
+            self.assertIn("malformed", result["collector_diagnostics"][1]["error"])
+
     def test_malformed_confirmed_inputs_never_produce_verified_empty_day(self):
         with tempfile.TemporaryDirectory() as tmp:
             specs = []
