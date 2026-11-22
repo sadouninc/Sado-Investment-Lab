@@ -55,6 +55,31 @@ class EventsProviderTest(unittest.TestCase):
             self.assertEqual("STALE", result.status)
             self.assertTrue(result.data["earnings"])
 
+    def test_future_dated_complete_calendar_is_partial_not_current(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(Path(tmp), self.complete_payload("2026-08-09"))
+            result = EventsProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertEqual("2026-08-09", result.as_of)
+            self.assertIn("future", result.reason)
+            self.assertIsNotNone(result.data)
+            self.assertEqual(1, len(result.data["earnings"]))
+            self.assertEqual(1, len(result.data["economic"]))
+
+    def test_future_dated_explicit_empty_calendar_is_not_ok(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = self.complete_payload("2026-08-09")
+            for key in payload["events"]:
+                payload["events"][key] = []
+            payload["empty_confirmed"] = True
+            path = self.write(Path(tmp), payload)
+            result = EventsProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertEqual("2026-08-09", result.as_of)
+            self.assertIn("future", result.reason)
+            self.assertIsNotNone(result.data)
+            self.assertEqual([], result.data["earnings"])
+
     def test_missing_file(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = EventsProvider(Path(tmp) / "missing.json", today=date(2026, 8, 8)).collect()
