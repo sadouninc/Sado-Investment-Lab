@@ -8,6 +8,8 @@ from typing import Any, Mapping
 from zoneinfo import ZoneInfo
 
 from scripts.home_portfolio_impact import project_portfolio_impact
+from scripts.japan_market_calendar import is_japan_market_business_day
+from scripts.morning_dataset.providers.sector_rotation import _previous_market_business_day
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE_HOME = ROOT / "site-src" / "index.md"
@@ -47,7 +49,7 @@ def _status(value: Any) -> tuple[str, str, str]:
 def expected_jst_business_date(now: datetime | None = None) -> date:
     current = now or datetime.now(ZoneInfo("Asia/Tokyo"))
     day = current.astimezone(ZoneInfo("Asia/Tokyo")).date()
-    while day.weekday() >= 5:
+    while not is_japan_market_business_day(day):
         day -= timedelta(days=1)
     return day
 
@@ -77,7 +79,7 @@ def _sector_dates_match(
     *,
     dataset_as_of: Any = None,
 ) -> bool:
-    """Require consistent valid source/payload dates and, when known, report date."""
+    """Require matching source/payload dates at the prior confirmed JP business day."""
     try:
         source_date = date.fromisoformat(str(source.get("as_of") or ""))
         payload_date = date.fromisoformat(str(payload.get("as_of") or ""))
@@ -88,7 +90,11 @@ def _sector_dates_match(
         )
     except (TypeError, ValueError):
         return False
-    return source_date == payload_date == report_date
+    try:
+        expected_sector_date = _previous_market_business_day(report_date)
+    except (OverflowError, ValueError):
+        return False
+    return source_date == payload_date == expected_sector_date
 
 
 def _status_card(title: str, source: Mapping[str, Any], detail: str) -> str:
@@ -154,7 +160,7 @@ def render_sector_heatmap(
         unavailable_reason = (
             "Morning Dataset全体の鮮度が確認できないため、過去のセクター状態を今日の状態として表示しません。"
             if dataset_freshness != "CURRENT" else
-            "source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofと不一致です。"
+            "Sector Rotationの日付が不一致・無効、またはMorning Datasetの前営業日の確定値ではありません。"
             if date_mismatch else
             str(source.get("reason") or "canonical Sector snapshotが未接続です。")
         )
@@ -193,7 +199,7 @@ def render_sector_heatmap(
     return f'''  <section class="home-os-section home-heatmap" aria-labelledby="heatmap-title">
     <p class="eyebrow">MARKET HEATMAP</p>
     <h2 id="heatmap-title">市場・テーマの動き</h2>
-    <p>TOPIX-17 Sector Rotationの前回→現在を表示します。Homeで独自score・ranking・BUY/SELLは生成しません。</p>
+    <p>TOPIX-17 Sector RotationはMorning Dataset基準日の前の日本市場営業日に確定したデータです。当日リアルタイムではありません。Homeで独自score・ranking・BUY/SELLは生成しません。</p>
     <div class="codex-alert" data-state="{token}">
       <strong>Sector Rotation: {_e(label)} / {_e(status)}</strong>
       <p>as of: {_e(as_of)} / source: canonical sector-history.jsonl</p>
@@ -349,7 +355,7 @@ def render_status_section(
         and not _sector_dates_match(sector, sector_payload, dataset_as_of=dataset.get("as_of"))
     ):
         sector_detail = (
-            "source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofと不一致のため、"
+            "source_status.as_ofとsector_rotation.as_ofが不一致・無効、またはMorning Datasetの前営業日の確定値ではないため、"
             "状態件数を集計しません。順位や推奨はHomeで生成しません。"
         )
     elif sector_status in {"OK", "PARTIAL"}:
@@ -371,13 +377,15 @@ def render_status_section(
         '<div class="codex-alert" data-state="normal"><strong>Morning Datasetに明示warningはありません</strong><p>これはBUY/SELL判断ではありません。</p></div>'
     )
 
+    # A source's upstream OK does not make the Home projection CURRENT when
+    # its report date, confirmed cutoff or payload fails validation.
+    sector_card = dict(sector)
+    if sector_status in {"OK", "PARTIAL"} and not sector_usable:
+        sector_card["status"] = "STALE" if freshness == "NOT_GENERATED_TODAY" else "PARTIAL"
+        sector_card["reason"] = "Home表示の確定日・payload検証が未成立。前営業日の確定値として表示できません。"
     cards = "\n".join([
         _status_card("市場データ", market, "Morning Datasetの既存market source状態を表示します。"),
-        _status_card(
-            "Sector Rotation",
-            sector,
-            sector_detail,
-        ),
+        _status_card("Sector Rotation", sector_card, sector_detail),
     ])
     if freshness == "NOT_GENERATED_TODAY":
         dataset_alert = f'''<div class="codex-alert" data-state="stale">
