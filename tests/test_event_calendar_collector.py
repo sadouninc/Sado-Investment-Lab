@@ -11,6 +11,7 @@ from scripts.event_calendar_collector import SourceSpec, collect
 class EventCalendarCollectorTest(unittest.TestCase):
     def source(self, root: str, name: str, payload: dict) -> Path:
         path = Path(root) / name
+        payload = {"as_of": "2026-08-08", **payload}
         path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
         return path
 
@@ -84,6 +85,53 @@ class EventCalendarCollectorTest(unittest.TestCase):
             result = collect(specs, as_of="2026-08-08")
             self.assertFalse(result["coverage"]["company"])
             self.assertNotIn("empty_confirmed", result)
+
+    def test_old_source_as_of_cannot_confirm_current_coverage(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.source(tmp, "economic.json", {
+                "as_of": "2026-08-07",
+                "coverage_confirmed": True,
+                "events": [{"title": "CPI", "date": "2026-08-08"}],
+            })
+            result = collect([SourceSpec("economic", path, "official")], as_of="2026-08-08")
+            self.assertFalse(result["coverage"]["economic"])
+            self.assertEqual(1, len(result["events"]["economic"]))
+            self.assertIn("as_of", result["collector_diagnostics"][0]["error"])
+
+    def test_missing_source_as_of_never_confirms_empty_calendar(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            specs = []
+            for category in ("earnings", "economic", "policy", "market_calendar", "company"):
+                path = self.source(tmp, f"{category}.json", {
+                    "coverage_confirmed": True,
+                    "events": [],
+                })
+                if category == "company":
+                    data = json.loads(path.read_text(encoding="utf-8"))
+                    data.pop("as_of")
+                    path.write_text(json.dumps(data), encoding="utf-8")
+                specs.append(SourceSpec(category, path, category))
+            result = collect(specs, as_of="2026-08-08")
+            self.assertFalse(result["coverage"]["company"])
+            self.assertNotIn("empty_confirmed", result)
+
+    def test_current_source_does_not_mask_stale_peer_coverage(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            fresh = self.source(tmp, "fresh.json", {
+                "coverage_confirmed": True,
+                "events": [{"title": "BOJ", "date": "2026-08-08"}],
+            })
+            old = self.source(tmp, "old.json", {
+                "as_of": "2026-08-07",
+                "coverage_confirmed": True,
+                "events": [],
+            })
+            result = collect([
+                SourceSpec("policy", fresh, "official"),
+                SourceSpec("policy", old, "stale"),
+            ], as_of="2026-08-08")
+            self.assertFalse(result["coverage"]["policy"])
+            self.assertEqual(1, len(result["events"]["policy"]))
 
     def test_empty_confirmed_requires_all_categories(self):
         with tempfile.TemporaryDirectory() as tmp:
