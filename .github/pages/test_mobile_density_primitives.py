@@ -50,6 +50,11 @@ class MobileDensityPrimitivesContractTests(unittest.TestCase):
         self.assertIn("main.book-shell pre code {", self.css)
         self.assertNotIn("overflow-x: hidden", self.css)
 
+    def test_long_list_identifiers_wrap_without_hiding_content(self):
+        self.assertIn("main.book-shell li {", self.css)
+        self.assertIn("overflow-wrap: anywhere", self.css)
+        self.assertNotIn("text-overflow: clip", self.css)
+
     def test_narrow_fixed_controls_stay_within_visual_viewport(self):
         start_anchor = "@media (max-width: 360px) {"
         end_anchor = "@media print"
