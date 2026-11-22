@@ -164,8 +164,11 @@ jobs:
         run: |
           set -euo pipefail
           if [[ -f /tmp/owner-inventory-blocked ]]; then
-            echo "::error::OWNER_SLICE_INVENTORY_UNVERIFIED; refusing to dispatch"
-            exit 1
+            # The unverified complete owner inventory is an expected safety HOLD,
+            # not a runner failure. Never invoke the selector or dispatch.
+            echo "::warning::OWNER_SLICE_INVENTORY_UNVERIFIED; dispatch remains HOLD"
+            echo "status=HOLD_OWNER_INVENTORY_UNVERIFIED" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
           echo '{"copilot":"available"}' > /tmp/worker-state.json
           BASE_SHA="$(git rev-parse HEAD)"
