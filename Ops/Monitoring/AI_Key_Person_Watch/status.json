@@ -3,14 +3,14 @@
   "watch": "AI_Key_Person_Watch",
   "expected_interval_minutes": 60,
   "stale_after_minutes": 150,
-  "last_run_at": "2026-11-22T09:28:17.430+09:00",
-  "last_success_at": "2026-11-22T09:28:17.430+09:00",
+  "last_run_at": "2026-11-22T09:41:27.654+09:00",
+  "last_success_at": "2026-11-22T09:41:27.654+09:00",
   "last_status": "OK",
-  "news_delta": 1,
-  "last_news_delta_at": "2026-11-22T09:28:17.430+09:00",
+  "news_delta": 2,
+  "last_news_delta_at": "2026-11-22T09:41:27.654+09:00",
   "news_persisted": true,
-  "persistence_status": "PERSISTED_ISSUE_COMMENT_7071567900",
+  "persistence_status": "PERSISTED_ISSUE_COMMENT_7071715081",
   "updated_by": "❤️レイ",
-  "note": "Interactive run: TEAM_RULES/TEAM_STATE/#99 broadcast-head 7063203362, 272/272 comments VERIFIED. GitHub formal technical reviews: private PR #1 review 6009170237 PASS_WITH_SCOPE; Lab #930 review 6009171684, #932 review 6009171805 PASS_WITH_SCOPE; #931 prior review reused. Discovery Radar #861 research comment 7071567900 records official Rapidus CORE/funding and unverified schedule risk, earnings hypotheses clearly separated. No production DB promotion, no investment execution, Issue #79 untouched.",
-  "last_checked_at": "2026-11-22T09:28:17.430+09:00"
+  "note": "Interactive Research: TEAM_RULES/TEAM_STATE/#99 broadcast-head 7063203362, 272/272 VERIFIED. DB PR #1 confirmed MERGED; #933 fresh review request checked, existing independent defect review remains and no duplicate review. Discovery Radar #861 comment 7071715081: 2026-11-20 SK hynix/Kioxia indirect stake plan (not yet completed), MRAM adoption and interface evidence with fact/hypothesis separation. No production data mutation, Issue #79 untouched.",
+  "last_checked_at": "2026-11-22T09:41:27.654+09:00"
 }
