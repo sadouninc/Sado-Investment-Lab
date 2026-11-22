@@ -46,6 +46,29 @@ AUTHORITY_JAPANESE_LABELS = {
     "UNKNOWN": "不明 (UNKNOWN)",
 }
 
+STATE_VISUAL_ROLES = {
+    "AVOID": "critical",
+    "WATCH": "challenging",
+    "BUY_WATCH": "normal",
+    "REENTRY_READY": "supportive",
+}
+
+INTEGRITY_VISUAL_ROLES = {
+    "PASS": "supportive",
+    "REVIEW": "challenging",
+    "FAIL": "critical",
+    "UNKNOWN": "unknown",
+}
+
+AUTHORITY_VISUAL_ROLES = {
+    "VERIFIED": "supportive",
+    "PROVISIONAL": "challenging",
+    "MISMATCH": "critical",
+    "STALE": "stale",
+    "STALE_RELATIVE_TO_EXIT": "stale",
+    "UNKNOWN": "unknown",
+}
+
 
 def load_json_file(path: Path) -> dict[str, Any] | None:
     if path.is_file():
@@ -126,24 +149,27 @@ def generate_market_compass_projection(
 
 def _render_state_badge(state: str | None, evaluation_status: str | None = None) -> str:
     if evaluation_status == "UNKNOWN" or state is None:
-        return '<span class="mc-badge mc-badge-unknown">未評価 / 不明 (UNKNOWN)</span>'
+        return '<span class="mc-badge mc-badge-unknown codex-status-chip" data-state="unknown">未評価 / 不明 (UNKNOWN)</span>'
     label = STATE_JAPANESE_LABELS.get(state, f"{state}")
     css_class = f"mc-badge-{state.lower().replace('_', '-')}"
-    return f'<span class="mc-badge {css_class}">{html.escape(label)}</span>'
+    visual_role = STATE_VISUAL_ROLES.get(state, "unknown")
+    return f'<span class="mc-badge {css_class} codex-status-chip" data-state="{visual_role}">{html.escape(label)}</span>'
 
 
 def _render_integrity_badge(integrity: str | None) -> str:
     val = (integrity or "UNKNOWN").upper()
     label = INTEGRITY_JAPANESE_LABELS.get(val, val)
     css_class = f"mc-integrity-{val.lower()}"
-    return f'<span class="mc-integrity-badge {css_class}">{html.escape(label)}</span>'
+    visual_role = INTEGRITY_VISUAL_ROLES.get(val, "unknown")
+    return f'<span class="mc-integrity-badge {css_class} codex-status-chip" data-state="{visual_role}">{html.escape(label)}</span>'
 
 
 def _render_authority_badge(status: str | None) -> str:
     val = status or "UNKNOWN"
     label = AUTHORITY_JAPANESE_LABELS.get(val, val)
     css_class = f"mc-authority-{val.lower().replace('_', '-')}"
-    return f'<span class="mc-authority-badge {css_class}">{html.escape(label)}</span>'
+    visual_role = AUTHORITY_VISUAL_ROLES.get(val, "unknown")
+    return f'<span class="mc-authority-badge {css_class} codex-status-chip" data-state="{visual_role}">{html.escape(label)}</span>'
 
 
 def _render_score_value(val: float | int | None) -> str:
@@ -169,7 +195,7 @@ def _render_security_card(item: dict[str, Any], is_current_holding: bool) -> str
     exit_date = reentry.get("exit_date") if not is_current_holding else None
 
     lines: list[str] = []
-    lines.append('<article class="mc-card">')
+    lines.append('<article class="mc-card codex-summary-card">')
 
     # Card header: Security Code & Name + Badges
     lines.append('  <div class="mc-card-header">')
@@ -206,7 +232,7 @@ def _render_security_card(item: dict[str, Any], is_current_holding: bool) -> str
 
     # Warning banner if REENTRY_READY
     if state == "REENTRY_READY":
-        lines.append('  <div class="mc-warning-banner">')
+        lines.append('  <div class="mc-warning-banner codex-alert" data-state="critical">')
         lines.append('    <strong>⚠️ RE-ENTRY READY (再参入準備)</strong>')
         lines.append('    <p>スクリーニング条件への合致を示しています。実際の購入決定や売買発注を意味するものではありません。</p>')
         lines.append("  </div>")
@@ -218,7 +244,7 @@ def _render_security_card(item: dict[str, Any], is_current_holding: bool) -> str
     lines.append("  </div>")
 
     # Collapsible Details for Score Components and Evidence (Progressive Disclosure)
-    lines.append('  <details class="mc-card-details">')
+    lines.append('  <details class="mc-card-details codex-disclosure">')
     lines.append("    <summary>スコア内訳・詳細エビデンス表示</summary>")
     lines.append('    <div class="mc-details-body">')
     lines.append('      <ul class="mc-score-breakdown">')
@@ -254,7 +280,7 @@ def render_market_compass_page(evaluated_universe: dict[str, Any], boj_status: s
     page: list[str] = []
     page.append("---")
     page.append("layout: site")
-    page.append("title: Market Compass (市場コンパス)")
+    page.append("title: 市場コンパス")
     page.append("description: 市場の先行リスク変化・保有株の危険管理・売却済み優良株のRe-entry候補をread-only投影")
     page.append("permalink: /research/market-compass/")
     page.append("---")
@@ -270,50 +296,36 @@ def render_market_compass_page(evaluated_universe: dict[str, Any], boj_status: s
 .mc-section-title { font-size: 1.25rem; border-bottom: 2px solid var(--codex-border-emphasis, #a79678); padding-bottom: 0.3rem; margin-bottom: 1rem; }
 .mc-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 @media (min-width: 768px) { .mc-grid { grid-template-columns: repeat(2, 1fr); } }
-.mc-card { background: var(--codex-surface-panel, #fbf8f1); border: 1px solid var(--codex-border-subtle, #d4c8b6); border-radius: 0.5rem; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+.mc-card { min-width: 0; }
 .mc-card-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem; }
 .mc-card-title { display: flex; align-items: center; gap: 0.5rem; }
 .mc-code { font-weight: bold; background: var(--codex-border-subtle, #e5ded0); padding: 0.1rem 0.4rem; border-radius: 0.2rem; font-size: 0.85rem; }
 .mc-name { margin: 0; font-size: 1.05rem; }
 .mc-badges { display: flex; flex-wrap: wrap; gap: 0.3rem; }
-.mc-badge { display: inline-block; padding: 0.15rem 0.5rem; font-size: 0.75rem; font-weight: bold; border-radius: 0.25rem; }
-.mc-badge-avoid { background-color: #fde8e8; color: #9b1c1c; border: 1px solid #f8b4b4; }
-.mc-badge-watch { background-color: #fef08a; color: #713f12; border: 1px solid #fde047; }
-.mc-badge-buy-watch { background-color: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
-.mc-badge-reentry-ready { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; }
-.mc-badge-unknown { background-color: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb; }
-.mc-integrity-badge { display: inline-block; padding: 0.1rem 0.4rem; font-size: 0.7rem; border-radius: 0.2rem; }
-.mc-integrity-pass { background: #f0fdf4; color: #15803d; }
-.mc-integrity-review { background: #fffbeb; color: #b45309; }
-.mc-integrity-fail { background: #fef2f2; color: #b91c1c; }
-.mc-integrity-unknown { background: #f9fafb; color: #6b7280; }
-.mc-authority-badge { font-size: 0.75rem; padding: 0.1rem 0.3rem; border-radius: 0.2rem; background: #f3f4f6; color: #374151; }
+.mc-badge, .mc-integrity-badge, .mc-authority-badge { font-size: 0.75rem; }
 .mc-card-meta { font-size: 0.8rem; color: var(--codex-text-muted, #555); margin-bottom: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.8rem; }
-.mc-warning-banner { background-color: #fff8f6; border-left: 4px solid #dc2626; padding: 0.5rem 0.75rem; font-size: 0.8rem; margin: 0.5rem 0; border-radius: 0.2rem; }
-.mc-warning-banner p { margin: 0.2rem 0 0 0; color: #991b1b; }
+.mc-warning-banner { font-size: 0.8rem; margin: 0.5rem 0; }
+.mc-warning-banner p { margin: 0.2rem 0 0 0; }
 .mc-score-summary { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; border-top: 1px dashed var(--codex-border-subtle, #d4c8b6); padding-top: 0.4rem; margin-top: 0.4rem; }
 .mc-score-total { font-size: 1.1rem; }
 .mc-card-details summary { font-size: 0.8rem; cursor: pointer; color: var(--codex-accent-brass, #8c6f3d); margin-top: 0.4rem; }
 .mc-details-body { font-size: 0.8rem; margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px dotted var(--codex-border-subtle, #ccc); }
 .mc-score-breakdown { list-style: none; padding-left: 0; margin: 0 0 0.4rem 0; }
 .mc-score-breakdown li { display: flex; justify-content: space-between; margin-bottom: 0.2rem; }
-.mc-macro-panel { background: var(--codex-surface-panel, #fbf8f1); border: 1px solid var(--codex-border-emphasis, #a79678); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem; }
-.mc-macro-status { font-weight: bold; padding: 0.2rem 0.6rem; border-radius: 0.3rem; display: inline-block; }
-.mc-macro-green { background-color: #dcfce7; color: #166534; }
-.mc-macro-orange { background-color: #ffedd5; color: #9a3412; }
-.mc-macro-red { background-color: #fee2e2; color: #991b1b; }
-.mc-macro-unknown { background-color: #f3f4f6; color: #4b5563; }
-.mc-notice-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.4rem; padding: 0.8rem; font-size: 0.85rem; margin-bottom: 1rem; }
+.mc-macro-panel { margin-bottom: 1.5rem; }
+.mc-macro-status { font-weight: bold; }
+.mc-notice-box { font-size: 0.85rem; margin-bottom: 1rem; }
 """)
     page.append("</style>")
     page.append("")
 
-    page.append('<div class="mc-container">')
+    page.append('<div class="mc-container codex-page-shell">')
 
     # Breadcrumb & Page Header
     page.append('  <p class="mc-breadcrumb"><a href="{{ \'/\' | relative_url }}">Home</a> / Research / Market Compass</p>')
-    page.append('  <div class="mc-header">')
-    page.append('    <h1>🧭 Market Compass (市場コンパス v0.1)</h1>')
+    page.append('  <div class="mc-header codex-page-header">')
+    page.append('    <h1>🧭 市場コンパス</h1>')
+    page.append('    <p class="mc-subtitle">Market Compass v0.1 · 読み取り専用エビデンス</p>')
     page.append(f'    <p class="mc-meta">観測基準日: <strong>{as_of}</strong> | Authority: <code>READ_ONLY_EVIDENCE</code></p>')
     page.append('  </div>')
 
@@ -330,10 +342,16 @@ def render_market_compass_page(evaluated_universe: dict[str, Any], boj_status: s
         "UNKNOWN": "UNKNOWN (不明)",
     }
     boj_label = boj_label_map.get(boj_upper, boj_upper)
+    boj_visual_role = {
+        "GREEN": "supportive",
+        "ORANGE": "challenging",
+        "RED": "critical",
+        "UNKNOWN": "unknown",
+    }.get(boj_upper, "unknown")
     css_boj = f"mc-macro-{boj_upper.lower()}"
 
     page.append('      <p>日銀政策金利・マクロ先行リスク指標 (BOJ Sensor State):')
-    page.append(f'        <span class="mc-macro-status {css_boj}">{html.escape(boj_label)}</span>')
+    page.append(f'        <span class="mc-macro-status {css_boj} codex-status-chip" data-state="{boj_visual_role}">{html.escape(boj_label)}</span>')
     page.append('      </p>')
     page.append('      <small style="color: var(--codex-text-muted, #555);">')
     page.append('        ※ <strong>重要ルール:</strong> <code>BOJ RED != 全銘柄AVOID</code>、<code>RE-ENTRY READY != BOJリスク消失</code>。')
@@ -345,18 +363,18 @@ def render_market_compass_page(evaluated_universe: dict[str, Any], boj_status: s
     # Section A: Current Holdings (現在保有の危険管理)
     page.append('  <section class="mc-section">')
     page.append('    <h2 class="mc-section-title">2. 現在保有の危険管理 (Current Holdings)</h2>')
-    page.append('    <div class="mc-notice-box">')
+    page.append('    <div class="mc-notice-box codex-alert">')
     page.append('      <strong>保有ポジション状態 (Canonical Portfolio):</strong> <code>data/portfolio/current.json</code>')
     has_provisional = any(
         item.get("portfolio_authority_status") == "PROVISIONAL"
         for item in current_holdings + membership_unknown
     )
     if has_provisional:
-        page.append('      <p style="color: #b45309; margin: 0.3rem 0 0 0;">⚠️ <strong>注意:</strong> 現在のポートフォリオ状態は <code>PROVISIONAL</code> (仮確定) です。最新の約定明細照合まで <code>VERIFIED</code> として扱われません。</p>')
+        page.append('      <p>⚠️ <strong>注意:</strong> 現在のポートフォリオ状態は <code>PROVISIONAL</code> (仮確定) です。最新の約定明細照合まで <code>VERIFIED</code> として扱われません。</p>')
     page.append('    </div>')
 
     if current_holdings:
-        page.append('    <div class="mc-grid">')
+        page.append('    <div class="mc-grid codex-summary-grid">')
         for item in current_holdings:
             page.append(_render_security_card(item, is_current_holding=True))
         page.append('    </div>')
@@ -367,12 +385,12 @@ def render_market_compass_page(evaluated_universe: dict[str, Any], boj_status: s
     # Section B: Re-entry Watch (売却済み・再評価候補)
     page.append('  <section class="mc-section">')
     page.append('    <h2 class="mc-section-title">3. 売却済み・再評価候補 (Re-entry Watch)</h2>')
-    page.append('    <div class="mc-notice-box">')
+    page.append('    <div class="mc-notice-box codex-alert">')
     page.append('      <p style="margin:0;">※ <strong>Re-entry Watch</strong> は「買い推奨」ではありません。売却確定後にファンダメンタルズ整合性が維持されている優良銘柄を、再評価候補として保持する read-only 観察面です。現在保有銘柄とは明確に分離して表示されます。</p>')
     page.append('    </div>')
 
     if reentry_watch:
-        page.append('    <div class="mc-grid">')
+        page.append('    <div class="mc-grid codex-summary-grid">')
         for item in reentry_watch:
             page.append(_render_security_card(item, is_current_holding=False))
         page.append('    </div>')
@@ -385,7 +403,7 @@ def render_market_compass_page(evaluated_universe: dict[str, Any], boj_status: s
     page.append('    <h2 class="mc-section-title">4. 未確定状態・データ品質と原則 (Data Quality & Fail-Closed)</h2>')
 
     if membership_unknown:
-        page.append('    <div class="mc-notice-box" style="border-color: #f87171;">')
+        page.append('    <div class="mc-notice-box codex-alert" data-state="unknown">')
         page.append('      <strong>未確定銘柄 (Membership UNKNOWN):</strong>')
         page.append('      <p>以下の銘柄はポートフォリオ権限不確定または売却確定日照合待ちのため、Fail-Closed セマンティクスにより <code>BUY_WATCH</code> / <code>REENTRY_READY</code> に昇格せず <code>UNKNOWN</code> として保護されています。</p>')
         page.append('      <ul>')
@@ -397,7 +415,7 @@ def render_market_compass_page(evaluated_universe: dict[str, Any], boj_status: s
         page.append('      </ul>')
         page.append('    </div>')
 
-    page.append('    <div class="mc-notice-box">')
+    page.append('    <div class="mc-notice-box codex-alert">')
     page.append('      <h3>🔒 Read-Only & Fail-Closed セマンティクス保証</h3>')
     page.append('      <ul>')
     page.append('        <li><strong>同一基準日照合:</strong> 株価とベンチマークの下落率比較は同一終値ベースで行います。</li>')
@@ -422,3 +440,4 @@ def build() -> None:
 
 if __name__ == "__main__":
     build()
+
