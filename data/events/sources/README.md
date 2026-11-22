@@ -14,6 +14,7 @@ Each file uses:
 
 ```json
 {
+  "as_of": "2026-08-08",
   "coverage_confirmed": false,
   "events": [
     {
@@ -25,6 +26,8 @@ Each file uses:
   ]
 }
 ```
+
+`as_of` is the YYYY-MM-DD date for which the upstream category was verified. It must match the Morning collector's requested `--as-of` date before the collector accepts the source's `coverage_confirmed: true`; missing, older, future, or otherwise mismatched source dates remain unconfirmed. Valid events may be preserved as evidence, but incomplete coverage must never become `empty_confirmed`.
 
 `coverage_confirmed: true` is a strong assertion: it means the upstream import/collector checked the category sufficiently for the target date. Do not set it merely because the file was generated successfully.
 
