@@ -8,6 +8,7 @@ from typing import Any, Mapping
 from zoneinfo import ZoneInfo
 
 from scripts.home_portfolio_impact import project_portfolio_impact
+from scripts.japan_market_calendar import is_japan_market_business_day
 from scripts.morning_dataset.providers.sector_rotation import _previous_market_business_day
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -48,7 +49,7 @@ def _status(value: Any) -> tuple[str, str, str]:
 def expected_jst_business_date(now: datetime | None = None) -> date:
     current = now or datetime.now(ZoneInfo("Asia/Tokyo"))
     day = current.astimezone(ZoneInfo("Asia/Tokyo")).date()
-    while day.weekday() >= 5:
+    while not is_japan_market_business_day(day):
         day -= timedelta(days=1)
     return day
 
