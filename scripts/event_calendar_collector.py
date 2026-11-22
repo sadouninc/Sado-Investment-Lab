@@ -74,7 +74,7 @@ def load_source(spec: SourceSpec) -> tuple[list[dict[str, Any]], bool, str | Non
     events = [event for value in values if (event := _normalize_item(spec.category, value, spec.source))]
     malformed = len(values) - len(events)
     error = f"ignored {malformed} malformed event(s)" if malformed else None
-    return events, raw.get("coverage_confirmed") is True, error
+    return events, raw.get("coverage_confirmed") is True and malformed == 0, error
 
 
 def collect(specs: list[SourceSpec], *, as_of: str) -> dict[str, Any]:
