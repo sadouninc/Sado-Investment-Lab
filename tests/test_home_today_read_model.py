@@ -19,7 +19,7 @@ spec.loader.exec_module(module)
 
 def dataset() -> dict:
     return {
-        "as_of": "2026-08-11",
+        "as_of": "2026-08-12",
         "data_quality": {"status": "PARTIAL", "completeness_label": "6 / 8"},
         "source_status": [
             {"name": "market", "status": "OK", "as_of": "2026-08-11"},
@@ -89,7 +89,7 @@ def home_text() -> str:
 def test_render_uses_existing_canonical_status_without_mutating_input():
     payload = dataset()
     before = deepcopy(payload)
-    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 12))
     assert "Morning Dataset: 一部情報不足 / PARTIAL" in rendered
     assert "市場データ" in rendered
     assert "Sector Rotation" in rendered
@@ -139,7 +139,7 @@ def test_heatmap_stale_payload_is_not_presented_as_current_sector_signal():
     before = deepcopy(payload)
 
     rendered = module.render_status_section(
-        payload, expected_as_of=date(2026, 8, 11)
+        payload, expected_as_of=date(2026, 8, 12)
     )
     assert "Sector Rotationのデータは古いため表示しません" in rendered
     assert 'data-state="stale"' in rendered
@@ -156,7 +156,7 @@ def test_heatmap_missing_source_with_leftover_payload_hides_old_cells():
     payload["source_status"][1]["reason"] = "source unavailable"
 
     rendered = module.render_status_section(
-        payload, expected_as_of=date(2026, 8, 11)
+        payload, expected_as_of=date(2026, 8, 12)
     )
     assert "Sector Rotationは取得できません" in rendered
     assert "source unavailable" in rendered
@@ -170,7 +170,7 @@ def test_sector_source_payload_date_mismatch_fails_closed_without_changing_metad
     payload["source_status"][1]["as_of"] = "2026-08-10"
     before = deepcopy(payload)
 
-    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 12))
     assert "source_status.as_ofとsector_rotation.as_ofが不一致または無効" in rendered
     assert "Sector Rotationの日付が一致しないため表示しません" in rendered
     assert "home-heatmap-cell" not in rendered
@@ -185,7 +185,7 @@ def test_current_morning_rejects_matching_but_old_sector_source_and_payload_date
     payload["sector_rotation"]["as_of"] = "2026-08-10"
     before = deepcopy(payload)
 
-    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 12))
     assert "Sector Rotationの日付が一致しないため表示しません" in rendered
     assert "Morning Dataset as_ofと不一致" in rendered
     assert "home-heatmap-cell" not in rendered
@@ -199,7 +199,7 @@ def test_sector_missing_or_invalid_source_date_does_not_publish_current_heatmap(
     for source_date in (None, "not-a-date"):
         payload = dataset()
         payload["source_status"][1]["as_of"] = source_date
-        rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+        rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 12))
         assert "Sector Rotationの日付が一致しないため表示しません" in rendered
         assert "home-heatmap-cell" not in rendered
         assert "WARMING 1件" not in rendered
@@ -209,7 +209,7 @@ def test_sector_payload_date_mismatch_fails_closed_even_when_status_is_partial()
     payload = dataset()
     payload["source_status"][1]["status"] = "PARTIAL"
     payload["sector_rotation"]["as_of"] = "2026-08-10"
-    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 12))
     assert "状態件数を集計しません" in rendered
     assert "home-heatmap-cell" not in rendered
 
@@ -282,11 +282,11 @@ def test_missing_dataset_fails_closed_as_unavailable():
 def test_previous_business_day_dataset_is_not_shown_as_normal_partial():
     payload = dataset()
     rendered = module.render_status_section(
-        payload, expected_as_of=date(2026, 8, 12)
+        payload, expected_as_of=date(2026, 8, 13)
     )
     assert "NOT_GENERATED_TODAY" in rendered
     assert "今日のMorning Datasetはまだ生成されていません" in rendered
-    assert "表示中: 2026-08-11" in rendered
+    assert "表示中: 2026-08-12" in rendered
     assert "source completenessのPARTIALとは別" in rendered
     assert 'data-state="stale"' in rendered
 
@@ -294,7 +294,7 @@ def test_previous_business_day_dataset_is_not_shown_as_normal_partial():
 def test_global_stale_morning_dataset_hides_internally_matching_sector_cells_and_counts():
     payload = dataset()
     before = deepcopy(payload)
-    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 12))
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 13))
     assert "NOT_GENERATED_TODAY" in rendered
     assert "Morning Datasetが古いためSector Rotationを表示しません" in rendered
     assert "home-heatmap-cell" not in rendered
@@ -307,7 +307,7 @@ def test_global_stale_morning_dataset_hides_internally_matching_sector_cells_and
 def test_invalid_global_morning_date_hides_current_sector_cells_and_counts():
     payload = dataset()
     payload["as_of"] = "invalid-date"
-    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 11))
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 12))
     assert "DATASET_DATE_INVALID" in rendered
     assert "Morning Datasetの日付を検証できないためSector Rotationを表示しません" in rendered
     assert "home-heatmap-cell" not in rendered
@@ -331,7 +331,7 @@ def test_home_load_uses_published_read_model_without_home_only_sector_collection
     loaded = module.load_dataset(path)
     assert loaded == payload
     assert loaded["source_status"][1]["status"] == "OK"
-    rendered = module.render_status_section(loaded, expected_as_of=date(2026, 8, 11))
+    rendered = module.render_status_section(loaded, expected_as_of=date(2026, 8, 12))
     assert "Sector Rotationは取得できません" in rendered
     assert "公開JSONのSector Rotation payloadが欠損または空" in rendered
     assert "sourceがSTALE/MISSING/UNKNOWNのため" not in rendered
@@ -356,7 +356,7 @@ def test_missing_source_status_is_not_promoted_to_ok():
 
 def test_enrich_replaces_status_area_adds_market_and_portfolio_sections():
     rendered = module.enrich_text(
-        home_text(), portfolio_dataset(), expected_as_of=date(2026, 8, 11)
+        home_text(), portfolio_dataset(), expected_as_of=date(2026, 8, 12)
     )
     assert rendered.startswith("before\n")
     assert "old status" not in rendered
@@ -391,3 +391,41 @@ def test_pages_build_restores_morning_dataset_before_home_status_enrichment():
     )
     assert "from enrich_home_today import enrich_home_from_morning" in risk_builder
     assert "enrich_home_from_morning()" in risk_builder
+
+
+def test_sector_previous_jp_business_day_accepted_without_live_claim():
+    payload = dataset()
+    payload["as_of"] = "2026-11-20"
+    payload["source_status"][1]["as_of"] = "2026-11-19"
+    payload["sector_rotation"]["as_of"] = "2026-11-19"
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 11, 20))
+    assert "WARMING 1件 / INFLOW 1件" in rendered
+    assert "前回確定した日本市場営業日" in rendered
+    assert "home-heatmap-cell" in rendered
+
+
+def test_sector_stale_future_and_holiday_mismatch_fail_closed():
+    payload = dataset()
+    payload["as_of"] = "2026-11-20"
+    for sector_date in ("2026-11-18", "2026-11-20", "invalid"):
+        payload["source_status"][1]["as_of"] = sector_date
+        payload["sector_rotation"]["as_of"] = sector_date
+        rendered = module.render_status_section(payload, expected_as_of=date(2026, 11, 20))
+        assert "home-heatmap-cell" not in rendered
+        assert "WARMING 1件" not in rendered
+        assert "一部情報不足 / PARTIAL" in rendered
+    # Monday 11/23 is a Japanese market holiday; report on Tuesday 11/24
+    # must use Friday 11/20 as the last confirmed session.
+    payload["as_of"] = "2026-11-24"
+    payload["source_status"][1]["as_of"] = "2026-11-20"
+    payload["sector_rotation"]["as_of"] = "2026-11-20"
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 11, 24))
+    assert "WARMING 1件 / INFLOW 1件" in rendered
+
+
+def test_sector_source_payload_disagreement_blocks_current_heatmap():
+    payload = dataset()
+    payload["sector_rotation"]["as_of"] = "2026-08-10"
+    rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 12))
+    assert "home-heatmap-cell" not in rendered
+    assert "WARMING 1件" not in rendered
