@@ -60,6 +60,51 @@ class PortfolioProviderTest(unittest.TestCase):
             self.assertEqual("PARTIAL", result.status)
             self.assertEqual(1, len(result.data["positions"]))
 
+    def test_future_dated_markdown_is_partial(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(Path(tmp), """# Current Status
+> 最終更新: 2026-08-08
+
+## Portfolio
+> as_of: 2026-08-09
+- 信越化学
+""")
+            result = PortfolioProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertIn("future", result.reason)
+            self.assertEqual("信越化学", result.data["positions"][0]["name"])
+
+    def test_future_dated_markdown_precedes_malformed_line(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(Path(tmp), """# Current Status
+> 最終更新: 2026-08-08
+
+## Portfolio
+> as_of: 2026-08-09
+- 信越化学
+needs-review
+""")
+            result = PortfolioProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertIn("future", result.reason)
+            self.assertEqual("信越化学", result.data["positions"][0]["name"])
+
+    def test_future_dated_verified_json_is_partial(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "current.json"
+            path.write_text(json.dumps({
+                "as_of": "2026-08-09",
+                "verification_status": "VERIFIED",
+                "positions": [{
+                    "security_code": "4063", "security_name": "信越化学",
+                    "position_type": "cash", "quantity": 100,
+                }],
+            }, ensure_ascii=False), encoding="utf-8")
+            result = PortfolioProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertIn("future", result.reason)
+            self.assertEqual(100, result.data["positions"][0]["quantity"])
+
     def test_canonical_verified_json_is_primary_machine_source(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "current.json"
