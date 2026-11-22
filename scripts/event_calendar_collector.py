@@ -82,11 +82,14 @@ def collect(specs: list[SourceSpec], *, as_of: str) -> dict[str, Any]:
     coverage = {key: False for key in EVENT_KEYS}
     diagnostics: list[dict[str, Any]] = []
     seen: set[tuple[str, str, str, str]] = set()
+    malformed_categories: set[str] = set()
 
     for spec in specs:
         if spec.category not in EVENT_KEYS:
             raise ValueError(f"unknown event category: {spec.category}")
         source_events, complete, error = load_source(spec)
+        if error and error.startswith("ignored "):
+            malformed_categories.add(spec.category)
         coverage[spec.category] = coverage[spec.category] or complete
         accepted = 0
         for item in source_events:
@@ -104,6 +107,9 @@ def collect(specs: list[SourceSpec], *, as_of: str) -> dict[str, Any]:
             "accepted": accepted,
             "error": error,
         })
+
+    for category in malformed_categories:
+        coverage[category] = False
 
     for key in EVENT_KEYS:
         events[key].sort(key=lambda item: (_when(item) or "", _title(item) or ""))
