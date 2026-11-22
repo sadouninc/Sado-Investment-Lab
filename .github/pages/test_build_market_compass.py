@@ -236,7 +236,19 @@ def test_shared_visual_contract_and_japanese_primary_title():
     evaluated = {
         "as_of": "2026-08-15",
         "macro_state": "UNKNOWN",
-        "current_holdings": [],
+        "current_holdings": [
+            {
+                "security_code": "6622",
+                "security_name": "ダイヘン",
+                "market_compass_state": None,
+                "evaluation_status": "UNKNOWN",
+                "fundamental_integrity": "UNKNOWN",
+                "portfolio_authority_status": "PROVISIONAL",
+                "score_total": None,
+                "scores": {},
+                "position": {"quantity": 100},
+            }
+        ],
         "reentry_watch": [],
         "membership_unknown": [],
     }
