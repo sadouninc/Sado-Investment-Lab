@@ -187,7 +187,7 @@ def test_current_morning_rejects_matching_but_old_sector_source_and_payload_date
 
     rendered = module.render_status_section(payload, expected_as_of=date(2026, 8, 12))
     assert "Sector Rotationの日付が一致しないため表示しません" in rendered
-    assert "Morning Dataset as_ofと不一致" in rendered
+    assert "Morning Dataset as_ofから算出した前営業日と不一致" in rendered
     assert "home-heatmap-cell" not in rendered
     assert "WARMING 1件" not in rendered
     assert "INFLOW 1件" not in rendered
