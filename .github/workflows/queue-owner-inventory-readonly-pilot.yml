@@ -39,16 +39,28 @@ jobs:
             "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=100" \
             | jq 'add // [] | [.[] | {number}]' > /tmp/open-prs-raw.json
           echo '{"complete":false,"prs":[]}' > /tmp/open-pr-paths.json
-          : > /tmp/pr-paths.jsonl
-          # If any file-list fetch fails, the step fails; it must not certify a partial inventory.
+          : > /tmp/pr-paths-staging.jsonl
+          # Stage all rows, validate the entire count, then atomically publish.
+          # A failed API read or invalid number never makes complete=true.
+          expected="$(jq -e 'length' /tmp/open-prs-raw.json)"
+          processed=0
+          jq -e 'all(.[]; (.number | type == "number" and . > 0 and floor == .))' /tmp/open-prs-raw.json >/dev/null
           while IFS= read -r number; do
             [[ -n "$number" ]] || continue
+            [[ "$number" =~ ^[1-9][0-9]*$ ]] || { echo "INVALID_PR_NUMBER" >&2; exit 78; }
             gh api --paginate --slurp \
               "repos/${GITHUB_REPOSITORY}/pulls/${number}/files?per_page=100" \
-              | jq -c --argjson number "$number" '{number:$number,paths:(add // [] | map(.filename))}' \
-              >> /tmp/pr-paths.jsonl
+              > "/tmp/pr-files-${number}.json"
+            jq -e 'type == "array" and all(.[]; type == "array")' "/tmp/pr-files-${number}.json" >/dev/null
+            jq -c --argjson number "$number" '{number:$number,paths:(add // [] | map(.filename))}' \
+              "/tmp/pr-files-${number}.json" >> /tmp/pr-paths-staging.jsonl
+            processed=$((processed + 1))
           done < <(jq -r '.[].number' /tmp/open-prs-raw.json)
-          jq -s '{complete:true,prs:.}' /tmp/pr-paths.jsonl > /tmp/open-pr-paths.json
+          [[ "$processed" == "$expected" ]] || { echo "INCOMPLETE_PR_INVENTORY" >&2; exit 1; }
+          jq -s --argjson expected "$expected" \
+            'if length == $expected then {complete:true,prs:.} else error("incomplete inventory") end' \
+            /tmp/pr-paths-staging.jsonl > /tmp/open-pr-paths.next.json
+          mv /tmp/open-pr-paths.next.json /tmp/open-pr-paths.json
 
       - name: Normalize claimed issue scope without treating it as authenticated
         shell: bash
@@ -92,7 +104,6 @@ jobs:
             --issues /tmp/ready-normalized.json \
             --open-prs /tmp/open-pr-paths.json \
             --output /tmp/owner-pilot-result.json
-          jq -e '.status == "HOLD" and .dispatch_allowed == false' /tmp/owner-pilot-result.json >/dev/null
           {
             echo '## Queue Owner Inventory Read-only Pilot'
             echo
@@ -106,3 +117,5 @@ jobs:
             echo '~~~'
             echo 'A full open-PR path inventory is not an authenticated Owner/Lease ledger.'
           } >> "${GITHUB_STEP_SUMMARY}"
+          # Always persist a diagnostic summary BEFORE rejecting unexpected output.
+          jq -e '.status == "HOLD" and .dispatch_allowed == false' /tmp/owner-pilot-result.json >/dev/null
