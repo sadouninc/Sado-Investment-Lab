@@ -8,6 +8,7 @@ from typing import Any, Mapping
 from zoneinfo import ZoneInfo
 
 from scripts.home_portfolio_impact import project_portfolio_impact
+from scripts.japan_market_calendar import is_japan_market_business_day
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE_HOME = ROOT / "site-src" / "index.md"
@@ -77,7 +78,7 @@ def _sector_dates_match(
     *,
     dataset_as_of: Any = None,
 ) -> bool:
-    """Require consistent valid source/payload dates and, when known, report date."""
+    """Require source/payload to match the previous confirmed JP market session."""
     try:
         source_date = date.fromisoformat(str(source.get("as_of") or ""))
         payload_date = date.fromisoformat(str(payload.get("as_of") or ""))
@@ -88,7 +89,13 @@ def _sector_dates_match(
         )
     except (TypeError, ValueError):
         return False
-    return source_date == payload_date == report_date
+    try:
+        expected = report_date - timedelta(days=1)
+        while not is_japan_market_business_day(expected):
+            expected -= timedelta(days=1)
+    except (OverflowError, ValueError):
+        return False
+    return source_date == payload_date == expected
 
 
 def _status_card(title: str, source: Mapping[str, Any], detail: str) -> str:
@@ -154,7 +161,7 @@ def render_sector_heatmap(
         unavailable_reason = (
             "Morning Dataset全体の鮮度が確認できないため、過去のセクター状態を今日の状態として表示しません。"
             if dataset_freshness != "CURRENT" else
-            "source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofと不一致です。"
+            "source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofから算出した前営業日と不一致です。"
             if date_mismatch else
             str(source.get("reason") or "canonical Sector snapshotが未接続です。")
         )
@@ -203,7 +210,7 @@ def render_sector_heatmap(
     </div>
     <div class="codex-evidence home-heatmap-evidence">
       <a href="{{{{ '{SECTOR_ROTATION_ROUTE}' | relative_url }}}}">Sector Rotationの詳細を見る</a>
-      <p class="codex-evidence__meta">state / previous_state / as_of は既存Canonical値をそのまま表示しています。</p>
+      <p class="codex-evidence__meta">前回確定した日本市場営業日の観測値です（当日リアルタイム値ではありません）。state / previous_state / as_of は既存Canonical値です。</p>
     </div>
   </section>
 
@@ -349,7 +356,7 @@ def render_status_section(
         and not _sector_dates_match(sector, sector_payload, dataset_as_of=dataset.get("as_of"))
     ):
         sector_detail = (
-            "source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofと不一致のため、"
+            "source_status.as_ofとsector_rotation.as_ofが不一致または無効、もしくはMorning Dataset as_ofから算出した前営業日と不一致のため、"
             "状態件数を集計しません。順位や推奨はHomeで生成しません。"
         )
     elif sector_status in {"OK", "PARTIAL"}:
@@ -375,7 +382,10 @@ def render_status_section(
         _status_card("市場データ", market, "Morning Datasetの既存market source状態を表示します。"),
         _status_card(
             "Sector Rotation",
-            sector,
+            sector if sector_usable or sector_status not in {"OK", "PARTIAL"} else {
+                **sector, "status": "PARTIAL",
+                "reason": "公開用Sectorデータの利用条件を満たしていません。前営業日と日付・データを照合してください。",
+            },
             sector_detail,
         ),
     ])
