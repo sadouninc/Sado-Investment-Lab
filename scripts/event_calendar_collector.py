@@ -54,11 +54,12 @@ def _normalize_item(category: str, item: Any, source_name: str) -> dict[str, Any
     return result
 
 
-def load_source(spec: SourceSpec) -> tuple[list[dict[str, Any]], bool, str | None]:
+def load_source(spec: SourceSpec, *, as_of: str) -> tuple[list[dict[str, Any]], bool, str | None]:
     """Return events, coverage-confirmed flag and error.
 
-    A source is complete only when its file explicitly declares `coverage_confirmed`.
-    Missing or malformed source files never become an empty confirmed calendar.
+    A source is complete only when it explicitly confirms coverage for the
+    requested as_of date, with no malformed events. Missing, unverified or
+    mismatched inputs never become an empty confirmed calendar.
     """
     if not spec.path.is_file():
         return [], False, "source file missing"
@@ -73,8 +74,15 @@ def load_source(spec: SourceSpec) -> tuple[list[dict[str, Any]], bool, str | Non
         return [], False, "source events must be an array"
     events = [event for value in values if (event := _normalize_item(spec.category, value, spec.source))]
     malformed = len(values) - len(events)
-    error = f"ignored {malformed} malformed event(s)" if malformed else None
-    return events, raw.get("coverage_confirmed") is True and malformed == 0, error
+    errors = []
+    if malformed:
+        errors.append(f"ignored {malformed} malformed event(s)")
+    source_as_of = raw.get("as_of")
+    if source_as_of != as_of:
+        errors.append("source as_of does not match requested calendar date")
+    error = "; ".join(errors) if errors else None
+    complete = raw.get("coverage_confirmed") is True and malformed == 0 and source_as_of == as_of
+    return events, complete, error
 
 
 def collect(specs: list[SourceSpec], *, as_of: str) -> dict[str, Any]:
@@ -87,8 +95,8 @@ def collect(specs: list[SourceSpec], *, as_of: str) -> dict[str, Any]:
     for spec in specs:
         if spec.category not in EVENT_KEYS:
             raise ValueError(f"unknown event category: {spec.category}")
-        source_events, complete, error = load_source(spec)
-        if error and error.startswith("ignored "):
+        source_events, complete, error = load_source(spec, as_of=as_of)
+        if error:
             malformed_categories.add(spec.category)
         coverage[spec.category] = coverage[spec.category] or complete
         accepted = 0
