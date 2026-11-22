@@ -32,18 +32,22 @@ def inspect(root: Path) -> dict:
                 row = statuses.get(name)
                 if row is None:
                     findings.append(finding("SOURCE_STATUS_ABSENT", "P0", "/", name, "source_statusへ情報を記録"))
-                elif row.get("status") in ("STALE", "MISSING", "PARTIAL"):
+                elif row.get("status") != "OK":
                     findings.append(finding("SOURCE_NOT_CURRENT", "P1", "/",
                         f"{name}: {row.get('status')} as_of={row.get('as_of')} reason={row.get('reason')}",
                         "冒頭に確認日と未取得原因を表示し、今の投資判断に使わない"))
             candidates = data.get("candidates")
-            if isinstance(candidates, list) and candidates and all(
+            if not isinstance(candidates, list) or not candidates:
+                findings.append(finding("NO_VERIFIED_FOCUS", "P0", "/",
+                    "candidates empty, missing or invalid",
+                    "今日の検証済み注目銘柄は未確定（候補データなし／未取得）"))
+            elif all(
                     item.get("status") != "OK" or item.get("total_priority") is None
                     for item in candidates if isinstance(item, dict)):
                 findings.append(finding("NO_VERIFIED_FOCUS", "P0", "/",
                     f"candidates={len(candidates)}; none with OK status and non-null priority",
                     "今日の検証済み注目候補は未確定と表示。過去の保有/Researchを新情報として昇格しない"))
-        except (OSError, ValueError, TypeError) as ex:
+        except (OSError, ValueError, TypeError, AttributeError) as ex:
             findings.append(finding("MORNING_DATA_UNREADABLE", "P0", "/",
                 type(ex).__name__, "データ生成・JSON構造を確認。欠損を正常とみなさない"))
     cockpit_file = root / ".github/pages/build_daihen_cockpit.py"
@@ -51,18 +55,22 @@ def inspect(root: Path) -> dict:
         findings.append(finding("DAIHEN_SOURCE_MISSING", "P0", "/decision-cockpit/daihen/",
                                 "builder missing", "公開ルート生成器を確認"))
     else:
-        source = cockpit_file.read_text(encoding="utf-8")
-        # This is a source heuristic; a browser review must establish actual UX.
-        match = re.search(r"def _expectation_first_view\(.*?\n(?=def |$)", source, flags=re.S)
-        teaser = match.group(0) if match else ""
-        if "cockpit-expectation-summary" in teaser and not re.search(r"<a\s|<details\b|<button\b", teaser):
-            findings.append(finding("DEAD_EXPECTATION_TEASER", "P1",
-                "/decision-cockpit/daihen/", "market expectation teaser has no actionable link",
-                "実際の市場期待比較セクションへアンカーリンクを設ける"))
-        if "company-research:6622" in source or "### Must happen" in source:
-            findings.append(finding("DEVELOPER_VOCABULARY_REVIEW", "P2",
-                "/decision-cockpit/daihen/", "technical references/English labels in builder",
-                "日本語の投資判断文を上位に置き、参照IDは詳細へ"))
+        try:
+            source = cockpit_file.read_text(encoding="utf-8")
+            # This is a source heuristic; a browser review must establish actual UX.
+            match = re.search(r"def _expectation_first_view\(.*?\n(?=def |$)", source, flags=re.S)
+            teaser = match.group(0) if match else ""
+            if "cockpit-expectation-summary" in teaser and not re.search(r"<a\s|<details\b|<button\b", teaser):
+                findings.append(finding("DEAD_EXPECTATION_TEASER", "P1",
+                    "/decision-cockpit/daihen/", "market expectation teaser has no actionable link",
+                    "実際の市場期待比較セクションへアンカーリンクを設ける"))
+            if "company-research:6622" in source or "### Must happen" in source:
+                findings.append(finding("DEVELOPER_VOCABULARY_REVIEW", "P2",
+                    "/decision-cockpit/daihen/", "technical references/English labels in builder",
+                    "日本語の投資判断文を上位に置き、参照IDは詳細へ"))
+        except (OSError, UnicodeError) as ex:
+            findings.append(finding("DAIHEN_SOURCE_UNREADABLE", "P0", "/decision-cockpit/daihen/",
+                type(ex).__name__, "生成器の読み込みを確認。未検証を正常とみなさない"))
     return {"schema_version": 1, "review_as_of": date.today().isoformat(),
             "run_scope": manifest, "findings": findings, "finding_count": len(findings),
             "result": "FINDINGS" if findings else "NO_STATIC_FINDINGS_AI_NOT_RUN"}
