@@ -51,9 +51,9 @@ class CandidateSelectorSourceTests(unittest.TestCase):
             root = Path(tmp) / "03_Companies" / "themes"
             root.mkdir(parents=True)
             (root / "2026_data_center_comparison.md").write_text(
-                "# データセンター電源通信インフラ比較\\n"
-                "更新日: 2026-11-20\\n"
-                "比較対象 4063 / 6622\\n",
+                "# データセンター電源通信インフラ比較\n"
+                "更新日: 2026-11-20\n"
+                "比較対象 4063 / 6622\n",
                 encoding="utf-8",
             )
             rows = research_index_candidates(Path(tmp) / "03_Companies")
@@ -66,7 +66,7 @@ class CandidateSelectorSourceTests(unittest.TestCase):
             root = Path(tmp) / "03_Companies" / "companies"
             root.mkdir(parents=True)
             (root / "2026_report.md").write_text(
-                "# サンプル企業（2026）\\n最終更新: 2026-11-20\\n",
+                "# サンプル企業（2026）\n最終更新: 2026-11-20\n",
                 encoding="utf-8",
             )
             rows = research_index_candidates(Path(tmp) / "03_Companies")
