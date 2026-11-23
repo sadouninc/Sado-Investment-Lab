@@ -45,6 +45,60 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         self.assertIn("2026-10-29の通期業績予想上方修正と2026-10-01の1:5株式分割を反映し、利益ドライバーとForward PERを再確認する", first_view)
         self.assertIn("INTACT", first_view)
 
+    def test_first_view_prioritizes_readable_judgment_summary(self):
+        diagnostics = self.page.index("## ⚠ 先に確認する注意点")
+        summary = self.page.index("30秒で分かる判断材料")
+        self.assertLess(summary, diagnostics)
+        first_view = self.page[:diagnostics]
+        for label in (
+            "今回の注目点",
+            "前回からの変化",
+            "情報の古さ",
+            "次に確認すること",
+        ):
+            self.assertIn(label, first_view)
+        self.assertIn("今日の新事実ではありません", first_view)
+        self.assertIn("株価基準日: 2026-10-30 / 最新株価は要確認", first_view)
+
+    def test_first_view_promotes_safe_same_basis_eps_and_per_delta(self):
+        first_view = self.page.split("## ⚠ 先に確認する注意点", 1)[0]
+        self.assertIn("EPS 144.02→144.02円 (+0.00円)", first_view)
+        self.assertIn("Forward PER 16.53→16.68倍 (+0.15倍)", first_view)
+        self.assertIn("前回 2026-08-09", first_view)
+        self.assertIn("今回株価基準 2026-10-30", first_view)
+        self.assertIn("同一分割調整basis", first_view)
+
+    def test_expectation_teaser_has_real_values_and_matching_anchor(self):
+        first_view = self.page.split("## ⚠ 先に確認する注意点", 1)[0]
+        self.assertIn("市場予想 161.20円", first_view)
+        self.assertIn("会社予想 169.42円 (+5.1%)", first_view)
+        self.assertIn("Sado Base 144.02円 (-10.7%)", first_view)
+        self.assertIn('href="#market-expectations"', first_view)
+        self.assertIn('id="market-expectations"', self.page)
+
+    def test_unavailable_expectation_teaser_never_invents_numeric_gap(self):
+        model = copy.deepcopy(self.model)
+        model["expectations"].update({
+            "status": "UNAVAILABLE",
+            "external_consensus_ref": None,
+            "consensus_value": None,
+            "company_vs_consensus_pct": None,
+            "sado_vs_consensus_pct": None,
+        })
+        teaser = BUILDER._expectation_first_view(model["expectations"])
+        self.assertIn("現在取得できません", teaser)
+        self.assertIn("差なし・0として扱いません", teaser)
+        self.assertNotIn("161.20円", teaser)
+        self.assertNotIn("+0.0%", teaser)
+        self.assertIn('href="#market-expectations"', teaser)
+
+    def test_missing_previous_snapshot_summary_does_not_reconstruct_history(self):
+        model = copy.deepcopy(self.model)
+        model["decision_history"].pop("previous_snapshot")
+        summary = BUILDER._judgment_summary(model)
+        self.assertIn("前回との差は比較できません", summary)
+        self.assertNotIn("16.53→16.68", summary)
+
     def test_previous_current_comparison_is_split_adjusted_and_visible(self):
         delta = BUILDER._scenario_delta(self.model)
         self.assertEqual(delta.scenario_transition, "Base維持")
