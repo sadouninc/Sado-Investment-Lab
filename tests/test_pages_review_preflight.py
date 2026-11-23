@@ -74,8 +74,8 @@ class PagesReviewPreflightTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root = self.fixture(Path(td), status="OK")
             builder = root / ".github/pages/build_daihen_cockpit.py"
-            builder.write_text(builder.read_text().replace("</div>'",
-                "</div><a href=\\"#unrelated\\">別項目</a>'"))
+            builder.write_text(builder.read_text().replace("</div>\x27",
+                "</div><a href=\x27#unrelated\x27>別項目</a>\x27"))
             report = inspect(root)
             self.assertIn("DEAD_EXPECTATION_TEASER", {f["rule"] for f in report["findings"]})
 
