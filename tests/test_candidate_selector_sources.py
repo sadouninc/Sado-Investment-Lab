@@ -46,6 +46,32 @@ class CandidateSelectorSourceTests(unittest.TestCase):
             self.assertEqual(rows[0]["research_status"], "CURRENT")
             self.assertEqual(rows[0]["last_researched_at"], "2026-08-08")
 
+    def test_year_prefixed_theme_note_is_not_a_security_code(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "03_Companies" / "themes"
+            root.mkdir(parents=True)
+            (root / "2026_data_center_comparison.md").write_text(
+                "# データセンター電源通信インフラ比較\\n"
+                "更新日: 2026-11-20\\n"
+                "比較対象 4063 / 6622\\n",
+                encoding="utf-8",
+            )
+            rows = research_index_candidates(Path(tmp) / "03_Companies")
+            self.assertEqual(1, len(rows))
+            self.assertIsNone(rows[0]["security_code"])
+            self.assertEqual("データセンター電源通信インフラ比較", rows[0]["company_name"])
+
+    def test_explicit_heading_ticker_is_not_suppressed_by_year_filename(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "03_Companies" / "companies"
+            root.mkdir(parents=True)
+            (root / "2026_report.md").write_text(
+                "# サンプル企業（2026）\\n最終更新: 2026-11-20\\n",
+                encoding="utf-8",
+            )
+            rows = research_index_candidates(Path(tmp) / "03_Companies")
+            self.assertEqual("2026", rows[0]["security_code"])
+
     def test_research_without_freshness_is_conservatively_stale(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "03_Companies" / "power"
