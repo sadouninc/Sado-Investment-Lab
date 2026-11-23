@@ -214,7 +214,7 @@ def _judgment_summary(model: Mapping[str, Any]) -> str:
     return f"""
 <section class="notice-card cockpit-judgment-summary" aria-labelledby="judgment-summary-title">
   <h2 id="judgment-summary-title">30秒で分かる判断材料</h2>
-  <p><strong>今回の注目点:</strong> {_e(focus)} <span class="muted">これは日付付き既存資料の確認理由であり、今日の新事実ではありません。</span></p>
+  <p><strong>今回の注目点（なぜ今日見る？）:</strong> {_e(focus)} <span class="muted">これは日付付き既存資料の確認理由であり、今日の新事実ではありません。</span></p>
   <p><strong>前回からの変化:</strong> {_e(change)}</p>
   <p><strong>情報の古さ:</strong> {_e(freshness)} / 全体状態: {_status(model.get("overall_status"))}</p>
   <p><strong>今の投資仮説:</strong> {_e(thesis)} / 警告 {_e(warning_count)}件</p>
