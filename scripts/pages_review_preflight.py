@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 from datetime import date
 from pathlib import Path
@@ -38,15 +39,20 @@ def inspect(root: Path) -> dict:
                         "冒頭に確認日と未取得原因を表示し、今の投資判断に使わない"))
             candidates = data.get("candidates")
             if not isinstance(candidates, list) or not candidates:
+                reason = "missing" if "candidates" not in data else ("empty" if candidates == [] else "invalid")
                 findings.append(finding("NO_VERIFIED_FOCUS", "P0", "/",
-                    "candidates empty, missing or invalid",
+                    f"candidates {reason}",
                     "今日の検証済み注目銘柄は未確定（候補データなし／未取得）"))
-            elif all(
-                    item.get("status") != "OK" or item.get("total_priority") is None
-                    for item in candidates if isinstance(item, dict)):
-                findings.append(finding("NO_VERIFIED_FOCUS", "P0", "/",
-                    f"candidates={len(candidates)}; none with OK status and non-null priority",
-                    "今日の検証済み注目候補は未確定と表示。過去の保有/Researchを新情報として昇格しない"))
+            else:
+                def valid_priority(item):
+                    priority = item.get("total_priority")
+                    return (isinstance(priority, (int, float)) and not isinstance(priority, bool)
+                            and math.isfinite(priority))
+                if not any(isinstance(item, dict) and item.get("status") == "OK"
+                           and valid_priority(item) for item in candidates):
+                    findings.append(finding("NO_VERIFIED_FOCUS", "P0", "/",
+                        f"candidates={len(candidates)}; none with OK status and valid numeric priority",
+                        "今日の検証済み注目候補は未確定と表示。過去の保有/Researchを新情報として昇格しない"))
         except (OSError, ValueError, TypeError, AttributeError) as ex:
             findings.append(finding("MORNING_DATA_UNREADABLE", "P0", "/",
                 type(ex).__name__, "データ生成・JSON構造を確認。欠損を正常とみなさない"))
@@ -58,12 +64,22 @@ def inspect(root: Path) -> dict:
         try:
             source = cockpit_file.read_text(encoding="utf-8")
             # This is a source heuristic; a browser review must establish actual UX.
-            match = re.search(r"def _expectation_first_view\(.*?\n(?=def |$)", source, flags=re.S)
+            # Only extract the teaser function, not unrelated page sections or links.
+            match = re.search(r"^def _expectation_first_view\(.*?(?=^def |^class |\Z)",
+                              source, flags=re.S | re.M)
             teaser = match.group(0) if match else ""
-            if "cockpit-expectation-summary" in teaser and not re.search(r"<a\s|<details\b|<button\b", teaser):
-                findings.append(finding("DEAD_EXPECTATION_TEASER", "P1",
-                    "/decision-cockpit/daihen/", "market expectation teaser has no actionable link",
-                    "実際の市場期待比較セクションへアンカーリンクを設ける"))
+            if "cockpit-expectation-summary" in teaser:
+                # A link anywhere else in this function is not proof that the teaser navigates.
+                # Only treat an anchor inside the teaser itself as a source-level indication;
+                # actual target existence and click behavior still require browser validation.
+                card = re.search(r"<(?:div|a)[^>]*cockpit-expectation-summary[^>]*>.*?</(?:div|a)>",
+                                 teaser, flags=re.S)
+                has_card_anchor = bool(card and re.search(r"<a\s+[^>]*href=[\\\"']#market-expectations[\\\"']",
+                                                          card.group(0)))
+                if not has_card_anchor:
+                    findings.append(finding("DEAD_EXPECTATION_TEASER", "P1",
+                        "/decision-cockpit/daihen/", "teaser has no verified local market-expectations anchor; browser NOT_RUN",
+                        "市場期待比較への実際に動作するアンカーリンクを設け、ブラウザで確認する"))
             if "company-research:6622" in source or "### Must happen" in source:
                 findings.append(finding("DEVELOPER_VOCABULARY_REVIEW", "P2",
                     "/decision-cockpit/daihen/", "technical references/English labels in builder",
