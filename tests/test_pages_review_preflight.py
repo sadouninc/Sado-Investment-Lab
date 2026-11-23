@@ -47,6 +47,38 @@ class PagesReviewPreflightTests(unittest.TestCase):
             self.assertNotIn("NO_VERIFIED_FOCUS", rules)
             self.assertNotIn("DEAD_EXPECTATION_TEASER", rules)
 
+    def test_empty_missing_invalid_candidates_fail_closed(self):
+        for candidates in ([], "invalid"):
+            with self.subTest(candidates=candidates), tempfile.TemporaryDirectory() as td:
+                root = self.fixture(Path(td), status="OK", with_teaser=False, candidates=candidates)
+                report = inspect(root)
+                self.assertIn("NO_VERIFIED_FOCUS", {f["rule"] for f in report["findings"]})
+        with tempfile.TemporaryDirectory() as td:
+            root = self.fixture(Path(td), status="OK", with_teaser=False)
+            dataset = root / "data/generated/public/morning-dataset.json"
+            data = json.loads(dataset.read_text())
+            del data["candidates"]
+            dataset.write_text(json.dumps(data))
+            report = inspect(root)
+            self.assertTrue(any(f["rule"] == "NO_VERIFIED_FOCUS" and "missing" in f["evidence"]
+                                for f in report["findings"]))
+
+    def test_invalid_priorities_are_not_verified(self):
+        for priority in ("", True, "3", float("inf"), None):
+            with self.subTest(priority=priority), tempfile.TemporaryDirectory() as td:
+                report = inspect(self.fixture(Path(td), status="OK", with_teaser=False,
+                    candidates=[{"security_code": "4063", "status": "OK", "total_priority": priority}]))
+                self.assertIn("NO_VERIFIED_FOCUS", {f["rule"] for f in report["findings"]})
+
+    def test_unrelated_link_does_not_clear_dead_teaser(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = self.fixture(Path(td), status="OK")
+            builder = root / ".github/pages/build_daihen_cockpit.py"
+            builder.write_text(builder.read_text().replace("</div>'",
+                "</div><a href=\\"#unrelated\\">別項目</a>'"))
+            report = inspect(root)
+            self.assertIn("DEAD_EXPECTATION_TEASER", {f["rule"] for f in report["findings"]})
+
     def test_missing_files_cannot_be_pass(self):
         with tempfile.TemporaryDirectory() as td:
             report = inspect(Path(td))
