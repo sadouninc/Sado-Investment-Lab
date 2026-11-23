@@ -74,7 +74,7 @@ def inspect(root: Path) -> dict:
                 # actual target existence and click behavior still require browser validation.
                 card = re.search(r"<(?:div|a)[^>]*cockpit-expectation-summary[^>]*>.*?</(?:div|a)>",
                                  teaser, flags=re.S)
-                has_card_anchor = bool(card and re.search(r"<a\s+[^>]*href=[\\\"']#market-expectations[\\\"']",
+                has_card_anchor = bool(card and re.search(r"<a\s+[^>]*href=['\"]#market-expectations['\"]",
                                                           card.group(0)))
                 if not has_card_anchor:
                     findings.append(finding("DEAD_EXPECTATION_TEASER", "P1",
