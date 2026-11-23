@@ -93,8 +93,21 @@ def research_index_candidates(root: Path) -> list[dict[str, Any]]:
         if path.name.lower() == "readme.md":
             continue
         text = path.read_text(encoding="utf-8")
-        code_match = CODE_RE.search(path.stem) or CODE_RE.search(text[:500])
-        code = code_match.group(1) if code_match else None
+        # Only an explicit company-heading ticker or a conventional ticker
+        # filename is evidence of a listed security. Free-text dates in the
+        # document are not securities; year-prefixed theme notes need an
+        # explicit heading ticker before they can enter the trading shortlist.
+        heading = H1_RE.search(text)
+        heading_code = (
+            re.search(r"[（(]\\s*(\\d{4})\\s*[)）]", heading.group(1))
+            if heading else None
+        )
+        filename_code = re.match(r"^(\\d{4})[-_]", path.stem)
+        code = (
+            heading_code.group(1) if heading_code else
+            filename_code.group(1) if filename_code and not filename_code.group(1).startswith("20") else
+            None
+        )
         name = _title_from_markdown(path, text)
         researched_at = _research_date(text)
         status = "CURRENT" if researched_at else "STALE"
