@@ -25,6 +25,7 @@ jobs:
       - name: Inspect repository Pages sources and Morning data
         run: python3 -m scripts.pages_review_preflight --root . --out pages-review
       - name: Publish review summary even when findings exist
+        if: always()
         shell: bash
         run: |
           {
@@ -32,9 +33,14 @@ jobs:
             echo "Source commit: ${GITHUB_SHA}"
             echo "This is not an AI/visual/public HTTP UX pass."
             echo
-            cat pages-review/review.md
+            if [ -f pages-review/review.md ]; then
+              cat pages-review/review.md
+            else
+              echo "UNAVAILABLE: review report not generated (earlier step failed). This is not PASS."
+            fi
           } >> "${GITHUB_STEP_SUMMARY}"
       - name: Preserve findings for independent AI and browser review
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pages-ux-review-static
