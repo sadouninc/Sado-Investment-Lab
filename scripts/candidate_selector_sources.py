@@ -99,10 +99,10 @@ def research_index_candidates(root: Path) -> list[dict[str, Any]]:
         # explicit heading ticker before they can enter the trading shortlist.
         heading = H1_RE.search(text)
         heading_code = (
-            re.search(r"[（(]\\s*(\\d{4})\\s*[)）]", heading.group(1))
+            re.search(r"[（(]\s*(\d{4})\s*[)）]", heading.group(1))
             if heading else None
         )
-        filename_code = re.match(r"^(\\d{4})[-_]", path.stem)
+        filename_code = re.match(r"^(\d{4})[-_]", path.stem)
         code = (
             heading_code.group(1) if heading_code else
             filename_code.group(1) if filename_code and not filename_code.group(1).startswith("20") else
