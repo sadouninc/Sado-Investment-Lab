@@ -76,7 +76,10 @@ def inspect(root: Path) -> dict:
                                  teaser, flags=re.S)
                 has_card_anchor = bool(card and re.search(r"<a\s+[^>]*href=['\"]#market-expectations['\"]",
                                                           card.group(0)))
-                if not has_card_anchor:
+                # Do not suppress a dead-link finding merely because href exists.
+                # This proves only the source contains a matching target ID, not real navigation.
+                target_declared = bool(re.search(r"""id\s*=\s*['"]market-expectations['"]""", source))
+                if not (has_card_anchor and target_declared):
                     findings.append(finding("DEAD_EXPECTATION_TEASER", "P1",
                         "/decision-cockpit/daihen/", "teaser has no verified local market-expectations anchor; browser NOT_RUN",
                         "市場期待比較への実際に動作するアンカーリンクを設け、ブラウザで確認する"))
