@@ -79,6 +79,33 @@ class PagesReviewPreflightTests(unittest.TestCase):
             report = inspect(root)
             self.assertIn("DEAD_EXPECTATION_TEASER", {f["rule"] for f in report["findings"]})
 
+    def test_teaser_link_without_target_stays_a_finding(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = self.fixture(Path(td), status="OK")
+            builder = root / ".github/pages/build_daihen_cockpit.py"
+            source = builder.read_text()
+            source = source.replace(
+                '<div class="cockpit-expectation-summary">市場期待との差は？</div>',
+                '<div class="cockpit-expectation-summary"><a href="#market-expectations">比較を見る</a></div>',
+            )
+            builder.write_text(source)
+            report = inspect(root)
+            self.assertIn("DEAD_EXPECTATION_TEASER", {f["rule"] for f in report["findings"]})
+
+    def test_teaser_link_with_source_target_is_only_static_evidence(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = self.fixture(Path(td), status="OK")
+            builder = root / ".github/pages/build_daihen_cockpit.py"
+            source = builder.read_text()
+            source = source.replace(
+                '<div class="cockpit-expectation-summary">市場期待との差は？</div>',
+                '<div class="cockpit-expectation-summary"><a href="#market-expectations">比較を見る</a></div>',
+            )
+            builder.write_text(source + '\\nMARKET_HTML = \'<h2 id="market-expectations">市場期待</h2>\'\\n')
+            report = inspect(root)
+            self.assertNotIn("DEAD_EXPECTATION_TEASER", {f["rule"] for f in report["findings"]})
+            self.assertEqual("NOT_RUN", report["run_scope"]["browser_review"])
+
     def test_missing_files_cannot_be_pass(self):
         with tempfile.TemporaryDirectory() as td:
             report = inspect(Path(td))
