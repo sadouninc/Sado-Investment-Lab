@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-11-25T23:47:21+00:00",
-  "as_of": "2026-11-26",
+  "generated_at": "2026-11-26T23:47:06+00:00",
+  "as_of": "2026-11-27",
   "data_quality": {
     "status": "PARTIAL",
     "completeness": 0.5,
@@ -18,17 +18,17 @@
     }
   },
   "warnings": [
-    "portfolio source is stale: portfolio snapshot is 110 days old (freshness limit 3)",
+    "portfolio source is stale: portfolio snapshot is 111 days old (freshness limit 3)",
     "capital source is missing: capital_snapshots table not found in canonical history database",
     "events source is missing: event calendar contains no events and does not explicitly confirm complete empty coverage",
-    "watchlist source is stale: watchlist snapshot is 107 days old (freshness limit 3)"
+    "watchlist source is stale: watchlist snapshot is 108 days old (freshness limit 3)"
   ],
   "source_status": [
     {
       "name": "market",
       "source": "https://query1.finance.yahoo.com/v8/finance/chart/",
       "source_reference": "https://query1.finance.yahoo.com/v8/finance/chart/",
-      "as_of": "2026-11-25T14:30:00+00:00",
+      "as_of": "2026-11-26T23:37:03+00:00",
       "status": "OK",
       "reason": null
     },
@@ -38,7 +38,7 @@
       "source_reference": "data/portfolio/current.json",
       "as_of": "2026-08-08",
       "status": "STALE",
-      "reason": "portfolio snapshot is 110 days old (freshness limit 3)"
+      "reason": "portfolio snapshot is 111 days old (freshness limit 3)"
     },
     {
       "name": "capital",
@@ -52,7 +52,7 @@
       "name": "candidates",
       "source": "data/generated/public/candidate-selector.json",
       "source_reference": "data/generated/public/candidate-selector.json",
-      "as_of": "2026-11-26",
+      "as_of": "2026-11-27",
       "status": "OK",
       "reason": null
     },
@@ -60,7 +60,7 @@
       "name": "investor_dna",
       "source": "data/generated/public/investor-dna.json",
       "source_reference": "data/generated/public/investor-dna.json",
-      "as_of": "2026-11-25T23:47:19+00:00",
+      "as_of": "2026-11-26T23:47:00+00:00",
       "status": "OK",
       "reason": null
     },
@@ -68,7 +68,7 @@
       "name": "events",
       "source": "data/events/calendar.json",
       "source_reference": "data/events/calendar.json",
-      "as_of": "2026-11-26",
+      "as_of": "2026-11-27",
       "status": "MISSING",
       "reason": "event calendar contains no events and does not explicitly confirm complete empty coverage"
     },
@@ -78,13 +78,13 @@
       "source_reference": "Current_Status.md",
       "as_of": "2026-08-11",
       "status": "STALE",
-      "reason": "watchlist snapshot is 107 days old (freshness limit 3)"
+      "reason": "watchlist snapshot is 108 days old (freshness limit 3)"
     },
     {
       "name": "sector_rotation",
       "source": "data/generated/public/money-flow/sector-history.jsonl",
       "source_reference": "data/generated/public/money-flow/sector-history.jsonl",
-      "as_of": "2026-11-25",
+      "as_of": "2026-11-26",
       "status": "OK",
       "reason": null
     }
@@ -93,32 +93,32 @@
     "phase": null,
     "indices": {
       "nikkei_225": {
-        "value": 58644.62890625,
-        "previous_close": 56436.6484375,
-        "change": 2207.98046875,
-        "change_pct": 3.9123167832958723,
-        "as_of": "2026-11-24T00:00:00+00:00",
+        "value": 57011.62109375,
+        "previous_close": 58644.62890625,
+        "change": -1633.0078125,
+        "change_pct": -2.784582054582604,
+        "as_of": "2026-11-25T00:00:00+00:00",
         "symbol": "^N225",
         "kind": "index",
         "source": "Yahoo Finance chart endpoint"
       },
       "topix": {
-        "value": 394.70001220703125,
-        "previous_close": 395.8999938964844,
-        "change": -1.199981689453125,
-        "change_pct": -0.30310222479237603,
-        "as_of": "2026-11-25T00:00:00+00:00",
+        "value": 394.6000061035156,
+        "previous_close": 394.70001220703125,
+        "change": -0.100006103515625,
+        "change_pct": -0.0253372435831517,
+        "as_of": "2026-11-26T00:00:00+00:00",
         "symbol": "1306.T",
         "kind": "etf_proxy",
         "proxy_for": "TOPIX",
         "source": "Yahoo Finance chart endpoint"
       },
       "growth_250_proxy": {
-        "value": 510.20001220703125,
-        "previous_close": 522.7999877929688,
-        "change": -12.5999755859375,
-        "change_pct": -2.4100948508298643,
-        "as_of": "2026-11-25T00:00:00+00:00",
+        "value": 522.0,
+        "previous_close": 510.20001220703125,
+        "change": 11.79998779296875,
+        "change_pct": 2.312816054614381,
+        "as_of": "2026-11-26T00:00:00+00:00",
         "symbol": "2516.T",
         "kind": "etf_proxy",
         "proxy_for": "TSE Growth Market 250",
@@ -135,10 +135,10 @@
         "source": "Yahoo Finance chart endpoint"
       },
       "nasdaq": {
-        "value": 23585.802734375,
+        "value": 23585.80078125,
         "previous_close": 23733.5390625,
-        "change": -147.736328125,
-        "change_pct": -0.6224791327410149,
+        "change": -147.73828125,
+        "change_pct": -0.6224873621289493,
         "as_of": "2026-11-25T14:30:00+00:00",
         "symbol": "^IXIC",
         "kind": "index",
@@ -155,21 +155,21 @@
         "source": "Yahoo Finance chart endpoint"
       },
       "sox": {
-        "value": 8774.8623046875,
+        "value": 8774.8603515625,
         "previous_close": 8832.5,
-        "change": -57.6376953125,
-        "change_pct": -0.6525637737050666,
+        "change": -57.6396484375,
+        "change_pct": -0.6525858866402491,
         "as_of": "2026-11-25T14:30:00+00:00",
         "symbol": "^SOX",
         "kind": "index",
         "source": "Yahoo Finance chart endpoint"
       },
       "vix": {
-        "value": 28.290000915527344,
-        "previous_close": 26.360000610351562,
-        "change": 1.9300003051757812,
-        "change_pct": 7.3217005329577685,
-        "as_of": "2026-11-25T08:00:00+00:00",
+        "value": 26.799999237060547,
+        "previous_close": 28.290000915527344,
+        "change": -1.4900016784667969,
+        "change_pct": -5.266884518370551,
+        "as_of": "2026-11-26T08:00:00+00:00",
         "symbol": "^VIX",
         "kind": "index",
         "source": "Yahoo Finance chart endpoint"
