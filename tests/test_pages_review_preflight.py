@@ -42,10 +42,48 @@ class PagesReviewPreflightTests(unittest.TestCase):
     def test_fresh_candidate_and_link_avoid_specific_findings(self):
         with tempfile.TemporaryDirectory() as td:
             report = inspect(self.fixture(Path(td), status="OK", with_teaser=False, candidates=[
-                {"security_code":"6622", "status":"OK", "total_priority":3.0}]))
+                {"security_code":"6622", "company_name":"ダイヘン", "status":"CURRENT", "total_priority":3.0, "rank":1, "last_researched_at":"2026-11-19"}]))
             rules = {f["rule"] for f in report["findings"]}
             self.assertNotIn("NO_VERIFIED_FOCUS", rules)
             self.assertNotIn("DEAD_EXPECTATION_TEASER", rules)
+
+    def test_current_candidate_contract_rejects_unverified_rows_and_source(self):
+        valid = {"security_code": "6622", "company_name": "ダイヘン",
+                 "status": "CURRENT", "total_priority": 3.0, "rank": 1,
+                 "last_researched_at": "2026-11-19"}
+        cases = (
+            ("provider_ok", "OK", valid, False),
+            ("provider_partial", "PARTIAL", valid, True),
+            ("row_ok_not_current", "OK", dict(valid, status="OK"), True),
+            ("stale", "OK", dict(valid, status="STALE"), True),
+            ("missing_date", "OK", dict(valid, last_researched_at=None), True),
+            ("future_date", "OK", dict(valid, last_researched_at="2026-11-21"), True),
+            ("invalid_date", "OK", dict(valid, last_researched_at="2026-02-30"), True),
+            ("missing_rank", "OK", dict(valid, rank=None), True),
+            ("zero_rank", "OK", dict(valid, rank=0), True),
+            ("fractional_rank", "OK", dict(valid, rank=1.5), True),
+            ("missing_name", "OK", dict(valid, company_name=""), True),
+            ("invalid_code", "OK", dict(valid, security_code="theme"), True),
+        )
+        for name, status, row, should_flag in cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as td:
+                report = inspect(self.fixture(Path(td), status=status,
+                    candidates=[row], with_teaser=False))
+                self.assertEqual(should_flag, "NO_VERIFIED_FOCUS" in
+                                 {f["rule"] for f in report["findings"]})
+
+    def test_missing_candidate_source_or_dataset_date_is_not_verified(self):
+        valid = {"security_code": "285A", "company_name": "キオクシア",
+                 "status": "CURRENT", "total_priority": 3.0, "rank": 1,
+                 "last_researched_at": "2026-11-19"}
+        for key in ("as_of", "source_status"):
+            with self.subTest(key=key), tempfile.TemporaryDirectory() as td:
+                root = self.fixture(Path(td), status="OK", candidates=[valid])
+                dataset = root / "data/generated/public/morning-dataset.json"
+                data = json.loads(dataset.read_text())
+                del data[key]
+                dataset.write_text(json.dumps(data))
+                self.assertIn("NO_VERIFIED_FOCUS", {f["rule"] for f in inspect(root)["findings"]})
 
     def test_empty_missing_invalid_candidates_fail_closed(self):
         for candidates in ([], "invalid"):
@@ -67,7 +105,7 @@ class PagesReviewPreflightTests(unittest.TestCase):
         for priority in ("", True, "3", float("inf"), None):
             with self.subTest(priority=priority), tempfile.TemporaryDirectory() as td:
                 report = inspect(self.fixture(Path(td), status="OK", with_teaser=False,
-                    candidates=[{"security_code": "4063", "status": "OK", "total_priority": priority}]))
+                    candidates=[{"security_code": "4063", "company_name": "信越化学", "status": "CURRENT", "total_priority": priority, "rank": 1, "last_researched_at": "2026-11-19"}]))
                 self.assertIn("NO_VERIFIED_FOCUS", {f["rule"] for f in report["findings"]})
 
     def test_unrelated_link_does_not_clear_dead_teaser(self):
