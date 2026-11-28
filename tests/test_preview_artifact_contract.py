@@ -241,10 +241,22 @@ class SymlinkAndRobustnessTests(unittest.TestCase):
             self.assertIn("UNKNOWN", statuses(report, "route"), routes)
 
     def test_deeply_nested_metadata_json_is_unknown(self):
+        # Depending on the Python version the decoder either raises
+        # RecursionError (-> None) or returns a nested list; both must be
+        # handled without an exception and never yield a PASS.
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "preview-metadata.json").write_text("[" * 100000 + "]" * 100000)
-            self.assertIsNone(pac.read_metadata(root))
+            metadata = pac.read_metadata(root)
+            self.assertNotIsInstance(metadata, dict)
+            report = pac.check_artifact(metadata, list(FILES), expected_pr=986, expected_head=HEAD)
+            self.assertEqual(report["verdict"], "UNKNOWN")
+            self.assertEqual(statuses(report, "metadata"), ["UNKNOWN"])
+        with unittest.mock.patch.object(pac.json, "loads", side_effect=RecursionError):
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                (root / "preview-metadata.json").write_text("{}")
+                self.assertIsNone(pac.read_metadata(root))
 
     def test_namespace_is_explicitly_unknown_when_expectation_malformed(self):
         report = check(expected_pr=0)
