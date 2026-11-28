@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any, Callable
 
@@ -38,8 +39,11 @@ class JsonFileProvider:
             )
 
         try:
-            data = json.loads(self.path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+            data = json.loads(
+                self.path.read_text(encoding="utf-8"),
+                parse_constant=lambda value: (_ for _ in ()).throw(ValueError(f"non-finite JSON number: {value}")),
+            )
+        except (OSError, UnicodeError, ValueError, json.JSONDecodeError) as exc:
             return ProviderResult.unavailable(
                 self.name,
                 status="PARTIAL",
@@ -54,9 +58,36 @@ class JsonFileProvider:
                 source_reference=source_reference,
             )
 
+        if not isinstance(data, (dict, list)):
+            return ProviderResult.unavailable(
+                self.name,
+                status="PARTIAL",
+                reason="source JSON root must be an object or list",
+                source_reference=source_reference,
+            )
+
+        if self._contains_nonfinite(data):
+            return ProviderResult.unavailable(
+                self.name,
+                status="PARTIAL",
+                reason="source JSON contains a non-finite numeric value",
+                source_reference=source_reference,
+            )
+
         return ProviderResult.ok(
             self.name,
             data,
             as_of=self.as_of_getter(data),
             source_reference=source_reference,
         )
+
+    @classmethod
+    def _contains_nonfinite(cls, value: Any) -> bool:
+        if isinstance(value, float):
+            return not math.isfinite(value)
+        if isinstance(value, dict):
+            return any(cls._contains_nonfinite(item) for item in value.values())
+        if isinstance(value, list):
+            return any(cls._contains_nonfinite(item) for item in value)
+        return False
+
