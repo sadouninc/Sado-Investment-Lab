@@ -134,8 +134,10 @@ class PullRequestPagesPreviewTest(unittest.TestCase):
         self.assertIn("if: github.event_name != 'pull_request'", workflow)
         self.assertIn("preview:", workflow)
         self.assertIn("github.event.pull_request.head.repo.full_name == github.repository", workflow)
-        self.assertIn("publish_branch: pages-previews", workflow)
-        self.assertIn("destination_dir: pr-${{ github.event.pull_request.number }}", workflow)
+        # #986: the single-shot action was replaced by a lossless publish step;
+        # same contract — shared pages-previews branch, one namespace per PR.
+        self.assertIn("PREVIEW_BRANCH: pages-previews", workflow)
+        self.assertIn('namespace="pr-${PR_NUMBER}"', workflow)
         preview_section = workflow.split("\n  preview:", 1)[1].split("\n  deploy:", 1)[0]
         self.assertNotIn("environment:", preview_section)
         self.assertNotIn("actions/deploy-pages", preview_section)

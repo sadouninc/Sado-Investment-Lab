@@ -280,30 +280,105 @@ jobs:
             --head-sha "${HEAD_SHA}" \
             --built-at "${built_at}"
 
+      # #986: every PR shares one `pages-previews` branch. Publish losslessly:
+      # each attempt rebuilds on the freshly fetched remote tip, replaces only
+      # this PR's namespace, and pushes without force; a non-fast-forward
+      # rejection retries (bounded). Every attempt creates a commit owned by
+      # this run (even when the tree is unchanged), and that exact commit is
+      # the immutable preview ref. The PR head is re-checked immediately
+      # before each push; if it moved, nothing is published (a newer run owns
+      # the namespace). Residual TOCTOU: GitHub's PR head and the git push are
+      # not one atomic transaction, so a head change in the few milliseconds
+      # between the final check and the push cannot be excluded.
       - name: Publish preview namespace
         id: publish
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: pages-previews
-          publish_dir: preview-site
-          destination_dir: pr-${{ github.event.pull_request.number }}
-          keep_files: true
-          user_name: github-actions[bot]
-          user_email: 41898282+github-actions[bot]@users.noreply.github.com
-          commit_message: >-
-            preview: PR #${{ github.event.pull_request.number }}
-            at ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PREVIEW_BRANCH: pages-previews
+          PREVIEW_SITE: preview-site
+          PREVIEW_MAX_ATTEMPTS: "5"
+          PREVIEW_BACKOFF_SECONDS: "3"
+        run: |
+          set -euo pipefail
+          site="$(cd "${PREVIEW_SITE}" && pwd)"
+          namespace="pr-${PR_NUMBER}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          wt="$(mktemp -d)"
+          trap 'git worktree remove --force "${wt}" >/dev/null 2>&1 || true' EXIT
+          superseded_if_head_moved() {
+            current_head="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.sha)"
+            if [ "${current_head}" != "${HEAD_SHA}" ]; then
+              echo "::notice::PR head moved to ${current_head}; not publishing stale ${HEAD_SHA}."
+              echo "state=superseded" >> "${GITHUB_OUTPUT}"
+              exit 0
+            fi
+          }
+          for attempt in $(seq 1 "${PREVIEW_MAX_ATTEMPTS}"); do
+            superseded_if_head_moved
+            git worktree remove --force "${wt}" >/dev/null 2>&1 || true
+            rm -rf "${wt}"
+            set +e
+            git ls-remote --exit-code origin "refs/heads/${PREVIEW_BRANCH}" >/dev/null
+            remote_rc=$?
+            set -e
+            if [ "${remote_rc}" -eq 0 ]; then
+              git fetch --no-tags --depth=1 origin "+refs/heads/${PREVIEW_BRANCH}:refs/remotes/origin/${PREVIEW_BRANCH}"
+              git worktree add --detach "${wt}" "refs/remotes/origin/${PREVIEW_BRANCH}" >/dev/null
+            elif [ "${remote_rc}" -ne 2 ]; then
+              # Only exit code 2 means "ref absent"; anything else is a transport
+              # or auth failure and must not create a fresh branch.
+              echo "::error::cannot read ${PREVIEW_BRANCH} from origin (git ls-remote exit ${remote_rc})."
+              echo "state=failed" >> "${GITHUB_OUTPUT}"
+              exit 1
+            else
+              # Branch does not exist yet: start from an empty-tree root commit
+              # (independent of the checked-out PR tree).
+              empty_tree="$(git hash-object -t tree /dev/null)"
+              root_commit="$(git commit-tree "${empty_tree}" -m "preview: initialise ${PREVIEW_BRANCH}")"
+              git worktree add --detach "${wt}" "${root_commit}" >/dev/null
+            fi
+            rm -rf "${wt:?}/${namespace}"
+            mkdir -p "${wt}/${namespace}"
+            cp -a "${site}/." "${wt}/${namespace}/"
+            touch "${wt}/${namespace}/.nojekyll"
+            git -C "${wt}" add -A -- "${namespace}"
+            # Always a commit owned by this run, even if the tree is unchanged,
+            # so preview_ref never names another PR's commit.
+            git -C "${wt}" commit --quiet --allow-empty \
+              -m "preview: PR #${PR_NUMBER} at ${HEAD_SHA}" -m "run: ${GITHUB_RUN_ID:-local} attempt ${attempt}"
+            candidate="$(git -C "${wt}" rev-parse HEAD)"
+            superseded_if_head_moved
+            # Push from the checkout itself (its credentials), never with force.
+            if git push origin "${candidate}:refs/heads/${PREVIEW_BRANCH}"; then
+              echo "state=published" >> "${GITHUB_OUTPUT}"
+              echo "preview_ref=${candidate}" >> "${GITHUB_OUTPUT}"
+              echo "attempts=${attempt}" >> "${GITHUB_OUTPUT}"
+              exit 0
+            fi
+            echo "::warning::preview push rejected (attempt ${attempt}/${PREVIEW_MAX_ATTEMPTS}); refetching remote tip."
+            sleep $(( attempt * PREVIEW_BACKOFF_SECONDS + RANDOM % (PREVIEW_BACKOFF_SECONDS + 1) ))
+          done
+          echo "::error::preview publish failed after ${PREVIEW_MAX_ATTEMPTS} attempts (no force push)."
+          echo "state=failed" >> "${GITHUB_OUTPUT}"
+          exit 1
 
       - name: Resolve immutable preview URL
         id: url
+        if: steps.publish.outputs.state == 'published'
         shell: bash
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          PREVIEW_REF: ${{ steps.publish.outputs.preview_ref }}
         run: |
           set -euo pipefail
-          preview_ref="$(git ls-remote origin refs/heads/pages-previews | cut -f1)"
-          test -n "${preview_ref}"
+          # The exact commit this job pushed, not whatever the shared branch
+          # points to now (another PR may have pushed since).
+          preview_ref="${PREVIEW_REF}"
+          [[ "${preview_ref}" =~ ^[0-9a-f]{40}$ ]]
           base="https://raw.githack.com/${GITHUB_REPOSITORY}/${preview_ref}/pr-${PR_NUMBER}"
           echo "preview_ref=${preview_ref}" >> "${GITHUB_OUTPUT}"
           echo "root=${base}/index.html" >> "${GITHUB_OUTPUT}"
@@ -312,6 +387,7 @@ jobs:
 
       - name: Verify browser preview
         id: verify
+        if: steps.publish.outputs.state == 'published'
         shell: bash
         env:
           ROOT_URL: ${{ steps.url.outputs.root }}
@@ -336,11 +412,28 @@ jobs:
           COCKPIT_URL: ${{ steps.url.outputs.cockpit }}
           PREVIEW_REF: ${{ steps.url.outputs.preview_ref }}
           VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+          PUBLISH_STATE: ${{ steps.publish.outputs.state }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         with:
           script: |
             const marker = '<!-- sado-pages-preview -->';
             const ready = process.env.VERIFY_OUTCOME === 'success';
+            const superseded = process.env.PUBLISH_STATE === 'superseded';
+            if (superseded) {
+              // A newer head owns this PR's preview; keep its comment intact.
+              core.notice(`Preview for ${process.env.HEAD_SHA} superseded by a newer PR head; comment unchanged.`);
+              return;
+            }
+            // Re-check the live head right before mutating the shared marker
+            // comment, so a stale/cancelled run never overwrites a newer one.
+            const { data: livePr } = await github.rest.pulls.get({
+              ...context.repo,
+              pull_number: context.issue.number,
+            });
+            if (livePr.head.sha !== process.env.HEAD_SHA) {
+              core.notice(`PR head is now ${livePr.head.sha}; not updating the preview comment for ${process.env.HEAD_SHA}.`);
+              return;
+            }
             const status = ready ? '✅ READY' : '❌ FAILED';
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const urls = ready
