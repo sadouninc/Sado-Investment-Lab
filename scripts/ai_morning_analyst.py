@@ -114,54 +114,79 @@ def estimate_cost(usage: dict[str, Any]) -> tuple[float | None, str]:
 
 
 def _finite_number(value: Any) -> bool:
-    return (
-        isinstance(value, (int, float))
-        and not isinstance(value, bool)
-        and math.isfinite(value)
-    )
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:  # integers too large to convert to float
+        return False
+
+
+def _positive_integer_rank(value: Any) -> bool:
+    """Rank must be a positive whole number (same rule as #951's static audit)."""
+    return _finite_number(value) and value > 0 and value == int(value)
 
 
 # JPX securities codes: 4 characters, digits with optional letters in the 2nd
 # and 4th positions for new-format codes (e.g. 6622, 278A).
 SECURITY_CODE_RE = re.compile(r"^[0-9][0-9A-Z][0-9][0-9A-Z]$")
+_ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 def _iso_date(value: Any) -> date | None:
-    if not isinstance(value, str) or len(value) < 10:
+    """Strict calendar date: exactly ``YYYY-MM-DD`` (no prefixes, times or suffixes)."""
+    if not isinstance(value, str) or not _ISO_DATE_RE.fullmatch(value):
         return None
     try:
-        return date.fromisoformat(value[:10])
+        return date.fromisoformat(value)
     except ValueError:
         return None
+
+
+def _row_code(row: dict[str, Any]) -> str | None:
+    code = row.get("security_code")
+    if not isinstance(code, str) or not SECURITY_CODE_RE.fullmatch(code.strip()):
+        return None
+    return code.strip()
+
+
+def _row_name(row: dict[str, Any]) -> str | None:
+    name = row.get("company_name")
+    if not isinstance(name, str) or not name.strip():
+        return None
+    return " ".join(name.split())
 
 
 def _verified_row_code(row: dict[str, Any], as_of: date | None) -> str | None:
     """Return the security code only if this row is independently verified.
 
-    A row qualifies only with a well-formed security code, a finite
-    total_priority, a numeric rank, upstream research status ``CURRENT``
-    (the Candidate Selector freshness contract) and a parseable
-    last_researched_at that is not after the dataset date.
+    Same row contract as #951's ``_verified_candidate``: a well-formed code, a
+    non-empty company name, upstream research status exactly ``CURRENT`` (the
+    Candidate Selector freshness contract), a finite total_priority, a positive
+    integer rank and a strict ``YYYY-MM-DD`` last_researched_at that is not after
+    the dataset date.
     """
-    code = row.get("security_code")
-    if not isinstance(code, str) or not SECURITY_CODE_RE.fullmatch(code.strip()):
+    code = _row_code(row)
+    if code is None or _row_name(row) is None:
         return None
-    if not (_finite_number(row.get("total_priority")) and _finite_number(row.get("rank"))):
+    if row.get("status") != "CURRENT":
         return None
-    if str(row.get("status") or "").upper() != "CURRENT":
+    if not (_finite_number(row.get("total_priority")) and _positive_integer_rank(row.get("rank"))):
         return None
     researched = _iso_date(row.get("last_researched_at"))
     if as_of is None or researched is None or researched > as_of:
         return None
-    return code.strip()
+    return code
 
 
 def candidate_focus_verification(dataset: Any) -> dict[str, Any]:
     """Deterministically record which securities the dataset verifies as focus.
 
-    Renderers must bind each displayed AI watch item to ``verified_security_codes``
-    (and to ``as_of``); a dataset-level boolean alone is never enough. Any
-    malformed payload, non-OK candidate source or unverified row fails closed.
+    Renderers show a verified focus only from ``verified_candidates`` for the same
+    ``as_of``; AI prose is never identity evidence. Any malformed payload, non-OK
+    candidate source or unverified row fails closed, while other well-formed rows
+    are kept. A security code that appears with different company names is
+    ambiguous and is never verified; an identical code/name pair is shown once.
     """
     dataset = dataset if isinstance(dataset, dict) else {}
     as_of = _iso_date(dataset.get("as_of"))
@@ -171,16 +196,23 @@ def candidate_focus_verification(dataset: Any) -> dict[str, Any]:
         (row for row in statuses if isinstance(row, dict) and row.get("name") == "candidates"),
         {},
     )
-    source_status = str(source.get("status") or "UNKNOWN").upper()
+    source_status = source.get("status") if isinstance(source.get("status"), str) else "UNKNOWN"
     rows = dataset.get("candidates")
     rows = [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
-    scored = [row for row in rows if _finite_number(row.get("total_priority")) and _finite_number(row.get("rank"))]
+    scored = [row for row in rows if _finite_number(row.get("total_priority")) and _positive_integer_rank(row.get("rank"))]
+
+    names_by_code: dict[str, set[str]] = {}
+    for row in rows:
+        code, name = _row_code(row), _row_name(row)
+        if code is not None and name is not None:
+            names_by_code.setdefault(code, set()).add(name)
+    conflicting = sorted(code for code, names in names_by_code.items() if len(names) > 1)
+
     pairs: dict[str, str] = {}
     for row in rows:
         code = _verified_row_code(row, as_of)
-        name = row.get("company_name")
-        if code and isinstance(name, str) and name.strip():
-            pairs.setdefault(code, " ".join(name.split()))
+        if code is not None and code not in conflicting:
+            pairs[code] = _row_name(row)  # identical pairs collapse to one entry
     if source_status != "OK":
         pairs = {}
     codes = sorted(pairs)
@@ -196,7 +228,7 @@ def candidate_focus_verification(dataset: Any) -> dict[str, Any]:
     elif not scored:
         reason = "優先度を算出できた候補がありません"
     else:
-        reason = "優先度のある候補の根拠がすべて古いか、日付・銘柄コードを確認できません"
+        reason = "優先度のある候補の根拠がすべて古いか、日付・銘柄コード・会社名を確認できません"
     return {
         "as_of": as_of.isoformat() if as_of else None,
         "verified_focus_available": verified,
@@ -204,6 +236,7 @@ def candidate_focus_verification(dataset: Any) -> dict[str, Any]:
         # Canonical code/name pairs: the only identity a renderer may show as a
         # verified focus. AI watch prose is never used as identity evidence.
         "verified_candidates": [{"security_code": code, "company_name": pairs[code]} for code in codes],
+        "conflicting_security_codes": conflicting,
         "candidate_source_status": source_status,
         "candidate_source_as_of": source.get("as_of"),
         "candidate_count": len(rows),
