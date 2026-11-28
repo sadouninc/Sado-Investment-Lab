@@ -211,6 +211,46 @@ class OutputSafetyTests(unittest.TestCase):
         self.assertIn("イベント時のHEADが古い", stale)
 
 
+class JapaneseSummaryUxTests(unittest.TestCase):
+    """⭐️ミナ review 6097961675 follow-ups."""
+
+    def test_unknown_review_inventory_shows_unconfirmed_not_zero(self):
+        summary = ev.render_summary_ja(ev.build_report(snapshot(reviews=None)))
+        self.assertIn("APPROVED: 未確認", summary)
+        self.assertIn("COMMENTED: 未確認", summary)
+        self.assertIn("古いHEADへのレビュー: 未確認", summary)
+        self.assertNotIn("APPROVED: 0件", summary)
+        known = ev.render_summary_ja(ev.build_report(snapshot()))
+        self.assertIn("APPROVED: 0件", known)
+        self.assertIn("COMMENTED: 1件", known)
+
+    def test_statuses_and_reasons_have_japanese_labels(self):
+        summary = ev.render_summary_ja(ev.build_report(snapshot(
+            workflow_runs=[run(1, "PR Preflight", conclusion="failure")],
+            review_threads=[{"isResolved": False}, {"isResolved": False}],
+        )))
+        self.assertIn("失敗（FAILED）", summary)
+        self.assertIn("最新HEADでCIが失敗している（CI failed on exact head）", summary)
+        self.assertIn("未解決のレビュースレッドが2件ある", summary)
+        unknown_threads = ev.render_summary_ja(ev.build_report(snapshot(review_threads=None)))
+        self.assertIn("未解決のレビュースレッド: 未確認（UNKNOWN）", unknown_threads)
+
+    def test_next_action_is_shown_for_every_status(self):
+        cases = {
+            "EVIDENCE_COLLECTED": snapshot(),
+            "PENDING": snapshot(workflow_runs=[run(1, "X", status="in_progress", conclusion=None)]),
+            "BLOCKED": snapshot(review_threads=[{"isResolved": False}]),
+            "STALE": snapshot(event_head_sha=OLD),
+            "UNKNOWN": snapshot(workflow_runs=None),
+        }
+        for status, snap in cases.items():
+            report = ev.build_report(snap)
+            self.assertEqual(report["status"], status)
+            summary = ev.render_summary_ja(report)
+            self.assertIn("次に確認すること:", summary)
+            self.assertIn(ev.NEXT_ACTION_JA[status], summary)
+
+
 class ReadOnlyClientTests(unittest.TestCase):
     def test_only_fixed_read_endpoints_are_allowed(self):
         client = ev.ReadOnlyClient("sadouninc/Sado-Investment-Lab", "token")

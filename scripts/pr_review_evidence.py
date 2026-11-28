@@ -299,9 +299,65 @@ def build_report(snapshot: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+SECTION_LABELS_JA = {
+    "CURRENT": "最新",
+    "STALE": "古い",
+    "UNKNOWN": "未確認",
+    "SUCCESS": "成功",
+    "PENDING": "実行中",
+    "FAILED": "失敗",
+    "CHANGES_REQUESTED": "変更要求あり",
+    "NO_EXACT_HEAD_REVIEW": "最新HEADへのレビューなし",
+    "REVIEWS_PRESENT": "レビューあり",
+    "UNRESOLVED": "未解決あり",
+    "NONE_UNRESOLVED": "未解決なし",
+}
+
+REASON_LABELS_JA = {
+    "event head differs from current PR head": "イベント時のHEADが現在のPRのHEADと異なる",
+    "CI failed on exact head": "最新HEADでCIが失敗している",
+    "GitHub CHANGES_REQUESTED outstanding": "GitHub上の変更要求（CHANGES_REQUESTED）が残っている",
+    "CI not completed on exact head": "最新HEADのCIが完了していない",
+    "no submitted review on exact head": "最新HEADへの提出済みレビューがない",
+    "head evidence unavailable": "HEADの情報を取得できない",
+    "ci evidence unavailable": "CIの情報を取得できない",
+    "reviews evidence unavailable": "レビューの情報を取得できない",
+    "threads evidence unavailable": "レビュースレッドの情報を取得できない",
+}
+
+NEXT_ACTION_JA = {
+    "EVIDENCE_COLLECTED": "❤️レイ / ⭐️ミナ の独立レビュー → 🌙ルナ のGate（このレポートは承認ではありません）",
+    "PENDING": "CIの完了後に、Actionsの結果と最新の run を確認する（このレポートはイベント時点のスナップショット）",
+    "BLOCKED": "実装担当が「理由」の阻害要因を解消し、新しいHEADで再確認する",
+    "STALE": "現在のHEADで実行された最新の run のレポートを確認する",
+    "UNKNOWN": "取得できなかった証跡を、Job log・PR画面で手動確認する（権限・API失敗の可能性）",
+}
+
+
+def _label(value: Any) -> str:
+    text = str(value)
+    ja = SECTION_LABELS_JA.get(text)
+    return f"{ja}（{text}）" if ja else text
+
+
+def _reason_ja(reason: str) -> str:
+    if reason in REASON_LABELS_JA:
+        return f"{REASON_LABELS_JA[reason]}（{reason}）"
+    match = re.fullmatch(r"(\d+) unresolved review thread\(s\)", reason)
+    if match:
+        return f"未解決のレビュースレッドが{match.group(1)}件ある（{reason}）"
+    return reason
+
+
 def render_summary_ja(report: dict[str, Any]) -> str:
     prov = report["provenance"]
     ci, reviews, threads = report["ci"], report["reviews"], report["review_threads"]
+    reviews_known = reviews["status"] != "UNKNOWN"
+
+    def count(value: Any) -> str:
+        # An unavailable inventory is "未確認", never a measured zero.
+        return f"{value}件" if reviews_known else "未確認"
+
     lines = [
         f"## PRレビュー証跡（#977 Phase A）: {report['status']}",
         "",
@@ -310,25 +366,28 @@ def render_summary_ja(report: dict[str, Any]) -> str:
         "> これは機械的に集めた証跡です。承認・merge可否・UX・AIによる独立レビューを示すものではありません。"
         "❤️レイ / ⭐️ミナ の独立レビューと 🌙ルナ のGateは別途必要です。",
         "",
+        f"**次に確認すること:** {NEXT_ACTION_JA[report['status']]}",
+        "",
         f"- PR: #{prov['pull_request']} / イベント: {prov['event_name']} ({prov['event_action']})",
         f"- イベント時HEAD: `{prov['event_head_sha']}` / 現在のHEAD: `{prov['current_head_sha']}`"
-        f"（{report['head']['status']}）",
+        f"（{_label(report['head']['status'])}）",
         f"- base: `{prov['base_sha']}` / run: {prov['run_id']} (attempt {prov['run_attempt']})",
-        f"- CI（GitHub Actions、exact head）: {ci['status']}"
+        f"- CI（GitHub Actions、exact head）: {_label(ci['status'])}"
         + (f" — {ci['reason']}" if ci.get("reason") else ""),
     ]
     for item in ci["observed"]:
         lines.append(f"  - {item['name']}: {item['status']} / {item['conclusion']}")
     lines += [
-        f"- レビュー: {reviews['status']}"
+        f"- レビュー: {_label(reviews['status'])}"
         + (f" — {reviews['reason']}" if reviews.get("reason") else ""),
-        f"  - exact headでのAPPROVED: {len(reviews.get('approved_on_exact_head') or [])}件 / "
-        f"COMMENTED: {reviews.get('commented_on_exact_head', 0)}件（COMMENTEDは承認ではありません） / "
-        f"古いHEADへのレビュー: {reviews.get('stale_review_count', 0)}件",
-        f"- 未解決のレビュースレッド: {threads['unresolved'] if threads['unresolved'] is not None else 'UNKNOWN'}",
+        f"  - exact headでのAPPROVED: {count(len(reviews.get('approved_on_exact_head') or []))} / "
+        f"COMMENTED: {count(reviews.get('commented_on_exact_head', 0))}（COMMENTEDは承認ではありません） / "
+        f"古いHEADへのレビュー: {count(reviews.get('stale_review_count', 0))}",
+        f"- 未解決のレビュースレッド: "
+        + (f"{threads['unresolved']}件" if threads['unresolved'] is not None else "未確認（UNKNOWN）"),
     ]
     if report["reasons"]:
-        lines += ["", "**理由**"] + [f"- {reason}" for reason in report["reasons"]]
+        lines += ["", "**理由**"] + [f"- {_reason_ja(reason)}" for reason in report["reasons"]]
     lines += [
         "",
         "**対象外**: 外部のcheck suite・旧commit status・レビュー本文の内容・レビュアーが別人であることの確認・実画面のUX。",
