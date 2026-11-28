@@ -50,8 +50,11 @@ class CandidateSelectorProvider:
             )
 
         as_of = self._as_of(raw.get("as_of"))
+        # Key presence, not value, decides whether the primary list exists: an
+        # explicit null is a malformed primary field, not an absent one.
+        has_primary = "ranked_candidates" in raw
         ranked = raw.get("ranked_candidates")
-        if ranked is not None and not isinstance(ranked, list):
+        if has_primary and not isinstance(ranked, list):
             # The primary list is present but malformed. Do not silently fall
             # back to another field and present that as the ranked feed.
             return ProviderResult.unavailable(
@@ -59,7 +62,7 @@ class CandidateSelectorProvider:
                 reason="Candidate Selector ranked_candidates is present but is not a list",
                 source_reference=str(self.path),
             )
-        if ranked is None:
+        if not has_primary:
             ranked = raw.get("candidates")
         if not isinstance(ranked, list):
             return ProviderResult.unavailable(

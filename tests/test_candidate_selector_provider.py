@@ -205,7 +205,7 @@ class CandidateSelectorProviderTest(unittest.TestCase):
         self.assertIsInstance(result.data[0]["total_priority"], int)
 
     def test_malformed_primary_list_does_not_fall_back_to_candidates(self):
-        for ranked in (5, "6622", {"security_code": "6622"}):
+        for ranked in (None, 5, "6622", {"security_code": "6622"}):
             with self.subTest(ranked=ranked):
                 result = self.collect({
                     "as_of": "2026-11-28",
@@ -270,6 +270,8 @@ class CandidateSelectorProviderTest(unittest.TestCase):
         self.assertEqual("PARTIAL", result.status)
         self.assertEqual([None, None, None], [row["total_priority"] for row in result.data])
         self.assertIn("malformed total_priority=3", result.reason)
+        # Output must stay strict-JSON serializable (no NaN/Infinity leaks downstream).
+        json.dumps(result.data, allow_nan=False)
 
     def test_malformed_candidate_sources_are_not_guessed_and_feed_is_not_ok(self):
         for sources in (5, "OWNER_PICK", {"OWNER_PICK": True}, ["OWNER_PICK", 3], [""]):
