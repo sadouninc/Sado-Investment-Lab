@@ -185,3 +185,81 @@ def test_cli_module(tmp_path):
     )
     assert proc.returncode == 0, proc.stderr
     assert json.loads(proc.stdout)["weeks"][0]["status"] == STATUS_VERIFIED
+
+
+# --- review 6099041948 regressions ------------------------------------------------
+
+
+@pytest.mark.parametrize("flag", ["true", 1, 0, "false", [], {}])
+def test_non_boolean_merge_flag_with_timestamp_is_malformed(flag):
+    r = run([pr(1, "2099-01-06T10:00:00Z", merged=flag)])
+    assert r["total_in_window"] == 0
+    assert r["all_weeks_verified"] is False
+    assert {"code": "MALFORMED_MERGE_FLAG", "pr": 1} in r["anomalies"]
+
+
+@pytest.mark.parametrize("flag", ["true", 1, "no"])
+def test_non_boolean_merge_flag_without_timestamp_is_not_verified_zero(flag):
+    r = run([pr(1, None, merged=flag)])
+    assert r["all_weeks_verified"] is False
+    assert {"code": "MALFORMED_MERGE_FLAG", "pr": 1} in r["anomalies"]
+
+
+def test_absent_or_null_flag_relies_on_timestamp():
+    r = run([{"number": 1, "merged_at": "2099-01-06T10:00:00Z"}, {"number": 2, "merged_at": "2099-01-06T11:00:00Z", "merged": None}])
+    assert r["weeks"][0]["prs"] == [1, 2]
+    assert r["all_weeks_verified"] is True
+
+
+@pytest.mark.parametrize(
+    "other",
+    [
+        pr(1, None, merged=False),
+        {"number": 1, "merged_at": None},
+        pr(1, "2099-01-06T10:00:00Z", merged=False),
+        pr(1, "garbage"),
+        pr(1, "2099-01-06T10:00:00Z", merged="yes"),
+        pr(1, None, merged=True),
+    ],
+)
+def test_valid_record_plus_contradictory_record_excludes_pr_entirely(other):
+    good = pr(1, "2099-01-06T10:00:00Z")
+    for records in ([good, other], [other, good]):
+        r = run(records + [pr(2, "2099-01-07T10:00:00Z")])
+        assert r["weeks"][0]["prs"] == [2], other
+        assert all(w["status"] == STATUS_UNKNOWN for w in r["weeks"])
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["0001-01-01T00:00:00+01:00", "0001-01-01T05:00:00+09:00", "9999-12-31T23:59:59-01:00", "9999-12-31T20:00:00Z"],
+)
+def test_extreme_timestamps_are_malformed_not_overflow(value):
+    assert parse_timestamp(value) is None
+    r = run([pr(1, value)])
+    assert {"code": "MALFORMED_MERGED_AT", "pr": 1} in r["anomalies"]
+    cov = {"complete": True, "since": value, "until": value}
+    assert {"code": "MALFORMED_COVERAGE"} in run([], coverage=cov)["anomalies"]
+
+
+def test_extreme_week_range_is_value_error():
+    with pytest.raises(ValueError):
+        summarize_weeks([], first_week=date(9999, 12, 27), weeks=2)
+    with pytest.raises(ValueError):
+        summarize_weeks([], first_week=date(1, 1, 1), weeks=1)
+
+
+@pytest.mark.parametrize("cov", [["complete"], "complete", 1, True])
+def test_non_mapping_coverage_is_malformed_not_crash(cov):
+    r = run([pr(1, "2099-01-06T10:00:00Z")], coverage=cov)
+    assert {"code": "MALFORMED_COVERAGE"} in r["anomalies"]
+    assert r["coverage"]["complete"] is False
+    assert all(w["status"] == STATUS_UNKNOWN for w in r["weeks"])
+
+
+def test_cli_extreme_week_and_bad_coverage(tmp_path):
+    src = tmp_path / "in.json"
+    src.write_text(json.dumps({"records": [], "coverage": ["x"]}), encoding="utf-8")
+    assert main(["--input", str(src), "--first-week", "2099-01-05"]) == 1
+    src.write_text(json.dumps({"records": [], "coverage": FULL}), encoding="utf-8")
+    assert main(["--input", str(src), "--first-week", "9999-12-27", "--weeks", "3"]) == 2

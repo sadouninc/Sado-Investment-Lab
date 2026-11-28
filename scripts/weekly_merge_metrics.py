@@ -13,9 +13,14 @@ is only an observed lower bound (``count`` is still reported, never inflated
 or guessed).
 
 Input records are GitHub PR-like objects: ``number`` (int), ``merged_at``
-(ISO-8601 with timezone, or null) and optionally ``merged`` (bool).
-Duplicates of the same PR with the same ``merged_at`` are counted once;
-contradictory duplicates are not placed and make the affected range UNKNOWN.
+(ISO-8601 with timezone, or null) and optionally ``merged``.  ``merged`` may
+be absent or null (then ``merged_at`` alone decides); when present with any
+other value it must be a real boolean, otherwise the record is malformed.
+Duplicates of the same PR with the same ``merged_at`` are counted once.  A PR
+with any contradictory or malformed record (different ``merged_at``, merged vs
+not-merged, bad flag or timestamp) is excluded entirely, even from the lower
+bound, and makes every week UNKNOWN.  Timestamps outside the representable
+range are treated as malformed.
 """
 
 from __future__ import annotations
@@ -48,7 +53,15 @@ def parse_timestamp(value: Any) -> datetime | None:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
-    if parsed.tzinfo is None:
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        return None
+    try:
+        # reject values whose UTC/JST conversion or week arithmetic would overflow
+        parsed.astimezone(timezone.utc)
+        local = parsed.astimezone(JST)
+        local - timedelta(days=7)
+        local + timedelta(days=7)
+    except OverflowError:
         return None
     return parsed
 
@@ -82,12 +95,18 @@ def summarize_weeks(
         raise ValueError("weeks must be >= 1")
     if first_week.weekday() != 0:
         raise ValueError("first_week must be a Monday (JST week start)")
+    try:
+        _week_bounds(first_week)[0].astimezone(timezone.utc)
+        _week_bounds(first_week + timedelta(days=7 * (weeks - 1)))[1].astimezone(timezone.utc)
+    except OverflowError as exc:
+        raise ValueError("week range is outside the representable date range") from exc
 
     records = list(records)
     anomalies: list[dict[str, Any]] = []
     record_counts: dict[int, int] = {}
     by_number: dict[int, set[datetime]] = {}
     unplaced: set[Any] = set()
+    not_merged: set[int] = set()
 
     for pos, rec in enumerate(records):
         if not isinstance(rec, Mapping) or not _is_pr(rec.get("number")):
@@ -97,11 +116,17 @@ def summarize_weeks(
         num = rec["number"]
         merged_flag = rec.get("merged")
         raw = rec.get("merged_at")
+        if merged_flag is not None and not isinstance(merged_flag, bool):
+            anomalies.append({"code": "MALFORMED_MERGE_FLAG", "pr": num})
+            unplaced.add(num)
+            continue
         if raw is None:
             if merged_flag is True:
                 anomalies.append({"code": "MERGED_WITHOUT_TIMESTAMP", "pr": num})
                 unplaced.add(num)
-            continue  # not merged: not counted, not an anomaly
+            else:
+                not_merged.add(num)  # not merged: not counted
+            continue
         ts = parse_timestamp(raw)
         if ts is None:
             anomalies.append({"code": "MALFORMED_MERGED_AT", "pr": num})
@@ -116,14 +141,20 @@ def summarize_weeks(
 
     placed: dict[int, datetime] = {}
     for num, stamps in by_number.items():
-        if len(stamps) > 1:
+        if len(stamps) > 1 or num in not_merged:
             anomalies.append({"code": "CONFLICTING_DUPLICATE", "pr": num})
             unplaced.add(num)
             continue
+        if num in unplaced:
+            continue  # another record of this PR is malformed/contradictory: exclude entirely
         placed[num] = next(iter(stamps))
     duplicates = sum(record_counts[n] - 1 for n in placed)
 
-    cov = coverage or {}
+    cov: Mapping[str, Any] = {}
+    if coverage is not None and not isinstance(coverage, Mapping):
+        anomalies.append({"code": "MALFORMED_COVERAGE"})
+    elif coverage is not None:
+        cov = coverage
     cov_complete = cov.get("complete") is True
     cov_since = parse_timestamp(cov.get("since"))
     cov_until = parse_timestamp(cov.get("until"))
@@ -131,6 +162,7 @@ def summarize_weeks(
     bad_until = cov.get("until") is not None and cov_until is None
     if bad_since or bad_until:
         anomalies.append({"code": "MALFORMED_COVERAGE"})
+    if not isinstance(coverage, Mapping) or bad_since or bad_until:
         cov_complete = False
 
     rows: list[dict[str, Any]] = []
@@ -201,7 +233,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         report = summarize_weeks(
             doc["records"], first_week=first, weeks=args.weeks,
-            coverage=coverage if isinstance(coverage, dict) else None,
+            coverage=coverage,
         )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
