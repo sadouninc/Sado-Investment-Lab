@@ -177,7 +177,14 @@ def portfolio_candidates(path: Path, *, as_of: date, code_map: dict[str, str]) -
             continue
         code = position.get("security_code") or _resolve_code(name, code_map)
         details = str(position.get("details") or "").strip()
-        reason = "Current portfolio holding" + (f" ({details})" if details else "")
+        # This source is a dated snapshot, not a live broker position.
+        # Preserve the source observation date and freshness verdict wherever
+        # the row is reused (shortlist, Morning AI prompt, or report).
+        snapshot_date = result.as_of or "UNKNOWN"
+        reason = (
+            f"Portfolio snapshot holding (as_of={snapshot_date}; "
+            f"source_status={result.status}; NOT current-position verification)"
+        ) + (f" ({details})" if details else "")
         rows.append(
             candidate_record(
                 company_name=name,
