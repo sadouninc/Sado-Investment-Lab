@@ -197,12 +197,12 @@ def evaluate(audit: Any) -> dict[str, Any]:
 
 def _report(audit: dict[str, Any], findings: list[dict[str, Any]]) -> dict[str, Any]:
     checked = [f for f in findings if f["rule"] != "provenance" and f["status"] in {"PASS", "FAIL"}]
+    # NOT_APPLICABLE has the lowest rank, so it never decides the verdict on
+    # its own; the worst remaining status does.
     worst = max((RANK[f["status"]] for f in findings), default=RANK["NOT_RUN"])
     verdict = next(status for status, rank in RANK.items() if rank == worst)
     if verdict in {"PASS", "NOT_APPLICABLE"} and not checked:
         verdict = "NOT_RUN"  # nothing was actually checked: never PASS
-    elif verdict == "NOT_APPLICABLE":
-        verdict = "PASS"
     counts = {status: sum(1 for f in findings if f["status"] == status) for status in RANK}
     return {
         "schema_version": SCHEMA_VERSION,
@@ -228,7 +228,8 @@ def render_summary_ja(report: dict[str, Any]) -> str:
     lines.append("")
     for f in report["findings"]:
         if f["status"] in {"FAIL", "UNKNOWN", "NOT_RUN"}:
-            lines.append(f"- [{f['severity']}] {f['route']} @ {f['viewport']}px {f['rule']}: "
+            where = f"{f['route']} @ {f['viewport']}px" if f["viewport"] is not None else "全体"
+            lines.append(f"- [{f['severity']}] {where} {f['rule']}: "
                          f"{STATUS_JA[f['status']]}（{f['status']}）" + (f" — {f['reason']}" if f.get("reason") else ""))
     if lines[-1] == "":
         lines.append("- 問題として報告する項目はありません。")

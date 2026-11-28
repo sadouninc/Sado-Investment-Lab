@@ -21,7 +21,7 @@ SHA = "a" * 40
 
 def obs(route="/", vp=320, **overrides):
     base = {
-        "route": route, "viewport": vp, "status": "OK", "screenshot": f"shots{route}{vp}.png",
+        "route": route, "viewport": vp, "status": "OK", "screenshot": f"shots/{route.strip('/').replace('/', '_') or 'root'}-{vp}.png",
         "document_scroll_width": vp, "document_client_width": vp,
         "body_scroll_width": vp, "body_client_width": vp,
         "overflow_elements": [],
@@ -112,7 +112,7 @@ class OverflowTests(unittest.TestCase):
         self.assertEqual(report["verdict"], "FAIL")
         finding = next(f for f in report["findings"] if f["rule"] == "horizontal_overflow" and f["status"] == "FAIL")
         self.assertEqual(finding["observed"]["page_overflow_elements"], ["ul.long-list"])
-        self.assertEqual(finding["screenshot"], "shots/320.png")
+        self.assertEqual(finding["screenshot"], "shots/root-320.png")
 
     def test_one_pixel_tolerance_and_body_overflow(self):
         self.assertEqual(self._one(document_scroll_width=321)["verdict"], "PASS")
@@ -172,6 +172,14 @@ class OutputTests(unittest.TestCase):
         self.assertIn("[P1] / @ 390px horizontal_overflow", summary)
         self.assertIn("意味的なUXレビュー", summary)
         json.dumps(report, ensure_ascii=False)
+
+    def test_summary_formats_findings_without_viewport(self):
+        report = bac.evaluate(audit(source_sha="bad"))
+        summary = bac.render_summary_ja(report)
+        self.assertIn("[P1] 全体 provenance: 判定不能（UNKNOWN）", summary)
+        self.assertNotIn("Nonepx", summary)
+        broken = bac.render_summary_ja(bac.evaluate(audit(required_routes=[])))
+        self.assertNotIn("Nonepx", broken)
 
     def test_cli_writes_report_and_unreadable_input_is_unknown(self):
         with tempfile.TemporaryDirectory() as tmp:
