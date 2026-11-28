@@ -145,6 +145,152 @@ class CapitalProviderTest(unittest.TestCase):
             result = CapitalProvider(path, today=date(2026, 8, 8)).collect()
             self.assertEqual("MISSING", result.status)
 
+    # --- #971: finite numeric facts, true zero, strict dates, read-only ---
+
+    def collect_row(self, row: tuple, today: date = date(2026, 8, 8)):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.database(Path(tmp), row)
+            return CapitalProvider(path, today=today).collect()
+
+    def test_text_in_real_column_is_invalid_not_ok(self):
+        # SQLite REAL affinity keeps unconvertible text as text.
+        result = self.collect_row(
+            ("2026-08-08", "lots", 3_000_000, 0.24, 2_400_000, 0.48, 5_000_000, 500_000, "synthetic", "v1")
+        )
+        self.assertEqual("PARTIAL", result.status)
+        self.assertIsNone(result.data["buying_power"]["cash"])
+        self.assertEqual(3_000_000, result.data["buying_power"]["margin"])
+        self.assertIn("cash_buying_power", result.reason)
+        self.assertIn("invalid", result.reason)
+
+    def test_infinite_nan_and_blob_values_are_invalid(self):
+        for bad in (float("inf"), float("-inf"), b"\x00\x01"):
+            with self.subTest(value=bad):
+                result = self.collect_row(
+                    ("2026-08-08", bad, 3_000_000, 0.24, 2_400_000, bad, 5_000_000, 500_000, "synthetic", "v1")
+                )
+                self.assertEqual("PARTIAL", result.status)
+                self.assertIsNone(result.data["buying_power"]["cash"])
+                self.assertIsNone(result.data["margin_usage"]["ratio"])
+                self.assertIn("cash_buying_power", result.reason)
+                self.assertIn("margin_ratio", result.reason)
+                # Valid mixed facts are retained.
+                self.assertEqual(2_400_000, result.data["margin_usage"]["exposure"])
+                self.assertEqual(500_000, result.data["target_reserve"])
+
+    def test_invalid_buying_power_alone_cannot_make_snapshot_ok(self):
+        result = self.collect_row(
+            ("2026-08-08", float("inf"), "n/a", None, None, None, None, None, "synthetic", "v1")
+        )
+        self.assertNotEqual("OK", result.status)
+        self.assertEqual("MISSING", result.status)
+        self.assertIsNone(result.data)
+        self.assertIn("invalid", result.reason)
+
+    def test_invalid_buying_power_with_other_facts_is_partial(self):
+        result = self.collect_row(
+            ("2026-08-08", "n/a", float("inf"), 0.30, 500, 0.20, 2_000, 200, "synthetic", "v1")
+        )
+        self.assertEqual("PARTIAL", result.status)
+        self.assertIn("buying-power", result.reason)
+        self.assertIn("invalid", result.reason)
+        self.assertEqual(500, result.data["margin_usage"]["exposure"])
+
+    def test_true_zero_is_a_fact_not_missing(self):
+        result = self.collect_row(
+            ("2026-08-08", 0, 0.0, 0.0, 0, 0.0, 0, 0, "synthetic", "v1")
+        )
+        self.assertEqual("OK", result.status)
+        self.assertEqual(0, result.data["buying_power"]["cash"])
+        self.assertEqual(0, result.data["buying_power"]["margin"])
+        self.assertEqual(0, result.data["target_reserve"])
+        self.assertIsNone(result.data["cash_available"])
+
+    def test_zero_buying_power_with_null_margin_is_ok(self):
+        result = self.collect_row(
+            ("2026-08-08", 0, None, None, None, None, None, None, "synthetic", "v1")
+        )
+        self.assertEqual("OK", result.status)
+        self.assertEqual(0, result.data["buying_power"]["cash"])
+        self.assertIsNone(result.data["buying_power"]["margin"])
+
+    def test_numeric_text_is_converted_by_real_affinity_and_kept(self):
+        result = self.collect_row(
+            ("2026-08-08", "1200000", "3000000", None, None, None, None, None, "synthetic", "v1")
+        )
+        self.assertEqual("OK", result.status)
+        self.assertEqual(1_200_000, result.data["buying_power"]["cash"])
+
+    def test_snapshot_at_with_suffix_or_impossible_date_is_invalid(self):
+        for bad in ("2026-08-08garbage", "2026-08-08X08:30", "2026-02-30", "2026-08-08T25:00:00", " 2026-08-08", "20260808"):
+            with self.subTest(snapshot_at=bad):
+                result = self.collect_row(
+                    (bad, 100, 200, None, None, None, None, None, "synthetic", "v1")
+                )
+                self.assertEqual("PARTIAL", result.status)
+                self.assertIsNone(result.as_of)
+                self.assertIn("strict ISO", result.reason)
+                self.assertEqual(100, result.data["buying_power"]["cash"])
+
+    def test_iso_timestamp_snapshot_at_is_accepted(self):
+        for good in ("2026-08-08T08:30:00+09:00", "2026-08-08 08:30:00", "2026-08-08T08:30:00Z", "2026-08-08"):
+            with self.subTest(snapshot_at=good):
+                result = self.collect_row(
+                    (good, 100, 200, None, None, None, None, None, "synthetic", "v1")
+                )
+                self.assertEqual("OK", result.status)
+                self.assertEqual("2026-08-08", result.as_of)
+
+    def test_stale_and_future_keep_status_and_report_invalid_facts(self):
+        stale = self.collect_row(
+            ("2026-08-01", 100, "bad", None, None, None, None, None, "synthetic", "v1")
+        )
+        self.assertEqual("STALE", stale.status)
+        self.assertIn("7 days old", stale.reason)
+        self.assertIn("margin_buying_power", stale.reason)
+        self.assertIsNone(stale.data["buying_power"]["margin"])
+
+        future = self.collect_row(
+            ("2026-08-09", 100, float("inf"), None, None, None, None, None, "synthetic", "v1")
+        )
+        self.assertEqual("PARTIAL", future.status)
+        self.assertIn("future", future.reason)
+        self.assertIn("margin_buying_power", future.reason)
+
+    def test_collect_opens_database_read_only_and_does_not_modify_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.database(
+                Path(tmp),
+                ("2026-08-08", 100, 200, None, None, None, None, None, "synthetic", "v1"),
+            )
+            before = path.read_bytes()
+            calls: list[tuple] = []
+            original = sqlite3.connect
+
+            def spy(*args, **kwargs):
+                calls.append((args, kwargs))
+                return original(*args, **kwargs)
+
+            sqlite3.connect = spy
+            try:
+                result = CapitalProvider(path, today=date(2026, 8, 8)).collect()
+            finally:
+                sqlite3.connect = original
+            self.assertEqual("OK", result.status)
+            self.assertEqual(1, len(calls))
+            self.assertIn("mode=ro", calls[0][0][0])
+            self.assertTrue(calls[0][1].get("uri"))
+            self.assertEqual(before, path.read_bytes())
+            self.assertEqual(["history.db"], sorted(p.name for p in Path(tmp).iterdir()))
+
+    def test_non_database_file_is_missing_not_exception(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "history.db"
+            path.write_bytes(b"not a sqlite database" * 10)
+            result = CapitalProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("MISSING", result.status)
+            self.assertIn("failed to read", result.reason)
+
 
 if __name__ == "__main__":
     unittest.main()
