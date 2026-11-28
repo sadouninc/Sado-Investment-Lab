@@ -74,8 +74,14 @@ def inspect(root: Path) -> dict:
                 # actual target existence and click behavior still require browser validation.
                 card = re.search(r"<(?:div|a)[^>]*cockpit-expectation-summary[^>]*>.*?</(?:div|a)>",
                                  teaser, flags=re.S)
-                has_card_anchor = bool(card and re.search(r"<a\s+[^>]*href=['\"]#market-expectations['\"]",
-                                                          card.group(0)))
+                # The target link may wrap the card, be inside it, or be the card itself.
+                # Unrelated anchors outside the card must not satisfy this check.
+                target_href = r"""<a\b[^>]*\bhref\s*=\s*['"]#market-expectations['"][^>]*>"""
+                has_inner_or_self_link = bool(card and re.search(target_href, card.group(0), re.S))
+                has_outer_link = bool(re.search(
+                    target_href + r"\s*<(?:div|a)\b[^>]*cockpit-expectation-summary",
+                    teaser, re.S))
+                has_card_anchor = has_inner_or_self_link or has_outer_link
                 # Do not suppress a dead-link finding merely because href exists.
                 # This proves only the source contains a matching target ID, not real navigation.
                 target_declared = bool(re.search(r"""id\s*=\s*['"]market-expectations['"]""", source))
