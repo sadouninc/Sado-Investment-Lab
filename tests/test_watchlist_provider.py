@@ -4,6 +4,7 @@ from datetime import date
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from scripts.morning_dataset.providers.watchlist import WatchlistProvider
 
@@ -20,6 +21,7 @@ class WatchlistProviderTest(unittest.TestCase):
 > 最終更新: 2026-08-08
 
 ## Current Focus
+> as_of: 2026-08-08
 
 - 信越化学の決算
 - 原子力
@@ -39,6 +41,7 @@ class WatchlistProviderTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = self.write(tmp, """> 最終更新: 2026-08-01
 ## Current Focus
+> as_of: 2026-08-01
 - 送電網
 """)
             result = WatchlistProvider(path, max_age_days=3, today=date(2026, 8, 8)).collect()
@@ -85,6 +88,55 @@ malformed line
             self.assertEqual("PARTIAL", result.status)
             self.assertEqual("原子力", result.data["items"][0]["text"])
 
+    def test_fresh_global_date_does_not_make_undated_focus_current(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(tmp, "> 最終更新: 2026-08-08\n## Current Focus\n- 原子力\n")
+            result = WatchlistProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertIsNone(result.as_of)
+            self.assertIn("no freshness date", result.reason)
+
+    def test_old_section_date_wins_over_fresh_global_date(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(tmp, "> 最終更新: 2026-08-08\n## Current Focus\n> as_of: 2026-08-01\n- 送電網\n")
+            result = WatchlistProvider(path, max_age_days=3, today=date(2026, 8, 8)).collect()
+            self.assertEqual("STALE", result.status)
+            self.assertEqual("2026-08-01", result.as_of)
+
+    def test_invalid_calendar_date_is_partial_without_exception(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(tmp, "## Current Focus\n> as_of: 2026-02-30\n- 原子力\n")
+            result = WatchlistProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertIsNone(result.as_of)
+            self.assertIn("invalid", result.reason)
+            self.assertEqual("原子力", result.data["items"][0]["text"])
+
+    def test_duplicate_or_conflicting_section_dates_are_partial(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(tmp, "## Current Focus\n> as_of: 2026-08-07\n> as_of: 2026-08-08\n- 原子力\n")
+            result = WatchlistProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertIsNone(result.as_of)
+            self.assertIn("duplicate or conflicting", result.reason)
+
+    def test_invalid_utf8_is_missing_without_raw_content(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "Current_Status.md"
+            path.write_bytes(b"\xff\xfeprivate")
+            result = WatchlistProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("MISSING", result.status)
+            self.assertIn("could not be read as UTF-8", result.reason)
+            self.assertNotIn("private", result.reason)
+
+    def test_read_error_is_missing_without_exception(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(tmp, "## Current Focus\n> as_of: 2026-08-08\n- 原子力\n")
+            with patch.object(Path, "read_text", side_effect=OSError("sensitive path detail")):
+                result = WatchlistProvider(path, today=date(2026, 8, 8)).collect()
+            self.assertEqual("MISSING", result.status)
+            self.assertNotIn("sensitive", result.reason)
+
     def test_malformed_line_is_partial(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self.write(tmp, "> 最終更新: 2026-08-08\n## Current Focus\n- 原子力\nplain text\n")
@@ -95,3 +147,4 @@ malformed line
 
 if __name__ == "__main__":
     unittest.main()
+
