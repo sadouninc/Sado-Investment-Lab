@@ -106,6 +106,30 @@ class PagesReviewPreflightTests(unittest.TestCase):
             self.assertNotIn("DEAD_EXPECTATION_TEASER", {f["rule"] for f in report["findings"]})
             self.assertEqual("NOT_RUN", report["run_scope"]["browser_review"])
 
+    def test_teaser_anchor_positions_and_unrelated_links(self):
+        card = '<div class="cockpit-expectation-summary">市場期待との差は？</div>'
+        cases = (
+            ("outer", '<a href="#market-expectations">' + card + '</a>', False),
+            ("inner", '<div class="cockpit-expectation-summary"><a href="#market-expectations">比較</a></div>', False),
+            ("self_href_first", '<a href="#market-expectations" class="cockpit-expectation-summary">比較</a>', False),
+            ("self_class_first", '<a class="cockpit-expectation-summary" href="#market-expectations">比較</a>', False),
+            ("unrelated_same_target", card + '<a href="#market-expectations">別項目</a>', True),
+            ("unrelated_other_target", card + '<a href="#unrelated">別項目</a>', True),
+        )
+        for name, html, should_flag in cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as td:
+                root = self.fixture(Path(td), status="OK")
+                builder = root / ".github/pages/build_daihen_cockpit.py"
+                builder.write_text(
+                    "def _expectation_first_view():\n    return " + repr(html)
+                    + "\n\ndef page_content():\n    pass\n"
+                    + 'TARGET_HTML = \'<h2 id="market-expectations">市場期待</h2>\'\n'
+                )
+                report = inspect(root)
+                rules = {f["rule"] for f in report["findings"]}
+                self.assertEqual(should_flag, "DEAD_EXPECTATION_TEASER" in rules)
+                self.assertEqual("NOT_RUN", report["run_scope"]["browser_review"])
+
     def test_missing_files_cannot_be_pass(self):
         with tempfile.TemporaryDirectory() as td:
             report = inspect(Path(td))
