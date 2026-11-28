@@ -7,6 +7,8 @@ import tempfile
 import textwrap
 import unittest
 
+from scripts.queue_owner_inventory_pilot import inspect_one_candidate
+
 WORKFLOW = Path(__file__).resolve().parents[1] / ".github/workflows/queue-owner-inventory-readonly-pilot.yml"
 
 
@@ -60,6 +62,56 @@ class PilotEvidenceTests(unittest.TestCase):
         self.assertEqual("NO_READY_CANDIDATE", result["reason"])
         self.assertEqual(0, result["candidate_count"])
         self.assertIs(result["dispatch_allowed"], False)
+
+    def test_actual_producer_unavailable_inputs_are_not_verified_zero(self):
+        inventory = {"complete": True, "prs": []}
+        malformed = inspect_one_candidate({"unexpected": []}, inventory)
+        self.assertEqual("ISSUE_INVENTORY_INCOMPLETE", malformed["reason"])
+        self.assertEqual(0, malformed["candidate_count"])
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            issues = root / "invalid.json"
+            issues.write_text("{", encoding="utf-8")
+            prs = root / "prs.json"
+            prs.write_text(json.dumps(inventory), encoding="utf-8")
+            output = root / "producer.json"
+            subprocess.run(
+                [sys.executable, "-m", "scripts.queue_owner_inventory_pilot",
+                 "--issues", str(issues), "--open-prs", str(prs), "--output", str(output)],
+                cwd=WORKFLOW.parents[2], env={}, check=True, capture_output=True, text=True)
+            unavailable = json.loads(output.read_text(encoding="utf-8"))
+        self.assertEqual("INPUT_UNAVAILABLE", unavailable["reason"])
+        for raw in (malformed, unavailable):
+            with self.subTest(reason=raw["reason"]):
+                result = self.run_evidence("success", raw)["result"]
+                self.assertEqual(raw["reason"], result["reason"])
+                for field in ("candidate_count", "selected_issue", "conflicting_prs"):
+                    self.assertIsNone(result[field])
+                self.assertIs(result["dispatch_allowed"], False)
+        verified = inspect_one_candidate([], inventory)
+        result = self.run_evidence("success", verified)["result"]
+        self.assertEqual("NO_READY_CANDIDATE", result["reason"])
+        self.assertEqual(0, result["candidate_count"])
+
+    def test_incomplete_path_inventory_does_not_claim_no_conflicts(self):
+        raw = inspect_one_candidate(
+            [{"number": 100, "allowed_paths": ["scripts/a.py"], "owner_slice": "test"}],
+            {"complete": False, "prs": []})
+        result = self.run_evidence("success", raw)["result"]
+        self.assertEqual("PR_PATH_INVENTORY_INCOMPLETE", result["reason"])
+        self.assertEqual(1, result["candidate_count"])
+        self.assertEqual(100, result["selected_issue"])
+        self.assertIsNone(result["conflicting_prs"])
+
+    def test_inconsistent_or_out_of_bound_counts_are_rejected(self):
+        for raw in (dict(self.valid(), candidate_count=2),
+                    dict(self.valid(), candidate_count=0),
+                    dict(self.valid(), reason="NO_READY_CANDIDATE"),
+                    dict(self.valid(), reason="PR_PATH_CONFLICT")):
+            with self.subTest(raw=raw):
+                result = self.run_evidence("success", raw)["result"]
+                self.assertEqual("DIAGNOSTIC_OUTPUT_INVALID_OR_MISSING", result["reason"])
+                self.assertIsNone(result["candidate_count"])
 
     def test_missing_required_fields_and_protected_issue_are_rejected(self):
         for key in ("selected_issue", "conflicting_prs", "candidate_count",
