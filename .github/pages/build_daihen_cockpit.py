@@ -281,6 +281,8 @@ def _decision_history_summary(model: Mapping[str, Any]) -> str:
 
 def _attention_summary(model: Mapping[str, Any]) -> str:
     freshness = model["freshness"]
+    overall_status = str(model.get("overall_status") or "UNKNOWN")
+    freshness_status = str(freshness.get("overall") or "UNKNOWN")
     warning_messages = {
         "DRIVER_COVERAGE_PARTIAL": (
             "利益予想を説明する事業別の根拠が一部不足しています。"
@@ -304,25 +306,47 @@ def _attention_summary(model: Mapping[str, Any]) -> str:
     ]
     unknown = [str(component) for component in (freshness.get("unknown_components") or [])]
     stale = [str(component) for component in (freshness.get("stale_components") or [])]
-    summary_items = ["一部の情報が不足しているため、画面全体を確定済みとは扱いません。"]
+    has_attention = bool(
+        warnings
+        or unknown
+        or stale
+        or overall_status != "OK"
+        or freshness_status != "CURRENT"
+    )
+    summary_items = []
+    if overall_status == "PARTIAL" or freshness_status == "PARTIAL":
+        summary_items.append("一部の情報が不足しているため、画面全体を確定済みとは扱いません。")
+    elif has_attention:
+        summary_items.append("取得状態を確認できない情報があります。表示内容と基準日を確認してください。")
     summary_items.extend(
-        component_messages.get(component, f"{component} の情報鮮度を確認できません。")
+        component_messages.get(component, "情報鮮度を確認できない項目があります。")
         for component in unknown
     )
     summary_items.extend(
-        f"{component} の情報が古いため、最新情報の確認が必要です。"
+        "古い情報があるため、最新情報の確認が必要です。"
         for component in stale
     )
     summary_items.extend(
-        warning_messages.get(code, f"{section} に未確認事項があります。")
+        warning_messages.get(code, "追加の未確認事項があります。")
         for section, code in warnings
     )
     raw_items = [f"鮮度不明: {component}" for component in unknown]
     raw_items.extend(f"古い情報: {component}" for component in stale)
     raw_items.extend(f"{section}: {code}" for section, code in warnings)
+    if not has_attention:
+        return """
+<div class="notice-card cockpit-attention-summary">
+  <strong>現在、重要な未確認事項はありません。</strong>
+</div>
+"""
+    heading = (
+        "この表示はエラーではなく、未確認情報を隠さないための注意です。"
+        if overall_status == "PARTIAL" or freshness_status == "PARTIAL"
+        else "取得状態に確認が必要な項目があります。"
+    )
     return f"""
 <div class="notice-card cockpit-attention-summary">
-  <strong>この表示はエラーではなく、未確認情報を隠さないための注意です。</strong>
+  <strong>{heading}</strong>
   {_list(summary_items, "現在、重要な未確認事項はありません。")}
 </div>
 <details class="cockpit-attention-codes">
@@ -391,8 +415,8 @@ permalink: /decision-cockpit/daihen/
 {first_view_html}
 
 ## ⚠ 先に確認する注意点
-- 全体状態: {_status(model.get('overall_status'))} — 画面の一部に未確認情報があります
-- 情報鮮度: {_status(freshness.get('overall'))} — 確認できた日付と未確認項目を分けて表示します
+- 全体状態: {_status(model.get('overall_status'))}
+- 情報鮮度: {_status(freshness.get('overall'))}
 {attention_html}
 
 ## 1. 利益予想 — なぜこのBase？
