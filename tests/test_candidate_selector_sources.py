@@ -136,6 +136,34 @@ class CandidateSelectorSourceTests(unittest.TestCase):
             self.assertEqual(rows[0]["candidate_sources"], ["OWNER_PICK"])
             self.assertEqual(status["status"], "OK")
 
+    def test_stale_portfolio_reason_names_historical_snapshot(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            current = base / "Current_Status.md"
+            current.write_text(
+                "# Current Status\n\n"
+                "## Portfolio\n\n"
+                "> as_of: 2026-08-08\n\n"
+                "- 信越化学工業（信用買い100株）\n",
+                encoding="utf-8",
+            )
+            rows, statuses = build_source_candidates(
+                current_status=current,
+                research_root=base / "not-found",
+                owner_picks=None,
+                as_of=date(2026, 11, 28),
+            )
+            self.assertEqual("STALE", statuses["PORTFOLIO"]["status"])
+            self.assertEqual("2026-08-08", statuses["PORTFOLIO"]["as_of"])
+            self.assertEqual(1, len(rows))
+            reason = rows[0]["source_reasons"]["PORTFOLIO"][0]
+            self.assertIn("Portfolio snapshot holding", reason)
+            self.assertIn("as_of=2026-08-08", reason)
+            self.assertIn("source_status=STALE", reason)
+            self.assertIn("NOT current-position verification", reason)
+            self.assertIn("信用買い100株", reason)
+            self.assertNotIn("Current portfolio holding", reason)
+
     def test_repository_sources_merge_by_resolved_security_code(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp)
