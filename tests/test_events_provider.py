@@ -321,5 +321,90 @@ class EventsProviderTest(unittest.TestCase):
         self.assertEqual(3, result.data["earnings"][0]["importance"])
 
 
+    # --- #974 review 6097792047: explicit null as_of, exponent overflow, strict JSON ---
+
+    def test_explicit_null_as_of_is_not_rescued_by_generated_at(self):
+        payload = self.complete_payload()
+        payload["as_of"] = None
+        payload["generated_at"] = "2026-08-08T06:00:00+09:00"
+        result = self.collect(payload)
+        self.assertEqual("PARTIAL", result.status)
+        self.assertIsNone(result.as_of)
+        self.assertIn("explicit calendar as_of is invalid", result.reason)
+
+    def test_missing_as_of_key_with_valid_generated_at_is_ok(self):
+        payload = self.complete_payload()
+        del payload["as_of"]
+        payload["generated_at"] = "2026-08-08"
+        result = self.collect(payload)
+        self.assertEqual("OK", result.status)
+        self.assertEqual("2026-08-08", result.as_of)
+
+    def test_missing_as_of_and_explicit_null_generated_at_is_not_dated(self):
+        payload = self.complete_payload()
+        del payload["as_of"]
+        payload["generated_at"] = None
+        result = self.collect(payload)
+        self.assertEqual("PARTIAL", result.status)
+        self.assertIsNone(result.as_of)
+        self.assertIn("generated_at is invalid", result.reason)
+
+    def test_number_literals_that_overflow_to_infinity_are_missing(self):
+        base = json.dumps(self.complete_payload(), ensure_ascii=False)
+        cases = {
+            "event field": base.replace('"security_code": "9999"', '"security_code": "9999", "importance": 1e400'),
+            "negative event field": base.replace('"security_code": "9999"', '"security_code": "9999", "importance": -1e400'),
+            "coverage": base.replace('"policy": true', '"policy": true, "weight": 1E+999'),
+            "top-level": base[:-1] + ', "score": 9.9e9999}',
+        }
+        for label, text in cases.items():
+            with self.subTest(case=label):
+                self.assertNotEqual(base, text)
+                result = self.collect_text(text)
+                self.assertEqual("MISSING", result.status)
+                self.assertIn("failed to read", result.reason)
+                self.assertIsNone(result.data)
+
+    def test_ordinary_float_fields_are_preserved(self):
+        payload = self.complete_payload()
+        payload["events"]["earnings"][0]["importance"] = 0.75
+        payload["events"]["earnings"][0]["tiny"] = 1e-300
+        result = self.collect(payload)
+        self.assertEqual("OK", result.status)
+        self.assertEqual(0.75, result.data["earnings"][0]["importance"])
+
+    def test_provider_output_serializes_as_strict_json_in_dataset(self):
+        from scripts.morning_dataset.generator import build_dataset_from_providers
+
+        payload = self.complete_payload()
+        payload["events"]["earnings"][0]["importance"] = 2.5
+        payload["events"]["economic"][0]["nested"] = {"values": [1, 2.0, {"deep": -3.25}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write(Path(tmp), payload)
+            provider = EventsProvider(path, today=date(2026, 8, 8))
+            result = provider.collect()
+            self.assertEqual("OK", result.status)
+            json.dumps(result.data, ensure_ascii=False, allow_nan=False)
+            dataset = build_dataset_from_providers([provider], as_of=date(2026, 8, 8))
+        json.dumps(dataset, ensure_ascii=False, allow_nan=False)
+        row = next(item for item in dataset["source_status"] if item["name"] == "events")
+        self.assertEqual("OK", row["status"])
+        self.assertEqual(2.5, dataset["events"]["earnings"][0]["importance"])
+
+    def test_rejected_overflow_calendar_still_builds_a_strict_dataset(self):
+        from scripts.morning_dataset.generator import build_dataset_from_providers
+
+        text = json.dumps(self.complete_payload())[:-1] + ', "score": 1e400}'
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "calendar.json"
+            path.write_text(text, encoding="utf-8")
+            dataset = build_dataset_from_providers(
+                [EventsProvider(path, today=date(2026, 8, 8))], as_of=date(2026, 8, 8)
+            )
+        json.dumps(dataset, ensure_ascii=False, allow_nan=False)
+        row = next(item for item in dataset["source_status"] if item["name"] == "events")
+        self.assertEqual("MISSING", row["status"])
+
+
 if __name__ == "__main__":
     unittest.main()

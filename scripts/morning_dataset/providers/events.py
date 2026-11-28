@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime
 import json
+import math
 from pathlib import Path
 import re
 from typing import Any
@@ -46,11 +47,13 @@ class EventsProvider:
             raw = json.loads(
                 self.path.read_text(encoding="utf-8"),
                 parse_int=_bounded_int,
+                parse_float=_finite_float,
                 parse_constant=_reject_constant,
             )
         except (OSError, UnicodeDecodeError, ValueError, RecursionError) as exc:
             # json.JSONDecodeError is a ValueError subclass; ValueError also covers
-            # oversized integer literals and non-standard NaN/Infinity constants.
+            # oversized integer literals, number literals that overflow to
+            # +/-inf (e.g. 1e400) and non-standard NaN/Infinity constants.
             return ProviderResult.unavailable(
                 self.name,
                 reason=f"failed to read canonical event calendar: {exc}",
@@ -218,17 +221,17 @@ class EventsProvider:
     def _resolve_as_of(raw: dict[str, Any]) -> tuple[str | None, str | None]:
         """Return the calendar date and, when it is unusable, why.
 
-        An explicit ``as_of`` is authoritative: when it is present but invalid, the
-        generation timestamp must not rescue it. ``generated_at`` is only used when
-        ``as_of`` is absent.
+        An explicit ``as_of`` key is authoritative: when it is present but invalid
+        (including ``null``), the generation timestamp must not rescue it.
+        ``generated_at`` is only used when the ``as_of`` key is absent.
         """
 
-        if raw.get("as_of") is not None:
+        if "as_of" in raw:
             parsed = _parse_iso_date(raw["as_of"])
             if parsed is None:
                 return None, "explicit calendar as_of is invalid"
             return parsed, None
-        if raw.get("generated_at") is not None:
+        if "generated_at" in raw:
             parsed = _parse_iso_date(raw["generated_at"])
             if parsed is None:
                 return None, "calendar as_of is missing and generated_at is invalid"
@@ -279,6 +282,15 @@ def _bounded_int(text: str) -> int:
     if len(text.lstrip("+-")) > _MAX_INT_DIGITS:
         raise ValueError(f"integer literal longer than {_MAX_INT_DIGITS} digits")
     return int(text)
+
+
+def _finite_float(text: str) -> float:
+    # Standard JSON number syntax such as 1e400 overflows to inf without
+    # triggering parse_constant, so reject non-finite results explicitly.
+    value = float(text)
+    if not math.isfinite(value):
+        raise ValueError(f"number literal {text[:32]} is not finite")
+    return value
 
 
 def _reject_constant(name: str) -> Any:
