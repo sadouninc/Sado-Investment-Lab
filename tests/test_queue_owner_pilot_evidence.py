@@ -1,6 +1,5 @@
 """Regression coverage for #943 sanitized read-only Actions evidence."""
 import json
-import os
 from pathlib import Path
 import subprocess
 import sys
@@ -14,8 +13,13 @@ WORKFLOW = Path(__file__).resolve().parents[1] / ".github/workflows/queue-owner-
 class PilotEvidenceTests(unittest.TestCase):
     def setUp(self):
         self.workflow = WORKFLOW.read_text(encoding="utf-8")
-        step = self.workflow.split("- name: Preserve sanitized run evidence and summary", 1)[1]
-        self.source = textwrap.dedent(step.split("python3 - <<'PY'\n", 1)[1].split("\n          PY", 1)[0])
+        step = self.workflow.split("- name: Preserve sanitized run evidence and summary", 1)
+        self.assertEqual(2, len(step), "evidence step missing")
+        start = step[1].split("python3 - <<'PY'\n", 1)
+        self.assertEqual(2, len(start), "heredoc start missing")
+        end = start[1].split("\n          PY\n", 1)
+        self.assertEqual(2, len(end), "heredoc terminator missing")
+        self.source = textwrap.dedent(end[0])
 
     def run_evidence(self, outcome, raw=None):
         with tempfile.TemporaryDirectory() as temp:
@@ -26,9 +30,9 @@ class PilotEvidenceTests(unittest.TestCase):
                 source.write_text(json.dumps(raw), encoding="utf-8")
             code = self.source.replace("/tmp/owner-pilot-result.json", str(source)).replace(
                 "/tmp/owner-pilot-evidence/result.json", str(target))
-            env = dict(os.environ, DIAGNOSTIC_OUTCOME=outcome, GITHUB_RUN_ID="123",
-                       GITHUB_RUN_ATTEMPT="2", GITHUB_EVENT_NAME="schedule",
-                       GITHUB_SHA="a" * 40)
+            env = {"DIAGNOSTIC_OUTCOME": outcome, "GITHUB_RUN_ID": "123",
+                   "GITHUB_RUN_ATTEMPT": "2", "GITHUB_EVENT_NAME": "schedule",
+                   "GITHUB_SHA": "a" * 40}
             subprocess.run([sys.executable, "-c", code], env=env, check=True,
                            capture_output=True, text=True)
             return json.loads(target.read_text(encoding="utf-8"))
@@ -48,6 +52,27 @@ class PilotEvidenceTests(unittest.TestCase):
         self.assertEqual(1, evidence["result"]["candidate_count"])
         self.assertNotIn("must-not-leak", json.dumps(evidence))
         self.assertIs(evidence["result"]["dispatch_allowed"], False)
+
+    def test_verified_zero_is_distinct_from_unknown(self):
+        raw = dict(self.valid(), reason="NO_READY_CANDIDATE", candidate_count=0,
+                   selected_issue=None)
+        result = self.run_evidence("success", raw)["result"]
+        self.assertEqual("NO_READY_CANDIDATE", result["reason"])
+        self.assertEqual(0, result["candidate_count"])
+        self.assertIs(result["dispatch_allowed"], False)
+
+    def test_missing_required_fields_and_protected_issue_are_rejected(self):
+        for key in ("selected_issue", "conflicting_prs", "candidate_count",
+                    "status", "reason", "dispatch_allowed"):
+            raw = self.valid()
+            del raw[key]
+            with self.subTest(key=key):
+                result = self.run_evidence("success", raw)["result"]
+                self.assertEqual("DIAGNOSTIC_OUTPUT_INVALID_OR_MISSING", result["reason"])
+                self.assertIsNone(result["candidate_count"])
+        result = self.run_evidence("success", dict(self.valid(), selected_issue=79))["result"]
+        self.assertEqual("DIAGNOSTIC_OUTPUT_INVALID_OR_MISSING", result["reason"])
+        self.assertIsNone(result["selected_issue"])
 
     def test_skipped_or_failed_step_never_claims_zero_candidates(self):
         for outcome, reason in [("skipped", "DIAGNOSTIC_NOT_COMPLETED"),
