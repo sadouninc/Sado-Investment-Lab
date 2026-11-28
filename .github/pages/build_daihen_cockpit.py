@@ -187,6 +187,9 @@ def _judgment_summary(model: Mapping[str, Any]) -> str:
     if comparable:
         eps_change = float(delta.current.eps) - float(delta.previous.eps)
         per_change = float(delta.current.forward_per) - float(delta.previous.forward_per)
+        change_summary = (
+            f"EPSは前回比 {eps_change:+.2f}円、Forward PERは {per_change:+.2f}倍。"
+        )
         change = (
             f"EPS {float(delta.previous.eps):,.2f}→{float(delta.current.eps):,.2f}円 "
             f"({eps_change:+.2f}円)、Forward PER "
@@ -195,6 +198,7 @@ def _judgment_summary(model: Mapping[str, Any]) -> str:
             f"今回株価基準 {price_as_of or '日付不明'}、同一分割調整basis。"
         )
     else:
+        change_summary = "同一basisの前回snapshotがなく、前回差は比較できません。"
         change = "同一basisの前回snapshotがないため、前回との差は比較できません。"
 
     must_happen = list(hypothesis.get("must_happen") or [])
@@ -214,11 +218,15 @@ def _judgment_summary(model: Mapping[str, Any]) -> str:
     return f"""
 <section class="notice-card cockpit-judgment-summary" aria-labelledby="judgment-summary-title">
   <h2 id="judgment-summary-title">30秒で分かる判断材料</h2>
-  <p><strong>今回の注目点（なぜ今日見る？）:</strong> {_e(focus)} <span class="muted">これは日付付き既存資料の確認理由であり、今日の新事実ではありません。</span></p>
-  <p><strong>前回からの変化:</strong> {_e(change)}</p>
+  <p><strong>前回からの変化:</strong> {_e(change_summary)}</p>
   <p><strong>情報の古さ:</strong> {_e(freshness)} / 全体状態: {_status(model.get("overall_status"))}</p>
-  <p><strong>今の投資仮説:</strong> {_e(thesis)} / 警告 {_e(warning_count)}件</p>
   <p><strong>次に確認すること:</strong> {_e(next_check)} <a href="#market-expectations">市場期待の比較へ</a></p>
+  <details>
+    <summary>確認理由・数値basis・投資仮説の詳細</summary>
+    <p><strong>今回の注目点（なぜ今日見る？）:</strong> {_e(focus)} <span class="muted">これは日付付き既存資料の確認理由であり、今日の新事実ではありません。</span></p>
+    <p><strong>前回差の詳細:</strong> {_e(change)}</p>
+    <p><strong>今の投資仮説:</strong> {_e(thesis)} / 警告 {_e(warning_count)}件</p>
+  </details>
 </section>
 """
 
