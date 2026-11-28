@@ -101,7 +101,7 @@ def _latest_quote(payload: dict[str, Any], symbol: str) -> dict[str, Any]:
     ts, close = pairs[-1]
     previous = pairs[-2][1] if len(pairs) > 1 else None
     change = close - previous if previous not in (None, 0) else None
-    change_pct = (change / previous * 100) if change is not None and previous else None
+    change_pct = (change / previous * 100) if change is not None and previous not in (None, 0) else None
     for label, value in (("change", change), ("change_pct", change_pct)):
         if value is not None and not math.isfinite(value):
             raise ValueError(f"computed {label} for {symbol} is not finite")

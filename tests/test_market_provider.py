@@ -81,7 +81,8 @@ class MarketProviderTest(unittest.TestCase):
         self.assertEqual(1, len(result.data["coverage"]["missing"]))
         self.assertTrue(result.data["coverage"]["missing"][0].startswith(f"{key}("))
         # Other valid symbols are retained.
-        self.assertAlmostEqual(1.0, result.data["indices"]["sp500"]["change_pct"])
+        healthy = "nasdaq" if key == "sp500" else "sp500"
+        self.assertAlmostEqual(1.0, result.data["indices"][healthy]["change_pct"])
 
     def test_length_mismatch_is_symbol_failure(self) -> None:
         payload = chart([100.0, 101.0])
