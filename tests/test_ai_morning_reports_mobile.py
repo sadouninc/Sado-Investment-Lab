@@ -56,12 +56,14 @@ def test_latest_card_prioritizes_update_market_watch_and_status():
     verified = module.latest_report_card(
         "2026-08-14",
         "/reports/morning/2026-08-14/",
-        {"market": "日経平均は反発", "strategy": "押し目を監視", "watch": "6622 ダイヘン", "risk": ""},
+        {"market": "日経平均は反発", "strategy": "押し目を監視", "watch": "4063 信越化学工業", "risk": ""},
         "PARTIAL",
         "2026-08-14T02:40:17+00:00",
-        frozenset({"6622"}),
+        (("6622", "ダイヘン"),),
     )
-    assert "注目: 6622 ダイヘン" in verified
+    # Verified focus comes from canonical pairs only; AI prose is not shown as a pick.
+    assert "注目（候補データで検証済み）: 6622 ダイヘン" in verified
+    assert "4063" not in verified
     assert "未確定" not in verified
     assert "Data quality" not in card
     assert "Model:" not in card

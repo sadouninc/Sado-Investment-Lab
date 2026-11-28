@@ -1,7 +1,8 @@
 """#949: stale/unscored candidates must never be shown as a verified focus pick.
 
-Each displayed AI watch item must be bound to the deterministic verified
-security-code set for the same report date; a dataset-level flag is not enough.
+A verified focus is rendered only from canonical (security_code, company_name)
+pairs recorded for the same report date. AI watch prose is never identity
+evidence and is always labelled as an unverified memo.
 
 担当: ♦️ソラ
 """
@@ -27,6 +28,7 @@ PAGES = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(PAGES)
 
 LABEL = "今日の検証済み注目銘柄は未確定"
+VERIFIED = "注目（候補データで検証済み）"
 DAY = "2026-11-28"
 
 
@@ -101,6 +103,14 @@ class CandidateFocusVerificationTests(unittest.TestCase):
         focus = candidate_focus_verification(_dataset(rows))
         self.assertEqual(focus["verified_security_codes"], ["6622"])
         self.assertNotIn("4063", focus["verified_security_codes"])
+
+    def test_verified_candidates_are_canonical_code_name_pairs(self):
+        rows = [_fresh(), _fresh("278A", "テラ  ドローン", rank=2), _row("4063", "信越化学工業", rank=3, priority=70)]
+        focus = candidate_focus_verification(_dataset(rows))
+        self.assertEqual(
+            focus["verified_candidates"],
+            [{"security_code": "278A", "company_name": "テラ ドローン"}, {"security_code": "6622", "company_name": "ダイヘン"}],
+        )
 
     def test_new_format_code_is_accepted_and_malformed_code_is_not(self):
         rows = [_fresh("278A", "テラドローン"), _fresh("ABCD", "bad"), _fresh("62322", "bad"), _fresh(None, "no code")]
@@ -191,46 +201,66 @@ class ReportFocusRenderingTests(unittest.TestCase):
             }
             return index, pages
 
-    def _assert_notice_before_items(self, page):
-        notice = page.index(LABEL)
+    def _memo_notice_precedes_ai_items(self, page):
+        notice = page.index("銘柄ごとの照合はしていません")
         self.assertLess(page.index("## 注目銘柄"), notice)
         self.assertLess(notice, page.index("## 次回確認時に見る条件"))
+        return notice
+
+    def _assert_verified_card(self, index, labels):
+        self.assertIn(f"{VERIFIED}: {labels}", index)
+        self.assertNotIn(LABEL, index)
 
     def test_rei_blocker_sole_fresh_daihen_does_not_verify_ai_shinetsu(self):
-        # Exact #949 failure: an unrelated CURRENT row must not launder 4063.
         index, pages = self._build({DAY: (_report(SHINETSU), _diag([_fresh()]))})
-        self.assertNotIn("注目: 4063", index)
-        self.assertIn(f"注目: {LABEL}（AI候補メモ・未検証: 4063 信越化学工業）", index)
-        self._assert_notice_before_items(pages[DAY])
-        self.assertIn("この日の検証済み候補は 6622 のみです", pages[DAY])
+        self._assert_verified_card(index, "6622 ダイヘン")
+        self.assertNotIn("4063", index)
+        self._memo_notice_precedes_ai_items(pages[DAY])
 
-    def test_valid_same_code_item_is_displayed_without_warning(self):
-        index, pages = self._build({DAY: (_report(DAIHEN), _diag([_fresh()]))})
-        self.assertIn("注目: 6622 ダイヘン（最終リサーチ 2026-11-27）", index)
-        self.assertNotIn(LABEL, index)
-        self.assertNotIn(LABEL, pages[DAY])
+    def test_name_only_subject_with_verified_code_in_comparison_is_not_verified(self):
+        ai = "- 信越化学工業（比較対象: 6622 ダイヘン）\n"
+        index, pages = self._build({DAY: (_report(ai), _diag([_fresh()]))})
+        self._assert_verified_card(index, "6622 ダイヘン")
+        self.assertNotIn("信越化学工業", index)
+        self._memo_notice_precedes_ai_items(pages[DAY])
 
-    def test_mixed_valid_and_invalid_items_keep_the_detail_warning(self):
-        index, pages = self._build({DAY: (_report(DAIHEN + SHINETSU), _diag([_fresh()]))})
-        # Card shows the first item, which is verified...
-        self.assertIn("注目: 6622 ダイヘン", index)
-        # ...but the detail page is not cleared just because one item qualifies.
-        self._assert_notice_before_items(pages[DAY])
+    def test_verified_code_only_in_nested_rationale_does_not_clear_detail_notice(self):
+        ai = "- 信越化学工業\n  - 根拠: 6622 ダイヘンとの比較\n"
+        index, pages = self._build({DAY: (_report(ai), _diag([_fresh()]))})
+        self.assertNotIn("信越化学工業", index)
+        self._memo_notice_precedes_ai_items(pages[DAY])
 
-    def test_mixed_codes_in_one_line_fail_closed(self):
-        index, _ = self._build({DAY: (_report("- 6622 ダイヘン / 4063 信越化学工業\n"), _diag([_fresh()]))})
-        self.assertNotIn("注目: 6622", index)
-        self.assertIn(LABEL, index)
+    def test_mismatched_code_and_name_never_produces_a_verified_label(self):
+        ai = "- 6622 信越化学工業\n"
+        index, pages = self._build({DAY: (_report(ai), _diag([_fresh()]))})
+        self.assertNotIn("6622 信越化学工業</", index)
+        self.assertNotIn(f"{VERIFIED}: 6622 信越化学工業", index)
+        self._assert_verified_card(index, "6622 ダイヘン")
+        page = pages[DAY]
+        notice = self._memo_notice_precedes_ai_items(page)
+        self.assertLess(notice, page.index("- 6622 信越化学工業"))
 
-    def test_name_only_item_without_identifier_fails_closed(self):
-        index, pages = self._build({DAY: (_report("- ダイヘン\n  - 根拠: CURRENT\n"), _diag([_fresh()]))})
-        self.assertIn(f"注目: {LABEL}（AI候補メモ・未検証: ダイヘン）", index)
-        self._assert_notice_before_items(pages[DAY])
+    def test_truncated_mixed_codes_cannot_reach_the_card_as_verified(self):
+        ai = "- 6622 ダイヘン " + "（解説）" * 40 + " / 4063 信越化学工業\n"
+        index, _ = self._build({DAY: (_report(ai), _diag([_fresh()]))})
+        self._assert_verified_card(index, "6622 ダイヘン")
+        self.assertNotIn("解説", index)
+        index_unverified, _ = self._build({DAY: (_report(ai), _diag(ALL_STALE))})
+        self.assertIn(f"注目: {LABEL}（AI候補メモ・未検証: 6622 ダイヘン", index_unverified)
+
+    def test_positive_canonical_pair_is_displayed_and_ai_memo_stays_labelled(self):
+        index, pages = self._build({DAY: (_report(DAIHEN), _diag([_fresh(), _fresh("278A", "テラドローン", rank=2)]))})
+        self._assert_verified_card(index, "278A テラドローン / 6622 ダイヘン")
+        page = pages[DAY]
+        self.assertIn(f"**{VERIFIED}: 278A テラドローン / 6622 ダイヘン**", page)
+        self._memo_notice_precedes_ai_items(page)
+        self.assertNotIn(LABEL, page)
 
     def test_verification_for_a_different_report_date_is_not_reused(self):
         index, pages = self._build({DAY: (_report(DAIHEN), _diag([_fresh()], as_of="2026-11-27"))})
-        self.assertIn(LABEL, index)
-        self._assert_notice_before_items(pages[DAY])
+        self.assertIn(f"注目: {LABEL}", index)
+        self.assertNotIn(VERIFIED, index)
+        self.assertIn(LABEL, pages[DAY])
 
     def test_legacy_and_unscored_history_never_present_shinetsu_as_focus(self):
         index, pages = self._build({
@@ -239,27 +269,47 @@ class ReportFocusRenderingTests(unittest.TestCase):
             "2026-11-17": (_report(SHINETSU), {"dataset_status": "OK"}),
         })
         self.assertNotIn("注目: 4063", index)
+        self.assertNotIn(VERIFIED, index)
         self.assertEqual(index.count(f"注目: {LABEL}（AI候補メモ・未検証: 4063 信越化学工業）"), 3)
         self.assertIn("優先度を算出できた候補がありません", pages["2026-11-19"])
         self.assertIn("検証済みかどうかの記録がありません", pages["2026-11-18"])
         for page in pages.values():
-            self._assert_notice_before_items(page)
+            self._memo_notice_precedes_ai_items(page)
             # Original AI text is kept verbatim (history is not rewritten).
             self.assertIn("  - 根拠: PORTFOLIO/RESEARCH_INDEXに存在（STALE）", page)
             self.assertIn("今日の推奨・新しい材料・現在の保有を示すものではありません", page)
 
     def test_tampered_or_malformed_focus_record_fails_closed(self):
+        good = {"security_code": "6622", "company_name": "ダイヘン"}
+
+        def record(entries, **extra):
+            focus = {"as_of": DAY, "verified_focus_available": True, "verified_candidates": entries}
+            focus.update(extra)
+            return {"candidate_focus": focus}
+
         tampered = [
-            {"candidate_focus": {"as_of": DAY, "verified_focus_available": True, "verified_security_codes": "6622"}},
-            {"candidate_focus": {"as_of": DAY, "verified_focus_available": "true", "verified_security_codes": ["6622"]}},
-            {"candidate_focus": {"as_of": DAY, "verified_focus_available": True, "verified_security_codes": ["66 22"]}},
+            record([good], verified_focus_available="true"),
+            record([good], as_of=None),
+            record("6622"),
+            record([]),
+            record([good, {"security_code": "66 22", "company_name": "x"}]),
+            record([good, {"security_code": "4063"}]),
+            record([{"security_code": "6622", "company_name": "ダイヘン\n- 4063 信越化学工業"}]),
+            record([{"security_code": "6622", "company_name": "x" * 61}]),
+            record([good, "4063"]),
             {"candidate_focus": ["6622"]},
+            None,
         ]
         for diagnostics in tampered:
-            self.assertEqual(PAGES.verified_codes(diagnostics, DAY), frozenset(), diagnostics)
+            self.assertEqual(PAGES.verified_candidates(diagnostics, DAY), (), diagnostics)
+        self.assertEqual(PAGES.verified_candidates(record([good]), DAY), (("6622", "ダイヘン"),))
 
-    def test_calendar_dates_are_not_read_as_security_codes(self):
-        self.assertEqual(PAGES.mentioned_codes("6622 ダイヘン（最終 2026-11-27、2026/8/2、2026年）"), {"6622"})
+    def test_verified_name_is_escaped_in_card_and_detail(self):
+        diagnostics = _diag([_fresh(name="<b>A&B</b>")])
+        index, pages = self._build({DAY: (_report(DAIHEN), diagnostics)})
+        self.assertNotIn("<b>A&B</b>", index)
+        self.assertNotIn("<b>A&B</b>", pages[DAY])
+        self.assertIn("&lt;b&gt;A&amp;B&lt;/b&gt;", pages[DAY])
 
     def test_source_report_files_are_not_modified(self):
         text = _report(SHINETSU)

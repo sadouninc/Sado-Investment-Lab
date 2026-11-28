@@ -175,9 +175,15 @@ def candidate_focus_verification(dataset: Any) -> dict[str, Any]:
     rows = dataset.get("candidates")
     rows = [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
     scored = [row for row in rows if _finite_number(row.get("total_priority")) and _finite_number(row.get("rank"))]
-    codes = sorted({code for row in rows if (code := _verified_row_code(row, as_of))})
+    pairs: dict[str, str] = {}
+    for row in rows:
+        code = _verified_row_code(row, as_of)
+        name = row.get("company_name")
+        if code and isinstance(name, str) and name.strip():
+            pairs.setdefault(code, " ".join(name.split()))
     if source_status != "OK":
-        codes = []
+        pairs = {}
+    codes = sorted(pairs)
     verified = bool(codes)
     if verified:
         reason = None
@@ -195,6 +201,9 @@ def candidate_focus_verification(dataset: Any) -> dict[str, Any]:
         "as_of": as_of.isoformat() if as_of else None,
         "verified_focus_available": verified,
         "verified_security_codes": codes,
+        # Canonical code/name pairs: the only identity a renderer may show as a
+        # verified focus. AI watch prose is never used as identity evidence.
+        "verified_candidates": [{"security_code": code, "company_name": pairs[code]} for code in codes],
         "candidate_source_status": source_status,
         "candidate_source_as_of": source.get("as_of"),
         "candidate_count": len(rows),

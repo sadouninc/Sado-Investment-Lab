@@ -118,103 +118,82 @@ def dataset_status_label(status: object) -> str:
 
 
 UNVERIFIED_FOCUS_LABEL = "今日の検証済み注目銘柄は未確定"
+VERIFIED_FOCUS_LABEL = "注目（候補データで検証済み）"
 SECURITY_CODE_RE = re.compile(r"^[0-9][0-9A-Z][0-9][0-9A-Z]$")
-_CODE_TOKEN_RE = re.compile(r"(?<![0-9A-Za-z])[0-9][0-9A-Z][0-9][0-9A-Z](?![0-9A-Za-z])")
-_DATE_RE = re.compile(r"\d{4}\s*(?:[-/.]\s*\d{1,2}\s*[-/.]\s*\d{1,2}|年)")
 _WATCH_HEADING_RE = re.compile(r"^##\s+(?:注目銘柄|Key Watch|Watchlist)\s*$", re.MULTILINE)
+_MAX_NAME_CHARS = 60
+
+VerifiedPair = tuple[str, str]
 
 
-def verified_codes(diagnostics: object, day: str) -> frozenset[str]:
-    """Return the deterministic verified security-code set for this report day.
+def verified_candidates(diagnostics: object, day: str) -> tuple[VerifiedPair, ...]:
+    """Return canonical (security_code, company_name) pairs verified for this report day.
 
-    Fails closed (empty set) for legacy diagnostics without ``candidate_focus``,
-    malformed values, a record whose ``as_of`` is not the report date, or a
-    record that does not explicitly mark a verified focus as available.
+    The pairs come from the deterministic ``candidate_focus`` record written from
+    canonical candidate rows, never from AI prose. Legacy diagnostics, malformed
+    records, any malformed entry, or a record for another date fail closed.
     """
     if not isinstance(diagnostics, dict):
-        return frozenset()
+        return ()
     focus = diagnostics.get("candidate_focus")
     if not isinstance(focus, dict) or focus.get("verified_focus_available") is not True:
-        return frozenset()
+        return ()
     if focus.get("as_of") != day:
-        return frozenset()
-    codes = focus.get("verified_security_codes")
-    if not isinstance(codes, list):
-        return frozenset()
-    return frozenset(
-        code for code in codes if isinstance(code, str) and SECURITY_CODE_RE.fullmatch(code)
-    )
+        return ()
+    entries = focus.get("verified_candidates")
+    if not isinstance(entries, list) or not entries:
+        return ()
+    pairs: list[VerifiedPair] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            return ()
+        code, name = entry.get("security_code"), entry.get("company_name")
+        if not isinstance(code, str) or not SECURITY_CODE_RE.fullmatch(code):
+            return ()
+        if not isinstance(name, str) or not name.strip() or "\n" in name or len(name) > _MAX_NAME_CHARS:
+            return ()
+        pairs.append((code, name.strip()))
+    return tuple(pairs)
 
 
-def mentioned_codes(text: str) -> set[str]:
-    """Security-code-shaped tokens in AI prose, ignoring calendar dates."""
-    return set(_CODE_TOKEN_RE.findall(_DATE_RE.sub(" ", text)))
+def _pair_labels(pairs: tuple[VerifiedPair, ...]) -> str:
+    return " / ".join(f"{code} {name}" for code, name in pairs)
 
 
-def item_verified(text: str, codes: frozenset[str]) -> bool:
-    """An AI watch item is verified only if every code it names is verified.
-
-    Items with no code (name only), or with any unverified/unknown code
-    (including mixed lists such as "6622 / 4063"), fail closed.
-    """
-    mentioned = mentioned_codes(text)
-    return bool(mentioned) and mentioned <= codes
-
-
-def watch_line(summary: dict[str, str], *, codes: frozenset[str] = frozenset()) -> str:
+def watch_line(summary: dict[str, str], *, pairs: tuple[VerifiedPair, ...] = ()) -> str:
+    """Verified focus is rendered only from canonical pairs; AI prose stays an unverified memo."""
+    if pairs:
+        return f"{VERIFIED_FOCUS_LABEL}: {_pair_labels(pairs)}"
     watch = summary.get("watch") or ""
-    if item_verified(watch, codes):
-        return f"注目: {watch}"
     return f"注目: {UNVERIFIED_FOCUS_LABEL}（AI候補メモ・未検証: {watch}）"
 
 
-def _watch_items(section: str) -> list[str]:
-    """Top-level list items of the watch section, with their nested lines."""
-    items: list[str] = []
-    for line in section.splitlines():
-        if re.match(r"^(?:[-*+]|\d+[.)])\s+", line):
-            items.append(line)
-        elif items and line.strip():
-            items[-1] += "\n" + line
-        elif line.strip():
-            items.append(line)
-    return items
-
-
-def unverified_focus_notice(diagnostics: object, codes: frozenset[str]) -> str:
+def watch_section_notice(diagnostics: object, pairs: tuple[VerifiedPair, ...]) -> str:
+    memo = (
+        "以下はAIが候補データから書いたメモで、銘柄ごとの照合はしていません。"
+        "今日の推奨・新しい材料・現在の保有を示すものではありません。"
+    )
+    if pairs:
+        labels = html.escape(_pair_labels(pairs))
+        return f"> **{VERIFIED_FOCUS_LABEL}: {labels}**  \n> {memo}\n\n"
     focus = diagnostics.get("candidate_focus") if isinstance(diagnostics, dict) else None
     reason = focus.get("reason") if isinstance(focus, dict) else None
-    if codes:
-        detail = (
-            f"この日の検証済み候補は {'、'.join(sorted(codes))} のみです。"
-            "それ以外の銘柄、および銘柄コードで照合できない項目は未検証です"
-        )
-    else:
-        detail = reason or "この日の候補が検証済みかどうかの記録がありません"
-    return (
-        f"> **{UNVERIFIED_FOCUS_LABEL}。** 以下はAIが候補データから書いたメモで、"
-        "今日の推奨・新しい材料・現在の保有を示すものではありません。"
-        f"（理由: {detail}）\n\n"
-    )
+    detail = html.escape(str(reason)) if reason else "この日の候補が検証済みかどうかの記録がありません"
+    return f"> **{UNVERIFIED_FOCUS_LABEL}。** {memo}（理由: {detail}）\n\n"
 
 
 def annotate_watch_section(text: str, diagnostics: object, day: str) -> str:
-    """Add a display-only notice above the watch section; the source report is not rewritten.
+    """Always label the AI watch section as an unverified memo (display only).
 
-    The notice is omitted only when every item in the section is bound to the
-    verified security-code set for this report day.
+    The source report is not rewritten. When canonical verified pairs exist for
+    this report day they are shown separately above the memo.
     """
     match = _WATCH_HEADING_RE.search(text)
     if not match:
         return text
-    codes = verified_codes(diagnostics, day)
-    next_heading = re.search(r"^##\s+", text[match.end():], re.MULTILINE)
-    section = text[match.end(): match.end() + next_heading.start()] if next_heading else text[match.end():]
-    items = _watch_items(section)
-    if items and all(item_verified(item, codes) for item in items):
-        return text
+    notice = watch_section_notice(diagnostics, verified_candidates(diagnostics, day))
     insert_at = match.end() + 1
-    return text[:insert_at] + "\n" + unverified_focus_notice(diagnostics, codes) + text[insert_at:].lstrip("\n")
+    return text[:insert_at] + "\n" + notice + text[insert_at:].lstrip("\n")
 
 
 def card_detail(
@@ -222,7 +201,7 @@ def card_detail(
     status: object,
     *,
     generated_at: object = None,
-    verified_codes: frozenset[str] = frozenset(),
+    verified_pairs: tuple[VerifiedPair, ...] = (),
 ) -> str:
     """Preserve the established decision summary while adding freshness metadata."""
     rows: list[str] = []
@@ -233,8 +212,8 @@ def card_detail(
         rows.append(f"市場: {summary['market']}")
     if summary.get("strategy"):
         rows.append(f"戦略: {summary['strategy']}")
-    if summary.get("watch"):
-        rows.append(watch_line(summary, codes=verified_codes))
+    if verified_pairs or summary.get("watch"):
+        rows.append(watch_line(summary, pairs=verified_pairs))
     elif summary.get("risk"):
         rows.append(f"リスク: {summary['risk']}")
     rows.append(dataset_status_label(status))
@@ -247,7 +226,7 @@ def latest_report_card(
     summary: dict[str, str],
     status: object,
     generated_at: object = None,
-    verified_codes: frozenset[str] = frozenset(),
+    verified_pairs: tuple[VerifiedPair, ...] = (),
 ) -> str:
     """Render the latest decision-oriented report before any implementation explanation."""
     return (
@@ -255,7 +234,7 @@ def latest_report_card(
         '<h2 id="morning-latest">今日まず見る</h2>\n'
         f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
         f'<strong>最新レポート {html.escape(day)}</strong>'
-        f'<span>{card_detail(summary, status, generated_at=generated_at, verified_codes=verified_codes)}</span></a>\n'
+        f'<span>{card_detail(summary, status, generated_at=generated_at, verified_pairs=verified_pairs)}</span></a>\n'
         '</section>\n'
     )
 
@@ -263,7 +242,7 @@ def latest_report_card(
 def build() -> None:
     sources = sorted(REPORT_DIR.glob("*.md"), reverse=True) if REPORT_DIR.exists() else []
     cards: list[str] = []
-    latest: tuple[str, str, dict[str, str], object, object, frozenset[str]] | None = None
+    latest: tuple[str, str, dict[str, str], object, object, tuple[VerifiedPair, ...]] | None = None
     for source in sources:
         day = report_date(source)
         url = f"/reports/morning/{day}/"
@@ -277,13 +256,13 @@ def build() -> None:
         generated_at = diagnostics.get("generated_at")
         report_text = source.read_text(encoding="utf-8")
         summary = report_card_summary(report_text)
-        codes = verified_codes(diagnostics, day)
+        pairs = verified_candidates(diagnostics, day)
         if latest is None:
-            latest = (day, url, summary, status, generated_at, codes)
+            latest = (day, url, summary, status, generated_at, pairs)
         else:
             cards.append(
                 f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
-                f"<strong>{day}</strong><span>{card_detail(summary, status, verified_codes=codes)}</span></a>"
+                f"<strong>{day}</strong><span>{card_detail(summary, status, verified_pairs=pairs)}</span></a>"
             )
         page = front_matter(
             f"朝の市場レポート {day}",
