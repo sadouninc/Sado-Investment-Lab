@@ -21,9 +21,11 @@ OLD = "b" * 40
 BASE = "c" * 40
 
 
-def run(run_id, name, *, status="completed", conclusion="success", sha=HEAD, attempt=1):
+def run(run_id, name, *, status="completed", conclusion="success", sha=HEAD, attempt=1,
+        started="2026-11-28T12:00:00Z"):
     return {"id": run_id, "name": name, "status": status, "conclusion": conclusion,
-            "head_sha": sha, "run_attempt": attempt, "event": "pull_request"}
+            "head_sha": sha, "run_attempt": attempt, "event": "pull_request",
+            "run_started_at": started}
 
 
 def review(login, state, *, commit=HEAD, body="担当: ❤️レイ CHANGES_REQUIRED secret"):
@@ -113,6 +115,26 @@ class CiClassificationTests(unittest.TestCase):
         self.assertEqual(ev.classify_ci(runs, head_sha=HEAD, self_run_id=None)["status"], "SUCCESS")
         rerun_failed = [run(1, "PR Preflight", attempt=1), run(1, "PR Preflight", conclusion="failure", attempt=2)]
         self.assertEqual(ev.classify_ci(rerun_failed, head_sha=HEAD, self_run_id=None)["status"], "FAILED")
+
+    def test_distinct_runs_are_ordered_by_latest_attempt_start_not_attempt_number(self):
+        # Re-run (attempt 2) of older run 5 started after newer run 10: the re-run wins.
+        rerun_later = [run(5, "PR Preflight", conclusion="failure", attempt=2, started="2026-11-28T12:30:00Z"),
+                       run(10, "PR Preflight", conclusion="success", attempt=1, started="2026-11-28T12:10:00Z")]
+        ci = ev.classify_ci(rerun_later, head_sha=HEAD, self_run_id=None)
+        self.assertEqual(ci["status"], "FAILED")
+        self.assertEqual(ci["observed"][0]["id"], 5)
+        # Newer run 10 started after the old run's re-run: run 10 wins despite attempt=1.
+        newer_run_later = [run(5, "PR Preflight", conclusion="failure", attempt=2, started="2026-11-28T12:10:00Z"),
+                           run(10, "PR Preflight", conclusion="success", attempt=1, started="2026-11-28T12:30:00Z")]
+        ci = ev.classify_ci(newer_run_later, head_sha=HEAD, self_run_id=None)
+        self.assertEqual(ci["status"], "SUCCESS")
+        self.assertEqual(ci["observed"][0]["id"], 10)
+        self.assertNotIn("_order", ci["observed"][0])
+
+    def test_missing_or_malformed_start_time_falls_back_to_run_id(self):
+        runs = [run(5, "PR Preflight", conclusion="failure", attempt=3, started=None),
+                run(10, "PR Preflight", conclusion="success", attempt=1, started="garbage")]
+        self.assertEqual(ev.classify_ci(runs, head_sha=HEAD, self_run_id=None)["observed"][0]["id"], 10)
 
     def test_cancelled_or_timed_out_is_failure_and_unknown_conclusion_is_unknown(self):
         for conclusion in ("cancelled", "timed_out", "action_required", "startup_failure", "stale"):
@@ -278,6 +300,13 @@ class CliTests(unittest.TestCase):
                           "--output", str(root / "out.json"), "--summary", str(root / "out.md")])
             self.assertEqual(rc, 0)
             self.assertEqual(json.loads((root / "out.json").read_text())["status"], "UNKNOWN")
+
+    def test_non_ascii_digits_in_run_env_are_ignored(self):
+        with mock.patch.dict("os.environ", {"GITHUB_RUN_ID": "\u00b2", "GITHUB_RUN_ATTEMPT": "\u0663"}):
+            self.assertIsNone(ev._int_env("GITHUB_RUN_ID"))
+            self.assertIsNone(ev._int_env("GITHUB_RUN_ATTEMPT"))
+        with mock.patch.dict("os.environ", {"GITHUB_RUN_ID": "46147386877"}):
+            self.assertEqual(ev._int_env("GITHUB_RUN_ID"), 46147386877)
 
     def test_live_mode_without_token_writes_unknown_report(self):
         with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(

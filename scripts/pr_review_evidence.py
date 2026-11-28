@@ -41,6 +41,8 @@ SELF_WORKFLOW_NAME = "PR Review Evidence (#977)"
 _REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _LOGIN_RE = re.compile(r"^[A-Za-z0-9-]{1,39}(?:\[bot\])?$")
+_STARTED_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+_DECIMAL_RE = re.compile(r"^[0-9]{1,18}$")
 _SAFE_TEXT_RE = re.compile(r"[^\w .:#()/\-\[\]]", re.UNICODE)
 
 RUN_SUCCESS = {"success", "neutral", "skipped"}
@@ -92,8 +94,12 @@ def classify_head(event_head: Any, current_head: Any) -> dict[str, Any]:
 def classify_ci(runs: Any, *, head_sha: str | None, self_run_id: int | None) -> dict[str, Any]:
     """Classify GitHub Actions workflow runs observed for the exact head.
 
-    Only the latest attempt per workflow counts. This workflow's own runs are
-    excluded so it can never vouch for itself.
+    The runs API lists each run once, with ``run_attempt`` already set to that
+    run's latest attempt. When a workflow has several distinct runs on the same
+    head (e.g. reopened, or a re-run of an older run), the one whose latest
+    attempt started last wins: ``run_started_at`` first, then run id and attempt
+    as tie-breakers. Attempt numbers are never compared across different runs.
+    This workflow's own runs are excluded so it can never vouch for itself.
     """
     if runs is None or not isinstance(runs, list) or head_sha is None:
         return {"status": "UNKNOWN", "observed": [], "reason": "workflow runs unavailable"}
@@ -113,10 +119,13 @@ def classify_ci(runs: Any, *, head_sha: str | None, self_run_id: int | None) -> 
         if run.get("head_sha") != head_sha:
             continue  # evidence for another commit is never reused
         attempt = run.get("run_attempt") if isinstance(run.get("run_attempt"), int) else 0
-        key = name
-        previous = latest.get(key)
-        if previous is None or (run_id, attempt) > (previous["id"], previous["attempt"]):
-            latest[key] = {
+        started = run.get("run_started_at")
+        started = started if isinstance(started, str) and _STARTED_RE.fullmatch(started) else ""
+        order = (started, run_id, attempt)
+        previous = latest.get(name)
+        if previous is None or order > previous["_order"]:
+            latest[name] = {
+                "_order": order,
                 "id": run_id,
                 "attempt": attempt,
                 "name": _safe_text(name),
@@ -124,7 +133,10 @@ def classify_ci(runs: Any, *, head_sha: str | None, self_run_id: int | None) -> 
                 "conclusion": _safe_text(run.get("conclusion") or "", 30) or None,
                 "event": _safe_text(run.get("event") or "", 30) or None,
             }
-    observed = sorted(latest.values(), key=lambda item: item["name"])
+    observed = sorted(
+        ({k: v for k, v in item.items() if k != "_order"} for item in latest.values()),
+        key=lambda item: item["name"],
+    )
     if malformed:
         return {"status": "UNKNOWN", "observed": observed, "reason": f"{malformed} malformed run record(s)"}
     if not observed:
@@ -434,6 +446,8 @@ def collect_snapshot(event: dict[str, Any], client: ReadOnlyClient, *, run_id: i
             snapshot["errors"].append(f"workflow runs: {exc}")
     try:
         reviews = client.get(f"pulls/{number}/reviews", {"per_page": 100})
+        # This endpoint has no total_count. A full page (100) may be truncated,
+        # so it is deliberately rejected as an incomplete inventory (UNKNOWN).
         if isinstance(reviews, list) and len(reviews) < 100:
             snapshot["reviews"] = reviews
         else:
@@ -449,7 +463,7 @@ def collect_snapshot(event: dict[str, Any], client: ReadOnlyClient, *, run_id: i
 
 def _int_env(name: str) -> int | None:
     value = os.environ.get(name, "")
-    return int(value) if value.isdigit() else None
+    return int(value) if _DECIMAL_RE.fullmatch(value) else None
 
 
 def main(argv: list[str] | None = None) -> int:
