@@ -11,7 +11,13 @@ from pathlib import Path
 from typing import Any, Mapping
 
 
-def _paths_overlap(a: str, b: str) -> bool:
+def paths_overlap(a: str, b: str) -> bool:
+    """Return whether two normalized file/directory scopes may overlap.
+
+    Empty scopes are deliberately ambiguous and therefore overlap.  This is a
+    public helper because offline classifiers share the same fail-closed path
+    contract.
+    """
     if not a or not b:
         return True  # Ambiguous path is not safe.
     # Both glob scopes and bare directory scopes may denote descendants.
@@ -21,6 +27,11 @@ def _paths_overlap(a: str, b: str) -> bool:
         return s[:-3] if s.endswith("/**") else s.rstrip("/")
     left, right = prefix(a), prefix(b)
     return left == right or left.startswith(right + "/") or right.startswith(left + "/")
+
+
+# Compatibility for callers that imported the original private helper.  New
+# code must use ``paths_overlap`` so the shared contract is explicit.
+_paths_overlap = paths_overlap
 
 
 def inspect_one_candidate(
@@ -70,7 +81,7 @@ def inspect_one_candidate(
                 or any(not isinstance(p, str) or not p for p in pr["paths"])):
             return {**result, "reason": "PR_PATH_INVENTORY_INCOMPLETE"}
         seen.add(pr["number"])
-        if any(_paths_overlap(path, other) for path in paths for other in pr["paths"]):
+        if any(paths_overlap(path, other) for path in paths for other in pr["paths"]):
             conflicts.append(pr["number"])
     if conflicts:
         return {**result, "reason": "PR_PATH_CONFLICT", "conflicting_prs": conflicts}
@@ -107,3 +118,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
