@@ -67,6 +67,17 @@ def _safe_text(value: Any, limit: int = 120) -> str:
     return text[:limit]
 
 
+def _utc_timestamp(value: Any) -> str | None:
+    """Strict UTC ``YYYY-MM-DDTHH:MM:SSZ`` that is also a real calendar instant."""
+    if not isinstance(value, str) or not _STARTED_RE.fullmatch(value):
+        return None
+    try:
+        datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        return None
+    return value
+
+
 def _sha(value: Any) -> str | None:
     return value if isinstance(value, str) and _SHA_RE.fullmatch(value) else None
 
@@ -126,8 +137,7 @@ def classify_ci(runs: Any, *, head_sha: str | None, self_run_id: int | None) -> 
         if run.get("head_sha") != head_sha:
             continue  # evidence for another commit is never reused
         attempt = run.get("run_attempt") if isinstance(run.get("run_attempt"), int) else 0
-        started = run.get("run_started_at")
-        started = started if isinstance(started, str) and _STARTED_RE.fullmatch(started) else ""
+        started = _utc_timestamp(run.get("run_started_at")) or ""
         order = (started, run_id, attempt)
         previous = latest.get(name)
         if previous is None or order > previous["_order"]:
@@ -178,11 +188,11 @@ def classify_reviews(reviews: Any, *, head_sha: str | None) -> dict[str, Any]:
         user = review.get("user") if isinstance(review.get("user"), dict) else {}
         login = _login(user.get("login"))
         commit = _sha(review.get("commit_id"))
-        submitted = review.get("submitted_at")
+        submitted = _utc_timestamp(review.get("submitted_at"))
         # Every submitted review must name a valid commit and a strict UTC
         # timestamp; otherwise it can neither be placed in time nor bound to a
         # head, and must not be able to supersede an earlier CHANGES_REQUESTED.
-        if login is None or commit is None or not (isinstance(submitted, str) and _STARTED_RE.fullmatch(submitted)):
+        if login is None or commit is None or submitted is None:
             malformed += 1
             continue
         entries.append({
@@ -308,7 +318,7 @@ def build_report(snapshot: dict[str, Any]) -> dict[str, Any]:
         "reviews": reviews,
         "review_threads": threads,
         "collection_errors": [
-            _safe_text(e, 160) for e in (snapshot.get("errors") or []) if isinstance(snapshot.get("errors"), list)
+            _safe_text(e, 160) for e in (snapshot.get("errors") if isinstance(snapshot.get("errors"), list) else [])
         ],
         "coverage": {
             "github_actions_runs": True,

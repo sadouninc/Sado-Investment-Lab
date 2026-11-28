@@ -211,6 +211,27 @@ class ReiReviewRobustnessTests(unittest.TestCase):
             bad["submitted_at"] = submitted
             self.assertEqual(ev.classify_reviews([bad], head_sha=HEAD)["status"], "UNKNOWN", submitted)
 
+    def test_impossible_calendar_timestamp_cannot_clear_known_blocker(self):
+        # ❤️レイ review 6098184499 exact counterexample.
+        for submitted in ("9999-99-99T99:99:99Z", "2026-02-30T12:00:00Z", "2026-11-28T24:00:00Z",
+                          "2026-11-28T12:60:00Z", "2026-13-01T00:00:00Z"):
+            later = review("rei", "APPROVED")
+            later["submitted_at"] = submitted
+            report = ev.build_report(snapshot(reviews=[review("rei", "CHANGES_REQUESTED"), later]))
+            self.assertEqual(report["reviews"]["status"], "CHANGES_REQUESTED", submitted)
+            self.assertEqual(report["status"], "BLOCKED", submitted)
+
+    def test_impossible_run_start_time_does_not_win_ordering(self):
+        runs = [run(10, "PR Preflight", conclusion="success", started="2026-11-28T12:30:00Z"),
+                run(5, "PR Preflight", conclusion="failure", attempt=2, started="9999-99-99T99:99:99Z")]
+        ci = ev.classify_ci(runs, head_sha=HEAD, self_run_id=None)
+        self.assertEqual(ci["observed"][0]["id"], 10)
+
+    def test_scalar_errors_field_does_not_raise(self):
+        for errors in (5, True, "boom", {"a": 1}):
+            report = ev.build_report(snapshot(errors=errors))
+            self.assertEqual(report["collection_errors"], [], errors)
+
     def test_reviews_are_ordered_by_submitted_at_not_api_list_order(self):
         approved_earlier = review("rei", "APPROVED")
         approved_earlier["submitted_at"] = "2026-11-28T11:00:00Z"
