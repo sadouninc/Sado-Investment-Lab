@@ -43,7 +43,10 @@ def _is_count(value: object) -> bool:
 
 def _derived_quality_status(counts: dict[str, int], total: int) -> str:
     # Mirrors generator._quality so a hand-edited data_quality cannot claim a
-    # better state than its own source_status supports.
+    # better state than its own source_status supports. _validate_source_status
+    # already requires all eight canonical sources, so total is never 0 here; the
+    # total == 0 branch is kept only to stay byte-for-byte equivalent to the
+    # generator formula and is not a way for an empty inventory to become OK.
     ok = counts["OK"]
     usable = counts["OK"] + counts["PARTIAL"] + counts["STALE"]
     if total == 0 or ok == total:
@@ -95,6 +98,8 @@ def _validate_quality(quality: object, counts: dict[str, int]) -> None:
     usable = counts["OK"] + counts["PARTIAL"] + counts["STALE"]
     _require(quality["total_sources"] == total, "data_quality.total_sources does not match source_status")
     _require(quality["ok_sources"] == ok, "data_quality.ok_sources does not match source_status")
+    # generator._quality defines available_sources as the OK-source count (the
+    # same value as ok_sources); keep the two definitions in lockstep.
     _require(quality["available_sources"] == ok, "data_quality.available_sources does not match source_status")
     _require(quality["usable_sources"] == usable, "data_quality.usable_sources does not match source_status")
 
