@@ -119,6 +119,166 @@ class CandidateSelectorProviderTest(unittest.TestCase):
             self.assertEqual("STALE", result.status)
             self.assertEqual("6232", result.data[0]["security_code"])
 
+    def collect(self, payload, today=date(2026, 11, 28), **kwargs):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_snapshot(tmp, payload)
+            return CandidateSelectorProvider(path, today=today, **kwargs).collect()
+
+    def write_raw(self, root: str, raw: bytes) -> Path:
+        path = Path(root) / "candidate-selector.json"
+        path.write_bytes(raw)
+        return path
+
+    def test_future_dated_snapshot_is_partial_and_keeps_declared_as_of(self):
+        result = self.collect({
+            "as_of": "2026-11-30",
+            "ranked_candidates": [
+                {"security_code": "6622", "company_name": "ダイヘン", "research_status": "CURRENT", "total_priority": 80},
+            ],
+        })
+        self.assertEqual("PARTIAL", result.status)
+        self.assertEqual("2026-11-30", result.as_of)
+        self.assertIn("in the future", result.reason)
+        self.assertEqual(["6622"], [row["security_code"] for row in result.data])
+        self.assertEqual(1, result.data[0]["rank"])
+
+    def test_same_day_and_iso_datetime_snapshot_remain_ok(self):
+        for as_of in ("2026-11-28", "2026-11-28T06:30:00+09:00"):
+            with self.subTest(as_of=as_of):
+                result = self.collect({
+                    "as_of": as_of,
+                    "ranked_candidates": [{"security_code": "6622", "company_name": "ダイヘン", "total_priority": 80}],
+                })
+                self.assertEqual("OK", result.status)
+                self.assertEqual("2026-11-28", result.as_of)
+
+    def test_invalid_or_non_string_as_of_is_partial_not_ok(self):
+        for as_of in ("2026-02-30", "2026-11-28garbage", "28/11/2026", "20261128", "2026-W48-6",
+                      20261128, None, ["2026-11-28"]):
+            with self.subTest(as_of=as_of):
+                result = self.collect({
+                    "as_of": as_of,
+                    "ranked_candidates": [{"security_code": "6622", "company_name": "ダイヘン", "total_priority": 80}],
+                })
+                self.assertEqual("PARTIAL", result.status)
+                self.assertIsNone(result.as_of)
+                self.assertIn("as_of is missing or invalid", result.reason)
+
+    def test_invalid_utf8_snapshot_is_reported_without_raising(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_raw(tmp, b'{"as_of": "2026-11-28", "x": "' + bytes([0xFF, 0xFE]) + b'"}')
+            result = CandidateSelectorProvider(path, today=date(2026, 11, 28)).collect()
+        self.assertEqual("MISSING", result.status)
+        self.assertIn("failed to read", result.reason)
+
+    def test_malformed_json_and_oversized_integer_literal_do_not_raise(self):
+        payloads = (
+            b'{"as_of": "2026-11-28", "ranked_candidates": [',
+            b'{"as_of": "2026-11-28", "ranked_candidates": [{"total_priority": ' + b"9" * 5000 + b"}]}",
+        )
+        for raw in payloads:
+            with self.subTest(size=len(raw)):
+                with tempfile.TemporaryDirectory() as tmp:
+                    result = CandidateSelectorProvider(self.write_raw(tmp, raw), today=date(2026, 11, 28)).collect()
+                self.assertEqual("MISSING", result.status)
+                self.assertIn("failed to read", result.reason)
+
+    def test_non_object_snapshot_and_non_list_candidates_are_not_ok(self):
+        self.assertEqual("MISSING", self.collect([{"security_code": "6622"}]).status)
+        result = self.collect({"as_of": "2026-11-28", "ranked_candidates": 5, "candidates": "6622"})
+        self.assertEqual("MISSING", result.status)
+        self.assertIn("no candidate list", result.reason)
+
+    def test_overflowing_priority_is_nulled_and_never_ranked(self):
+        result = self.collect({
+            "as_of": "2026-11-28",
+            "ranked_candidates": [
+                {"security_code": "1111", "company_name": "Huge", "total_priority": 10 ** 400},
+                {"security_code": "6622", "company_name": "ダイヘン", "total_priority": 80},
+            ],
+        })
+        self.assertEqual("PARTIAL", result.status)
+        self.assertIn("malformed total_priority=1", result.reason)
+        self.assertEqual([None, 1], [row["rank"] for row in result.data])
+        self.assertEqual([None, 80], [row["total_priority"] for row in result.data])
+
+    def test_nonfinite_and_text_priorities_are_output_as_null(self):
+        result = self.collect({
+            "as_of": "2026-11-28",
+            "ranked_candidates": [
+                {"security_code": "1111", "company_name": "NaN", "total_priority": float("nan")},
+                {"security_code": "2222", "company_name": "Text", "total_priority": "90"},
+                {"security_code": "3333", "company_name": "Bool", "total_priority": False},
+            ],
+        })
+        self.assertEqual("PARTIAL", result.status)
+        self.assertEqual([None, None, None], [row["total_priority"] for row in result.data])
+        self.assertIn("malformed total_priority=3", result.reason)
+
+    def test_malformed_candidate_sources_are_not_guessed_and_feed_is_not_ok(self):
+        for sources in (5, "OWNER_PICK", {"OWNER_PICK": True}, ["OWNER_PICK", 3], [""]):
+            with self.subTest(sources=sources):
+                result = self.collect({
+                    "as_of": "2026-11-28",
+                    "ranked_candidates": [
+                        {"security_code": "6622", "company_name": "ダイヘン", "total_priority": 80,
+                         "candidate_sources": sources},
+                        {"security_code": "6232", "company_name": "ACSL", "total_priority": 70,
+                         "candidate_sources": ["OWNER_PICK"], "owner_pick": True},
+                    ],
+                })
+                self.assertEqual("PARTIAL", result.status)
+                self.assertIn("malformed candidate_sources=1", result.reason)
+                self.assertEqual([], result.data[0]["candidate_sources"])
+                self.assertEqual(["OWNER_PICK"], result.data[1]["candidate_sources"])
+                self.assertEqual([1, 2], [row["rank"] for row in result.data])
+                self.assertTrue(result.data[1]["owner_pick"])
+
+    def test_malformed_text_fields_and_rows_make_mixed_feed_partial(self):
+        result = self.collect({
+            "as_of": "2026-11-28",
+            "ranked_candidates": [
+                "6622 ダイヘン",
+                {"security_code": "6622", "company_name": "ダイヘン", "total_priority": 80,
+                 "research_status": {"state": "CURRENT"}, "last_researched_at": 20261127,
+                 "selection_reason": ["score"]},
+                {"security_code": None, "company_name": "原子力"},
+            ],
+        })
+        self.assertEqual("PARTIAL", result.status)
+        self.assertEqual(["6622"], [row["security_code"] for row in result.data])
+        row = result.data[0]
+        self.assertEqual("UNKNOWN", row["status"])
+        self.assertIsNone(row["last_researched_at"])
+        self.assertIsNone(row["selection_reason"])
+        for key in ("non-object candidate row=1", "malformed research_status=1",
+                    "malformed last_researched_at=1", "malformed selection_reason=1"):
+            self.assertIn(key, result.reason)
+
+    def test_stale_snapshot_reason_also_reports_malformed_fields(self):
+        result = self.collect({
+            "as_of": "2026-11-01",
+            "ranked_candidates": [{"security_code": "6622", "company_name": "ダイヘン", "total_priority": "x"}],
+        })
+        self.assertEqual("STALE", result.status)
+        self.assertIn("malformed total_priority=1", result.reason)
+
+    def test_well_formed_mixed_snapshot_with_unresolved_rows_stays_ok(self):
+        result = self.collect({
+            "as_of": "2026-11-28",
+            "ranked_candidates": [
+                {"security_code": None, "company_name": "送電網"},
+                {"security_code": "6622", "company_name": "ダイヘン", "total_priority": 80,
+                 "research_status": "CURRENT", "candidate_sources": ["SCORE"],
+                 "last_researched_at": "2026-11-27", "selection_reason": "score"},
+                {"security_code": "4063", "company_name": "信越化学工業", "total_priority": None,
+                 "research_status": "STALE"},
+            ],
+        })
+        self.assertEqual("OK", result.status)
+        self.assertIsNone(result.reason)
+        self.assertEqual([1, None], [row["rank"] for row in result.data])
+
     def test_missing_snapshot_is_missing(self):
         result = CandidateSelectorProvider(Path("/missing/candidate-selector.json")).collect()
         self.assertEqual("MISSING", result.status)
