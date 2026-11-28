@@ -118,32 +118,79 @@ def dataset_status_label(status: object) -> str:
 
 
 UNVERIFIED_FOCUS_LABEL = "今日の検証済み注目銘柄は未確定"
+SECURITY_CODE_RE = re.compile(r"^[0-9][0-9A-Z][0-9][0-9A-Z]$")
+_CODE_TOKEN_RE = re.compile(r"(?<![0-9A-Za-z])[0-9][0-9A-Z][0-9][0-9A-Z](?![0-9A-Za-z])")
+_DATE_RE = re.compile(r"\d{4}\s*(?:[-/.]\s*\d{1,2}\s*[-/.]\s*\d{1,2}|年)")
+_WATCH_HEADING_RE = re.compile(r"^##\s+(?:注目銘柄|Key Watch|Watchlist)\s*$", re.MULTILINE)
 
 
-def focus_verified(diagnostics: object) -> bool:
-    """Only an explicit deterministic verification may present a focus as a pick.
+def verified_codes(diagnostics: object, day: str) -> frozenset[str]:
+    """Return the deterministic verified security-code set for this report day.
 
-    Reports generated before diagnostics recorded ``candidate_focus`` (and any
-    malformed value) fail closed: their AI watch section is shown as an
-    unverified memo, never as today's verified stock pick.
+    Fails closed (empty set) for legacy diagnostics without ``candidate_focus``,
+    malformed values, a record whose ``as_of`` is not the report date, or a
+    record that does not explicitly mark a verified focus as available.
     """
     if not isinstance(diagnostics, dict):
-        return False
+        return frozenset()
     focus = diagnostics.get("candidate_focus")
-    return isinstance(focus, dict) and focus.get("verified_focus_available") is True
+    if not isinstance(focus, dict) or focus.get("verified_focus_available") is not True:
+        return frozenset()
+    if focus.get("as_of") != day:
+        return frozenset()
+    codes = focus.get("verified_security_codes")
+    if not isinstance(codes, list):
+        return frozenset()
+    return frozenset(
+        code for code in codes if isinstance(code, str) and SECURITY_CODE_RE.fullmatch(code)
+    )
 
 
-def watch_line(summary: dict[str, str], *, verified: bool) -> str:
+def mentioned_codes(text: str) -> set[str]:
+    """Security-code-shaped tokens in AI prose, ignoring calendar dates."""
+    return set(_CODE_TOKEN_RE.findall(_DATE_RE.sub(" ", text)))
+
+
+def item_verified(text: str, codes: frozenset[str]) -> bool:
+    """An AI watch item is verified only if every code it names is verified.
+
+    Items with no code (name only), or with any unverified/unknown code
+    (including mixed lists such as "6622 / 4063"), fail closed.
+    """
+    mentioned = mentioned_codes(text)
+    return bool(mentioned) and mentioned <= codes
+
+
+def watch_line(summary: dict[str, str], *, codes: frozenset[str] = frozenset()) -> str:
     watch = summary.get("watch") or ""
-    if verified:
+    if item_verified(watch, codes):
         return f"注目: {watch}"
     return f"注目: {UNVERIFIED_FOCUS_LABEL}（AI候補メモ・未検証: {watch}）"
 
 
-def unverified_focus_notice(diagnostics: object) -> str:
+def _watch_items(section: str) -> list[str]:
+    """Top-level list items of the watch section, with their nested lines."""
+    items: list[str] = []
+    for line in section.splitlines():
+        if re.match(r"^(?:[-*+]|\d+[.)])\s+", line):
+            items.append(line)
+        elif items and line.strip():
+            items[-1] += "\n" + line
+        elif line.strip():
+            items.append(line)
+    return items
+
+
+def unverified_focus_notice(diagnostics: object, codes: frozenset[str]) -> str:
     focus = diagnostics.get("candidate_focus") if isinstance(diagnostics, dict) else None
     reason = focus.get("reason") if isinstance(focus, dict) else None
-    detail = reason or "この日の候補が検証済みかどうかの記録がありません"
+    if codes:
+        detail = (
+            f"この日の検証済み候補は {'、'.join(sorted(codes))} のみです。"
+            "それ以外の銘柄、および銘柄コードで照合できない項目は未検証です"
+        )
+    else:
+        detail = reason or "この日の候補が検証済みかどうかの記録がありません"
     return (
         f"> **{UNVERIFIED_FOCUS_LABEL}。** 以下はAIが候補データから書いたメモで、"
         "今日の推奨・新しい材料・現在の保有を示すものではありません。"
@@ -151,15 +198,23 @@ def unverified_focus_notice(diagnostics: object) -> str:
     )
 
 
-def annotate_watch_section(text: str, diagnostics: object) -> str:
-    """Add a display-only notice above the watch section; the source report is not rewritten."""
-    if focus_verified(diagnostics):
-        return text
-    match = re.search(r"^##\s+(?:注目銘柄|Key Watch|Watchlist)\s*$", text, re.MULTILINE)
+def annotate_watch_section(text: str, diagnostics: object, day: str) -> str:
+    """Add a display-only notice above the watch section; the source report is not rewritten.
+
+    The notice is omitted only when every item in the section is bound to the
+    verified security-code set for this report day.
+    """
+    match = _WATCH_HEADING_RE.search(text)
     if not match:
         return text
+    codes = verified_codes(diagnostics, day)
+    next_heading = re.search(r"^##\s+", text[match.end():], re.MULTILINE)
+    section = text[match.end(): match.end() + next_heading.start()] if next_heading else text[match.end():]
+    items = _watch_items(section)
+    if items and all(item_verified(item, codes) for item in items):
+        return text
     insert_at = match.end() + 1
-    return text[:insert_at] + "\n" + unverified_focus_notice(diagnostics) + text[insert_at:].lstrip("\n")
+    return text[:insert_at] + "\n" + unverified_focus_notice(diagnostics, codes) + text[insert_at:].lstrip("\n")
 
 
 def card_detail(
@@ -167,7 +222,7 @@ def card_detail(
     status: object,
     *,
     generated_at: object = None,
-    verified_focus: bool = False,
+    verified_codes: frozenset[str] = frozenset(),
 ) -> str:
     """Preserve the established decision summary while adding freshness metadata."""
     rows: list[str] = []
@@ -179,7 +234,7 @@ def card_detail(
     if summary.get("strategy"):
         rows.append(f"戦略: {summary['strategy']}")
     if summary.get("watch"):
-        rows.append(watch_line(summary, verified=verified_focus))
+        rows.append(watch_line(summary, codes=verified_codes))
     elif summary.get("risk"):
         rows.append(f"リスク: {summary['risk']}")
     rows.append(dataset_status_label(status))
@@ -192,7 +247,7 @@ def latest_report_card(
     summary: dict[str, str],
     status: object,
     generated_at: object = None,
-    verified_focus: bool = False,
+    verified_codes: frozenset[str] = frozenset(),
 ) -> str:
     """Render the latest decision-oriented report before any implementation explanation."""
     return (
@@ -200,7 +255,7 @@ def latest_report_card(
         '<h2 id="morning-latest">今日まず見る</h2>\n'
         f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
         f'<strong>最新レポート {html.escape(day)}</strong>'
-        f'<span>{card_detail(summary, status, generated_at=generated_at, verified_focus=verified_focus)}</span></a>\n'
+        f'<span>{card_detail(summary, status, generated_at=generated_at, verified_codes=verified_codes)}</span></a>\n'
         '</section>\n'
     )
 
@@ -208,7 +263,7 @@ def latest_report_card(
 def build() -> None:
     sources = sorted(REPORT_DIR.glob("*.md"), reverse=True) if REPORT_DIR.exists() else []
     cards: list[str] = []
-    latest: tuple[str, str, dict[str, str], object, object, bool] | None = None
+    latest: tuple[str, str, dict[str, str], object, object, frozenset[str]] | None = None
     for source in sources:
         day = report_date(source)
         url = f"/reports/morning/{day}/"
@@ -222,13 +277,13 @@ def build() -> None:
         generated_at = diagnostics.get("generated_at")
         report_text = source.read_text(encoding="utf-8")
         summary = report_card_summary(report_text)
-        verified = focus_verified(diagnostics)
+        codes = verified_codes(diagnostics, day)
         if latest is None:
-            latest = (day, url, summary, status, generated_at, verified)
+            latest = (day, url, summary, status, generated_at, codes)
         else:
             cards.append(
                 f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
-                f"<strong>{day}</strong><span>{card_detail(summary, status, verified_focus=verified)}</span></a>"
+                f"<strong>{day}</strong><span>{card_detail(summary, status, verified_codes=codes)}</span></a>"
             )
         page = front_matter(
             f"朝の市場レポート {day}",
@@ -239,7 +294,7 @@ def build() -> None:
             '<p class="breadcrumb"><a href="{{ \'/reports/morning/\' | relative_url }}">'
             f"朝の市場レポート</a> / {day}</p>\n\n"
         )
-        page += annotate_watch_section(strip_source_front_matter(report_text), diagnostics)
+        page += annotate_watch_section(strip_source_front_matter(report_text), diagnostics, day)
         if diagnostics:
             page += (
                 "\n\n## API Diagnostics\n\n"

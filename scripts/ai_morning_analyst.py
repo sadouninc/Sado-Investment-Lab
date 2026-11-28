@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime
+from datetime import date, datetime
 import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 import sys
 import time
@@ -120,31 +121,68 @@ def _finite_number(value: Any) -> bool:
     )
 
 
-def candidate_focus_verification(dataset: dict[str, Any]) -> dict[str, Any]:
-    """Deterministically record whether the dataset supports a verified focus pick.
+# JPX securities codes: 4 characters, digits with optional letters in the 2nd
+# and 4th positions for new-format codes (e.g. 6622, 278A).
+SECURITY_CODE_RE = re.compile(r"^[0-9][0-9A-Z][0-9][0-9A-Z]$")
 
-    This mirrors the SYSTEM_PROMPT rule so that downstream renderers do not have
-    to trust AI prose: a verified focus needs an OK candidate source and at least
-    one candidate with a finite total_priority, a numeric rank and CURRENT status.
-    Anything else (STALE/PARTIAL/MISSING source, unscored or stale rows, or a
-    malformed payload) is recorded as not verified.
+
+def _iso_date(value: Any) -> date | None:
+    if not isinstance(value, str) or len(value) < 10:
+        return None
+    try:
+        return date.fromisoformat(value[:10])
+    except ValueError:
+        return None
+
+
+def _verified_row_code(row: dict[str, Any], as_of: date | None) -> str | None:
+    """Return the security code only if this row is independently verified.
+
+    A row qualifies only with a well-formed security code, a finite
+    total_priority, a numeric rank, upstream research status ``CURRENT``
+    (the Candidate Selector freshness contract) and a parseable
+    last_researched_at that is not after the dataset date.
     """
+    code = row.get("security_code")
+    if not isinstance(code, str) or not SECURITY_CODE_RE.fullmatch(code.strip()):
+        return None
+    if not (_finite_number(row.get("total_priority")) and _finite_number(row.get("rank"))):
+        return None
+    if str(row.get("status") or "").upper() != "CURRENT":
+        return None
+    researched = _iso_date(row.get("last_researched_at"))
+    if as_of is None or researched is None or researched > as_of:
+        return None
+    return code.strip()
+
+
+def candidate_focus_verification(dataset: Any) -> dict[str, Any]:
+    """Deterministically record which securities the dataset verifies as focus.
+
+    Renderers must bind each displayed AI watch item to ``verified_security_codes``
+    (and to ``as_of``); a dataset-level boolean alone is never enough. Any
+    malformed payload, non-OK candidate source or unverified row fails closed.
+    """
+    dataset = dataset if isinstance(dataset, dict) else {}
+    as_of = _iso_date(dataset.get("as_of"))
+    statuses = dataset.get("source_status")
+    statuses = statuses if isinstance(statuses, list) else []
     source = next(
-        (
-            row
-            for row in dataset.get("source_status") or []
-            if isinstance(row, dict) and row.get("name") == "candidates"
-        ),
+        (row for row in statuses if isinstance(row, dict) and row.get("name") == "candidates"),
         {},
     )
     source_status = str(source.get("status") or "UNKNOWN").upper()
     rows = dataset.get("candidates")
     rows = [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
     scored = [row for row in rows if _finite_number(row.get("total_priority")) and _finite_number(row.get("rank"))]
-    current_scored = [row for row in scored if str(row.get("status") or "").upper() == "CURRENT"]
-    verified = source_status == "OK" and bool(current_scored)
+    codes = sorted({code for row in rows if (code := _verified_row_code(row, as_of))})
+    if source_status != "OK":
+        codes = []
+    verified = bool(codes)
     if verified:
         reason = None
+    elif as_of is None:
+        reason = "データの基準日（as_of）を確認できません"
     elif not rows:
         reason = "候補データがありません"
     elif source_status != "OK":
@@ -152,14 +190,16 @@ def candidate_focus_verification(dataset: dict[str, Any]) -> dict[str, Any]:
     elif not scored:
         reason = "優先度を算出できた候補がありません"
     else:
-        reason = "優先度のある候補の根拠がすべて古い（STALE等）です"
+        reason = "優先度のある候補の根拠がすべて古いか、日付・銘柄コードを確認できません"
     return {
+        "as_of": as_of.isoformat() if as_of else None,
         "verified_focus_available": verified,
+        "verified_security_codes": codes,
         "candidate_source_status": source_status,
         "candidate_source_as_of": source.get("as_of"),
         "candidate_count": len(rows),
         "scored_count": len(scored),
-        "current_scored_count": len(current_scored),
+        "verified_count": len(codes),
         "reason": reason,
     }
 
