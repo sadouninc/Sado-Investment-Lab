@@ -42,7 +42,7 @@ def snapshot(**overrides):
         "run_id": 999,
         "run_attempt": 1,
         "collected_at": "2026-11-28T12:00:00+00:00",
-        "pull_request": {"number": 977, "head_sha": HEAD, "base_sha": BASE, "draft": True},
+        "pull_request": {"number": 977, "head_sha": HEAD, "head_sha_after": HEAD, "base_sha": BASE, "draft": True},
         "workflow_runs": [run(1, "PR Preflight"), run(2, "Publish Site")],
         "reviews": [review("sadouninc", "COMMENTED")],
         "review_threads": [{"isResolved": True}],
@@ -185,6 +185,85 @@ class ReviewClassificationTests(unittest.TestCase):
         self.assertFalse(report["coverage"]["review_bodies_stored"])
 
 
+class ReiReviewRobustnessTests(unittest.TestCase):
+    """❤️レイ review 6097972680 regressions."""
+
+    def test_unhashable_or_non_string_state_is_unknown_not_typeerror(self):
+        for state in ([], {}, 1, None, True):
+            bad = review("rei", "APPROVED")
+            bad["state"] = state
+            reviews = ev.classify_reviews([bad], head_sha=HEAD)
+            self.assertEqual(reviews["status"], "UNKNOWN", state)
+            self.assertEqual(ev.build_report(snapshot(reviews=[bad]))["status"], "UNKNOWN", state)
+
+    def test_approval_with_missing_or_invalid_commit_cannot_clear_changes_requested(self):
+        for commit in (None, "", "zzz", "A" * 40, 123):
+            later = review("rei", "APPROVED", commit=commit)
+            later["submitted_at"] = "2026-11-28T13:00:00Z"
+            reviews = [review("rei", "CHANGES_REQUESTED"), later]
+            report = ev.build_report(snapshot(reviews=reviews))
+            self.assertEqual(report["reviews"]["status"], "CHANGES_REQUESTED", commit)
+            self.assertEqual(report["status"], "BLOCKED", commit)
+
+    def test_submitted_review_needs_strict_timestamp(self):
+        for submitted in (None, "", "2026-11-28", "2026-11-28T12:00:00+09:00", 1700000000):
+            bad = review("rei", "COMMENTED")
+            bad["submitted_at"] = submitted
+            self.assertEqual(ev.classify_reviews([bad], head_sha=HEAD)["status"], "UNKNOWN", submitted)
+
+    def test_reviews_are_ordered_by_submitted_at_not_api_list_order(self):
+        approved_earlier = review("rei", "APPROVED")
+        approved_earlier["submitted_at"] = "2026-11-28T11:00:00Z"
+        changes_later = review("rei", "CHANGES_REQUESTED")
+        changes_later["submitted_at"] = "2026-11-28T12:00:00Z"
+        # API list order puts the older approval last; time order must win.
+        report = ev.build_report(snapshot(reviews=[changes_later, approved_earlier]))
+        self.assertEqual(report["reviews"]["status"], "CHANGES_REQUESTED")
+        self.assertEqual(report["status"], "BLOCKED")
+
+    def test_head_change_during_collection_is_stale_and_missing_reread_is_unknown(self):
+        moved = snapshot(pull_request={"number": 977, "head_sha": HEAD, "head_sha_after": OLD, "base_sha": BASE})
+        self.assertEqual(ev.build_report(moved)["status"], "STALE")
+        no_reread = snapshot(pull_request={"number": 977, "head_sha": HEAD, "base_sha": BASE})
+        self.assertEqual(ev.build_report(no_reread)["status"], "UNKNOWN")
+
+    def test_workflow_run_inventory_requires_exact_nonnegative_integer_count(self):
+        client = ev.ReadOnlyClient("sadouninc/Sado-Investment-Lab", "token")
+        event = {"pull_request": {"number": 977, "head": {"sha": HEAD}}}
+        for total in (0, True, -1, 2, "1", None):
+            def fake(url, *, data=None, total=total):
+                if data is not None:
+                    return {"data": {"repository": {"pullRequest": {"reviewThreads": {"totalCount": 0, "nodes": []}}}}}
+                if "/actions/runs" in url:
+                    return {"total_count": total, "workflow_runs": [run(1, "PR Preflight")]}
+                if "/reviews" in url:
+                    return [review("sadouninc", "COMMENTED")]
+                return {"head": {"sha": HEAD}, "base": {"sha": BASE}}
+            with mock.patch.object(client, "_request", side_effect=fake):
+                snap = ev.collect_snapshot(event, client, run_id=1, run_attempt=1, event_name="pull_request")
+            self.assertIsNone(snap["workflow_runs"], total)
+
+    def test_report_is_always_written_even_if_classification_raises(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "snap.json").write_text(json.dumps(snapshot()), encoding="utf-8")
+            real = ev.build_report
+
+            def flaky(snap):
+                if snap.get("event_name"):
+                    raise RuntimeError("boom")
+                return real(snap)
+
+            with mock.patch.object(ev, "build_report", side_effect=flaky):
+                rc = ev.main(["--snapshot", str(root / "snap.json"),
+                              "--output", str(root / "out.json"), "--summary", str(root / "out.md")])
+            self.assertEqual(rc, 0)
+            out = json.loads((root / "out.json").read_text())
+            self.assertEqual(out["status"], "UNKNOWN")
+            self.assertIn("classification failed (RuntimeError)", out["collection_errors"])
+            self.assertTrue((root / "out.md").read_text(encoding="utf-8"))
+
+
 class ThreadClassificationTests(unittest.TestCase):
     def test_malformed_threads_are_unknown(self):
         for bad in (None, "x", [{"isResolved": "no"}], [None]):
@@ -276,7 +355,7 @@ class ReadOnlyClientTests(unittest.TestCase):
             snap = ev.collect_snapshot(event, client, run_id=1, run_attempt=1, event_name="pull_request")
         report = ev.build_report(snap)
         self.assertEqual(report["status"], "UNKNOWN")
-        self.assertEqual(len(report["collection_errors"]), 4)
+        self.assertEqual(len(report["collection_errors"]), 5)  # incl. head re-read
 
     def test_collect_snapshot_happy_path_with_fake_api(self):
         client = ev.ReadOnlyClient("sadouninc/Sado-Investment-Lab", "token")

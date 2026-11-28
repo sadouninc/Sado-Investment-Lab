@@ -80,15 +80,22 @@ def _login(value: Any) -> str | None:
 # --------------------------------------------------------------------------
 
 
-def classify_head(event_head: Any, current_head: Any) -> dict[str, Any]:
-    event_sha, current_sha = _sha(event_head), _sha(current_head)
-    if event_sha is None or current_sha is None:
+def classify_head(event_head: Any, current_head: Any, head_after: Any = None) -> dict[str, Any]:
+    """CURRENT only if the event head equals the PR head read both before and
+    after all other evidence was collected (no head change mid-collection)."""
+    event_sha, current_sha, after_sha = _sha(event_head), _sha(current_head), _sha(head_after)
+    if event_sha is None or current_sha is None or after_sha is None:
         status = "UNKNOWN"
-    elif event_sha != current_sha:
+    elif event_sha != current_sha or current_sha != after_sha:
         status = "STALE"
     else:
         status = "CURRENT"
-    return {"status": status, "event_head_sha": event_sha, "current_head_sha": current_sha}
+    return {
+        "status": status,
+        "event_head_sha": event_sha,
+        "current_head_sha": current_sha,
+        "head_sha_after_collection": after_sha,
+    }
 
 
 def classify_ci(runs: Any, *, head_sha: str | None, self_run_id: int | None) -> dict[str, Any]:
@@ -158,26 +165,38 @@ def classify_reviews(reviews: Any, *, head_sha: str | None) -> dict[str, Any]:
         return {"status": "UNKNOWN", "reason": "reviews unavailable", "entries": []}
     entries: list[dict[str, Any]] = []
     malformed = 0
-    for review in reviews:
+    for index, review in enumerate(reviews):
         if not isinstance(review, dict):
             malformed += 1
             continue
         state = review.get("state")
-        user = review.get("user") if isinstance(review.get("user"), dict) else {}
-        login = _login(user.get("login"))
-        commit = _sha(review.get("commit_id"))
-        if state not in REVIEW_STATES or login is None:
+        if not isinstance(state, str) or state not in REVIEW_STATES:
             malformed += 1
             continue
         if state == "PENDING":
             continue  # unsubmitted draft reviews are not evidence
+        user = review.get("user") if isinstance(review.get("user"), dict) else {}
+        login = _login(user.get("login"))
+        commit = _sha(review.get("commit_id"))
+        submitted = review.get("submitted_at")
+        # Every submitted review must name a valid commit and a strict UTC
+        # timestamp; otherwise it can neither be placed in time nor bound to a
+        # head, and must not be able to supersede an earlier CHANGES_REQUESTED.
+        if login is None or commit is None or not (isinstance(submitted, str) and _STARTED_RE.fullmatch(submitted)):
+            malformed += 1
+            continue
         entries.append({
             "reviewer": login,
             "state": state,
             "commit_id": commit,
             "exact_head": commit == head_sha,
-            "submitted_at": _safe_text(review.get("submitted_at") or "", 30) or None,
+            "submitted_at": submitted,
+            "_index": index,
         })
+    # Chronological order by submitted_at (API order only breaks exact ties).
+    entries.sort(key=lambda entry: (entry["submitted_at"], entry["_index"]))
+    for entry in entries:
+        del entry["_index"]
     # Latest decisive state per reviewer (APPROVED / CHANGES_REQUESTED / DISMISSED).
     decisive: dict[str, dict[str, Any]] = {}
     for entry in entries:
@@ -189,10 +208,13 @@ def classify_reviews(reviews: Any, *, head_sha: str | None) -> dict[str, Any]:
     )
     commented_on_head = sum(1 for e in entries if e["state"] == "COMMENTED" and e["exact_head"])
     stale = sum(1 for e in entries if not e["exact_head"])
-    if malformed:
-        status, reason = "UNKNOWN", f"{malformed} malformed review record(s)"
-    elif outstanding_changes:
+    if outstanding_changes:
+        # A known blocker stays a blocker even if other records are malformed.
         status, reason = "CHANGES_REQUESTED", "GitHub CHANGES_REQUESTED is outstanding"
+        if malformed:
+            reason += f"; {malformed} malformed review record(s)"
+    elif malformed:
+        status, reason = "UNKNOWN", f"{malformed} malformed review record(s)"
     elif not any(e["exact_head"] for e in entries):
         status, reason = "NO_EXACT_HEAD_REVIEW", "no submitted review on exact head"
     else:
@@ -254,7 +276,7 @@ def build_report(snapshot: dict[str, Any]) -> dict[str, Any]:
     """Build the evidence report from an already-collected snapshot (pure)."""
     snapshot = snapshot if isinstance(snapshot, dict) else {}
     pr = snapshot.get("pull_request") if isinstance(snapshot.get("pull_request"), dict) else {}
-    head = classify_head(snapshot.get("event_head_sha"), pr.get("head_sha"))
+    head = classify_head(snapshot.get("event_head_sha"), pr.get("head_sha"), pr.get("head_sha_after"))
     exact = head["event_head_sha"] if head["status"] == "CURRENT" else None
     self_run_id = snapshot.get("run_id") if isinstance(snapshot.get("run_id"), int) else None
     ci = classify_ci(snapshot.get("workflow_runs"), head_sha=exact, self_run_id=self_run_id)
@@ -497,7 +519,8 @@ def collect_snapshot(event: dict[str, Any], client: ReadOnlyClient, *, run_id: i
             runs = client.get("actions/runs", {"head_sha": head_sha, "per_page": 100})
             items = runs.get("workflow_runs") if isinstance(runs, dict) else None
             total = runs.get("total_count") if isinstance(runs, dict) else None
-            if isinstance(items, list) and isinstance(total, int) and total <= len(items):
+            if (isinstance(items, list) and isinstance(total, int) and not isinstance(total, bool)
+                    and total >= 0 and total == len(items)):
                 snapshot["workflow_runs"] = items
             else:
                 snapshot["errors"].append("workflow runs: incomplete inventory")
@@ -517,6 +540,14 @@ def collect_snapshot(event: dict[str, Any], client: ReadOnlyClient, *, run_id: i
         snapshot["review_threads"] = client.review_threads(number)
     except EvidenceUnavailable as exc:
         snapshot["errors"].append(f"review threads: {exc}")
+    # Re-read the PR head after every other read: if it moved mid-collection,
+    # the evidence is reported as STALE instead of CURRENT.
+    try:
+        pr_after = client.get(f"pulls/{number}")
+        head_after = pr_after.get("head") if isinstance(pr_after, dict) else None
+        snapshot["pull_request"]["head_sha_after"] = head_after.get("sha") if isinstance(head_after, dict) else None
+    except EvidenceUnavailable as exc:
+        snapshot["errors"].append(f"pull request re-read: {exc}")
     return snapshot
 
 
@@ -548,7 +579,10 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, ValueError, UnicodeDecodeError, EvidenceUnavailable) as exc:
         snapshot = {"errors": [f"collection failed ({type(exc).__name__})"]}
 
-    report = build_report(snapshot)
+    try:
+        report = build_report(snapshot)
+    except Exception as exc:  # noqa: BLE001 - always emit a fail-closed report
+        report = build_report({"errors": [f"classification failed ({type(exc).__name__})"]})
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     args.summary.write_text(render_summary_ja(report), encoding="utf-8")
     print(f"PR review evidence: {report['status']}")
