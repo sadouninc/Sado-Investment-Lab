@@ -349,6 +349,46 @@ class WorkSupplyCapacityTests(unittest.TestCase):
         self.assertEqual("UNKNOWN", missing_owner_res["ready_replenishment_status"])
         self.assertEqual([3602], missing_owner_res["issues_by_bucket"]["unknown"])
 
+    def test_raw_wait_with_linked_revision_required_is_conservatively_active(self):
+        waiting = _ready_item(3651, state="REVIEW_WAIT", owner_slice="kai")
+        candidate = _ready_item(3652, owner_slice="kai", allowed_paths=["scripts/other.py"])
+        prs = {
+            "complete": True,
+            "prs": [{
+                "number": 965,
+                "paths": ["scripts/waiting.py"],
+                "linked_issues": [3651],
+                "wait_state": "REVISION_REQUIRED",
+            }],
+        }
+        result = classify_work_supply_capacity(_snapshot([waiting, candidate], open_prs=prs))
+        self.assertEqual([3651], result["issues_by_bucket"]["active_implementation"])
+        self.assertEqual([3652], result["issues_by_bucket"]["dependency_path_blocked"])
+        self.assertEqual(0, result["verified_ready_count"])
+
+    def test_standalone_active_pr_requires_owner_evidence_for_verified_ready(self):
+        candidate = _ready_item(3661, allowed_paths=["scripts/candidate.py"])
+        base_pr = {
+            "number": 966,
+            "paths": ["scripts/unrelated.py"],
+            "linked_issues": [],
+            "wait_state": "REVISION_REQUIRED",
+        }
+
+        missing = classify_work_supply_capacity(
+            _snapshot([candidate], open_prs={"complete": True, "prs": [base_pr]})
+        )
+        self.assertTrue(missing["diagnostics"]["active_conflict_inventory_unknown"])
+        self.assertIsNone(missing["verified_ready_count"])
+        self.assertEqual([3661], missing["issues_by_bucket"]["unknown"])
+
+        owned_pr = dict(base_pr, owner_slice="sora")
+        complete = classify_work_supply_capacity(
+            _snapshot([candidate], open_prs={"complete": True, "prs": [owned_pr]})
+        )
+        self.assertFalse(complete["diagnostics"]["active_conflict_inventory_unknown"])
+        self.assertEqual(1, complete["verified_ready_count"])
+
     def test_dependency_and_path_conflicts_block_ready_but_keep_prepared_count(self):
         dep_blocked = _ready_item(4001, dependencies_satisfied=False)
         pr_path_conflict = _ready_item(4002, allowed_paths=["scripts/shared.py"])
@@ -443,3 +483,4 @@ class WorkSupplyCapacityTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
