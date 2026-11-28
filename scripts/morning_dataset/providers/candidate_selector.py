@@ -70,7 +70,7 @@ class CandidateSelectorProvider:
                 {
                     "security_code": code.strip(),
                     "company_name": name.strip(),
-                    "rank": len(eligible) + 1,
+                    "rank": len(eligible) + 1 if isinstance(row.get("total_priority"), (int, float)) and not isinstance(row.get("total_priority"), bool) else None,
                     "status": row.get("research_status") or "UNKNOWN",
                     "total_priority": row.get("total_priority"),
                     "owner_pick": bool(row.get("owner_pick")),
@@ -107,6 +107,18 @@ class CandidateSelectorProvider:
                 as_of=as_of,
                 source_reference=str(self.path),
                 reason=f"Candidate Selector snapshot is {age_days} days old (freshness limit {self.max_age_days})",
+                data=eligible,
+            )
+
+        # A freshly generated candidate file can still contain only unscored
+        # historical research. Do not promote it as a verified ranked shortlist.
+        if not any(item["rank"] is not None for item in eligible):
+            return ProviderResult.unavailable(
+                self.name,
+                status="PARTIAL",
+                as_of=as_of,
+                source_reference=str(self.path),
+                reason="Candidate Selector snapshot has no scored priorities; candidate order is not a verified ranking",
                 data=eligible,
             )
 
