@@ -15,7 +15,6 @@ DATE_PATTERNS = (
     re.compile(r"(?:最終更新|更新日|as_of|updated(?:_at)?)\s*[:：]\s*(20\d{2}-\d{2}-\d{2})", re.IGNORECASE),
     re.compile(r"\b(20\d{2}-\d{2}-\d{2})\b"),
 )
-CODE_RE = re.compile(r"(?<!\d)(\d{4})(?!\d)")
 H1_RE = re.compile(r"^#\s+(.+?)\s*$", re.MULTILINE)
 
 
@@ -93,9 +92,34 @@ def research_index_candidates(root: Path) -> list[dict[str, Any]]:
         if path.name.lower() == "readme.md":
             continue
         text = path.read_text(encoding="utf-8")
-        code_match = CODE_RE.search(path.stem) or CODE_RE.search(text[:500])
-        code = code_match.group(1) if code_match else None
+        # A theme/comparison note is not a company, even when its year or
+        # discussed tickers look like a four-digit security code. Do not use
+        # arbitrary prose digits. For company notes, use an explicit H1 ticker
+        # or the established NNNN-name.md filename convention; do not reject
+        # any numeric range because valid tickers can overlap calendar years.
         name = _title_from_markdown(path, text)
+        heading = H1_RE.search(text)
+        heading_code = (
+            re.search(r"[（(]\s*(\d{4})\s*[)）]", heading.group(1))
+            if heading else None
+        )
+        filename_code = re.match(r"^(\d{4})[-_]", path.stem)
+        theme_directory = path.parent.name.casefold() in {
+            "themes", "theme", "sectors", "sector", "industries", "industry",
+        }
+        theme_title = any(word in name for word in ("比較", "テーマ", "業界", "セクター"))
+        theme_filename = bool(re.search(
+            r"(?:^|[-_])(?:theme|themes|comparison|sector|industry)(?:$|[-_])",
+            path.stem, re.IGNORECASE,
+        ))
+        if theme_directory or theme_title or theme_filename:
+            code = None
+        elif heading_code:
+            code = heading_code.group(1)
+        elif filename_code:
+            code = filename_code.group(1)
+        else:
+            code = None
         researched_at = _research_date(text)
         status = "CURRENT" if researched_at else "STALE"
         reason = f"Company Research exists: {path.as_posix()}"
