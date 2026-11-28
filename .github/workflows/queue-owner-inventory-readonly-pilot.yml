@@ -137,11 +137,13 @@ jobs:
                   raw = json.loads(Path("/tmp/owner-pilot-result.json").read_text())
                   def positive_id(value):
                       return type(value) is int and value > 0
-                  if (raw.get("status") != "HOLD"
+                  if (not isinstance(raw, dict)
+                          or not set(result).issubset(raw)
+                          or raw.get("status") != "HOLD"
                           or raw.get("dispatch_allowed") is not False
                           or raw.get("reason") not in reasons
                           or (raw.get("selected_issue") is not None and
-                              not positive_id(raw["selected_issue"]))
+                              (not positive_id(raw["selected_issue"]) or raw["selected_issue"] == 79))
                           or type(raw.get("candidate_count")) is not int
                           or raw["candidate_count"] < 0
                           or not isinstance(raw.get("conflicting_prs"), list)
