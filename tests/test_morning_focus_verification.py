@@ -28,7 +28,9 @@ PAGES = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(PAGES)
 
 LABEL = "今日の検証済み注目銘柄は未確定"
-VERIFIED = "注目（候補データで検証済み）"
+DATED_LABEL = "当日時点の検証済み注目銘柄は未確定"
+POINTER = "（未検証のAI候補メモは詳細ページで確認）"
+VERIFIED = "注目（候補データで検証済み・投資推奨ではありません）"
 DAY = "2026-11-28"
 
 
@@ -210,6 +212,7 @@ class ReportFocusRenderingTests(unittest.TestCase):
     def _assert_verified_card(self, index, labels):
         self.assertIn(f"{VERIFIED}: {labels}", index)
         self.assertNotIn(LABEL, index)
+        self.assertNotIn(DATED_LABEL, index)
 
     def test_rei_blocker_sole_fresh_daihen_does_not_verify_ai_shinetsu(self):
         index, pages = self._build({DAY: (_report(SHINETSU), _diag([_fresh()]))})
@@ -246,7 +249,8 @@ class ReportFocusRenderingTests(unittest.TestCase):
         self._assert_verified_card(index, "6622 ダイヘン")
         self.assertNotIn("解説", index)
         index_unverified, _ = self._build({DAY: (_report(ai), _diag(ALL_STALE))})
-        self.assertIn(f"注目: {LABEL}（AI候補メモ・未検証: 6622 ダイヘン", index_unverified)
+        self.assertIn(f"注目: {LABEL}{POINTER}", index_unverified)
+        self.assertNotIn("6622", index_unverified)
 
     def test_positive_canonical_pair_is_displayed_and_ai_memo_stays_labelled(self):
         index, pages = self._build({DAY: (_report(DAIHEN), _diag([_fresh(), _fresh("278A", "テラドローン", rank=2)]))})
@@ -254,13 +258,13 @@ class ReportFocusRenderingTests(unittest.TestCase):
         page = pages[DAY]
         self.assertIn(f"**{VERIFIED}: 278A テラドローン / 6622 ダイヘン**", page)
         self._memo_notice_precedes_ai_items(page)
-        self.assertNotIn(LABEL, page)
+        self.assertNotIn(DATED_LABEL, page)
 
     def test_verification_for_a_different_report_date_is_not_reused(self):
         index, pages = self._build({DAY: (_report(DAIHEN), _diag([_fresh()], as_of="2026-11-27"))})
-        self.assertIn(f"注目: {LABEL}", index)
+        self.assertIn(f"注目: {LABEL}{POINTER}", index)
         self.assertNotIn(VERIFIED, index)
-        self.assertIn(LABEL, pages[DAY])
+        self.assertIn(DATED_LABEL, pages[DAY])
 
     def test_legacy_and_unscored_history_never_present_shinetsu_as_focus(self):
         index, pages = self._build({
@@ -270,14 +274,20 @@ class ReportFocusRenderingTests(unittest.TestCase):
         })
         self.assertNotIn("注目: 4063", index)
         self.assertNotIn(VERIFIED, index)
-        self.assertEqual(index.count(f"注目: {LABEL}（AI候補メモ・未検証: 4063 信越化学工業）"), 3)
+        # Latest card speaks for today; past cards speak for their own date.
+        self.assertEqual(index.count(f"注目: {LABEL}{POINTER}"), 1)
+        self.assertEqual(index.count(f"注目: {DATED_LABEL}{POINTER}"), 2)
+        # Unverified AI security names never appear on list cards.
+        self.assertNotIn("4063", index)
+        self.assertNotIn("信越化学工業", index)
         self.assertIn("優先度を算出できた候補がありません", pages["2026-11-19"])
         self.assertIn("検証済みかどうかの記録がありません", pages["2026-11-18"])
         for page in pages.values():
             self._memo_notice_precedes_ai_items(page)
             # Original AI text is kept verbatim (history is not rewritten).
             self.assertIn("  - 根拠: PORTFOLIO/RESEARCH_INDEXに存在（STALE）", page)
-            self.assertIn("今日の推奨・新しい材料・現在の保有を示すものではありません", page)
+            self.assertIn(DATED_LABEL, page)
+            self.assertIn("当日の推奨・新しい材料・現在の保有を示すものではありません", page)
 
     def test_tampered_or_malformed_focus_record_fails_closed(self):
         good = {"security_code": "6622", "company_name": "ダイヘン"}

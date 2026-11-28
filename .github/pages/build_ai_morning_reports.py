@@ -118,7 +118,10 @@ def dataset_status_label(status: object) -> str:
 
 
 UNVERIFIED_FOCUS_LABEL = "今日の検証済み注目銘柄は未確定"
-VERIFIED_FOCUS_LABEL = "注目（候補データで検証済み）"
+# Past reports describe their own date, not today (⭐️ミナ UX note).
+DATED_UNVERIFIED_FOCUS_LABEL = "当日時点の検証済み注目銘柄は未確定"
+VERIFIED_FOCUS_LABEL = "注目（候補データで検証済み・投資推奨ではありません）"
+UNVERIFIED_MEMO_POINTER = "（未検証のAI候補メモは詳細ページで確認）"
 SECURITY_CODE_RE = re.compile(r"^[0-9][0-9A-Z][0-9][0-9A-Z]$")
 _WATCH_HEADING_RE = re.compile(r"^##\s+(?:注目銘柄|Key Watch|Watchlist)\s*$", re.MULTILINE)
 _MAX_NAME_CHARS = 60
@@ -160,18 +163,24 @@ def _pair_labels(pairs: tuple[VerifiedPair, ...]) -> str:
     return " / ".join(f"{code} {name}" for code, name in pairs)
 
 
-def watch_line(summary: dict[str, str], *, pairs: tuple[VerifiedPair, ...] = ()) -> str:
-    """Verified focus is rendered only from canonical pairs; AI prose stays an unverified memo."""
+def watch_line(
+    summary: dict[str, str], *, pairs: tuple[VerifiedPair, ...] = (), latest: bool = False
+) -> str:
+    """Verified focus is rendered only from canonical pairs.
+
+    Unverified AI security names are kept off list cards entirely and are shown
+    only on the detail page under an explicit unverified-memo notice.
+    """
     if pairs:
         return f"{VERIFIED_FOCUS_LABEL}: {_pair_labels(pairs)}"
-    watch = summary.get("watch") or ""
-    return f"注目: {UNVERIFIED_FOCUS_LABEL}（AI候補メモ・未検証: {watch}）"
+    label = UNVERIFIED_FOCUS_LABEL if latest else DATED_UNVERIFIED_FOCUS_LABEL
+    return f"注目: {label}{UNVERIFIED_MEMO_POINTER}"
 
 
 def watch_section_notice(diagnostics: object, pairs: tuple[VerifiedPair, ...]) -> str:
     memo = (
         "以下はAIが候補データから書いたメモで、銘柄ごとの照合はしていません。"
-        "今日の推奨・新しい材料・現在の保有を示すものではありません。"
+        "当日の推奨・新しい材料・現在の保有を示すものではありません。"
     )
     if pairs:
         labels = html.escape(_pair_labels(pairs))
@@ -179,7 +188,7 @@ def watch_section_notice(diagnostics: object, pairs: tuple[VerifiedPair, ...]) -
     focus = diagnostics.get("candidate_focus") if isinstance(diagnostics, dict) else None
     reason = focus.get("reason") if isinstance(focus, dict) else None
     detail = html.escape(str(reason)) if reason else "この日の候補が検証済みかどうかの記録がありません"
-    return f"> **{UNVERIFIED_FOCUS_LABEL}。** {memo}（理由: {detail}）\n\n"
+    return f"> **{DATED_UNVERIFIED_FOCUS_LABEL}。** {memo}（理由: {detail}）\n\n"
 
 
 def annotate_watch_section(text: str, diagnostics: object, day: str) -> str:
@@ -202,6 +211,7 @@ def card_detail(
     *,
     generated_at: object = None,
     verified_pairs: tuple[VerifiedPair, ...] = (),
+    latest: bool = False,
 ) -> str:
     """Preserve the established decision summary while adding freshness metadata."""
     rows: list[str] = []
@@ -213,7 +223,7 @@ def card_detail(
     if summary.get("strategy"):
         rows.append(f"戦略: {summary['strategy']}")
     if verified_pairs or summary.get("watch"):
-        rows.append(watch_line(summary, pairs=verified_pairs))
+        rows.append(watch_line(summary, pairs=verified_pairs, latest=latest))
     elif summary.get("risk"):
         rows.append(f"リスク: {summary['risk']}")
     rows.append(dataset_status_label(status))
@@ -234,7 +244,7 @@ def latest_report_card(
         '<h2 id="morning-latest">今日まず見る</h2>\n'
         f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
         f'<strong>最新レポート {html.escape(day)}</strong>'
-        f'<span>{card_detail(summary, status, generated_at=generated_at, verified_pairs=verified_pairs)}</span></a>\n'
+        f'<span>{card_detail(summary, status, generated_at=generated_at, verified_pairs=verified_pairs, latest=True)}</span></a>\n'
         '</section>\n'
     )
 
