@@ -10,6 +10,26 @@ from typing import Any
 from .base import ProviderResult
 from scripts.japan_market_calendar import is_japan_market_business_day
 
+_MAX_INT_DIGITS = 64
+_MAX_JSON_DEPTH = 100
+
+
+def _bounded_int(text: str) -> int:
+    if len(text.lstrip("+-")) > _MAX_INT_DIGITS:
+        raise ValueError("integer literal exceeds the supported size")
+    return int(text)
+
+
+def _finite_float(text: str) -> float:
+    value = float(text)
+    if not math.isfinite(value):
+        raise ValueError("non-finite number literal")
+    return value
+
+
+def _reject_constant(_value: str) -> float:
+    raise ValueError("non-standard JSON constant")
+
 
 def _previous_market_business_day(report_date: date) -> date:
     candidate = report_date - timedelta(days=1)
@@ -46,18 +66,32 @@ class SectorRotationProvider:
                     continue
                 row = json.loads(
                     line,
-                    parse_constant=lambda value: (_ for _ in ()).throw(ValueError(f"non-finite JSON number: {value}")),
+                    parse_int=_bounded_int,
+                    parse_float=_finite_float,
+                    parse_constant=_reject_constant,
                 )
                 if isinstance(row, dict) and row.get("kind") == "SECTOR":
                     rows.append(row)
-        except (OSError, UnicodeError, ValueError, json.JSONDecodeError) as exc:
+        except (OSError, UnicodeError, ValueError, RecursionError) as exc:
             return ProviderResult.unavailable(
                 self.name,
                 reason=f"failed to read Sector Money Flow history: {exc.__class__.__name__}",
                 source_reference=str(self.path),
             )
 
-        dated = [row for row in rows if isinstance(row.get("as_of"), str) and row.get("as_of")]
+        dated = []
+        invalid_date_rows = 0
+        for row in rows:
+            as_of_value = row.get("as_of")
+            if not isinstance(as_of_value, str) or not as_of_value:
+                invalid_date_rows += 1
+                continue
+            try:
+                date.fromisoformat(as_of_value)
+            except ValueError:
+                invalid_date_rows += 1
+                continue
+            dated.append(row)
         if not dated:
             return ProviderResult.unavailable(
                 self.name,
@@ -70,12 +104,13 @@ class SectorRotationProvider:
 
         seen: set[str] = set()
         normalized: list[dict[str, Any]] = []
-        integrity_issues = 0
+        integrity_issues = invalid_date_rows
         for row in latest:
-            entity_id = str(row.get("id") or "").strip()
-            if not entity_id:
+            entity_id_value = row.get("id")
+            if not isinstance(entity_id_value, str) or not entity_id_value.strip():
                 integrity_issues += 1
                 continue
+            entity_id = entity_id_value.strip()
             if entity_id in seen:
                 integrity_issues += 1
                 continue
@@ -92,7 +127,11 @@ class SectorRotationProvider:
             if evidence_value is None:
                 evidence = []
             elif isinstance(evidence_value, list):
-                evidence = evidence_value
+                if self._is_safe_json_value(evidence_value):
+                    evidence = evidence_value
+                else:
+                    evidence = []
+                    integrity_issues += 1
             else:
                 evidence = []
                 integrity_issues += 1
@@ -103,16 +142,24 @@ class SectorRotationProvider:
             for key in ("relative_strength", "activity", "breadth", "heat", "acceleration"):
                 normalized_scores[key], valid = self._finite_number_or_none(scores.get(key))
                 integrity_issues += int(not valid)
+            text_fields = {}
+            for key in ("name", "state", "previous_state", "state_since", "data_completeness"):
+                value = row.get(key)
+                if value is None or isinstance(value, str):
+                    text_fields[key] = value
+                else:
+                    text_fields[key] = None
+                    integrity_issues += 1
             normalized.append(
                 {
                     "id": entity_id,
-                    "name": row.get("name"),
-                    "state": row.get("state"),
-                    "previous_state": row.get("previous_state"),
-                    "state_since": row.get("state_since"),
+                    "name": text_fields["name"],
+                    "state": text_fields["state"],
+                    "previous_state": text_fields["previous_state"],
+                    "state_since": text_fields["state_since"],
                     "flow_score": flow_score,
                     "scores": normalized_scores,
-                    "data_completeness": row.get("data_completeness"),
+                    "data_completeness": text_fields["data_completeness"],
                     "evidence": evidence,
                 }
             )
@@ -230,5 +277,29 @@ class SectorRotationProvider:
         if isinstance(value, float) and not math.isfinite(value):
             return None, False
         return value, True
+
+    @staticmethod
+    def _is_safe_json_value(value: Any) -> bool:
+        pending = [(value, 0)]
+        while pending:
+            item, depth = pending.pop()
+            if depth > _MAX_JSON_DEPTH:
+                return False
+            if item is None or isinstance(item, (str, bool, int)):
+                continue
+            if isinstance(item, float):
+                if not math.isfinite(item):
+                    return False
+                continue
+            if isinstance(item, list):
+                pending.extend((child, depth + 1) for child in item)
+                continue
+            if isinstance(item, dict):
+                if not all(isinstance(key, str) for key in item):
+                    return False
+                pending.extend((child, depth + 1) for child in item.values())
+                continue
+            return False
+        return True
 
 
