@@ -86,7 +86,7 @@ class PortfolioProvider:
 
     def _collect_canonical_json(self) -> ProviderResult:
         try:
-            payload = json.loads(self.path.read_text(encoding="utf-8"))
+            payload = json.loads(self.path.read_text(encoding="utf-8"), parse_int=_bounded_int)
         except (OSError, UnicodeDecodeError, ValueError, RecursionError) as exc:
             # ValueError covers json.JSONDecodeError and oversized integer literals.
             return ProviderResult.unavailable(
@@ -208,3 +208,15 @@ def _iso_date(value: str) -> str | None:
         return datetime.fromisoformat(text).date().isoformat()
     except ValueError:
         return None
+
+
+# Portfolio quantities and prices never need more digits than this. Rejecting
+# longer literals explicitly makes the result identical on every runtime,
+# instead of depending on the interpreter's int-string conversion limit.
+_MAX_INT_DIGITS = 64
+
+
+def _bounded_int(text: str) -> int:
+    if len(text.lstrip("+-")) > _MAX_INT_DIGITS:
+        raise ValueError(f"integer literal longer than {_MAX_INT_DIGITS} digits")
+    return int(text)

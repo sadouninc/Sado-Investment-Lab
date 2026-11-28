@@ -232,7 +232,11 @@ needs-review
                 self.assertIn("must be an object", result.reason)
 
     def test_invalid_utf8_and_oversized_json_are_missing_not_exception(self):
-        for raw in (b'{"as_of": "' + bytes([0xFF]) + b'"}', b'{"positions": [{"quantity": ' + b"9" * 5000 + b"}]}"):
+        # 70 digits is below the interpreter's default int limit, so this also
+        # checks that the explicit parse bound, not the runtime, decides.
+        oversized = [b'{"as_of": "2026-08-08", "verification_status": "VERIFIED", "positions": [{"security_code": "4063", "quantity": '
+                     + b"9" * digits + b"}]}" for digits in (70, 5000)]
+        for raw in (b'{"as_of": "' + bytes([0xFF]) + b'"}', *oversized):
             with self.subTest(size=len(raw)):
                 with tempfile.TemporaryDirectory() as tmp:
                     path = Path(tmp) / "current.json"
@@ -289,6 +293,14 @@ needs-review
         self.assertEqual("OK", result.status)
         self.assertEqual("2026-08-08T09:00:00+09:00", result.as_of)
         self.assertEqual("PROVISIONAL", result.data["verification_status"])
+
+    def test_ordinary_integer_quantities_are_unchanged_by_parse_bound(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_json(Path(tmp), {"as_of": "2026-08-08", "verification_status": "VERIFIED",
+                                                "positions": [dict(self.POSITION, quantity=12345678901234567890)]})
+            result = PortfolioProvider(path, today=date(2026, 8, 8)).collect()
+        self.assertEqual("OK", result.status)
+        self.assertEqual(12345678901234567890, result.data["positions"][0]["quantity"])
 
 if __name__ == "__main__":
     unittest.main()
