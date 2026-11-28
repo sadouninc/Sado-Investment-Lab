@@ -47,7 +47,22 @@ SCHEMA = "worker_queue_index_v1"
 MARKER = "WORKER_QUEUE_INDEX_V1"
 DEFAULT_AUTHORITIES = ("LUNA",)
 QUEUE_LANES = ("now", "next", "reserve")
-NOT_READY_STATES = frozenset({"CONDITIONAL", "DEPENDENCY_HOLD", "ASSIGNED_PREFLIGHT"})
+READY_STATE = "READY_FOR_IMPLEMENTATION"
+KNOWN_STATES = frozenset(
+    {
+        READY_STATE,
+        "IMPLEMENTING",
+        "CONDITIONAL",
+        "DEPENDENCY_HOLD",
+        "ASSIGNED_PREFLIGHT",
+        "REVIEW_WAIT",
+        "CI_WAIT",
+        "REVISION_REQUIRED",
+        "BLOCKED",
+    }
+)
+# Issue/PR numbers that must never surface as actionable discovery pointers.
+HARD_DENY_NUMBERS = frozenset({79})
 
 STATUS_VERIFIED = "INDEX_VERIFIED"
 STATUS_UNVERIFIED = "QUEUE_UNVERIFIED"
@@ -63,6 +78,10 @@ _FENCE_RE = re.compile(r"```json[ \t]*\r?\n(.*?)\r?\n[ \t]*```", re.DOTALL)
 
 def _is_int(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _is_pos_int(value: Any) -> bool:
+    return _is_int(value) and value > 0
 
 
 def _author(comment: Mapping[str, Any]) -> str | None:
@@ -100,7 +119,8 @@ def validate_index(payload: Any, allowed_authorities: Iterable[str]) -> list[str
     problems: list[str] = []
     if payload.get("schema") != SCHEMA:
         problems.append(f"schema must be {SCHEMA!r}")
-    if payload.get("authority") not in set(allowed_authorities):
+    authority = payload.get("authority")
+    if not isinstance(authority, str) or authority not in set(allowed_authorities):
         problems.append(f"authority {payload.get('authority')!r} is not an allowed Flow Authority")
     revision = payload.get("revision")
     if not _is_int(revision) or revision < 1:
@@ -129,8 +149,11 @@ def validate_index(payload: Any, allowed_authorities: Iterable[str]) -> list[str
                     continue
                 if not _is_int(item.get("issue")) or item["issue"] <= 0:
                     problems.append(f"worker {name}: {lane}[{pos}].issue must be a positive integer")
-                if not isinstance(item.get("state"), str) or not item["state"]:
-                    problems.append(f"worker {name}: {lane}[{pos}].state must be a non-empty string")
+                state = item.get("state")
+                if not isinstance(state, str) or not state or state != state.strip():
+                    problems.append(
+                        f"worker {name}: {lane}[{pos}].state must be a non-empty string without surrounding whitespace"
+                    )
     return problems
 
 
@@ -167,10 +190,13 @@ def build_report(
     blockers: list[str] = []
     warnings: list[str] = []
 
-    # --- tail verification -------------------------------------------------
+    # --- input shape / tail verification ------------------------------------
+    if not all(isinstance(c, Mapping) for c in comments):
+        blockers.append("malformed comment object in input")
+        comments = [c for c in comments if isinstance(c, Mapping)]
     ids = [c.get("id") for c in comments]
-    if not all(_is_int(i) for i in ids):
-        blockers.append("comment without integer id in input")
+    if not all(_is_pos_int(i) for i in ids):
+        blockers.append("comment without positive integer id in input")
     elif len(set(ids)) != len(ids):
         blockers.append("duplicate comment ids in input (pagination overlap?)")
     elif ids != sorted(ids):
@@ -178,17 +204,23 @@ def build_report(
 
     if expected_comment_count is None:
         blockers.append("tail not verified: expected comment count not supplied")
+    elif not _is_int(expected_comment_count) or expected_comment_count < 0:
+        blockers.append("tail not verified: expected comment count must be a non-negative integer")
     elif expected_comment_count != len(comments):
         blockers.append(
             f"tail not verified: fetched {len(comments)} comments, issue reports {expected_comment_count}"
         )
-    last_id = ids[-1] if ids and _is_int(ids[-1]) else None
-    if expected_last_comment_id is not None and last_id != expected_last_comment_id:
+    last_id = ids[-1] if ids and _is_pos_int(ids[-1]) else None
+    if expected_last_comment_id is not None and not _is_pos_int(expected_last_comment_id):
+        blockers.append("tail not verified: expected last comment id must be a positive integer")
+    elif expected_last_comment_id is not None and last_id != expected_last_comment_id:
         blockers.append(f"tail not verified: last fetched id {last_id} != expected {expected_last_comment_id}")
 
     # --- collect candidate index comments ---------------------------------
     candidates: list[dict[str, Any]] = []
-    for comment in comments:
+    # (position, comment id) of comments carrying a schema JSON block that failed validation
+    invalid_publications: list[tuple[int, Any]] = []
+    for position, comment in enumerate(comments):
         body = comment.get("body")
         if not isinstance(body, str) or MARKER not in body:
             continue
@@ -198,15 +230,18 @@ def build_report(
             continue
         if len(payloads) > 1:
             blockers.append(f"comment {comment.get('id')}: multiple index JSON blocks in one comment")
+            invalid_publications.append((position, comment.get("id")))
             continue
         payload = payloads[0]
         problems = validate_index(payload, authorities)
         if problems:
             warnings.extend(f"comment {comment.get('id')}: {p}" for p in problems)
+            invalid_publications.append((position, comment.get("id")))
             continue
         candidates.append(
             {
                 "comment_id": comment.get("id"),
+                "position": position,
                 "created_at": comment.get("created_at"),
                 "author": _author(comment),
                 "payload": payload,
@@ -224,14 +259,20 @@ def build_report(
             bodies = {json.dumps(c["payload"], sort_keys=True) for c in group}
             if len(bodies) > 1:
                 blockers.append(f"revision {rev} published with conflicting content")
+        for prev, cur in zip(candidates, candidates[1:]):
+            if cur["payload"]["revision"] < prev["payload"]["revision"]:
+                blockers.append(
+                    f"index comment {cur['comment_id']} revision {cur['payload']['revision']}"
+                    f" follows revision {prev['payload']['revision']} (regression)"
+                )
         max_rev = max(by_revision)
-        last = candidates[-1]
-        if last["payload"]["revision"] != max_rev:
-            blockers.append(
-                f"latest index comment {last['comment_id']} has revision {last['payload']['revision']}"
-                f" below earlier revision {max_rev} (regression)"
-            )
         selected = by_revision[max_rev][-1]
+        later_invalid = [cid for pos, cid in invalid_publications if pos > selected["position"]]
+        if later_invalid:
+            blockers.append(
+                "index publication(s) after the selected revision failed validation: "
+                + ", ".join(str(c) for c in later_invalid)
+            )
 
     # --- worker selection --------------------------------------------------
     queue: dict[str, Any] | None = None
@@ -243,10 +284,23 @@ def build_report(
             blockers.append(
                 f"index broadcast_head {payload.get('broadcast_head')!r} != verified head {expected_broadcast_head}"
             )
-        if worker not in workers:
+        if not isinstance(worker, str) or worker not in workers:
             blockers.append(f"worker identity {worker!r} not present in index (not inferred)")
         else:
             table = workers[worker]
+            denied = sorted(
+                {n for n in table.get("review_prs", []) if n in HARD_DENY_NUMBERS}
+                | {i["issue"] for lane in QUEUE_LANES for i in table.get(lane, []) if i["issue"] in HARD_DENY_NUMBERS}
+            )
+            if denied:
+                blockers.append(
+                    "hard-deny number(s) present in worker queue: " + ", ".join(f"#{n}" for n in denied)
+                )
+            unknown = sorted(
+                {i["state"] for lane in QUEUE_LANES for i in table.get(lane, []) if i["state"] not in KNOWN_STATES}
+            )
+            if unknown:
+                warnings.append("unknown state value(s) treated as not ready: " + ", ".join(unknown))
             queue = {"review_prs": list(table.get("review_prs", []))}
             for lane in QUEUE_LANES:
                 queue[lane] = [
@@ -254,7 +308,8 @@ def build_report(
                         "issue": item["issue"],
                         "index_state": item["state"],
                         "pointer_only": True,
-                        "not_ready_by_index": item["state"] in NOT_READY_STATES,
+                        "known_state": item["state"] in KNOWN_STATES,
+                        "not_ready_by_index": item["state"] != READY_STATE,
                     }
                     for item in table.get(lane, [])
                 ]

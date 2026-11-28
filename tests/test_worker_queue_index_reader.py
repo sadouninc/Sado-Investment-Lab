@@ -3,6 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from scripts.worker_queue_index_reader import (
     STATUS_UNVERIFIED,
     STATUS_VERIFIED,
@@ -127,12 +129,103 @@ def test_marker_without_block_warns():
     assert any("marker without" in w for w in r["warnings"])
 
 
-def test_unauthorized_authority_is_not_selected():
-    r = report([comment(2, index(1)), comment(3, index(2, authority="SORA"))])
-    # revision 2 from a non-authority is ignored, revision 1 from LUNA stays selected
+def test_unauthorized_authority_earlier_is_ignored_with_warning():
+    r = report([comment(2, index(1, authority="SORA")), comment(3, index(2))])
     assert r["status"] == STATUS_VERIFIED
-    assert r["source"]["index_revision"] == 1
+    assert r["source"]["index_revision"] == 2
     assert any("not an allowed Flow Authority" in w for w in r["warnings"])
+
+
+def test_later_invalid_authority_publication_fails_closed():
+    # a newer publication that fails validation must not fall back to a stale valid revision
+    r = report([comment(2, index(1)), comment(3, index(2, authority="SORA"))])
+    assert r["status"] == STATUS_UNVERIFIED
+    assert r["queue"] is None
+    assert any("after the selected revision failed validation: 3" in b for b in r["blockers"])
+
+
+def test_later_malformed_json_publication_fails_closed():
+    bad = plain(3, "WORKER_QUEUE_INDEX_V1 revision 2\n```json\n{\"schema\": \"worker_queue_index_v1\", \n```")
+    r = report([comment(2, index(1)), bad])
+    assert r["status"] == STATUS_UNVERIFIED
+    assert any("failed validation" in b for b in r["blockers"])
+
+
+def test_later_prose_marker_reference_is_not_a_publication():
+    r = report([comment(2, index(1)), plain(3, "see WORKER_QUEUE_INDEX_V1 revision 1 above")])
+    assert r["status"] == STATUS_VERIFIED
+    assert any("marker without" in w for w in r["warnings"])
+
+
+@pytest.mark.parametrize("authority", [["LUNA"], {"LUNA": 1}, None, 1])
+def test_non_string_authority_does_not_raise(authority):
+    r = report([comment(2, index(1, authority=authority))])
+    assert r["status"] == STATUS_UNVERIFIED
+    assert any("not an allowed Flow Authority" in w for w in r["warnings"])
+
+
+def test_hard_deny_issue_never_surfaces_as_queue():
+    for workers in (
+        {"ALPHA": {"review_prs": [], "now": [{"issue": 79, "state": "READY_FOR_IMPLEMENTATION"}], "next": [], "reserve": []}},
+        {"ALPHA": {"review_prs": [79], "now": [], "next": [], "reserve": []}},
+    ):
+        r = report([comment(2, index(1, workers=workers))])
+        assert r["status"] == STATUS_UNVERIFIED
+        assert r["queue"] is None
+        assert any("hard-deny" in b and "#79" in b for b in r["blockers"])
+
+
+@pytest.mark.parametrize("state", [" READY_FOR_IMPLEMENTATION", "READY_FOR_IMPLEMENTATION\n", "   "])
+def test_whitespace_state_is_invalid(state):
+    workers = {"ALPHA": {"review_prs": [], "now": [{"issue": 5, "state": state}], "next": [], "reserve": []}}
+    r = report([comment(2, index(1, workers=workers))])
+    assert r["status"] == STATUS_UNVERIFIED
+
+
+def test_unknown_and_non_ready_states_are_conservative():
+    workers = {"ALPHA": {"review_prs": [], "now": [
+        {"issue": 5, "state": "ready"},
+        {"issue": 6, "state": "IMPLEMENTING"},
+        {"issue": 7, "state": "READY_FOR_IMPLEMENTATION"},
+    ], "next": [], "reserve": []}}
+    r = report([comment(2, index(1, workers=workers))])
+    assert r["status"] == STATUS_VERIFIED
+    flags = {i["issue"]: (i["known_state"], i["not_ready_by_index"]) for i in r["queue"]["now"]}
+    assert flags == {5: (False, True), 6: (True, True), 7: (True, False)}
+    assert any("unknown state" in w and "ready" in w for w in r["warnings"])
+
+
+@pytest.mark.parametrize("count", [True, -1, "2", 1.0])
+def test_bad_expected_comment_count(count):
+    r = report([comment(2, index(1))], count=count)
+    assert r["status"] == STATUS_UNVERIFIED
+
+
+@pytest.mark.parametrize("last_id", [True, 0, -2, "2"])
+def test_bad_expected_last_comment_id(last_id):
+    r = report([comment(2, index(1))], expected_last_comment_id=last_id)
+    assert r["status"] == STATUS_UNVERIFIED
+
+
+@pytest.mark.parametrize("cid", [True, 0, -3, "4", None])
+def test_bad_comment_ids(cid):
+    c = comment(5, index(1))
+    c["id"] = cid
+    r = report([plain(1), c])
+    assert r["status"] == STATUS_UNVERIFIED
+
+
+@pytest.mark.parametrize("bad", [None, "text", 7, ["x"]])
+def test_malformed_comment_objects(bad):
+    r = build_report([comment(2, index(1)), bad], worker="ALPHA", expected_comment_count=2)
+    assert r["status"] == STATUS_UNVERIFIED
+    assert any("malformed comment object" in b for b in r["blockers"])
+
+
+def test_revision_regression_in_middle_is_detected():
+    r = report([comment(2, index(3)), comment(3, index(2)), comment(4, index(4))])
+    assert r["status"] == STATUS_UNVERIFIED
+    assert any("follows revision 3 (regression)" in b for b in r["blockers"])
 
 
 def test_worker_identity_is_exact_not_inferred():
