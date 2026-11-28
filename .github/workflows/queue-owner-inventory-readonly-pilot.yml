@@ -145,11 +145,32 @@ jobs:
                           or (raw.get("selected_issue") is not None and
                               (not positive_id(raw["selected_issue"]) or raw["selected_issue"] == 79))
                           or type(raw.get("candidate_count")) is not int
-                          or raw["candidate_count"] < 0
+                          or raw["candidate_count"] not in (0, 1)
                           or not isinstance(raw.get("conflicting_prs"), list)
                           or not all(positive_id(n) for n in raw["conflicting_prs"])):
                       raise ValueError("invalid diagnostic")
-                  result.update({key: raw[key] for key in result})
+                  reason = raw["reason"]
+                  if reason in {"INPUT_UNAVAILABLE", "ISSUE_INVENTORY_INCOMPLETE",
+                                "OUTPUT_UNAVAILABLE"}:
+                      # A successful process exit is not proof of readable inputs.
+                      result["reason"] = reason
+                  else:
+                      count = raw["candidate_count"]
+                      if reason == "NO_READY_CANDIDATE":
+                          if count != 0 or raw["selected_issue"] is not None or raw["conflicting_prs"]:
+                              raise ValueError("inconsistent zero candidate evidence")
+                      elif count != 1 or raw["selected_issue"] is None:
+                          raise ValueError("inconsistent bounded candidate evidence")
+                      if reason == "PR_PATH_CONFLICT":
+                          if not raw["conflicting_prs"]:
+                              raise ValueError("missing conflict evidence")
+                      elif raw["conflicting_prs"]:
+                          raise ValueError("unexpected conflict evidence")
+                      result.update({key: raw[key] for key in result})
+                      if reason in {"PR_PATH_INVENTORY_INCOMPLETE", "ISSUE_PATH_SCOPE_UNVERIFIED",
+                                    "OWNER_SLICE_UNVERIFIED", "NO_READY_CANDIDATE"}:
+                          # No complete comparison was performed.
+                          result["conflicting_prs"] = None
               except (OSError, ValueError, TypeError, AttributeError, KeyError):
                   result["reason"] = "DIAGNOSTIC_OUTPUT_INVALID_OR_MISSING"
           else:
@@ -175,6 +196,7 @@ jobs:
             echo '~~~json'
             cat /tmp/owner-pilot-evidence/result.json
             echo '~~~'
+            echo 'Candidate count covers only the bounded pilot (0 or 1), not the entire queue; null means unknown.'
             echo 'A full open-PR path inventory is not an authenticated Owner/Lease ledger.'
           } >> "${GITHUB_STEP_SUMMARY}"
 
