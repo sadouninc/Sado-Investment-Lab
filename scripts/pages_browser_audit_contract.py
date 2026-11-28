@@ -29,6 +29,8 @@ from typing import Any
 
 SCHEMA_VERSION = 1
 DEFAULT_VIEWPORTS = (320, 390)
+MANDATORY_VIEWPORTS = (320, 390)  # always audited, whatever the manifest says
+CLIENT_WIDTH_TOLERANCE = 24  # scrollbars may narrow clientWidth below the viewport
 _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SEVERITY = {"route_presence": "P0", "horizontal_overflow": "P1", "anchor": "P1", "details": "P2", "provenance": "P1"}
 RANK = {"FAIL": 4, "UNKNOWN": 3, "NOT_RUN": 2, "PASS": 1, "NOT_APPLICABLE": 0}
@@ -44,6 +46,15 @@ STATUS_JA = {
 
 def _int(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _diag(value: Any) -> Any:
+    """Bounded, JSON-safe echo of an untrusted value for diagnostics."""
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    if isinstance(value, str):
+        return value[:200]
+    return f"<{type(value).__name__}>"
 
 
 def _finding(route: str, viewport: Any, rule: str, status: str, observed: Any, expected: str,
@@ -66,7 +77,13 @@ def _overflow(route: str, vp: int, obs: dict[str, Any], shot: Any) -> dict[str, 
     values = {key: obs.get(key) for key in keys}
     expected = "documentElement/body scrollWidth <= clientWidth + 1"
     if not all(_int(v) and v >= 0 for v in values.values()):
-        return _finding(route, vp, "horizontal_overflow", "UNKNOWN", values, expected, shot, "width measurement missing or malformed")
+        return _finding(route, vp, "horizontal_overflow", "UNKNOWN", {k: _diag(v) for k, v in values.items()},
+                        expected, shot, "width measurement missing or malformed")
+    client = values["document_client_width"]
+    if values["document_client_width"] <= 0 or values["body_client_width"] <= 0 \
+            or not (vp - CLIENT_WIDTH_TOLERANCE <= client <= vp):
+        return _finding(route, vp, "horizontal_overflow", "UNKNOWN", values, expected, shot,
+                        f"client width {client} not consistent with a {vp}px viewport (no real measurement)")
     elements = obs.get("overflow_elements", [])
     if not isinstance(elements, list) or not all(isinstance(e, dict) and isinstance(e.get("selector"), str) for e in elements):
         return _finding(route, vp, "horizontal_overflow", "UNKNOWN", values, expected, shot, "overflow element list malformed")
@@ -97,14 +114,15 @@ def _anchors(route: str, vp: int, obs: dict[str, Any], shot: Any) -> list[dict[s
             out.append(_finding(route, vp, "anchor", "UNKNOWN", None, expected, shot, "anchor record malformed"))
             continue
         flags = {k: anchor.get(k) for k in ("link_visible", "target_exists", "target_visible", "reached")}
-        observed = {"href": anchor["href"][:200], **flags}
-        if any(not isinstance(v, bool) for v in flags.values()):
+        observed = {"href": anchor["href"][:200], **{k: _diag(v) for k, v in flags.items()}}
+        known_false = [k for k, v in flags.items() if v is False]
+        if known_false:
+            # A measured contradiction is a FAIL even if other flags are missing.
+            out.append(_finding(route, vp, "anchor", "FAIL", observed, expected, shot, "failed: " + ", ".join(known_false)))
+        elif any(not isinstance(v, bool) for v in flags.values()):
             out.append(_finding(route, vp, "anchor", "UNKNOWN", observed, expected, shot, "anchor flags not measured"))
-        elif all(flags.values()):
-            out.append(_finding(route, vp, "anchor", "PASS", observed, expected, shot))
         else:
-            failed = [k for k, v in flags.items() if not v]
-            out.append(_finding(route, vp, "anchor", "FAIL", observed, expected, shot, "failed: " + ", ".join(failed)))
+            out.append(_finding(route, vp, "anchor", "PASS", observed, expected, shot))
     return out
 
 
@@ -123,7 +141,8 @@ def _details(route: str, vp: int, obs: dict[str, Any], shot: Any) -> list[dict[s
             out.append(_finding(route, vp, "details", "UNKNOWN", None, expected, shot, "details record malformed"))
             continue
         closed, opened = item.get("content_visible_closed"), item.get("content_visible_open")
-        observed = {"selector": item["selector"][:120], "content_visible_closed": closed, "content_visible_open": opened}
+        observed = {"selector": item["selector"][:120], "content_visible_closed": _diag(closed),
+                    "content_visible_open": _diag(opened)}
         if not isinstance(closed, bool) or not isinstance(opened, bool):
             out.append(_finding(route, vp, "details", "UNKNOWN", observed, expected, shot, "visibility not measured"))
         elif opened and not closed:
@@ -144,28 +163,43 @@ def evaluate(audit: Any) -> dict[str, Any]:
                      and isinstance(artifact, str) and bool(_SHA_RE.fullmatch(artifact))
                      and _int(run_id) and run_id > 0)
     findings.append(_finding("*", None, "provenance", "PASS" if provenance_ok else "UNKNOWN",
-                             {"source_sha": source, "artifact_sha": artifact, "run_id": run_id},
+                             {"source_sha": _diag(source), "artifact_sha": _diag(artifact), "run_id": _diag(run_id)},
                              "40-hex source/artifact SHA and positive run id",
                              reason=None if provenance_ok else "provenance missing or malformed"))
 
     routes = audit.get("required_routes")
-    viewports = audit.get("viewports", list(DEFAULT_VIEWPORTS))
+    supplied = audit.get("viewports", list(DEFAULT_VIEWPORTS))
     if (not isinstance(routes, list) or not routes or not all(isinstance(r, str) and r.startswith("/") for r in routes)
-            or not isinstance(viewports, list) or not viewports or not all(_int(v) and v > 0 for v in viewports)):
-        findings.append(_finding("*", None, "route_presence", "UNKNOWN", {"required_routes": routes, "viewports": viewports},
+            or not isinstance(supplied, list) or not supplied or not all(_int(v) and v > 0 for v in supplied)):
+        findings.append(_finding("*", None, "route_presence", "UNKNOWN",
+                                 {"required_routes": _diag(routes), "viewports": _diag(supplied)},
                                  "non-empty route manifest and viewport list", reason="route manifest or viewports malformed"))
-        return _report(audit, findings)
+        return _report(audit, findings, observed_rows=0)
+    missing_mandatory = [v for v in MANDATORY_VIEWPORTS if v not in supplied]
+    if missing_mandatory:
+        findings.append(_finding("*", None, "route_presence", "UNKNOWN", {"viewports": supplied},
+                                 f"mandatory viewports {list(MANDATORY_VIEWPORTS)} audited",
+                                 reason=f"manifest omits mandatory viewport(s) {missing_mandatory}; audit is partial"))
+    viewports = sorted(set(supplied) | set(MANDATORY_VIEWPORTS))
 
     observations = audit.get("observations")
     index: dict[tuple[str, int], Any] = {}
     duplicates = set()
-    if isinstance(observations, list):
-        for obs in observations:
-            if isinstance(obs, dict) and isinstance(obs.get("route"), str) and _int(obs.get("viewport")):
-                key = (obs["route"], obs["viewport"])
-                if key in index:
-                    duplicates.add(key)
-                index[key] = obs
+    malformed_rows = 0
+    if observations is not None and not isinstance(observations, list):
+        malformed_rows += 1
+    for obs in observations if isinstance(observations, list) else []:
+        if isinstance(obs, dict) and isinstance(obs.get("route"), str) and _int(obs.get("viewport")):
+            key = (obs["route"], obs["viewport"])
+            if key in index:
+                duplicates.add(key)
+            index[key] = obs
+        else:
+            malformed_rows += 1
+    if malformed_rows:
+        findings.append(_finding("*", None, "route_presence", "UNKNOWN", {"malformed_rows": malformed_rows},
+                                 "every observation row has a route and integer viewport",
+                                 reason="malformed observation row(s); results may be ambiguous"))
 
     for route in routes:
         for vp in viewports:
@@ -192,10 +226,11 @@ def evaluate(audit: Any) -> dict[str, Any]:
             findings.append(_overflow(route, vp, obs, shot))
             findings.extend(_anchors(route, vp, obs, shot))
             findings.extend(_details(route, vp, obs, shot))
-    return _report(audit, findings)
+    return _report(audit, findings, observed_rows=len(index), provenance_ok=provenance_ok)
 
 
-def _report(audit: dict[str, Any], findings: list[dict[str, Any]]) -> dict[str, Any]:
+def _report(audit: dict[str, Any], findings: list[dict[str, Any]], *, observed_rows: int,
+            provenance_ok: bool = False) -> dict[str, Any]:
     checked = [f for f in findings if f["rule"] != "provenance" and f["status"] in {"PASS", "FAIL"}]
     # NOT_APPLICABLE has the lowest rank, so it never decides the verdict on
     # its own; the worst remaining status does.
@@ -211,7 +246,11 @@ def _report(audit: dict[str, Any], findings: list[dict[str, Any]]) -> dict[str, 
         "counts": counts,
         "findings": findings,
         "coverage": {
-            "observations_from_real_browser": audit.get("captured_by") == "browser",
+            # A caller's claim alone is not verification: it counts only with
+            # valid provenance and at least one actual observation row.
+            "caller_claims_browser_capture": audit.get("captured_by") == "browser",
+            "observations_from_real_browser": (audit.get("captured_by") == "browser" and provenance_ok
+                                               and observed_rows > 0),
             "semantic_ux_review": False,
             "public_http_verified": False,
         },
@@ -245,7 +284,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         with open(args.observations, encoding="utf-8") as handle:
             audit = json.load(handle)
-    except (OSError, ValueError, UnicodeDecodeError):
+    except (OSError, ValueError, UnicodeDecodeError, RecursionError):
         audit = None
     report = evaluate(audit)
     text = json.dumps(report, ensure_ascii=False, indent=2) + "\n"

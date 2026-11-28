@@ -160,6 +160,62 @@ class AnchorAndDetailsTests(unittest.TestCase):
         self.assertEqual(self._one(details=[])["verdict"], "PASS")
 
 
+class ReiCounterexampleTests(unittest.TestCase):
+    """❤️レイ review 6099042530."""
+
+    def test_partial_viewport_manifest_cannot_pass(self):
+        for viewports in ([320], [1], [390]):
+            observations = [obs(r, v) for r in ("/", "/reports/morning/") for v in viewports]
+            report = bac.evaluate(audit(observations, viewports=viewports))
+            self.assertNotEqual(report["verdict"], "PASS", viewports)
+            self.assertTrue(any("mandatory viewport" in (f["reason"] or "") for f in report["findings"]), viewports)
+
+    def test_zero_or_inconsistent_widths_are_not_a_measurement(self):
+        observations = audit()["observations"]
+        observations[0] = obs("/", 320, document_scroll_width=0, document_client_width=0,
+                              body_scroll_width=0, body_client_width=0)
+        self.assertEqual(bac.evaluate(audit(observations))["verdict"], "UNKNOWN")
+        observations[0] = obs("/", 320, document_scroll_width=1280, document_client_width=1280,
+                              body_scroll_width=1280, body_client_width=1280)  # desktop width at "320"
+        self.assertEqual(bac.evaluate(audit(observations))["verdict"], "UNKNOWN")
+        observations[0] = obs("/", 320, document_client_width=305, document_scroll_width=305,
+                              body_client_width=305, body_scroll_width=305)  # scrollbar tolerance
+        self.assertEqual(bac.evaluate(audit(observations))["verdict"], "PASS")
+
+    def test_malformed_rows_alongside_valid_set_fail_closed(self):
+        for junk in (None, {"route": "/"}, {"viewport": 320}, "row", {"route": 1, "viewport": 320}):
+            report = bac.evaluate(audit(audit()["observations"] + [junk]))
+            self.assertEqual(report["verdict"], "UNKNOWN", junk)
+        self.assertEqual(bac.evaluate(audit(observations={"x": 1}))["verdict"], "UNKNOWN")
+
+    def test_browser_claim_alone_is_not_real_browser_coverage(self):
+        empty = bac.evaluate(audit(observations=[]))
+        self.assertTrue(empty["coverage"]["caller_claims_browser_capture"])
+        self.assertFalse(empty["coverage"]["observations_from_real_browser"])
+        bad_provenance = bac.evaluate(audit(source_sha="x"))
+        self.assertFalse(bad_provenance["coverage"]["observations_from_real_browser"])
+        self.assertTrue(bac.evaluate(audit())["coverage"]["observations_from_real_browser"])
+
+    def test_known_false_anchor_flag_is_fail_even_with_missing_flags(self):
+        observations = audit()["observations"]
+        observations[0] = obs("/", 320, anchors=[{"href": "#x", "target_exists": False}])
+        report = bac.evaluate(audit(observations))
+        self.assertEqual(report["verdict"], "FAIL")
+
+    def test_cli_handles_deep_json_and_diagnostics_are_bounded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "deep.json").write_text("[" * 100000 + "]" * 100000, encoding="utf-8")
+            rc = bac.main([str(root / "deep.json"), "--output", str(root / "r.json")])
+            self.assertEqual(rc, 0)
+            self.assertIn(json.loads((root / "r.json").read_text())["verdict"], {"UNKNOWN", "NOT_RUN"})
+        report = bac.evaluate(audit(source_sha={"nested": ["x" * 1000]}))
+        observed = next(f for f in report["findings"] if f["rule"] == "provenance")["observed"]
+        self.assertEqual(observed["source_sha"], "<dict>")
+        long = bac.evaluate(audit(artifact_sha="y" * 5000))
+        self.assertLessEqual(len(next(f for f in long["findings"] if f["rule"] == "provenance")["observed"]["artifact_sha"]), 200)
+
+
 class OutputTests(unittest.TestCase):
     def test_finding_fields_and_japanese_summary(self):
         observations = audit()["observations"]
