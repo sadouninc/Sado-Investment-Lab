@@ -8,6 +8,7 @@ evidence and is always labelled as an unverified memo.
 """
 from __future__ import annotations
 
+from datetime import date
 import importlib.util
 import json
 import math
@@ -19,7 +20,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from scripts.ai_morning_analyst import candidate_focus_verification  # noqa: E402
+from scripts.ai_morning_analyst import _verified_row_code, candidate_focus_verification  # noqa: E402
 
 MODULE_PATH = ROOT / ".github" / "pages" / "build_ai_morning_reports.py"
 SPEC = importlib.util.spec_from_file_location("build_ai_morning_reports_949", MODULE_PATH)
@@ -161,6 +162,99 @@ class CandidateFocusVerificationTests(unittest.TestCase):
     def test_focus_record_is_json_serialisable_for_diagnostics(self):
         json.dumps(candidate_focus_verification(_dataset([_fresh(), *ALL_STALE])), ensure_ascii=False)
 
+
+
+class CandidateFocusStrictnessTests(unittest.TestCase):
+    """#966: positive integer rank, strict dates, ambiguous codes, abnormal values."""
+
+    def _codes(self, rows, **kwargs):
+        return candidate_focus_verification(_dataset(rows, **kwargs))["verified_security_codes"]
+
+    def test_rank_must_be_a_positive_integer(self):
+        for rank in (0, -1, 1.5, True, "1", None, math.nan, math.inf, 10**400):
+            self.assertEqual(self._codes([_fresh(rank=rank)]), [], rank)
+        # Same rule as #951: an integral float rank is accepted.
+        self.assertEqual(self._codes([_fresh(rank=1.0)]), ["6622"])
+        self.assertEqual(self._codes([_fresh(rank=3)]), ["6622"])
+
+    def test_huge_or_abnormal_priority_never_raises_and_is_not_a_score(self):
+        for priority in (10**400, -(10**400), "80", [80], {"v": 80}):
+            focus = candidate_focus_verification(_dataset([_fresh(priority=priority)]))
+            self.assertEqual(focus["verified_security_codes"], [], priority)
+            self.assertEqual(focus["scored_count"], 0, priority)
+
+    def test_research_date_and_as_of_must_be_strict_calendar_dates(self):
+        for last in ("2026-11-27T00:00:00", "2026-11-27garbage", "20261127", "2026-02-30", " 2026-11-27", 20261127):
+            row = _row("6622", "ダイヘン", rank=1, priority=80, status="CURRENT", last=last)
+            self.assertEqual(self._codes([row]), [], last)
+        for as_of in ("2026-11-28T09:00:00", "2026-11-28 ", "2026/11/28", None):
+            focus = candidate_focus_verification(_dataset([_fresh()], as_of=as_of))
+            self.assertFalse(focus["verified_focus_available"], as_of)
+            self.assertIsNone(focus["as_of"], as_of)
+
+    def test_status_must_be_exactly_current_and_source_exactly_ok(self):
+        row = _row("6622", "ダイヘン", rank=1, priority=80, status="current", last="2026-11-27")
+        self.assertEqual(self._codes([row]), [])
+        self.assertEqual(self._codes([_fresh()], status="ok"), [])
+        self.assertEqual(self._codes([_fresh()], status=None), [])
+
+    def test_same_code_with_different_names_is_never_verified(self):
+        rows = [
+            _fresh("6622", "ダイヘン"),
+            _row("6622", "信越化学工業", rank=2, priority=70, status="STALE"),
+            _fresh("278A", "テラドローン", rank=3),
+        ]
+        focus = candidate_focus_verification(_dataset(rows))
+        self.assertEqual(focus["verified_security_codes"], ["278A"])  # unrelated valid row is kept
+        self.assertEqual(focus["conflicting_security_codes"], ["6622"])
+        both_current = [_fresh("6622", "ダイヘン"), _fresh("6622", "別会社", rank=2)]
+        self.assertEqual(self._codes(both_current), [])
+
+    def test_identical_pairs_collapse_and_whitespace_is_not_a_conflict(self):
+        rows = [_fresh("6622", "ダイヘン"), _fresh("6622", "ダイヘン", rank=2), _fresh("6622", " ダイヘン ", rank=3)]
+        focus = candidate_focus_verification(_dataset(rows))
+        self.assertEqual(focus["verified_candidates"], [{"security_code": "6622", "company_name": "ダイヘン"}])
+        self.assertEqual(focus["conflicting_security_codes"], [])
+
+    def test_missing_or_abnormal_identity_fields_fail_closed_per_row(self):
+        rows = [
+            _fresh("6622", ""),
+            _fresh("6758", None),
+            _fresh(6758, "Sony Group", rank=2),
+            _fresh("67 58", "Sony Group", rank=3),
+            _fresh("3110", "日東紡", rank=4),
+        ]
+        self.assertEqual(self._codes(rows), ["3110"])
+
+    def test_row_contract_matches_pages_review_preflight(self):
+        # #951 audits the same rows statically; the two judgements must agree row by row.
+        from scripts.pages_review_preflight import _verified_candidate
+
+        as_of = date.fromisoformat(DAY)
+        matrix = [
+            _fresh(),
+            _fresh(rank=1.0),
+            _fresh(rank=0),
+            _fresh(rank=1.5),
+            _fresh(rank=True),
+            _fresh(rank=10**400),
+            _fresh(priority=10**400),
+            _fresh(priority=math.nan),
+            _fresh(name=""),
+            _fresh(code="ABCD"),
+            _fresh(code=" 6622 "),
+            _row("6622", "ダイヘン", rank=1, priority=80, status="current", last="2026-11-27"),
+            _row("6622", "ダイヘン", rank=1, priority=80, status="STALE", last="2026-11-27"),
+            _row("6622", "ダイヘン", rank=1, priority=80, status="CURRENT", last="2026-11-29"),
+            _row("6622", "ダイヘン", rank=1, priority=80, status="CURRENT", last="2026-11-27T00:00:00"),
+            _row("6622", "ダイヘン", rank=1, priority=80, status="CURRENT", last=None),
+        ]
+        for row in matrix:
+            self.assertEqual(
+                _verified_row_code(row, as_of) is not None,
+                _verified_candidate(row, as_of),
+                row,
+            )
 
 def _report(watch_section: str) -> str:
     return (
