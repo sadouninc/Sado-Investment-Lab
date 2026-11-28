@@ -238,13 +238,14 @@ def _validate_open_prs(
 
 def _validate_items(
     items_raw: Any,
-) -> tuple[list[Mapping[str, Any]], list[str], list[int], int]:
+) -> tuple[list[Mapping[str, Any]], list[Any], list[str], list[int], int]:
     errors: list[str] = []
     duplicate_issues: list[int] = []
     excluded_79_count = 0
+    issue_79_open_pr_refs: list[Any] = []
 
     if not isinstance(items_raw, list):
-        return [], ["ITEMS_LIST_INVALID"], duplicate_issues, excluded_79_count
+        return [], issue_79_open_pr_refs, ["ITEMS_LIST_INVALID"], duplicate_issues, excluded_79_count
 
     seen_issues: set[int] = set()
     valid_items: list[Mapping[str, Any]] = []
@@ -260,10 +261,12 @@ def _validate_items(
         seen_issues.add(issue_num)
         if issue_num == 79:
             excluded_79_count += 1
+            if "open_pr" in item and item["open_pr"] is not None:
+                issue_79_open_pr_refs.append(item["open_pr"])
             continue
         valid_items.append(item)
 
-    return valid_items, errors, duplicate_issues, excluded_79_count
+    return valid_items, issue_79_open_pr_refs, errors, duplicate_issues, excluded_79_count
 
 
 def _classify_linked_pr_bucket(
@@ -406,8 +409,8 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
     if snapshot.get("complete") is not True:
         integrity_errors.append("SNAPSHOT_INCOMPLETE")
 
-    valid_items, item_errors, duplicate_issues, excluded_79_count = _validate_items(
-        snapshot.get("items")
+    valid_items, issue_79_open_pr_refs, item_errors, duplicate_issues, excluded_79_count = (
+        _validate_items(snapshot.get("items"))
     )
     integrity_errors.extend(item_errors)
 
@@ -420,6 +423,23 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
     if top_stop_active is not None and type(top_stop_active) is not bool:
         integrity_errors.append("INVALID_STOP_ACTIVE_FLAG")
 
+    # Validate #79 forward-only PR links before link reconciliation so #79 PRs
+    # are neither emitted nor miscounted as standalone capacity PRs.
+    issue_79_forward_pr_numbers: set[int] = set()
+    if not integrity_errors:
+        for pr_ref in issue_79_open_pr_refs:
+            if not _is_positive_int(pr_ref):
+                integrity_errors.append("MALFORMED_ISSUE_79_PR_LINK")
+                continue
+            pr_record = prs_by_number.get(pr_ref)
+            if pr_record is None:
+                integrity_errors.append("UNRESOLVED_ISSUE_79_PR_LINK")
+                continue
+            if pr_record["linked_issues"] and 79 not in pr_record["linked_issues"]:
+                integrity_errors.append("CONTRADICTORY_ISSUE_79_PR_LINK")
+                continue
+            issue_79_forward_pr_numbers.add(pr_ref)
+
     if integrity_errors:
         return _incomplete_report(
             as_of=as_of,
@@ -429,26 +449,8 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
             excluded_79_count=excluded_79_count,
         )
 
-    # Collect active-implementation owners/paths and track whether any active
-    # slice lacks owner/path scope (cannot attest non-conflict if missing).
-    active_owners: set[str] = set()
-    active_paths: list[str] = []
-    active_conflict_inventory_unknown = False
-    for item in valid_items:
-        raw_state = item.get("state")
-        state = raw_state.strip() if isinstance(raw_state, str) else ""
-        if state in ACTIVE_IMPLEMENTATION_STATES:
-            has_owner = _is_nonempty_str(item.get("owner_slice"))
-            has_paths = _is_valid_paths(item.get("allowed_paths"))
-            if not has_owner or not has_paths:
-                active_conflict_inventory_unknown = True
-            if has_owner:
-                active_owners.add(str(item["owner_slice"]).strip())
-            if has_paths:
-                active_paths.extend(p.strip() for p in item["allowed_paths"])
-
-    # Partition PRs before classifying READY items so #79-only PRs are excluded
-    # from capacity display/counts while still preserving path-conflict safety.
+    # Reconcile item/PR links before building the active conflict inventory so
+    # items whose effective active state comes from a linked PR are included.
     pr_to_explicit_items: dict[int, set[int]] = {}
     resolved_links_by_issue: dict[int, tuple[list[dict[str, Any]], str | None]] = {}
     for item in valid_items:
@@ -464,11 +466,53 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
             for pr in linked_prs:
                 pr_to_explicit_items.setdefault(pr["number"], set()).add(issue_num)
 
+    # Reject contradictory snapshots where a #79 forward link shares a PR with a
+    # non-#79 item's explicit link while omitting #79 from reverse linked_issues.
+    for pr_num in issue_79_forward_pr_numbers:
+        if pr_to_explicit_items.get(pr_num):
+            return _incomplete_report(
+                as_of=as_of,
+                integrity_errors=["CONTRADICTORY_ISSUE_79_PR_LINK"],
+                duplicate_issues=duplicate_issues,
+                duplicate_prs=duplicate_prs,
+                excluded_79_count=excluded_79_count,
+            )
+
+    # Collect active-implementation owners/paths from both raw active state and
+    # PR-resolved effective active state; track missing owner/path conservatively.
+    active_owners: set[str] = set()
+    active_paths: list[str] = []
+    active_conflict_inventory_unknown = False
+    for item in valid_items:
+        raw_state = item.get("state")
+        state = raw_state.strip() if isinstance(raw_state, str) else ""
+        linked_prs, pr_link_error = resolved_links_by_issue[item["issue"]]
+        effectively_active = state in ACTIVE_IMPLEMENTATION_STATES or (
+            pr_link_error is None
+            and bool(linked_prs)
+            and _classify_linked_pr_bucket(state or None, linked_prs)[0] == "active_implementation"
+        )
+        if effectively_active:
+            has_owner = _is_nonempty_str(item.get("owner_slice"))
+            has_paths = _is_valid_paths(item.get("allowed_paths"))
+            if not has_owner or not has_paths:
+                active_conflict_inventory_unknown = True
+            if has_owner:
+                active_owners.add(str(item["owner_slice"]).strip())
+            if has_paths:
+                active_paths.extend(p.strip() for p in item["allowed_paths"])
+
     excluded_79_pr_numbers: set[int] = set()
     non_79_open_pr_paths: list[str] = []
     excluded_79_pr_paths: list[str] = []
     for pr_num, pr in prs_by_number.items():
-        if pr["linked_issues"] == [79] and not pr_to_explicit_items.get(pr_num):
+        is_reverse_79_only = pr["linked_issues"] == [79] and not pr_to_explicit_items.get(pr_num)
+        is_forward_79_only = (
+            pr_num in issue_79_forward_pr_numbers
+            and pr["linked_issues"] in ([], [79])
+            and not pr_to_explicit_items.get(pr_num)
+        )
+        if is_reverse_79_only or is_forward_79_only:
             excluded_79_pr_numbers.add(pr_num)
             excluded_79_pr_paths.extend(pr["paths"])
         else:

@@ -142,6 +142,58 @@ class WorkSupplyCapacityTests(unittest.TestCase):
         for items in result["issues_by_bucket"].values():
             self.assertNotIn(79, items)
 
+    def test_issue_79_forward_only_pr_link_is_excluded_and_contradictions_fail_closed(self):
+        item_79 = _ready_item(79)
+        item_79["open_pr"] = 791
+        snap = _snapshot(
+            [
+                item_79,
+                _ready_item(1020),
+                _ready_item(1021, allowed_paths=["scripts/shared_79_forward.py"]),
+            ],
+            open_prs={
+                "complete": True,
+                "prs": [
+                    {
+                        "number": 791,
+                        "paths": ["scripts/shared_79_forward.py"],
+                        "linked_issues": [],
+                        "wait_state": "REVIEW_WAIT",
+                    }
+                ],
+            },
+        )
+        result = classify_work_supply_capacity(snap)
+        self.assertTrue(result["complete"])
+        self.assertEqual(2, result["prepared_count"])
+        self.assertEqual(1, result["verified_ready_count"])
+        self.assertEqual([1020], result["issues_by_bucket"]["verified_ready"])
+        self.assertEqual([1021], result["issues_by_bucket"]["dependency_path_blocked"])
+        self.assertEqual(0, result["counts"]["ci_review_merge_wait"])
+        self.assertEqual([], result["open_prs_by_bucket"]["ci_review_merge_wait"])
+        self.assertEqual([], result["open_pr_classifications"])
+        self.assertEqual(1, result["diagnostics"]["excluded_issue_79_count"])
+        self.assertEqual(1, result["diagnostics"]["excluded_issue_79_pr_count"])
+
+        contradiction = _snapshot(
+            [item_79, _ready_item(1022)],
+            open_prs={
+                "complete": True,
+                "prs": [
+                    {
+                        "number": 791,
+                        "paths": ["scripts/shared_79_forward.py"],
+                        "linked_issues": [1022],
+                        "wait_state": "REVIEW_WAIT",
+                    }
+                ],
+            },
+        )
+        contradiction_res = classify_work_supply_capacity(contradiction)
+        self.assertFalse(contradiction_res["complete"])
+        self.assertIsNone(contradiction_res["verified_ready_count"])
+        self.assertEqual("UNKNOWN", contradiction_res["ready_replenishment_status"])
+
     def test_open_pr_linked_items_are_not_ready_and_distinguish_wait_vs_active(self):
         snap = _snapshot(
             [
@@ -262,6 +314,40 @@ class WorkSupplyCapacityTests(unittest.TestCase):
             self.assertEqual("UNKNOWN", result["ready_replenishment_status"])
             self.assertEqual([3503], result["issues_by_bucket"]["unknown"])
             self.assertEqual([active_item["issue"]], result["issues_by_bucket"]["active_implementation"])
+
+    def test_linked_pr_active_state_enforces_owner_conflict_and_missing_owner_uncertainty(self):
+        # Case 1: Item A has stale READY state, linked via reverse PR with REVISION_REQUIRED,
+        # same owner as Item B with disjoint paths -> B must be blocked, not VERIFIED_READY.
+        item_a = _ready_item(3601, state="READY", owner_slice="same", allowed_paths=["scripts/a.py"])
+        item_b = _ready_item(3602, state="READY", owner_slice="same", allowed_paths=["scripts/b.py"])
+        prs = {
+            "complete": True,
+            "prs": [
+                {
+                    "number": 961,
+                    "paths": ["scripts/a.py"],
+                    "linked_issues": [3601],
+                    "wait_state": "REVISION_REQUIRED",
+                }
+            ],
+        }
+        same_owner_res = classify_work_supply_capacity(_snapshot([item_a, item_b], open_prs=prs))
+        self.assertTrue(same_owner_res["complete"])
+        self.assertEqual([3601], same_owner_res["issues_by_bucket"]["active_implementation"])
+        self.assertEqual([3602], same_owner_res["issues_by_bucket"]["dependency_path_blocked"])
+        self.assertEqual(0, same_owner_res["verified_ready_count"])
+        self.assertEqual([], same_owner_res["issues_by_bucket"]["verified_ready"])
+
+        # Case 2: Linked PR active item missing owner_slice -> B cannot attest non-conflict -> UNKNOWN.
+        item_a_missing = _ready_item(3601, state="READY", owner_slice="", allowed_paths=["scripts/a.py"])
+        missing_owner_res = classify_work_supply_capacity(
+            _snapshot([item_a_missing, item_b], open_prs=prs)
+        )
+        self.assertTrue(missing_owner_res["complete"])
+        self.assertTrue(missing_owner_res["diagnostics"]["active_conflict_inventory_unknown"])
+        self.assertIsNone(missing_owner_res["verified_ready_count"])
+        self.assertEqual("UNKNOWN", missing_owner_res["ready_replenishment_status"])
+        self.assertEqual([3602], missing_owner_res["issues_by_bucket"]["unknown"])
 
     def test_dependency_and_path_conflicts_block_ready_but_keep_prepared_count(self):
         dep_blocked = _ready_item(4001, dependencies_satisfied=False)
