@@ -9,7 +9,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from scripts.ai_morning_analyst import estimate_cost, extract_output_text, render_report
+from scripts.ai_morning_analyst import SYSTEM_PROMPT, estimate_cost, extract_output_text, render_report
 
 
 class AIMorningAnalystTest(unittest.TestCase):
@@ -33,6 +33,13 @@ class AIMorningAnalystTest(unittest.TestCase):
         self.assertIn("dataset_as_of: 2026-08-07", rendered)
         self.assertIn("dataset_status: PARTIAL", rendered)
         self.assertIn("model: test-model", rendered)
+
+    def test_report_instructions_keep_unscored_historical_candidates_unverified(self) -> None:
+        self.assertIn("今日の検証済み注目銘柄は未確定", SYSTEM_PROMPT)
+        self.assertIn("total_priority", SYSTEM_PROMPT)
+        self.assertIn("last_researched_at", SYSTEM_PROMPT)
+        self.assertIn("historical portfolio holdings", SYSTEM_PROMPT)
+        self.assertIn("candidate-specific source_status", SYSTEM_PROMPT)
 
     def test_estimated_cost_requires_explicit_pricing(self) -> None:
         with patch.dict(os.environ, {}, clear=False):
