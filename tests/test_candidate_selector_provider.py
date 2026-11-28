@@ -61,6 +61,38 @@ class CandidateSelectorProviderTest(unittest.TestCase):
             self.assertEqual("MISSING", result.status)
             self.assertIsNone(result.data)
 
+    def test_unscored_candidates_are_partial_and_not_arbitrarily_ranked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_snapshot(tmp, {
+                "as_of": "2026-11-28",
+                "ranked_candidates": [
+                    {"security_code": "4063", "company_name": "信越化学工業",
+                     "research_status": "STALE", "total_priority": None},
+                    {"security_code": "6622", "company_name": "ダイヘン",
+                     "research_status": "STALE", "total_priority": None},
+                ],
+            })
+            result = CandidateSelectorProvider(path, today=date(2026, 11, 28)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertIn("no scored priorities", result.reason)
+            self.assertEqual(["4063", "6622"], [row["security_code"] for row in result.data])
+            self.assertEqual([None, None], [row["rank"] for row in result.data])
+
+    def test_unscored_row_is_never_numbered_in_mixed_snapshot(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_snapshot(tmp, {
+                "as_of": "2026-11-28",
+                "ranked_candidates": [
+                    {"security_code": "4063", "company_name": "信越化学工業", "total_priority": None},
+                    {"security_code": "6232", "company_name": "ACSL", "total_priority": 72.5},
+                ],
+            })
+            result = CandidateSelectorProvider(path, today=date(2026, 11, 28)).collect()
+            self.assertEqual("OK", result.status)
+            self.assertIsNone(result.data[0]["rank"])
+            self.assertEqual(2, result.data[1]["rank"])
+            self.assertEqual(72.5, result.data[1]["total_priority"])
+
     def test_stale_snapshot_preserves_candidates(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self.write_snapshot(tmp, {
