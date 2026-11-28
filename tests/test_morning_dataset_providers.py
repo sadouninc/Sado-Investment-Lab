@@ -91,6 +91,24 @@ class MorningDatasetProviderTest(unittest.TestCase):
                 self.assertEqual("PARTIAL", result.status)
                 self.assertIsNone(result.data)
 
+    def test_float_overflow_and_deep_json_are_partial(self) -> None:
+        deep = "[" * 2000 + "0" + "]" * 2000
+        for raw in ('{"value":1e400}', deep):
+            with self.subTest(kind=raw[:20]), tempfile.TemporaryDirectory() as temp_dir:
+                path = Path(temp_dir) / "unsafe.json"
+                path.write_text(raw, encoding="utf-8")
+                result = JsonFileProvider("market", path).collect()
+                self.assertEqual("PARTIAL", result.status)
+                self.assertIsNone(result.data)
+
+    def test_ordinary_finite_numbers_remain_strict_json_serializable(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "finite.json"
+            path.write_text('{"integer":42,"decimal":1.25,"nested":[0,-3.5]}', encoding="utf-8")
+            result = JsonFileProvider("market", path).collect()
+        self.assertEqual("OK", result.status)
+        json.dumps(result.data, allow_nan=False)
+
     def test_read_error_is_partial_without_exception_detail(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "market.json"
