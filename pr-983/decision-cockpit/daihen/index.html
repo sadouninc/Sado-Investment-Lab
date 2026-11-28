@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #983 · NOT PRODUCTION</strong>
-  <span>Head 4cb9f6a9d207 · Built 2026-11-28T13:01:08Z</span>
+  <span>Head 40c163637436 · Built 2026-11-28T13:05:00Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -272,13 +272,22 @@ Challenging evidence: <span class="muted">参照なし</span></p>
 未設定ルールや未実行preflightから安全/危険を推測しません。</p>
 
 <h2 id="6-前回判断と現在を分けて確認">6. 前回判断と現在を分けて確認</h2>
-<ul>
-  <li>最新Decision: <code>decision:6622:latest</code></li>
-  <li>Investment Episode: <code>episode:6622:current</code></li>
-  <li>Current comparison: <code>decision-comparison:6622:current-vs-latest</code></li>
-  <li><strong>Historical immutable snapshot</strong>: <code>decision-snapshot:6622:latest:immutable</code>
-過去snapshotを現在のResearch / Valuationで書き換えません。</li>
-</ul>
+
+<div class="content-card cockpit-decision-history-summary">
+  <p><strong>前回の判断:</strong> 2026-08-09時点のBase判断です。</p>
+  <p><strong>今回変わった点:</strong> Base維持。EPSは 144.02→144.02円、Forward PERは 16.53→16.68倍（+0.15倍）です。</p>
+  <p><strong>次に確認すること:</strong> 最新株価と市場期待を確認し、前回判断を更新する必要があるか検討します。</p>
+</div>
+<details class="cockpit-decision-history-evidence">
+  <summary>判断履歴の根拠IDを見る</summary>
+  <ul>
+    <li>最新判断の参照先: <code>decision:6622:latest</code></li>
+    <li>現在の検討期間: <code>episode:6622:current</code></li>
+    <li>前回比較の参照先: <code>decision-comparison:6622:current-vs-latest</code></li>
+    <li>変更しない過去snapshot: <code>decision-snapshot:6622:latest:immutable</code></li>
+  </ul>
+</details>
+<p>過去snapshotを現在のResearch / Valuationで書き換えません。</p>
 
 <h2 id="7-次に確認する場所">7. 次に確認する場所</h2>
 <ul>
