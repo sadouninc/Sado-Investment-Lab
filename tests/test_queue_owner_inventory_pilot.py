@@ -7,7 +7,12 @@ from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
-from scripts.queue_owner_inventory_pilot import inspect_one_candidate, main
+from scripts.queue_owner_inventory_pilot import (
+    _paths_overlap,
+    inspect_one_candidate,
+    main,
+    paths_overlap,
+)
 
 
 class OwnerInventoryPilotTests(unittest.TestCase):
@@ -55,6 +60,17 @@ class OwnerInventoryPilotTests(unittest.TestCase):
         self.prs["prs"][0]["paths"] = ["scripts/alpha.py.bak"]
         result = inspect_one_candidate(self.issues, self.prs)
         self.assertEqual("OWNER_ISSUER_UNVERIFIED", result["reason"])
+
+    def test_public_path_overlap_api_preserves_private_alias_parity(self):
+        cases = [
+            ("scripts", "scripts/a.py", True),
+            ("scripts/**", "scripts/a.py", True),
+            ("scripts/a.py", "scripts/a.py.bak", False),
+            ("", "scripts/a.py", True),
+        ]
+        for left, right, expected in cases:
+            self.assertEqual(expected, paths_overlap(left, right))
+            self.assertEqual(paths_overlap(left, right), _paths_overlap(left, right))
 
     def test_output_write_failure_fails_closed_and_reports(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -115,3 +131,4 @@ class OwnerInventoryPilotTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
