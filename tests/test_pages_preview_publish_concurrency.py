@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import tempfile
 import textwrap
@@ -63,7 +62,20 @@ class Sandbox:
         self.bin = root / "bin"
         self.bin.mkdir()
         gh = self.bin / "gh"
-        gh.write_text('#!/bin/sh\necho "${FAKE_PR_HEAD}"\n')
+        # Fake `gh api .../pulls/N --jq .head.sha`: either a fixed head, or one
+        # head per call from a sequence file (last line repeats).
+        gh.write_text(textwrap.dedent("""\
+            #!/bin/sh
+            if [ -n "${FAKE_PR_HEAD_SEQ:-}" ]; then
+              n=$(cat "${FAKE_PR_HEAD_SEQ}.count" 2>/dev/null || echo 0); n=$((n+1))
+              echo "$n" > "${FAKE_PR_HEAD_SEQ}.count"
+              line=$(sed -n "${n}p" "${FAKE_PR_HEAD_SEQ}")
+              [ -n "$line" ] || line=$(tail -n 1 "${FAKE_PR_HEAD_SEQ}")
+              echo "$line"
+            else
+              echo "${FAKE_PR_HEAD}"
+            fi
+            """))
         gh.chmod(0o755)
 
     def workspace(self, name: str) -> Path:
@@ -99,7 +111,8 @@ class Sandbox:
         return git("rev-parse", "HEAD", cwd=other)
 
     def run_publish(self, workspace: Path, site: Path, *, pr: int, head: str = HEAD,
-                    pr_head: str = HEAD, attempts: int = 5, backoff: int = 0) -> tuple[int, dict, str]:
+                    pr_head: str = HEAD, attempts: int = 5, backoff: int = 0,
+                    head_sequence: list[str] | None = None) -> tuple[int, dict, str]:
         output = self.root / f"out-{workspace.name}-{pr}.txt"
         output.write_text("")
         script = self.root / "publish.sh"
@@ -108,6 +121,7 @@ class Sandbox:
             **os.environ,
             "PATH": f"{self.bin}{os.pathsep}{os.environ['PATH']}",
             "FAKE_PR_HEAD": pr_head,
+            "FAKE_PR_HEAD_SEQ": "",
             "GITHUB_OUTPUT": str(output),
             "GITHUB_REPOSITORY": "sadouninc/Sado-Investment-Lab",
             "GITHUB_RUN_ID": "1",
@@ -119,6 +133,10 @@ class Sandbox:
             "PREVIEW_MAX_ATTEMPTS": str(attempts),
             "PREVIEW_BACKOFF_SECONDS": str(backoff),
         }
+        if head_sequence:
+            seq = self.root / f"seq-{workspace.name}-{pr}.txt"
+            seq.write_text("\n".join(head_sequence) + "\n")
+            env["FAKE_PR_HEAD_SEQ"] = str(seq)
         proc = subprocess.run(["bash", str(script)], cwd=workspace, env=env, text=True,
                               capture_output=True, timeout=120)
         outputs = dict(line.split("=", 1) for line in output.read_text().splitlines() if "=" in line)
@@ -249,6 +267,43 @@ class PreviewPublishConcurrencyTests(unittest.TestCase):
         # The earlier immutable preview URL still resolves to v1.
         self.assertEqual(self.sb.remote_file("pr-8/index.html", out1["preview_ref"]), "v1")
 
+    def test_stale_same_pr_run_does_not_overwrite_newer_head_published_mid_run(self):
+        # ❤️レイ 6098961378: the head is current at the first check, then a newer
+        # head publishes this PR's namespace before the old run pushes.
+        newer = self.sb.seed_namespace("pr-8", {"index.html": "newer head content"})
+        ws = self.sb.workspace("ws")
+        site = self.sb.site("site", {"index.html": "old head content"})
+        rc, out, log = self.sb.run_publish(ws, site, pr=8, head_sequence=[HEAD, OTHER])
+        self.assertEqual(rc, 0, log)
+        self.assertEqual(out["state"], "superseded")
+        self.assertNotIn("preview_ref", out)
+        self.assertEqual(self.sb.remote_tip(), newer)
+        self.assertEqual(self.sb.remote_file("pr-8/index.html"), "newer head content")
+
+    def test_transport_failure_is_not_treated_as_missing_branch(self):
+        ws = self.sb.workspace("ws")
+        git("remote", "set-url", "origin", str(self.sb.root / "does-not-exist.git"), cwd=ws)
+        site = self.sb.site("site", {"index.html": "PR 8"})
+        rc, out, log = self.sb.run_publish(ws, site, pr=8)
+        self.assertNotEqual(rc, 0)
+        self.assertEqual(out.get("state"), "failed")
+        self.assertIn("cannot read pages-previews from origin", log)
+        self.assertNotIn("preview_ref", out)
+        self.assertEqual(self.sb.remote_tip(), "refs/heads/pages-previews")  # branch never created
+
+    def test_identical_content_still_publishes_a_commit_owned_by_this_run(self):
+        site = self.sb.site("site", {"index.html": "same"})
+        rc, first, log = self.sb.run_publish(self.sb.workspace("ws1"), site, pr=8)
+        self.assertEqual(rc, 0, log)
+        rc, second, log = self.sb.run_publish(self.sb.workspace("ws2"), site, pr=8)
+        self.assertEqual(rc, 0, log)
+        self.assertNotEqual(first["preview_ref"], second["preview_ref"])
+        parent = git("rev-parse", f"{second['preview_ref']}^", cwd=self.sb.origin)
+        self.assertEqual(parent, first["preview_ref"])
+        message = git("log", "-1", "--format=%B", second["preview_ref"], cwd=self.sb.origin)
+        self.assertIn("preview: PR #8 at " + HEAD, message)
+        self.assertEqual(self.sb.remote_file("pr-8/index.html", second["preview_ref"]), "same")
+
     def test_parallel_writers_all_land(self):
         sites = {pr: self.sb.site(f"site{pr}", {"index.html": f"PR {pr}"}) for pr in (11, 12, 13, 14)}
         workspaces = {pr: self.sb.workspace(f"ws{pr}") for pr in sites}
@@ -283,7 +338,18 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertIn("steps.publish.outputs.preview_ref", url["env"]["PREVIEW_REF"])
         self.assertNotIn("ls-remote", url["run"])
         self.assertEqual(_step("Verify browser preview")["if"], "steps.publish.outputs.state == 'published'")
-        self.assertIn("superseded", _step("Record preview result")["with"]["script"])
+        record = _step("Record preview result")["with"]["script"]
+        self.assertIn("superseded", record)
+        # Live head re-check before mutating the shared marker comment.
+        self.assertIn("github.rest.pulls.get", record)
+        self.assertLess(record.index("livePr.head.sha !== process.env.HEAD_SHA"), record.index("updateComment"))
+
+    def test_head_is_rechecked_right_before_push(self):
+        before_push = PUBLISH_SCRIPT.split('if git push origin "${candidate}', 1)[0]
+        code_lines = [line.strip() for line in before_push.splitlines()
+                      if line.strip() and not line.strip().startswith("#")]
+        self.assertEqual(code_lines[-1], "superseded_if_head_moved")
+        self.assertIn("Residual TOCTOU", WORKFLOW.read_text(encoding="utf-8"))
 
     def test_permissions_fork_guard_and_triggers_are_unchanged(self):
         wf = _workflow()
