@@ -39,6 +39,16 @@ Write concise Japanese Markdown with these sections exactly:
 ## 注目銘柄
 ## 次回確認時に見る条件
 For sections unsupported by the dataset, write 「データ不足のため判断保留」.
+For ## 注目銘柄, use candidate-specific source_status and each candidate's status,
+total_priority, rank, and last_researched_at. A freshly generated candidate
+snapshot or an OK provider status does not prove an individual company is fresh.
+Never treat historical portfolio holdings, stale company research, or a null rank
+or total_priority as today's verified stock pick, current holding, or top rank.
+If there is no candidate with a finite numeric total_priority AND current
+independently dated evidence, say 「今日の検証済み注目銘柄は未確定」 and
+identify which dated evidence is missing; do not promote an arbitrary row.
+Do not interpret a theme name or 4-digit calendar year as a tradable ticker.
+Keep historical notes labelled as history, never silently rewrite them.
 """
 
 
