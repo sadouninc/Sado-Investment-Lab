@@ -72,6 +72,41 @@ class CandidateSelectorSourceTests(unittest.TestCase):
             rows = research_index_candidates(Path(tmp) / "03_Companies")
             self.assertEqual("2026", rows[0]["security_code"])
 
+    def test_legitimate_20xx_filename_codes_are_not_suppressed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "03_Companies" / "food"
+            root.mkdir(parents=True)
+            for code in ("2002", "2060"):
+                (root / f"{code}-company.md").write_text(
+                    f"# Company {code}\\n最終更新: 2026-11-23\\n",
+                    encoding="utf-8",
+                )
+            rows = research_index_candidates(Path(tmp) / "03_Companies")
+            self.assertEqual({"2002", "2060"}, {row["security_code"] for row in rows})
+
+    def test_parenthesized_year_in_theme_heading_is_not_security_code(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "03_Companies" / "research"
+            root.mkdir(parents=True)
+            (root / "market_research.md").write_text(
+                "# データセンター比較（2026）\\n最終更新: 2026-11-23\\n",
+                encoding="utf-8",
+            )
+            rows = research_index_candidates(Path(tmp) / "03_Companies")
+            self.assertEqual(1, len(rows))
+            self.assertIsNone(rows[0]["security_code"])
+
+    def test_ticker_filename_in_theme_directory_is_not_company(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "03_Companies" / "themes"
+            root.mkdir(parents=True)
+            (root / "2060_theme_notes.md").write_text(
+                "# 食料産業の比較\\n最終更新: 2026-11-23\\n",
+                encoding="utf-8",
+            )
+            rows = research_index_candidates(Path(tmp) / "03_Companies")
+            self.assertIsNone(rows[0]["security_code"])
+
     def test_research_without_freshness_is_conservatively_stale(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "03_Companies" / "power"
