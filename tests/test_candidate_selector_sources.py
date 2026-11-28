@@ -78,7 +78,7 @@ class CandidateSelectorSourceTests(unittest.TestCase):
             root.mkdir(parents=True)
             for code in ("2002", "2060"):
                 (root / f"{code}-company.md").write_text(
-                    f"# Company {code}\\n最終更新: 2026-11-23\\n",
+                    f"# Company {code}\n最終更新: 2026-11-23\n",
                     encoding="utf-8",
                 )
             rows = research_index_candidates(Path(tmp) / "03_Companies")
@@ -89,7 +89,7 @@ class CandidateSelectorSourceTests(unittest.TestCase):
             root = Path(tmp) / "03_Companies" / "research"
             root.mkdir(parents=True)
             (root / "market_research.md").write_text(
-                "# データセンター比較（2026）\\n最終更新: 2026-11-23\\n",
+                "# データセンター比較（2026）\n最終更新: 2026-11-23\n",
                 encoding="utf-8",
             )
             rows = research_index_candidates(Path(tmp) / "03_Companies")
@@ -101,7 +101,7 @@ class CandidateSelectorSourceTests(unittest.TestCase):
             root = Path(tmp) / "03_Companies" / "themes"
             root.mkdir(parents=True)
             (root / "2060_theme_notes.md").write_text(
-                "# 食料産業の比較\\n最終更新: 2026-11-23\\n",
+                "# 食料産業の比較\n最終更新: 2026-11-23\n",
                 encoding="utf-8",
             )
             rows = research_index_candidates(Path(tmp) / "03_Companies")
