@@ -60,6 +60,21 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         self.assertIn("今日の新事実ではありません", first_view)
         self.assertIn("株価基準日: 2026-10-30 / 最新株価は要確認", first_view)
 
+    def test_first_view_puts_compact_next_action_before_collapsible_details(self):
+        diagnostics = self.page.index("## ⚠ 先に確認する注意点")
+        first_view = self.page[:diagnostics]
+        summary = first_view.index("30秒で分かる判断材料")
+        change = first_view.index("前回からの変化", summary)
+        freshness = first_view.index("情報の古さ", change)
+        next_check = first_view.index("次に確認すること", freshness)
+        details = first_view.index("<details>", next_check)
+        self.assertLess(change, freshness)
+        self.assertLess(freshness, next_check)
+        self.assertLess(next_check, details)
+        self.assertIn("EPSは前回比 +0.00円、Forward PERは +0.15倍。", first_view)
+        self.assertIn("確認理由・数値basis・投資仮説の詳細", first_view)
+        self.assertIn('href="#market-expectations"', first_view[:details])
+
     def test_first_view_promotes_safe_same_basis_eps_and_per_delta(self):
         first_view = self.page.split("## ⚠ 先に確認する注意点", 1)[0]
         self.assertIn("EPS 144.02→144.02円 (+0.00円)", first_view)
