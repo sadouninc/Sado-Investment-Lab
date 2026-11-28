@@ -279,6 +279,60 @@ def _decision_history_summary(model: Mapping[str, Any]) -> str:
 """
 
 
+def _attention_summary(model: Mapping[str, Any]) -> str:
+    freshness = model["freshness"]
+    warning_messages = {
+        "DRIVER_COVERAGE_PARTIAL": (
+            "利益予想を説明する事業別の根拠が一部不足しています。"
+            "利益予想の根拠欄で取得済み資料と未確認部分を確認してください。"
+        ),
+        "SECONDARY_SOURCE": "市場予想は二次情報を使った参考値です。一次資料の確定値ではありません。",
+        "CONSENSUS_IS_PROXY_NOT_TRUTH": (
+            "表示中の市場予想は観測可能な参考値で、市場全体の確定的な期待値ではありません。"
+        ),
+    }
+    component_messages = {
+        "portfolio_preflight": (
+            "売買条件が未入力のため、保有資産への影響はまだ確認していません。"
+            "売買を検討するときに数量などを入力して確認してください。"
+        ),
+    }
+    warnings = [
+        (section, str(code))
+        for section in ("earnings_driver", "valuation", "expectations")
+        for code in (model[section].get("warnings") or [])
+    ]
+    unknown = [str(component) for component in (freshness.get("unknown_components") or [])]
+    stale = [str(component) for component in (freshness.get("stale_components") or [])]
+    summary_items = ["一部の情報が不足しているため、画面全体を確定済みとは扱いません。"]
+    summary_items.extend(
+        component_messages.get(component, f"{component} の情報鮮度を確認できません。")
+        for component in unknown
+    )
+    summary_items.extend(
+        f"{component} の情報が古いため、最新情報の確認が必要です。"
+        for component in stale
+    )
+    summary_items.extend(
+        warning_messages.get(code, f"{section} に未確認事項があります。")
+        for section, code in warnings
+    )
+    raw_items = [f"鮮度不明: {component}" for component in unknown]
+    raw_items.extend(f"古い情報: {component}" for component in stale)
+    raw_items.extend(f"{section}: {code}" for section, code in warnings)
+    return f"""
+<div class="notice-card cockpit-attention-summary">
+  <strong>この表示はエラーではなく、未確認情報を隠さないための注意です。</strong>
+  {_list(summary_items, "現在、重要な未確認事項はありません。")}
+</div>
+<details class="cockpit-attention-codes">
+  <summary>内部状態コードを見る</summary>
+  <p>調査・保守用の識別子です。投資判断の結論ではありません。</p>
+  {_list(raw_items, "内部コードなし")}
+</details>
+"""
+
+
 def page_content(model: Mapping[str, Any]) -> str:
     review = model["review_context"]
     earnings = model["earnings_driver"]
@@ -302,9 +356,7 @@ def page_content(model: Mapping[str, Any]) -> str:
     scenario_html = "".join([_scenario_card("Bear", valuation.get("bear") or {}), _scenario_card("Base", valuation.get("base") or {}), _scenario_card("Bull", valuation.get("bull") or {})])
     delta_html = _scenario_delta_html(model)
     expectation_html = _expectation_first_view(expectations)
-    warning_html = _list(warnings, "重大warningなし")
-    stale = freshness.get("stale_components") or []
-    unknown = freshness.get("unknown_components") or []
+    attention_html = _attention_summary(model)
     price_as_of = valuation.get("price_as_of") or "取得できません"
     warning_count = len(warnings)
     judgment_summary_html = _judgment_summary(model)
@@ -339,11 +391,9 @@ permalink: /decision-cockpit/daihen/
 {first_view_html}
 
 ## ⚠ 先に確認する注意点
-- 全体状態: {_status(model.get('overall_status'))}
-- 情報鮮度: {_status(freshness.get('overall'))}
-- 古いcomponent: {_e(', '.join(stale) if stale else 'なし')}
-- 鮮度不明component: {_e(', '.join(unknown) if unknown else 'なし')}
-{warning_html}
+- 全体状態: {_status(model.get('overall_status'))} — 画面の一部に未確認情報があります
+- 情報鮮度: {_status(freshness.get('overall'))} — 確認できた日付と未確認項目を分けて表示します
+{attention_html}
 
 ## 1. 利益予想 — なぜこのBase？
 <div class="content-grid"><div class="content-card"><strong>Base純利益</strong><span>{_e(base_profit_text)}</span><span>{_status(earnings.get('status'))}</span></div><div class="content-card"><strong>Base EPS</strong><span>{_e(base_eps_text)}</span><span>対象: {_e(base_eps.get('target_fiscal_year') or '不明')}</span></div><div class="content-card"><strong>会社予想 純利益</strong><span>{_e(guidance_text)}</span><span>説明coverage: <code>{_e(earnings.get('explanation_coverage') or 'UNKNOWN')}</code></span></div></div>
@@ -436,3 +486,4 @@ def build() -> None:
 
 if __name__ == "__main__":
     build()
+
