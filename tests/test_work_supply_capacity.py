@@ -12,6 +12,8 @@ from unittest.mock import patch
 
 from scripts.work_supply_capacity import classify_work_supply_capacity, main
 
+_UNSET = object()
+
 
 def _ready_item(
     issue: int,
@@ -22,8 +24,8 @@ def _ready_item(
     dependencies_satisfied: bool = True,
     stop_clear: bool = True,
     updated_at: str | None = None,
-) -> dict:
-    item = {
+) -> dict[str, Any]:
+    item: dict[str, Any] = {
         "issue": issue,
         "state": state,
         "owner_slice": owner_slice if owner_slice is not None else f"slice-{issue}",
@@ -36,17 +38,14 @@ def _ready_item(
     return item
 
 
-_UNSET = object()
-
-
 def _snapshot(
-    items: list[dict],
+    items: list[dict[str, Any]],
     *,
     complete: bool = True,
     open_prs: Any = _UNSET,
     as_of: str | None = "2026-11-28T12:00:00Z",
-) -> dict:
-    payload: dict = {
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {
         "complete": complete,
         "items": items,
         "open_prs": {"complete": True, "prs": []} if open_prs is _UNSET else open_prs,
@@ -63,7 +62,9 @@ class WorkSupplyCapacityTests(unittest.TestCase):
         self.assertFalse(result["dispatch_allowed"])
         self.assertFalse(result["merge_authorized"])
         self.assertEqual(0, result["prepared_count"])
+        self.assertEqual(0, result["prepared_lower_bound"])
         self.assertEqual(0, result["verified_ready_count"])
+        self.assertEqual(0, result["verified_ready_lower_bound"])
         self.assertEqual("REPLENISH", result["prepared_status"])
         self.assertEqual("STARVATION", result["ready_replenishment_status"])
 
@@ -80,6 +81,7 @@ class WorkSupplyCapacityTests(unittest.TestCase):
             self.assertFalse(result["dispatch_allowed"])
             self.assertIsNone(result["prepared_count"])
             self.assertIsNone(result["verified_ready_count"])
+            self.assertIsNone(result["verified_ready_lower_bound"])
             self.assertEqual("UNKNOWN", result["prepared_status"])
             self.assertEqual("UNKNOWN", result["ready_replenishment_status"])
             self.assertIsNone(result["counts"]["verified_ready"])
@@ -97,8 +99,8 @@ class WorkSupplyCapacityTests(unittest.TestCase):
             open_prs={
                 "complete": True,
                 "prs": [
-                    {"number": 500, "paths": ["scripts/a.py"], "wait_state": "REVIEW_WAIT"},
-                    {"number": 500, "paths": ["scripts/b.py"], "wait_state": "REVIEW_WAIT"},
+                    {"number": 500, "paths": ["scripts/a.py"], "linked_issues": [], "wait_state": "REVIEW_WAIT"},
+                    {"number": 500, "paths": ["scripts/b.py"], "linked_issues": [], "wait_state": "REVIEW_WAIT"},
                 ],
             },
         )
@@ -107,13 +109,35 @@ class WorkSupplyCapacityTests(unittest.TestCase):
         self.assertIsNone(res_prs["verified_ready_count"])
         self.assertEqual([500], res_prs["diagnostics"]["duplicate_prs"])
 
-    def test_issue_79_is_strictly_excluded_from_all_capacity(self):
-        snap = _snapshot([_ready_item(79), _ready_item(1010)])
+    def test_issue_79_and_79_only_pr_exclusion_with_conservative_path_guard(self):
+        snap = _snapshot(
+            [
+                _ready_item(79),
+                _ready_item(1010),
+                _ready_item(1011, allowed_paths=["scripts/shared_79.py"]),
+            ],
+            open_prs={
+                "complete": True,
+                "prs": [
+                    {
+                        "number": 790,
+                        "paths": ["scripts/shared_79.py"],
+                        "linked_issues": [79],
+                        "wait_state": "REVIEW_WAIT",
+                    }
+                ],
+            },
+        )
         result = classify_work_supply_capacity(snap)
-        self.assertEqual(1, result["prepared_count"])
+        self.assertEqual(2, result["prepared_count"])
         self.assertEqual(1, result["verified_ready_count"])
         self.assertEqual([1010], result["issues_by_bucket"]["verified_ready"])
+        self.assertEqual([1011], result["issues_by_bucket"]["dependency_path_blocked"])
+        self.assertEqual(0, result["counts"]["ci_review_merge_wait"])
+        self.assertEqual([], result["open_prs_by_bucket"]["ci_review_merge_wait"])
+        self.assertEqual([], result["open_pr_classifications"])
         self.assertEqual(1, result["diagnostics"]["excluded_issue_79_count"])
+        self.assertEqual(1, result["diagnostics"]["excluded_issue_79_pr_count"])
         self.assertTrue(result["issue_79_excluded"])
         for items in result["issues_by_bucket"].values():
             self.assertNotIn(79, items)
@@ -155,7 +179,52 @@ class WorkSupplyCapacityTests(unittest.TestCase):
         self.assertEqual(1, result["counts"]["active_implementation"])
         self.assertEqual(3.0, result["age_summary"]["max_ci_review_merge_wait_hours"])
 
-    def test_missing_owner_path_dependency_stop_evidence_remains_unknown(self):
+    def test_explicit_open_pr_reconciles_with_empty_pr_linked_issues_without_double_count(self):
+        linked_item = _ready_item(2101, state="READY")
+        linked_item["open_pr"] = 910
+        snap = _snapshot(
+            [linked_item],
+            open_prs={
+                "complete": True,
+                "prs": [
+                    {
+                        "number": 910,
+                        "paths": ["scripts/mod_2101.py"],
+                        "linked_issues": [],
+                        "wait_state": "CI_WAIT",
+                        "updated_at": "2026-11-28T10:00:00Z",
+                    }
+                ],
+            },
+        )
+        result = classify_work_supply_capacity(snap)
+        self.assertEqual(0, result["prepared_count"])
+        self.assertEqual(0, result["verified_ready_count"])
+        self.assertEqual(1, result["counts"]["ci_review_merge_wait"])
+        self.assertEqual([2101], result["issues_by_bucket"]["ci_review_merge_wait"])
+        self.assertEqual([2101], result["open_pr_classifications"][0]["linked_issues"])
+
+    def test_malformed_open_pr_link_and_missing_linked_issues_fail_closed(self):
+        for bad_open_pr in ("901", True, 0, -5, 999):
+            item = _ready_item(2201, state="READY")
+            item["open_pr"] = bad_open_pr
+            result = classify_work_supply_capacity(_snapshot([item]))
+            self.assertTrue(result["complete"])
+            self.assertIsNone(result["verified_ready_count"])
+            self.assertEqual(0, result["verified_ready_lower_bound"])
+            self.assertEqual("UNKNOWN", result["ready_replenishment_status"])
+            self.assertEqual([2201], result["issues_by_bucket"]["unknown"])
+
+        for bad_prs in (
+            {"complete": True, "prs": [{"number": 920, "paths": ["scripts/x.py"]}]},
+            {"complete": True, "prs": [{"number": 920, "paths": ["scripts/x.py"], "linked_issues": None}]},
+        ):
+            res = classify_work_supply_capacity(_snapshot([_ready_item(2202)], open_prs=bad_prs))
+            self.assertFalse(res["complete"])
+            self.assertIsNone(res["verified_ready_count"])
+            self.assertEqual("UNKNOWN", res["ready_replenishment_status"])
+
+    def test_missing_evidence_suppresses_starvation_and_distinguishes_lower_bound(self):
         missing_owner = _ready_item(3001)
         missing_owner["owner_slice"] = ""
         missing_paths = _ready_item(3002)
@@ -168,15 +237,41 @@ class WorkSupplyCapacityTests(unittest.TestCase):
         result = classify_work_supply_capacity(
             _snapshot([missing_owner, missing_paths, missing_dep, missing_stop])
         )
-        self.assertEqual(0, result["prepared_count"])
-        self.assertEqual(0, result["verified_ready_count"])
+        self.assertTrue(result["complete"])
+        self.assertIsNone(result["prepared_count"])
+        self.assertEqual(0, result["prepared_lower_bound"])
+        self.assertIsNone(result["verified_ready_count"])
+        self.assertEqual(0, result["verified_ready_lower_bound"])
+        self.assertEqual("UNKNOWN", result["prepared_status"])
+        self.assertEqual("UNKNOWN", result["ready_replenishment_status"])
         self.assertEqual(4, result["counts"]["unknown"])
         self.assertEqual([3001, 3002, 3003, 3004], result["issues_by_bucket"]["unknown"])
+        self.assertTrue(result["diagnostics"]["readiness_uncertainty"])
+
+    def test_active_implementation_missing_owner_or_paths_blocks_verified_ready(self):
+        active_missing_owner = _ready_item(3501, state="IMPLEMENTING", owner_slice="")
+        active_missing_paths = _ready_item(3502, state="IMPLEMENTING", allowed_paths=[])
+        ready_candidate = _ready_item(3503, state="READY")
+
+        for active_item in (active_missing_owner, active_missing_paths):
+            result = classify_work_supply_capacity(_snapshot([active_item, ready_candidate]))
+            self.assertTrue(result["complete"])
+            self.assertTrue(result["diagnostics"]["active_conflict_inventory_unknown"])
+            self.assertIsNone(result["verified_ready_count"])
+            self.assertEqual(0, result["verified_ready_lower_bound"])
+            self.assertEqual("UNKNOWN", result["ready_replenishment_status"])
+            self.assertEqual([3503], result["issues_by_bucket"]["unknown"])
+            self.assertEqual([active_item["issue"]], result["issues_by_bucket"]["active_implementation"])
 
     def test_dependency_and_path_conflicts_block_ready_but_keep_prepared_count(self):
         dep_blocked = _ready_item(4001, dependencies_satisfied=False)
         pr_path_conflict = _ready_item(4002, allowed_paths=["scripts/shared.py"])
-        active_impl = _ready_item(4003, state="IMPLEMENTING", owner_slice="sora-active", allowed_paths=["scripts/active.py"])
+        active_impl = _ready_item(
+            4003,
+            state="IMPLEMENTING",
+            owner_slice="sora-active",
+            allowed_paths=["scripts/active.py"],
+        )
         active_conflict = _ready_item(4004, allowed_paths=["scripts/active.py"])
         next_item = _ready_item(4005, state="NEXT")
 
@@ -184,7 +279,14 @@ class WorkSupplyCapacityTests(unittest.TestCase):
             [dep_blocked, pr_path_conflict, active_impl, active_conflict, next_item],
             open_prs={
                 "complete": True,
-                "prs": [{"number": 950, "paths": ["scripts/shared.py"], "wait_state": "CI_WAIT"}],
+                "prs": [
+                    {
+                        "number": 950,
+                        "paths": ["scripts/shared.py"],
+                        "linked_issues": [],
+                        "wait_state": "CI_WAIT",
+                    }
+                ],
             },
         )
         result = classify_work_supply_capacity(snap)
@@ -212,7 +314,7 @@ class WorkSupplyCapacityTests(unittest.TestCase):
             self.assertEqual(expected_ready_status, res["ready_replenishment_status"], f"ready_n={ready_n}")
             self.assertEqual(expected_prepared_status, res["prepared_status"], f"ready_n={ready_n}")
 
-    def test_no_wall_clock_assumption_and_no_raw_text_leak(self):
+    def test_no_wall_clock_assumption_extreme_dates_and_no_raw_text_leak(self):
         item = _ready_item(6001, state="REVIEW_WAIT", updated_at="2026-11-28T06:00:00Z")
         item["body"] = "SENSITIVE_RAW_ISSUE_BODY_SHOULD_NOT_APPEAR"
         item["secret_token"] = "gho_should_not_appear"
@@ -222,6 +324,10 @@ class WorkSupplyCapacityTests(unittest.TestCase):
         serialized = json.dumps(without_as_of)
         self.assertNotIn("SENSITIVE_RAW_ISSUE_BODY_SHOULD_NOT_APPEAR", serialized)
         self.assertNotIn("gho_should_not_appear", serialized)
+
+        extreme = _ready_item(6002, state="REVIEW_WAIT", updated_at="0001-01-01T00:00:00+14:00")
+        res_extreme = classify_work_supply_capacity(_snapshot([extreme]))
+        self.assertIsNone(res_extreme["item_classifications"][0]["age_hours"])
 
     def test_cli_roundtrip_and_fail_closed_io(self):
         with tempfile.TemporaryDirectory() as tmp:

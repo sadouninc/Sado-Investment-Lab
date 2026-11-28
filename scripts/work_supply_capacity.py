@@ -70,9 +70,9 @@ def _parse_iso_timestamp(value: Any) -> datetime | None:
             parsed = datetime.fromisoformat(raw)
             if parsed.tzinfo is None:
                 parsed = parsed.replace(tzinfo=timezone.utc)
-    except ValueError:
+        return parsed.astimezone(timezone.utc)
+    except (ValueError, OverflowError):
         return None
-    return parsed.astimezone(timezone.utc)
 
 
 def _compute_age_hours(as_of_dt: datetime | None, updated_at: Any) -> float | None:
@@ -81,7 +81,10 @@ def _compute_age_hours(as_of_dt: datetime | None, updated_at: Any) -> float | No
     updated_dt = _parse_iso_timestamp(updated_at)
     if updated_dt is None or updated_dt > as_of_dt:
         return None
-    return round((as_of_dt - updated_dt).total_seconds() / 3600.0, 2)
+    try:
+        return round((as_of_dt - updated_dt).total_seconds() / 3600.0, 2)
+    except OverflowError:
+        return None
 
 
 def _classify_prepared_status(prepared_count: int | None, *, complete: bool) -> str:
@@ -101,7 +104,7 @@ def _classify_ready_status(verified_ready_count: int | None, *, complete: bool) 
         return "UNKNOWN"
     if verified_ready_count == 0:
         return "STARVATION"
-    if verified_ready_count < READY_REPLENISH_MIN:
+    if READY_URGENT_MIN <= verified_ready_count < READY_REPLENISH_MIN:
         return "URGENT"
     if verified_ready_count < READY_TARGET:
         return "REPLENISH"
@@ -115,6 +118,7 @@ def _incomplete_report(
     duplicate_issues: list[int],
     duplicate_prs: list[int],
     excluded_79_count: int,
+    excluded_79_pr_count: int = 0,
 ) -> dict[str, Any]:
     return {
         "schema_version": 1,
@@ -124,12 +128,16 @@ def _incomplete_report(
         "complete": False,
         "as_of": as_of,
         "prepared_count": None,
+        "prepared_lower_bound": None,
         "verified_ready_count": None,
+        "verified_ready_lower_bound": None,
         "prepared_status": "UNKNOWN",
         "ready_replenishment_status": "UNKNOWN",
         "counts": {
             "prepared": None,
+            "prepared_lower_bound": None,
             "verified_ready": None,
+            "verified_ready_lower_bound": None,
             "prepared_non_ready": None,
             "active_implementation": None,
             "ci_review_merge_wait": None,
@@ -161,26 +169,28 @@ def _incomplete_report(
             "duplicate_issues": sorted(set(duplicate_issues)),
             "duplicate_prs": sorted(set(duplicate_prs)),
             "excluded_issue_79_count": excluded_79_count,
+            "excluded_issue_79_pr_count": excluded_79_pr_count,
+            "active_conflict_inventory_unknown": False,
+            "readiness_uncertainty": True,
         },
     }
 
 
 def _validate_open_prs(
     open_prs: Any,
-) -> tuple[list[dict[str, Any]], dict[int, list[dict[str, Any]]], list[str], list[int]]:
+) -> tuple[dict[int, dict[str, Any]], dict[int, list[dict[str, Any]]], list[str], list[int]]:
     errors: list[str] = []
     duplicate_prs: list[int] = []
     if not isinstance(open_prs, Mapping):
-        return [], {}, ["OPEN_PRS_NOT_MAPPING"], duplicate_prs
+        return {}, {}, ["OPEN_PRS_NOT_MAPPING"], duplicate_prs
     if open_prs.get("complete") is not True:
         errors.append("OPEN_PRS_INCOMPLETE")
     prs_raw = open_prs.get("prs")
     if not isinstance(prs_raw, list):
         errors.append("OPEN_PRS_LIST_INVALID")
-        return [], {}, errors, duplicate_prs
+        return {}, {}, errors, duplicate_prs
 
-    seen_prs: set[int] = set()
-    normalized_prs: list[dict[str, Any]] = []
+    prs_by_number: dict[int, dict[str, Any]] = {}
     issue_to_prs: dict[int, list[dict[str, Any]]] = {}
 
     for pr in prs_raw:
@@ -188,20 +198,22 @@ def _validate_open_prs(
             errors.append("MALFORMED_OPEN_PR")
             continue
         pr_num = pr["number"]
-        if pr_num in seen_prs:
+        if pr_num in prs_by_number:
             duplicate_prs.append(pr_num)
             errors.append("DUPLICATE_PR")
             continue
-        seen_prs.add(pr_num)
+
         paths = pr.get("paths")
         if not _is_valid_paths(paths):
             errors.append("MALFORMED_OPEN_PR_PATHS")
             continue
 
-        linked_raw = pr.get("linked_issues", [])
-        if linked_raw is None:
-            linked_raw = []
-        if not isinstance(linked_raw, list) or any(not _is_positive_int(i) for i in linked_raw):
+        # Normalized contract requires explicit list; missing or null fails closed.
+        if "linked_issues" not in pr or not isinstance(pr["linked_issues"], list):
+            errors.append("MALFORMED_OPEN_PR_LINKED_ISSUES")
+            continue
+        linked_raw = pr["linked_issues"]
+        if any(not _is_positive_int(i) for i in linked_raw):
             errors.append("MALFORMED_OPEN_PR_LINKED_ISSUES")
             continue
 
@@ -217,11 +229,11 @@ def _validate_open_prs(
             "wait_state": wait_state.strip() if isinstance(wait_state, str) else None,
             "updated_at": pr.get("updated_at"),
         }
-        normalized_prs.append(pr_record)
+        prs_by_number[pr_num] = pr_record
         for linked_issue in pr_record["linked_issues"]:
             issue_to_prs.setdefault(linked_issue, []).append(pr_record)
 
-    return normalized_prs, issue_to_prs, errors, duplicate_prs
+    return prs_by_number, issue_to_prs, errors, duplicate_prs
 
 
 def _validate_items(
@@ -271,22 +283,55 @@ def _classify_linked_pr_bucket(
     return "unknown", ["OPEN_PR_WAIT_STATE_UNKNOWN"]
 
 
+def _resolve_item_prs(
+    item: Mapping[str, Any],
+    *,
+    issue_num: int,
+    prs_by_number: dict[int, dict[str, Any]],
+    issue_to_prs: dict[int, list[dict[str, Any]]],
+) -> tuple[list[dict[str, Any]], str | None]:
+    """Reconcile reverse `linked_issues` and explicit item `open_pr` links."""
+    linked_prs = list(issue_to_prs.get(issue_num, []))
+    if "open_pr" not in item or item["open_pr"] is None:
+        return linked_prs, None
+
+    explicit_pr = item["open_pr"]
+    if not _is_positive_int(explicit_pr):
+        return [], "MALFORMED_OPEN_PR_LINK"
+
+    pr_record = prs_by_number.get(explicit_pr)
+    if pr_record is None:
+        return [], "UNRESOLVED_OPEN_PR_LINK"
+
+    pr_links = pr_record["linked_issues"]
+    if pr_links and issue_num not in pr_links:
+        return [], "CONFLICTING_OPEN_PR_LINK"
+
+    if pr_record not in linked_prs:
+        linked_prs.append(pr_record)
+    return linked_prs, None
+
+
 def _classify_item(
     item: Mapping[str, Any],
     *,
     linked_prs: list[dict[str, Any]],
-    all_open_pr_paths: list[str],
+    pr_link_error: str | None,
+    non_79_open_pr_paths: list[str],
+    excluded_79_pr_paths: list[str],
     active_owners: set[str],
     active_paths: list[str],
+    active_conflict_inventory_unknown: bool,
     top_stop_active: bool,
-    as_of_dt: datetime | None,
 ) -> tuple[str, bool, list[str]]:
     """Return (bucket, counts_as_prepared, reason_codes)."""
+    if pr_link_error is not None:
+        return "unknown", False, [pr_link_error]
+
     raw_state = item.get("state")
     state = raw_state.strip() if isinstance(raw_state, str) and raw_state.strip() else None
-    has_explicit_pr_ref = _is_positive_int(item.get("open_pr"))
 
-    if linked_prs or has_explicit_pr_ref:
+    if linked_prs:
         bucket, reasons = _classify_linked_pr_bucket(state, linked_prs)
         return bucket, False, reasons
 
@@ -324,8 +369,10 @@ def _classify_item(
         block_reasons.append("DEPENDENCY_BLOCKED")
     if owner_slice in active_owners:
         block_reasons.append("OWNER_CONFLICT")
-    if any(_paths_overlap(p, other) for p in allowed_paths for other in all_open_pr_paths):
+    if any(_paths_overlap(p, other) for p in allowed_paths for other in non_79_open_pr_paths):
         block_reasons.append("OPEN_PR_PATH_CONFLICT")
+    if any(_paths_overlap(p, other) for p in allowed_paths for other in excluded_79_pr_paths):
+        block_reasons.append("ISSUE_79_PR_PATH_CONFLICT")
     if any(_paths_overlap(p, other) for p in allowed_paths for other in active_paths):
         block_reasons.append("ACTIVE_PATH_CONFLICT")
 
@@ -333,7 +380,10 @@ def _classify_item(
         return "dependency_path_blocked", True, block_reasons
 
     if state == "READY":
+        if active_conflict_inventory_unknown:
+            return "unknown", False, ["ACTIVE_CONFLICT_INVENTORY_UNVERIFIED"]
         return "verified_ready", True, ["VERIFIED_READY"]
+
     return "prepared_non_ready", True, [f"PREPARED_{state}"]
 
 
@@ -361,7 +411,7 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
     )
     integrity_errors.extend(item_errors)
 
-    normalized_prs, issue_to_prs, pr_errors, duplicate_prs = _validate_open_prs(
+    prs_by_number, issue_to_prs, pr_errors, duplicate_prs = _validate_open_prs(
         snapshot.get("open_prs")
     )
     integrity_errors.extend(pr_errors)
@@ -379,20 +429,50 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
             excluded_79_count=excluded_79_count,
         )
 
-    # Collect active-implementation owners/paths before classifying READY items so
-    # conflict checks are order-independent.
+    # Collect active-implementation owners/paths and track whether any active
+    # slice lacks owner/path scope (cannot attest non-conflict if missing).
     active_owners: set[str] = set()
     active_paths: list[str] = []
+    active_conflict_inventory_unknown = False
     for item in valid_items:
         raw_state = item.get("state")
         state = raw_state.strip() if isinstance(raw_state, str) else ""
         if state in ACTIVE_IMPLEMENTATION_STATES:
-            if _is_nonempty_str(item.get("owner_slice")):
+            has_owner = _is_nonempty_str(item.get("owner_slice"))
+            has_paths = _is_valid_paths(item.get("allowed_paths"))
+            if not has_owner or not has_paths:
+                active_conflict_inventory_unknown = True
+            if has_owner:
                 active_owners.add(str(item["owner_slice"]).strip())
-            if _is_valid_paths(item.get("allowed_paths")):
+            if has_paths:
                 active_paths.extend(p.strip() for p in item["allowed_paths"])
 
-    all_open_pr_paths = [p for pr in normalized_prs for p in pr["paths"]]
+    # Partition PRs before classifying READY items so #79-only PRs are excluded
+    # from capacity display/counts while still preserving path-conflict safety.
+    pr_to_explicit_items: dict[int, set[int]] = {}
+    resolved_links_by_issue: dict[int, tuple[list[dict[str, Any]], str | None]] = {}
+    for item in valid_items:
+        issue_num = item["issue"]
+        linked_prs, pr_link_error = _resolve_item_prs(
+            item,
+            issue_num=issue_num,
+            prs_by_number=prs_by_number,
+            issue_to_prs=issue_to_prs,
+        )
+        resolved_links_by_issue[issue_num] = (linked_prs, pr_link_error)
+        if pr_link_error is None:
+            for pr in linked_prs:
+                pr_to_explicit_items.setdefault(pr["number"], set()).add(issue_num)
+
+    excluded_79_pr_numbers: set[int] = set()
+    non_79_open_pr_paths: list[str] = []
+    excluded_79_pr_paths: list[str] = []
+    for pr_num, pr in prs_by_number.items():
+        if pr["linked_issues"] == [79] and not pr_to_explicit_items.get(pr_num):
+            excluded_79_pr_numbers.add(pr_num)
+            excluded_79_pr_paths.extend(pr["paths"])
+        else:
+            non_79_open_pr_paths.extend(pr["paths"])
 
     issues_by_bucket: dict[str, list[int]] = {
         "verified_ready": [],
@@ -403,31 +483,27 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
         "unknown": [],
     }
     item_classifications: list[dict[str, Any]] = []
-    prepared_count = 0
+    prepared_lower_bound = 0
     active_ages: list[float] = []
     wait_ages: list[float] = []
 
     present_item_issues = {item["issue"] for item in valid_items}
     for item in sorted(valid_items, key=lambda entry: entry["issue"]):
         issue_num = item["issue"]
-        linked_prs = list(issue_to_prs.get(issue_num, []))
-        if _is_positive_int(item.get("open_pr")):
-            explicit_pr = item["open_pr"]
-            for pr in normalized_prs:
-                if pr["number"] == explicit_pr and pr not in linked_prs:
-                    linked_prs.append(pr)
-
+        linked_prs, pr_link_error = resolved_links_by_issue[issue_num]
         bucket, is_prepared, reasons = _classify_item(
             item,
             linked_prs=linked_prs,
-            all_open_pr_paths=all_open_pr_paths,
+            pr_link_error=pr_link_error,
+            non_79_open_pr_paths=non_79_open_pr_paths,
+            excluded_79_pr_paths=excluded_79_pr_paths,
             active_owners=active_owners,
             active_paths=active_paths,
+            active_conflict_inventory_unknown=active_conflict_inventory_unknown,
             top_stop_active=bool(top_stop_active),
-            as_of_dt=as_of_dt,
         )
         if is_prepared:
-            prepared_count += 1
+            prepared_lower_bound += 1
         issues_by_bucket[bucket].append(issue_num)
         age_candidates = [
             age
@@ -452,8 +528,8 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
             "age_hours": age_hours,
         })
 
-    # Classify standalone open PRs that were not already represented by an item
-    # in `items` (excluding #79-only links from capacity readiness).
+    # Classify non-#79 open PRs and avoid double-counting PRs represented via
+    # either reverse `linked_issues` or explicit item `open_pr` links.
     open_prs_by_bucket: dict[str, list[int]] = {
         "active_implementation": [],
         "ci_review_merge_wait": [],
@@ -464,7 +540,10 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
     standalone_wait_prs = 0
     standalone_unknown_prs = 0
 
-    for pr in sorted(normalized_prs, key=lambda entry: entry["number"]):
+    for pr_num in sorted(prs_by_number):
+        if pr_num in excluded_79_pr_numbers:
+            continue
+        pr = prs_by_number[pr_num]
         wait_state = pr["wait_state"]
         if wait_state in ACTIVE_IMPLEMENTATION_STATES:
             pr_bucket = "active_implementation"
@@ -473,18 +552,24 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
         else:
             pr_bucket = "unknown"
 
-        open_prs_by_bucket[pr_bucket].append(pr["number"])
+        reconciled_issues = sorted(
+            {n for n in pr["linked_issues"] if n != 79}
+            | pr_to_explicit_items.get(pr_num, set())
+        )
+        open_prs_by_bucket[pr_bucket].append(pr_num)
         pr_age = _compute_age_hours(as_of_dt, pr.get("updated_at"))
         open_pr_classifications.append({
-            "pr": pr["number"],
+            "pr": pr_num,
             "bucket": pr_bucket,
-            "linked_issues": [n for n in pr["linked_issues"] if n != 79],
+            "linked_issues": reconciled_issues,
             "age_hours": pr_age,
         })
 
-        is_79_only_pr = pr["linked_issues"] == [79]
-        represented_in_items = any(n in present_item_issues for n in pr["linked_issues"])
-        if not represented_in_items and not is_79_only_pr:
+        represented_in_items = (
+            any(n in present_item_issues for n in pr["linked_issues"])
+            or bool(pr_to_explicit_items.get(pr_num))
+        )
+        if not represented_in_items:
             if pr_bucket == "active_implementation":
                 standalone_active_prs += 1
                 if pr_age is not None:
@@ -496,15 +581,23 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
             else:
                 standalone_unknown_prs += 1
 
-    verified_ready_count = len(issues_by_bucket["verified_ready"])
+    verified_ready_lower_bound = len(issues_by_bucket["verified_ready"])
+    unknown_count = len(issues_by_bucket["unknown"]) + standalone_unknown_prs
+    readiness_uncertainty = unknown_count > 0
+
+    verified_ready_count = None if readiness_uncertainty else verified_ready_lower_bound
+    prepared_count = None if readiness_uncertainty else prepared_lower_bound
+
     counts = {
         "prepared": prepared_count,
+        "prepared_lower_bound": prepared_lower_bound,
         "verified_ready": verified_ready_count,
+        "verified_ready_lower_bound": verified_ready_lower_bound,
         "prepared_non_ready": len(issues_by_bucket["prepared_non_ready"]),
         "active_implementation": len(issues_by_bucket["active_implementation"]) + standalone_active_prs,
         "ci_review_merge_wait": len(issues_by_bucket["ci_review_merge_wait"]) + standalone_wait_prs,
         "dependency_path_blocked": len(issues_by_bucket["dependency_path_blocked"]),
-        "unknown": len(issues_by_bucket["unknown"]) + standalone_unknown_prs,
+        "unknown": unknown_count,
     }
 
     return {
@@ -515,7 +608,9 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
         "complete": True,
         "as_of": as_of,
         "prepared_count": prepared_count,
+        "prepared_lower_bound": prepared_lower_bound,
         "verified_ready_count": verified_ready_count,
+        "verified_ready_lower_bound": verified_ready_lower_bound,
         "prepared_status": _classify_prepared_status(prepared_count, complete=True),
         "ready_replenishment_status": _classify_ready_status(verified_ready_count, complete=True),
         "counts": counts,
@@ -533,6 +628,9 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
             "duplicate_issues": [],
             "duplicate_prs": [],
             "excluded_issue_79_count": excluded_79_count,
+            "excluded_issue_79_pr_count": len(excluded_79_pr_numbers),
+            "active_conflict_inventory_unknown": active_conflict_inventory_unknown,
+            "readiness_uncertainty": readiness_uncertainty,
         },
     }
 
