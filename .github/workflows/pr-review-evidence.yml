@@ -1,0 +1,64 @@
+name: PR Review Evidence (#977)
+
+# Phase A: read-only, non-blocking exact-head evidence collection.
+# - Triggered by `pull_request` only (never `pull_request_target`), so the
+#   token is read-only and fork PRs get no secrets.
+# - No write API, no comments, no approvals, no merges, no dispatch.
+# - The verdict lives in the artifact / job summary; the job does not fail on
+#   BLOCKED/PENDING/UNKNOWN so it never becomes a merge gate by itself.
+# 担当: ♦️ソラ
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+
+concurrency:
+  group: pr-review-evidence-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  collect:
+    name: pr-review-evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Collect read-only review evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PYTHONPATH=. python -m scripts.pr_review_evidence \
+            --output pr-review-evidence.json \
+            --summary pr-review-evidence.md
+
+      - name: Publish Japanese summary
+        if: always()
+        run: |
+          if [ -f pr-review-evidence.md ]; then
+            cat pr-review-evidence.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "PR review evidence: UNKNOWN (no report produced)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-review-evidence-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            pr-review-evidence.json
+            pr-review-evidence.md
+          if-no-files-found: warn
+          retention-days: 14
