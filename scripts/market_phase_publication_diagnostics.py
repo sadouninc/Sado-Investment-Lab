@@ -17,7 +17,11 @@ without changing the build, the test, any workflow or any published output:
 * ``PAGE_NOT_BUILT`` – page absent
 * ``ARTIFACT_MALFORMED`` – artifact not JSON or missing fields build_site reads
 * ``ARTIFACT_SCHEMA_MISMATCH`` – unexpected ``schema_version``
-* ``ARTIFACT_STALE`` – price manifest has newer dates / symbols not reflected
+* ``ARTIFACT_STALE`` – proven stale: a valid manifest date is newer than a
+  valid artifact end date, or a manifest symbol is absent from the artifact
+* ``FRESHNESS_UNKNOWN`` – freshness could not be decided (manifest not an
+  object, or a manifest / artifact date that is not a strict ISO date).  This is
+  never reported as stale.
 * ``PAGE_PLACEHOLDER_WITH_ARTIFACT`` – page still placeholder although a valid
   artifact exists (build ran before generation, or page is from an old build)
 * ``PAGE_SECTIONS_MISSING`` – non-placeholder page lacks expected sections
@@ -26,6 +30,13 @@ without changing the build, the test, any workflow or any published output:
 The report lists every finding, a single ``primary`` code chosen by a fixed
 precedence, and ``cause_asserted: false``: findings describe the supplied
 inputs, not the root cause of a failure observed elsewhere.
+
+Scope of a passing result: ``structurally_ready: true`` only means the supplied
+artifact and page are structurally consistent with what ``build_site`` reads and
+writes.  ``freshness`` is ``verified`` only when a price manifest was supplied
+and every symbol in it was checked; otherwise it is ``not_checked`` /
+``unknown`` / ``stale``.  ``publication_verified`` is always ``false``: this
+module never observes the deployed site.
 """
 
 from __future__ import annotations
@@ -34,7 +45,7 @@ import argparse
 import json
 import re
 import sys
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -58,15 +69,19 @@ PRECEDENCE = (
     "PAGE_PLACEHOLDER_WITH_ARTIFACT",
     "PAGE_SECTIONS_MISSING",
     "ARTIFACT_STALE",
+    "FRESHNESS_UNKNOWN",
 )
 
 EVIDENCE_LIMITS = (
     "diagnosis covers only the supplied artifact/page/manifest content",
     "no build, pipeline, network or workflow was executed",
     "findings do not establish the root cause of failures observed in other environments",
+    "structurally_ready is not verified freshness and not verified publication",
 )
 
 _PERMALINK_RE = re.compile(r"^permalink:\s*(\S+)\s*$", re.MULTILINE)
+_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+_DATETIME_RE = re.compile(r"\d{4}-\d{2}-\d{2}T\S+")
 
 
 def _is_int(value: Any) -> bool:
@@ -74,12 +89,41 @@ def _is_int(value: Any) -> bool:
 
 
 def _parse_date(value: Any) -> date | None:
-    if not isinstance(value, str):
+    """Strict ``YYYY-MM-DD``; anything else (including a suffix) is ``None``."""
+
+    if not isinstance(value, str) or not _DATE_RE.fullmatch(value):
         return None
     try:
-        return date.fromisoformat(value[:10])
+        return date.fromisoformat(value)
     except ValueError:
         return None
+
+
+def _parse_datetime(value: Any) -> datetime | None:
+    """Strict ISO date-time (``YYYY-MM-DDT...``) or ``None``."""
+
+    if not isinstance(value, str) or not _DATETIME_RE.fullmatch(value):
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def front_matter(page_text: str) -> str | None:
+    """Return the YAML front-matter block, or ``None`` if the page has none.
+
+    Only a block that starts on the first line with ``---`` and is closed by a
+    later ``---`` line counts; text in the page body is never front matter.
+    """
+
+    lines = page_text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return None
+    for index in range(1, len(lines)):
+        if lines[index].strip() == "---":
+            return "\n".join(lines[1:index])
+    return None
 
 
 def check_artifact(text: str) -> tuple[dict[str, Any] | None, list[str]]:
@@ -93,8 +137,8 @@ def check_artifact(text: str) -> tuple[dict[str, Any] | None, list[str]]:
         return None, ["artifact is not a JSON object"]
     problems: list[str] = []
     gen = report.get("generated_at")
-    if not isinstance(gen, str) or _parse_date(gen) is None:
-        problems.append("generated_at must be an ISO date/time string")
+    if _parse_datetime(gen) is None and _parse_date(gen) is None:
+        problems.append("generated_at must be a strict ISO date or date-time string")
     universe = report.get("universe")
     if not isinstance(universe, dict) or not _is_int(universe.get("requested")):
         problems.append("universe.requested must be an integer")
@@ -104,10 +148,17 @@ def check_artifact(text: str) -> tuple[dict[str, Any] | None, list[str]]:
     else:
         if not _is_int(quality.get("included")):
             problems.append("data_quality.included must be an integer")
-        if not isinstance(quality.get("excluded"), list):
+        excluded = quality.get("excluded")
+        if not isinstance(excluded, list):
             problems.append("data_quality.excluded must be a list")
-        if "symbols" in quality and not isinstance(quality["symbols"], dict):
-            problems.append("data_quality.symbols must be an object")
+        elif not all(isinstance(row, dict) and isinstance(row.get("code"), str) for row in excluded):
+            problems.append("data_quality.excluded entries must be objects with a string code")
+        if "symbols" in quality:
+            seen = quality["symbols"]
+            if not isinstance(seen, dict):
+                problems.append("data_quality.symbols must be an object")
+            elif not all(isinstance(entry, dict) for entry in seen.values()):
+                problems.append("data_quality.symbols entries must be objects")
     if not isinstance(report.get("clusters"), dict):
         problems.append("clusters must be an object")
     symbols = report.get("symbols")
@@ -118,26 +169,31 @@ def check_artifact(text: str) -> tuple[dict[str, Any] | None, list[str]]:
     return (report if not problems else None), problems
 
 
-def _stale_symbols(report: Mapping[str, Any], manifest: Mapping[str, Any]) -> list[str]:
-    quality = report.get("data_quality", {})
-    seen = quality.get("symbols", {}) if isinstance(quality.get("symbols"), dict) else {}
-    excluded = {
-        row.get("code") for row in quality.get("excluded", []) if isinstance(row, dict)
-    }
+def _freshness(report: Mapping[str, Any], manifest: Mapping[str, Any]) -> tuple[list[str], list[str]]:
+    """Return (proven stale, unknown) details.  ``report`` is already validated."""
+
+    quality = report["data_quality"]
+    seen = quality.get("symbols", {})
+    excluded = {row["code"] for row in quality["excluded"]}
     stale: list[str] = []
-    for code in sorted(manifest):
-        latest = _parse_date(manifest[code])
+    unknown: list[str] = []
+    for code in sorted(manifest, key=str):
+        if not isinstance(code, str):
+            unknown.append(f"{code!r}: manifest key is not a string")
+            continue
         if code in excluded:
             continue
+        latest = _parse_date(manifest[code])
         entry = seen.get(code)
-        end = _parse_date(entry.get("end")) if isinstance(entry, dict) else None
         if entry is None:
             stale.append(f"{code}: in price manifest but not in artifact")
         elif latest is None:
-            stale.append(f"{code}: manifest date unreadable")
-        elif end is None or end < latest:
-            stale.append(f"{code}: artifact end {entry.get('end')!r} < manifest {manifest[code]!r}")
-    return stale
+            unknown.append(f"{code}: manifest date {manifest[code]!r} is not a strict ISO date")
+        elif (end := _parse_date(entry.get("end"))) is None:
+            unknown.append(f"{code}: artifact end {entry.get('end')!r} is not a strict ISO date")
+        elif end < latest:
+            stale.append(f"{code}: artifact end {entry['end']!r} < manifest {manifest[code]!r}")
+    return stale, unknown
 
 
 def diagnose(
@@ -160,22 +216,29 @@ def diagnose(
         report, problems = check_artifact(artifact_text)
         for problem in problems:
             add("ARTIFACT_MALFORMED", problem)
-        if report is not None and report.get("schema_version") != EXPECTED_SCHEMA_VERSION:
-            add("ARTIFACT_SCHEMA_MISMATCH", f"schema_version {report.get('schema_version')!r}")
+        version = report.get("schema_version") if report is not None else None
+        if report is not None and not (_is_int(version) and version == EXPECTED_SCHEMA_VERSION):
+            add("ARTIFACT_SCHEMA_MISMATCH", f"schema_version {version!r}")
         if report is not None and price_manifest is not None:
             if not isinstance(price_manifest, Mapping):
-                add("ARTIFACT_STALE", "price manifest unreadable; freshness unknown")
+                add("FRESHNESS_UNKNOWN", "price manifest is not an object")
             else:
-                for item in _stale_symbols(report, price_manifest):
+                stale, unknown = _freshness(report, price_manifest)
+                for item in stale:
                     add("ARTIFACT_STALE", item)
+                for item in unknown:
+                    add("FRESHNESS_UNKNOWN", item)
 
     page_state = "absent"
     if page_text is None:
         add("PAGE_NOT_BUILT", "market-phase page absent")
     else:
-        match = _PERMALINK_RE.search(page_text)
-        if not match or match.group(1) != EXPECTED_ROUTE:
-            add("ROUTE_MISMATCH", f"permalink {match.group(1) if match else None!r} != {EXPECTED_ROUTE!r}")
+        header = front_matter(page_text)
+        routes = _PERMALINK_RE.findall(header) if header is not None else []
+        if header is None:
+            add("ROUTE_MISMATCH", "page has no front matter; permalink unknown")
+        elif routes != [EXPECTED_ROUTE]:
+            add("ROUTE_MISMATCH", f"front-matter permalink {routes!r} != [{EXPECTED_ROUTE!r}]")
         missing = [m for m in EXPECTED_PAGE_MARKERS if m not in page_text]
         if PLACEHOLDER_MARKER in page_text:
             page_state = "placeholder"
@@ -189,10 +252,21 @@ def diagnose(
     codes = {f["code"] for f in findings}
     primary = next((c for c in PRECEDENCE if c in codes), "OK")
     findings.sort(key=lambda f: (PRECEDENCE.index(f["code"]), f["detail"]))
+    structural = codes.isdisjoint(PRECEDENCE[: PRECEDENCE.index("ARTIFACT_STALE")])
+    if report is None or price_manifest is None:
+        freshness = "not_checked"
+    elif "ARTIFACT_STALE" in codes:
+        freshness = "stale"
+    elif "FRESHNESS_UNKNOWN" in codes:
+        freshness = "unknown"
+    else:
+        freshness = "verified"
     return {
         "schema": "market_phase_publication_diagnostics_v1",
         "primary": primary,
-        "publishable": primary == "OK",
+        "structurally_ready": structural,
+        "freshness": freshness,
+        "publication_verified": False,
         "artifact_state": "absent" if artifact_text is None else ("valid" if report is not None else "invalid"),
         "page_state": page_state,
         "findings": findings,
@@ -213,6 +287,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--page", type=Path, required=True)
     parser.add_argument("--price-manifest", type=Path, help='JSON {"<code>": "YYYY-MM-DD", ...}')
     parser.add_argument("--output", type=Path)
+    parser.epilog = "exit 0: structurally ready and freshness verified; 1: otherwise; 2: input error"
     args = parser.parse_args(argv)
     try:
         manifest = None
@@ -230,7 +305,8 @@ def main(argv: list[str] | None = None) -> int:
     print(text)
     if args.output is not None:
         args.output.write_text(text + "\n", encoding="utf-8")
-    return 0 if report["publishable"] else 1
+    # 0 only when structure AND freshness were both verified (fail-closed).
+    return 0 if report["structurally_ready"] and report["freshness"] == "verified" else 1
 
 
 if __name__ == "__main__":

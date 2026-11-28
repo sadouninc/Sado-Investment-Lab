@@ -61,10 +61,25 @@ def test_ok():
     r = diagnose(artifact_text=json.dumps(artifact()), page_text=full_page(),
                  price_manifest={"AAA": "2099-01-09", "BBB": "2099-01-08", "CCC": "2099-01-09"})
     assert r["primary"] == "OK"
-    assert r["publishable"] is True
+    assert r["structurally_ready"] is True
+    assert r["freshness"] == "verified"
+    assert r["publication_verified"] is False
     assert r["findings"] == []
     assert r["cause_asserted"] is False
     assert r["artifact_state"] == "valid" and r["page_state"] == "full"
+
+
+def test_missing_manifest_is_structural_only_not_verified_freshness(tmp_path):
+    r = diagnose(artifact_text=json.dumps(artifact()), page_text=full_page())
+    assert r["primary"] == "OK"
+    assert r["structurally_ready"] is True
+    assert r["freshness"] == "not_checked"
+    assert r["publication_verified"] is False
+    assert "publishable" not in r
+    art, page = tmp_path / "a.json", tmp_path / "p.md"
+    art.write_text(json.dumps(artifact()), encoding="utf-8")
+    page.write_text(full_page(), encoding="utf-8")
+    assert main(["--artifact", str(art), "--page", str(page)]) == 1  # fail-closed without manifest
 
 
 def test_not_generated_with_expected_placeholder():
@@ -104,6 +119,12 @@ def test_artifact_not_json_object(text):
         {"clusters": []},
         {"symbols": [{"code": "AAA"}]},
         {"symbols": "AAA"},
+        {"generated_at": "2099-01-10garbage"},
+        {"data_quality": {"included": 2, "excluded": [{"code": ["CCC"]}]}},
+        {"data_quality": {"included": 2, "excluded": [{"code": {"x": 1}}]}},
+        {"data_quality": {"included": 2, "excluded": ["CCC"]}},
+        {"data_quality": {"included": 2, "excluded": [], "symbols": {"AAA": "2099-01-09"}}},
+        {"data_quality": {"included": 2, "excluded": [], "symbols": {"AAA": None}}},
     ],
 )
 def test_artifact_contract_fields(over):
@@ -112,9 +133,23 @@ def test_artifact_contract_fields(over):
     assert diagnose(artifact_text=json.dumps(artifact(**over)), page_text=full_page())["primary"] == "ARTIFACT_MALFORMED"
 
 
-def test_schema_version_mismatch():
-    r = diagnose(artifact_text=json.dumps(artifact(schema_version=2)), page_text=full_page())
+@pytest.mark.parametrize("version", [2, True, 1.0, "1", None])
+def test_schema_version_mismatch(version):
+    r = diagnose(artifact_text=json.dumps(artifact(schema_version=version)), page_text=full_page())
     assert r["primary"] == "ARTIFACT_SCHEMA_MISMATCH"
+    assert r["structurally_ready"] is False
+
+
+def test_nested_shape_errors_do_not_crash_with_manifest():
+    """Unhashable excluded codes / non-object symbol entries are malformed, not a crash."""
+    for quality in (
+        {"included": 2, "excluded": [{"code": ["CCC"]}], "symbols": {}},
+        {"included": 2, "excluded": [], "symbols": {"AAA": ["2099-01-09"]}},
+    ):
+        r = diagnose(artifact_text=json.dumps(artifact(data_quality=quality)), page_text=full_page(),
+                     price_manifest={"AAA": "2099-01-09", "CCC": "2099-01-09"})
+        assert r["primary"] == "ARTIFACT_MALFORMED"
+        assert r["freshness"] == "not_checked"
 
 
 def test_stale_artifact_newer_price_and_missing_symbol():
@@ -127,21 +162,60 @@ def test_stale_artifact_newer_price_and_missing_symbol():
     assert not any(d.startswith("BBB:") for d in details)
 
 
-def test_excluded_symbol_not_stale_and_bad_manifest_date():
+@pytest.mark.parametrize("bad", ["not-a-date", "2099-01-09garbage", "2099-01-09T00:00:00", "2099-13-01", 20990109, None])
+def test_excluded_symbol_not_stale_and_bad_manifest_date_is_unknown(bad):
     r = diagnose(artifact_text=json.dumps(artifact()), page_text=full_page(),
-                 price_manifest={"CCC": "2099-02-01", "AAA": "not-a-date"})
-    assert codes(r) == ["ARTIFACT_STALE"]
-    assert "unreadable" in r["findings"][0]["detail"]
+                 price_manifest={"CCC": "2099-02-01", "AAA": bad})
+    assert codes(r) == ["FRESHNESS_UNKNOWN"]
+    assert "ARTIFACT_STALE" not in codes(r)
+    assert r["freshness"] == "unknown"
+    assert r["structurally_ready"] is True  # structure is fine; freshness is not verified
+
+
+@pytest.mark.parametrize("bad_end", ["2099-01-09junk", "soon", None, 5])
+def test_unparseable_artifact_end_is_unknown_not_stale(bad_end):
+    quality = {"included": 2, "excluded": [], "symbols": {"AAA": {"end": bad_end}, "BBB": {"end": "2099-01-09"}}}
+    r = diagnose(artifact_text=json.dumps(artifact(data_quality=quality)), page_text=full_page(),
+                 price_manifest={"AAA": "2099-01-09", "BBB": "2099-01-09"})
+    assert codes(r) == ["FRESHNESS_UNKNOWN"]
+    assert "not a strict ISO date" in r["findings"][0]["detail"]
+
+
+def test_stale_outranks_unknown():
+    r = diagnose(artifact_text=json.dumps(artifact()), page_text=full_page(),
+                 price_manifest={"AAA": "2099-01-12", "BBB": "bad"})
+    assert r["primary"] == "ARTIFACT_STALE"
+    assert r["freshness"] == "stale"
+    assert set(codes(r)) == {"ARTIFACT_STALE", "FRESHNESS_UNKNOWN"}
 
 
 def test_manifest_not_mapping():
     r = diagnose(artifact_text=json.dumps(artifact()), page_text=full_page(), price_manifest=["AAA"])
-    assert r["primary"] == "ARTIFACT_STALE"
+    assert r["primary"] == "FRESHNESS_UNKNOWN"
+    assert r["freshness"] == "unknown"
 
 
 def test_route_mismatch_and_missing_front_matter():
     assert diagnose(artifact_text=json.dumps(artifact()), page_text=full_page(route="/research/old/"))["primary"] == "ROUTE_MISMATCH"
     assert diagnose(artifact_text=json.dumps(artifact()), page_text="# Sado Market Phase Analyzer")["primary"] == "ROUTE_MISMATCH"
+
+
+def test_permalink_only_in_body_is_not_front_matter():
+    body_only = full_page().split("---\n\n", 1)[1] + f"permalink: {EXPECTED_ROUTE}\n"
+    r = diagnose(artifact_text=json.dumps(artifact()), page_text=body_only)
+    assert r["primary"] == "ROUTE_MISMATCH"
+    assert "no front matter" in r["findings"][0]["detail"]
+    # front matter exists but lacks permalink; body line must not satisfy it
+    page = f"---\nlayout: site\n---\n\npermalink: {EXPECTED_ROUTE}\n" + full_page().split("---\n\n", 1)[1]
+    assert diagnose(artifact_text=json.dumps(artifact()), page_text=page)["primary"] == "ROUTE_MISMATCH"
+    # unclosed front matter is not front matter
+    unclosed = f"---\nlayout: site\npermalink: {EXPECTED_ROUTE}\n\n" + full_page().split("---\n\n", 1)[1]
+    assert diagnose(artifact_text=json.dumps(artifact()), page_text=unclosed)["primary"] == "ROUTE_MISMATCH"
+
+
+def test_duplicate_permalink_in_front_matter_is_mismatch():
+    page = full_page().replace("layout: site\n", f"layout: site\npermalink: /other/\n")
+    assert diagnose(artifact_text=json.dumps(artifact()), page_text=page)["primary"] == "ROUTE_MISMATCH"
 
 
 def test_page_sections_missing():
@@ -194,7 +268,10 @@ def test_cli(tmp_path):
     art.write_text(json.dumps(artifact()), encoding="utf-8")
     page.write_text(full_page(), encoding="utf-8")
     out = tmp_path / "o.json"
-    assert main(["--artifact", str(art), "--page", str(page), "--output", str(out)]) == 0
+    manifest = tmp_path / "ok.json"
+    manifest.write_text(json.dumps({"AAA": "2099-01-09", "BBB": "2099-01-09"}), encoding="utf-8")
+    assert main(["--artifact", str(art), "--page", str(page), "--price-manifest", str(manifest),
+                 "--output", str(out)]) == 0
     assert json.loads(out.read_text(encoding="utf-8"))["primary"] == "OK"
     bad = tmp_path / "m.json"
     bad.write_text("{", encoding="utf-8")
