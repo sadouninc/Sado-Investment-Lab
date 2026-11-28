@@ -204,7 +204,7 @@ class CapitalProvider:
         if not isinstance(value, str):
             return None
         text = value
-        if text.strip() != text or not ISO_DATE_PREFIX_RE.match(text):
+        if text.strip() != text or not ISO_DATE_PREFIX_RE.fullmatch(text[:10]):
             return None
         if len(text) > 10 and text[10] not in "T ":
             return None
