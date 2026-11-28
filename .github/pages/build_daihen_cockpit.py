@@ -133,13 +133,102 @@ def _scenario_delta_html(model: Mapping[str, Any]) -> str:
 
 def _expectation_first_view(expectations: Mapping[str, Any]) -> str:
     status = str(expectations.get("status") or "UNKNOWN").upper()
-    if status == "UNAVAILABLE":
+    consensus = expectations.get("consensus_value")
+    company = expectations.get("company_guidance_value")
+    sado = expectations.get("sado_base_value")
+    company_gap = expectations.get("company_vs_consensus_pct")
+    sado_gap = expectations.get("sado_vs_consensus_pct")
+    has_comparison = (
+        expectations.get("external_consensus_ref")
+        and all(value is not None for value in (consensus, company, sado, company_gap, sado_gap))
+    )
+    if status == "UNAVAILABLE" or not has_comparison:
         message = "市場期待データは現在取得できません。差なし・0として扱いません。"
-    elif status in {"PARTIAL", "STALE", "UNKNOWN"}:
-        message = "市場期待との差は情報不足または鮮度制約付きです。根拠を確認してから判断します。"
     else:
-        message = "市場期待との差はCanonical evidenceが確認できる範囲だけ表示します。"
-    return f"""<div class="content-card cockpit-expectation-summary"><strong>市場期待との差は？</strong><span class="status-chip">{_status(status)}</span><span>{_e(message)}</span></div>"""
+        message = (
+            f"FY2027 EPS: 市場予想 {float(consensus):,.2f}円 / "
+            f"会社予想 {float(company):,.2f}円 ({float(company_gap) * 100:+.1f}%) / "
+            f"Sado Base {float(sado):,.2f}円 ({float(sado_gap) * 100:+.1f}%)。"
+        )
+    caveat = "二次データのproxyであり、市場全体の真の期待とは断定しません。"
+    return (
+        '<div class="content-card cockpit-expectation-summary">'
+        f"<strong>市場期待との差は？</strong><span class=\"status-chip\">{_status(status)}</span>"
+        f"<span>{_e(message)} {_e(caveat)}</span>"
+        '<a href="#market-expectations">市場予想・会社予想との比較を見る</a></div>'
+    )
+
+
+def _judgment_summary(model: Mapping[str, Any]) -> str:
+    review = model["review_context"]
+    valuation = model["valuation"]
+    history = model["decision_history"]
+    hypothesis = model["hypothesis"]
+    why_now = list(review.get("why_now") or [])
+    focus = why_now[0] if why_now else "確認理由を取得できません。"
+    price_as_of = valuation.get("price_as_of")
+    freshness = (
+        f"株価基準日: {price_as_of} / 最新株価は要確認"
+        if price_as_of
+        else "株価基準日を取得できないため、最新株価は要確認"
+    )
+
+    delta = _scenario_delta(model)
+    previous_raw = history.get("previous_snapshot") or {}
+    comparable = all(
+        value is not None
+        for value in (
+            delta.previous.eps,
+            delta.current.eps,
+            delta.previous.forward_per,
+            delta.current.forward_per,
+        )
+    )
+    if comparable:
+        eps_change = float(delta.current.eps) - float(delta.previous.eps)
+        per_change = float(delta.current.forward_per) - float(delta.previous.forward_per)
+        change_summary = (
+            f"EPSは前回比 {eps_change:+.2f}円、Forward PERは {per_change:+.2f}倍。"
+        )
+        change = (
+            f"EPS {float(delta.previous.eps):,.2f}→{float(delta.current.eps):,.2f}円 "
+            f"({eps_change:+.2f}円)、Forward PER "
+            f"{float(delta.previous.forward_per):,.2f}→{float(delta.current.forward_per):,.2f}倍 "
+            f"({per_change:+.2f}倍)。前回 {previous_raw.get('as_of') or '日付不明'} / "
+            f"今回株価基準 {price_as_of or '日付不明'}、同一分割調整basis。"
+        )
+    else:
+        change_summary = "同一basisの前回snapshotがなく、前回差は比較できません。"
+        change = "同一basisの前回snapshotがないため、前回との差は比較できません。"
+
+    must_happen = list(hypothesis.get("must_happen") or [])
+    invalidation = list(hypothesis.get("invalidation_conditions") or [])
+    thesis = (
+        f"仮説の成立条件（達成確認ではありません）: {must_happen[0]}"
+        if must_happen
+        else "仮説の成立条件は未取得です。"
+    )
+    if invalidation:
+        thesis += f" / 主な無効化条件: {invalidation[0]}"
+    warning_count = sum(
+        len(model[name].get("warnings") or [])
+        for name in ("earnings_driver", "valuation", "expectations")
+    )
+    next_check = "FY2027 Q2の利益転換、最新株価、市場期待との比較を確認する。"
+    return f"""
+<section class="notice-card cockpit-judgment-summary" aria-labelledby="judgment-summary-title">
+  <h2 id="judgment-summary-title">30秒で分かる判断材料</h2>
+  <p><strong>前回からの変化:</strong> {_e(change_summary)}</p>
+  <p><strong>情報の古さ:</strong> {_e(freshness)} / 全体状態: {_status(model.get("overall_status"))}</p>
+  <p><strong>次に確認すること:</strong> {_e(next_check)} <a href="#market-expectations">市場期待の比較へ</a></p>
+  <details>
+    <summary>確認理由・数値basis・投資仮説の詳細</summary>
+    <p><strong>今回の注目点（なぜ今日見る？）:</strong> {_e(focus)} <span class="muted">これは日付付き既存資料の確認理由であり、今日の新事実ではありません。</span></p>
+    <p><strong>前回差の詳細:</strong> {_e(change)}</p>
+    <p><strong>今の投資仮説:</strong> {_e(thesis)} / 警告 {_e(warning_count)}件</p>
+  </details>
+</section>
+"""
 
 
 def page_content(model: Mapping[str, Any]) -> str:
@@ -170,6 +259,7 @@ def page_content(model: Mapping[str, Any]) -> str:
     unknown = freshness.get("unknown_components") or []
     price_as_of = valuation.get("price_as_of") or "取得できません"
     warning_count = len(warnings)
+    judgment_summary_html = _judgment_summary(model)
     first_view_html = render_first_view(
         LiveCockpitFirstView(
             company_name="ダイヘン",
@@ -195,7 +285,7 @@ permalink: /decision-cockpit/daihen/
 
 # 🎯 ダイヘン 投資判断コックピット
 
-<p><strong>なぜ今日見る？</strong> {_e(why_now_text)} <span class="muted">最終重要変化: {_e(last_change)}</span></p>
+{judgment_summary_html}
 <div class="notice-card"><strong>この画面は売買指示を生成しません。</strong><br>既存Canonical outputを読み取り専用でまとめ、判断に必要な不足・古さ・要確認事項を隠さず表示します。</div>
 {first_view_html}
 
@@ -219,6 +309,8 @@ Source: {_refs(earnings.get('source_refs'))}
 - 状態: {_status(valuation.get('status'))} / 鮮度: {_status(valuation.get('freshness'))}
 - Source: {_refs(valuation.get('source_refs'))}
 **株価情報が古い場合、現在の割安度として無警告では使用しません。**
+
+<div id="market-expectations"></div>
 
 ## 3. 市場期待との差
 状態: {_status(expectations.get('status'))}
