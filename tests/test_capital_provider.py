@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+import json
 from pathlib import Path
 import sqlite3
 import tempfile
@@ -290,6 +291,64 @@ class CapitalProviderTest(unittest.TestCase):
             result = CapitalProvider(path, today=date(2026, 8, 8)).collect()
             self.assertEqual("MISSING", result.status)
             self.assertIn("failed to read", result.reason)
+
+
+    # --- #975 review 6097792141: metadata BLOB and strict JSON integration ---
+
+    def test_blob_metadata_is_nulled_and_not_ok(self):
+        for column_index, column in ((8, "source"), (9, "source_version")):
+            with self.subTest(column=column):
+                row = ["2026-08-08", 1_200_000, 3_000_000, 0.24, 2_400_000, 0.48, 5_000_000, 500_000, "synthetic", "v1"]
+                row[column_index] = b"\x00\xffblob"
+                result = self.collect_row(tuple(row))
+                self.assertEqual("PARTIAL", result.status)
+                self.assertIsNone(result.data["capital_state"][column])
+                self.assertIn(f"invalid non-text capital metadata set to null: {column}", result.reason)
+                # Numeric facts remain intact; no value is invented.
+                self.assertEqual(1_200_000, result.data["buying_power"]["cash"])
+                json.dumps(result.data, ensure_ascii=False, allow_nan=False)
+
+    def test_numeric_metadata_in_text_column_is_kept_as_text(self):
+        # TEXT affinity converts numbers to text, so this is still valid text metadata.
+        result = self.collect_row(
+            ("2026-08-08", 100, 200, None, None, None, None, None, 42, 1.5)
+        )
+        self.assertEqual("OK", result.status)
+        self.assertEqual("42", result.data["capital_state"]["source"])
+        self.assertEqual("1.5", result.data["capital_state"]["source_version"])
+
+    def test_null_metadata_is_allowed(self):
+        result = self.collect_row(
+            ("2026-08-08", 100, 200, None, None, None, None, None, None, None)
+        )
+        self.assertEqual("OK", result.status)
+        self.assertIsNone(result.data["capital_state"]["source"])
+
+    def test_invalid_facts_and_metadata_are_both_reported(self):
+        result = self.collect_row(
+            ("2026-08-08", float("inf"), 200, None, None, None, None, None, b"blob", "v1")
+        )
+        self.assertEqual("PARTIAL", result.status)
+        self.assertIn("cash_buying_power", result.reason)
+        self.assertIn("metadata set to null: source", result.reason)
+
+    def test_provider_output_builds_a_strict_json_dataset(self):
+        from scripts.morning_dataset.generator import build_dataset_from_providers
+
+        rows = (
+            ("2026-08-08", 1_200_000, 3_000_000, 0.24, 2_400_000, 0.48, 5_000_000, 500_000, "synthetic", "v1"),
+            ("2026-08-08", float("inf"), "n/a", float("-inf"), None, None, None, 0, b"blob", b"\x01"),
+        )
+        for row in rows:
+            with self.subTest(row=row[1]):
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = self.database(Path(tmp), row)
+                    dataset = build_dataset_from_providers(
+                        [CapitalProvider(path, today=date(2026, 8, 8))], as_of=date(2026, 8, 8)
+                    )
+                json.dumps(dataset, ensure_ascii=False, allow_nan=False)
+                status = next(item for item in dataset["source_status"] if item["name"] == "capital")["status"]
+                self.assertIn(status, {"OK", "PARTIAL"})
 
 
 if __name__ == "__main__":

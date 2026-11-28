@@ -21,6 +21,7 @@ NUMERIC_FACTS = (
     "total_exposure",
     "reserve_amount",
 )
+METADATA_TEXT = ("source", "source_version")
 
 
 @dataclass
@@ -97,6 +98,18 @@ class CapitalProvider:
             if not valid:
                 invalid_facts.append(column)
 
+        # TEXT affinity still admits BLOBs. Metadata is copied only when it is
+        # null or text; anything else is nulled and reported, never re-encoded.
+        metadata: dict[str, str | None] = {}
+        invalid_metadata: list[str] = []
+        for column in METADATA_TEXT:
+            value = row[column]
+            if value is None or isinstance(value, str):
+                metadata[column] = value
+            else:
+                metadata[column] = None
+                invalid_metadata.append(column)
+
         payload = {
             # capital_snapshots stores buying power, not a brokerage cash balance.
             # Do not relabel buying power as cash available.
@@ -113,15 +126,18 @@ class CapitalProvider:
             "capital_state": {
                 "cash_ratio": facts["cash_ratio"],
                 "total_exposure": facts["total_exposure"],
-                "source": row["source"],
-                "source_version": row["source_version"],
+                "source": metadata["source"],
+                "source_version": metadata["source_version"],
             },
         }
-        invalid_detail = (
-            "invalid non-finite or non-numeric capital facts set to null: " + ", ".join(invalid_facts)
-            if invalid_facts
-            else None
-        )
+        invalid_parts = []
+        if invalid_facts:
+            invalid_parts.append(
+                "invalid non-finite or non-numeric capital facts set to null: " + ", ".join(invalid_facts)
+            )
+        if invalid_metadata:
+            invalid_parts.append("invalid non-text capital metadata set to null: " + ", ".join(invalid_metadata))
+        invalid_detail = "; ".join(invalid_parts) or None
 
         def with_invalid(reason: str) -> str:
             return f"{reason}; {invalid_detail}" if invalid_detail else reason
