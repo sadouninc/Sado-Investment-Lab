@@ -1,0 +1,48 @@
+name: Pages UX Review Preflight (Read-only)
+
+# Stage 1 of #950: deterministic evidence collection. Qualitative LLM/browser
+# review requires separate approval and must never be represented as PASS here.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 0 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-review-preflight
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run diagnostic unit tests
+        run: python3 -m unittest tests.test_pages_review_preflight
+      - name: Inspect repository Pages sources and Morning data
+        run: python3 -m scripts.pages_review_preflight --root . --out pages-review
+      - name: Publish review summary even when findings exist
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Pages UX evidence preflight"
+            echo "Source commit: ${GITHUB_SHA}"
+            echo "This is not an AI/visual/public HTTP UX pass."
+            echo
+            if [ -f pages-review/review.md ]; then
+              cat pages-review/review.md
+            else
+              echo "UNAVAILABLE: review report not generated (earlier step failed). This is not PASS."
+            fi
+          } >> "${GITHUB_STEP_SUMMARY}"
+      - name: Preserve findings for independent AI and browser review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-ux-review-static
+          path: pages-review/
+          retention-days: 14
