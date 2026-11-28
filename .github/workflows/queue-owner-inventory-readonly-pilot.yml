@@ -96,7 +96,8 @@ jobs:
           Path("/tmp/ready-normalized.json").write_text(json.dumps(normalized))
           PY
 
-      - name: Run HOLD-only pilot diagnostic and publish run summary
+      - name: Run HOLD-only pilot diagnostic
+        id: diagnostic
         shell: bash
         run: |
           set -euo pipefail
@@ -104,18 +105,82 @@ jobs:
             --issues /tmp/ready-normalized.json \
             --open-prs /tmp/open-pr-paths.json \
             --output /tmp/owner-pilot-result.json
+          jq -e '.status == "HOLD" and .dispatch_allowed == false' /tmp/owner-pilot-result.json >/dev/null
+
+      - name: Preserve sanitized run evidence and summary
+        if: always()
+        shell: bash
+        env:
+          DIAGNOSTIC_OUTCOME: ${{ steps.diagnostic.outcome }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/owner-pilot-evidence
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          # Only allow diagnostic enums and numeric IDs into the artifact.
+          # Never archive API responses, raw issue bodies, claims or credentials.
+          reasons = {
+              "OWNER_ISSUER_UNVERIFIED", "ISSUE_INVENTORY_INCOMPLETE",
+              "NO_READY_CANDIDATE", "ISSUE_PATH_SCOPE_UNVERIFIED",
+              "OWNER_SLICE_UNVERIFIED", "PR_PATH_INVENTORY_INCOMPLETE",
+              "PR_PATH_CONFLICT", "INPUT_UNAVAILABLE", "OUTPUT_UNAVAILABLE",
+          }
+          outcome = os.environ.get("DIAGNOSTIC_OUTCOME", "")
+          result = {"status": "HOLD", "reason": "DIAGNOSTIC_UNAVAILABLE",
+                    "dispatch_allowed": False, "selected_issue": None,
+                    "candidate_count": None, "conflicting_prs": None}
+          if outcome == "success":
+              try:
+                  raw = json.loads(Path("/tmp/owner-pilot-result.json").read_text())
+                  def positive_id(value):
+                      return type(value) is int and value > 0
+                  if (raw.get("status") != "HOLD"
+                          or raw.get("dispatch_allowed") is not False
+                          or raw.get("reason") not in reasons
+                          or (raw.get("selected_issue") is not None and
+                              not positive_id(raw["selected_issue"]))
+                          or type(raw.get("candidate_count")) is not int
+                          or raw["candidate_count"] < 0
+                          or not isinstance(raw.get("conflicting_prs"), list)
+                          or not all(positive_id(n) for n in raw["conflicting_prs"])):
+                      raise ValueError("invalid diagnostic")
+                  result.update({key: raw[key] for key in result})
+              except (OSError, ValueError, TypeError, AttributeError, KeyError):
+                  result["reason"] = "DIAGNOSTIC_OUTPUT_INVALID_OR_MISSING"
+          else:
+              result["reason"] = ("DIAGNOSTIC_FAILED" if outcome == "failure"
+                                  else "DIAGNOSTIC_NOT_COMPLETED")
+          evidence = {
+              "schema_version": 1,
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "event": os.environ["GITHUB_EVENT_NAME"],
+              "head_sha": os.environ["GITHUB_SHA"],
+              "diagnostic_outcome": outcome if outcome in
+                  {"success", "failure", "cancelled", "skipped"} else "unknown",
+              "result": result,
+          }
+          Path("/tmp/owner-pilot-evidence/result.json").write_text(
+              json.dumps(evidence, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8")
+          PY
           {
             echo '## Queue Owner Inventory Read-only Pilot'
-            echo
-            echo "- Run: ${GITHUB_RUN_ID}"
-            echo "- Event: ${GITHUB_EVENT_NAME}"
-            echo "- Head: ${GITHUB_SHA}"
-            echo '- Dispatch attempts: **0** (workflow is read-only)'
-            echo '- Result:'
+            echo 'Dispatch attempts: **0** (workflow is read-only)'
             echo '~~~json'
-            cat /tmp/owner-pilot-result.json
+            cat /tmp/owner-pilot-evidence/result.json
             echo '~~~'
             echo 'A full open-PR path inventory is not an authenticated Owner/Lease ledger.'
           } >> "${GITHUB_STEP_SUMMARY}"
-          # Always persist a diagnostic summary BEFORE rejecting unexpected output.
-          jq -e '.status == "HOLD" and .dispatch_allowed == false' /tmp/owner-pilot-result.json >/dev/null
+
+      - name: Upload sanitized pilot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: queue-owner-pilot-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/owner-pilot-evidence/result.json
+          if-no-files-found: error
+          retention-days: 14
