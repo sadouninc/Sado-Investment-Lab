@@ -33,7 +33,7 @@ class CandidateSelectorProvider:
                 source_reference=str(self.path),
             )
         try:
-            raw = json.loads(self.path.read_text(encoding="utf-8"))
+            raw = json.loads(self.path.read_text(encoding="utf-8"), parse_int=_bounded_int)
         except (OSError, UnicodeDecodeError, ValueError, RecursionError) as exc:
             # ValueError covers json.JSONDecodeError and oversized integer
             # literals; none of these may stop Morning Dataset generation.
@@ -51,7 +51,15 @@ class CandidateSelectorProvider:
 
         as_of = self._as_of(raw.get("as_of"))
         ranked = raw.get("ranked_candidates")
-        if not isinstance(ranked, list):
+        if ranked is not None and not isinstance(ranked, list):
+            # The primary list is present but malformed. Do not silently fall
+            # back to another field and present that as the ranked feed.
+            return ProviderResult.unavailable(
+                self.name,
+                reason="Candidate Selector ranked_candidates is present but is not a list",
+                source_reference=str(self.path),
+            )
+        if ranked is None:
             ranked = raw.get("candidates")
         if not isinstance(ranked, list):
             return ProviderResult.unavailable(
@@ -90,6 +98,10 @@ class CandidateSelectorProvider:
                 status = None
             selection_reason = self._optional_text(row.get("selection_reason"), anomalies, "selection_reason")
             last_researched_at = self._optional_text(row.get("last_researched_at"), anomalies, "last_researched_at")
+            if len(eligible) >= self.limit:
+                # Rows beyond the Morning limit are not emitted, but they are
+                # still inspected so malformed input anywhere keeps the feed non-OK.
+                continue
             eligible.append(
                 {
                     "security_code": code.strip(),
@@ -103,8 +115,6 @@ class CandidateSelectorProvider:
                     "last_researched_at": last_researched_at,
                 }
             )
-            if len(eligible) >= self.limit:
-                break
         anomaly_note = _anomaly_note(anomalies)
 
         if not eligible:
@@ -233,6 +243,17 @@ class CandidateSelectorProvider:
 
 
 _MALFORMED = object()
+# Integer literals longer than this are not plausible priorities. Mapping them
+# to infinity keeps behaviour identical on every runtime (independent of the
+# interpreter's int-string conversion limit) and lets _priority reject them.
+_MAX_INT_DIGITS = 64
+
+
+def _bounded_int(text: str) -> int | float:
+    digits = text.lstrip("+-")
+    if len(digits) > _MAX_INT_DIGITS:
+        return float("-inf") if text.startswith("-") else float("inf")
+    return int(text)
 _ISO_DATE_PREFIX = re.compile(r"\d{4}-\d{2}-\d{2}")
 
 

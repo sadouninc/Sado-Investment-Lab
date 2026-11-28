@@ -171,21 +171,77 @@ class CandidateSelectorProviderTest(unittest.TestCase):
         self.assertEqual("MISSING", result.status)
         self.assertIn("failed to read", result.reason)
 
-    def test_malformed_json_and_oversized_integer_literal_do_not_raise(self):
-        payloads = (
-            b'{"as_of": "2026-11-28", "ranked_candidates": [',
-            b'{"as_of": "2026-11-28", "ranked_candidates": [{"total_priority": ' + b"9" * 5000 + b"}]}",
-        )
-        for raw in payloads:
-            with self.subTest(size=len(raw)):
+    def test_truncated_json_is_missing_not_exception(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raw = b'{"as_of": "2026-11-28", "ranked_candidates": ['
+            result = CandidateSelectorProvider(self.write_raw(tmp, raw), today=date(2026, 11, 28)).collect()
+        self.assertEqual("MISSING", result.status)
+        self.assertIn("failed to read", result.reason)
+
+    def test_oversized_integer_literal_priority_is_malformed_on_any_runtime(self):
+        # The literal is bounded at parse time, so the outcome does not depend on
+        # the interpreter's int-string conversion limit.
+        for digits in (70, 5000, 100000):
+            with self.subTest(digits=digits):
+                raw = (
+                    b'{"as_of": "2026-11-28", "ranked_candidates": ['
+                    b'{"security_code": "1111", "company_name": "Huge", "total_priority": ' + b"9" * digits + b'},'
+                    b'{"security_code": "6622", "company_name": "Daihen", "total_priority": 80}]}'
+                )
                 with tempfile.TemporaryDirectory() as tmp:
                     result = CandidateSelectorProvider(self.write_raw(tmp, raw), today=date(2026, 11, 28)).collect()
+                self.assertEqual("PARTIAL", result.status)
+                self.assertIn("malformed total_priority=1", result.reason)
+                self.assertEqual(["1111", "6622"], [row["security_code"] for row in result.data])
+                self.assertEqual([None, 1], [row["rank"] for row in result.data])
+                self.assertEqual([None, 80], [row["total_priority"] for row in result.data])
+
+    def test_ordinary_integer_priorities_are_unchanged_by_parse_bound(self):
+        raw = b'{"as_of": "2026-11-28", "ranked_candidates": [{"security_code": "6622", "company_name": "D", "total_priority": 72}]}'
+        with tempfile.TemporaryDirectory() as tmp:
+            result = CandidateSelectorProvider(self.write_raw(tmp, raw), today=date(2026, 11, 28)).collect()
+        self.assertEqual("OK", result.status)
+        self.assertEqual(72, result.data[0]["total_priority"])
+        self.assertIsInstance(result.data[0]["total_priority"], int)
+
+    def test_malformed_primary_list_does_not_fall_back_to_candidates(self):
+        for ranked in (5, "6622", {"security_code": "6622"}):
+            with self.subTest(ranked=ranked):
+                result = self.collect({
+                    "as_of": "2026-11-28",
+                    "ranked_candidates": ranked,
+                    "candidates": [{"security_code": "6622", "company_name": "ダイヘン", "total_priority": 80}],
+                })
                 self.assertEqual("MISSING", result.status)
-                self.assertIn("failed to read", result.reason)
+                self.assertIn("ranked_candidates is present but is not a list", result.reason)
+                self.assertIsNone(result.data)
+
+    def test_legacy_candidates_field_still_used_when_primary_absent(self):
+        result = self.collect({
+            "as_of": "2026-11-28",
+            "candidates": [{"security_code": "6622", "company_name": "ダイヘン", "total_priority": 80}],
+        })
+        self.assertEqual("OK", result.status)
+        self.assertEqual(["6622"], [row["security_code"] for row in result.data])
+
+    def test_malformed_rows_beyond_limit_are_still_inspected(self):
+        rows = [{"security_code": f"{1000 + i}", "company_name": f"C{i}", "total_priority": 90 - i} for i in range(3)]
+        rows.append({"security_code": "9999", "company_name": "Late", "total_priority": "bad"})
+        result = self.collect({"as_of": "2026-11-28", "ranked_candidates": rows}, limit=2)
+        self.assertEqual("PARTIAL", result.status)
+        self.assertIn("malformed total_priority=1", result.reason)
+        self.assertEqual(["1000", "1001"], [row["security_code"] for row in result.data])
+        self.assertEqual([1, 2], [row["rank"] for row in result.data])
+
+    def test_well_formed_rows_beyond_limit_keep_feed_ok(self):
+        rows = [{"security_code": f"{1000 + i}", "company_name": f"C{i}", "total_priority": 90 - i} for i in range(5)]
+        result = self.collect({"as_of": "2026-11-28", "ranked_candidates": rows}, limit=2)
+        self.assertEqual("OK", result.status)
+        self.assertEqual(2, len(result.data))
 
     def test_non_object_snapshot_and_non_list_candidates_are_not_ok(self):
         self.assertEqual("MISSING", self.collect([{"security_code": "6622"}]).status)
-        result = self.collect({"as_of": "2026-11-28", "ranked_candidates": 5, "candidates": "6622"})
+        result = self.collect({"as_of": "2026-11-28", "candidates": "6622"})
         self.assertEqual("MISSING", result.status)
         self.assertIn("no candidate list", result.reason)
 
