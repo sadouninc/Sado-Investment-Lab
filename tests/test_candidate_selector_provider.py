@@ -44,7 +44,7 @@ class CandidateSelectorProviderTest(unittest.TestCase):
                 "as_of": "2026-08-11",
                 "ranked_candidates": [
                     {"security_code": None, "company_name": "原子力", "research_status": "NOT_STARTED"},
-                    {"security_code": "6232", "company_name": "ACSL", "research_status": "NOT_STARTED"},
+                    {"security_code": "6232", "company_name": "ACSL", "research_status": "NOT_STARTED", "total_priority": 72.5},
                 ],
             })
             result = CandidateSelectorProvider(path, today=date(2026, 8, 11)).collect()
@@ -60,6 +60,54 @@ class CandidateSelectorProviderTest(unittest.TestCase):
             result = CandidateSelectorProvider(path, today=date(2026, 8, 11)).collect()
             self.assertEqual("MISSING", result.status)
             self.assertIsNone(result.data)
+
+    def test_unscored_candidates_are_partial_and_not_arbitrarily_ranked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_snapshot(tmp, {
+                "as_of": "2026-11-28",
+                "ranked_candidates": [
+                    {"security_code": "4063", "company_name": "信越化学工業",
+                     "research_status": "STALE", "total_priority": None},
+                    {"security_code": "6622", "company_name": "ダイヘン",
+                     "research_status": "STALE", "total_priority": None},
+                ],
+            })
+            result = CandidateSelectorProvider(path, today=date(2026, 11, 28)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertIn("no scored priorities", result.reason)
+            self.assertEqual(["4063", "6622"], [row["security_code"] for row in result.data])
+            self.assertEqual([None, None], [row["rank"] for row in result.data])
+
+    def test_unscored_row_is_never_numbered_in_mixed_snapshot(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_snapshot(tmp, {
+                "as_of": "2026-11-28",
+                "ranked_candidates": [
+                    {"security_code": "4063", "company_name": "信越化学工業", "total_priority": None},
+                    {"security_code": "6232", "company_name": "ACSL", "total_priority": 72.5},
+                    {"security_code": "6622", "company_name": "ダイヘン", "total_priority": None},
+                    {"security_code": "2002", "company_name": "日清製粉グループ本社", "total_priority": 68},
+                ],
+            })
+            result = CandidateSelectorProvider(path, today=date(2026, 11, 28)).collect()
+            self.assertEqual("OK", result.status)
+            self.assertEqual([None, 1, None, 2], [row["rank"] for row in result.data])
+            self.assertEqual(72.5, result.data[1]["total_priority"])
+
+    def test_nonfinite_boolean_and_text_priorities_cannot_create_ranks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.write_snapshot(tmp, {
+                "as_of": "2026-11-28",
+                "ranked_candidates": [
+                    {"security_code": "1111", "company_name": "NaN", "total_priority": float("nan")},
+                    {"security_code": "2222", "company_name": "Infinity", "total_priority": float("inf")},
+                    {"security_code": "3333", "company_name": "Boolean", "total_priority": True},
+                    {"security_code": "4444", "company_name": "Text", "total_priority": "90"},
+                ],
+            })
+            result = CandidateSelectorProvider(path, today=date(2026, 11, 28)).collect()
+            self.assertEqual("PARTIAL", result.status)
+            self.assertEqual([None] * 4, [row["rank"] for row in result.data])
 
     def test_stale_snapshot_preserves_candidates(self):
         with tempfile.TemporaryDirectory() as tmp:
