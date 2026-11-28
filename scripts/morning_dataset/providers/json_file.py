@@ -7,6 +7,26 @@ from typing import Any, Callable
 
 from .base import ProviderResult
 
+_MAX_INT_DIGITS = 64
+_MAX_JSON_DEPTH = 100
+
+
+def _bounded_int(text: str) -> int:
+    if len(text.lstrip("+-")) > _MAX_INT_DIGITS:
+        raise ValueError(f"integer literal longer than {_MAX_INT_DIGITS} digits")
+    return int(text)
+
+
+def _finite_float(text: str) -> float:
+    value = float(text)
+    if not math.isfinite(value):
+        raise ValueError("non-finite JSON number")
+    return value
+
+
+def _reject_constant(_value: str) -> float:
+    raise ValueError("non-standard JSON constant is not allowed")
+
 
 class JsonFileProvider:
     """Deterministic provider for repository-generated JSON sources."""
@@ -41,9 +61,11 @@ class JsonFileProvider:
         try:
             data = json.loads(
                 self.path.read_text(encoding="utf-8"),
-                parse_constant=lambda value: (_ for _ in ()).throw(ValueError(f"non-finite JSON number: {value}")),
+                parse_int=_bounded_int,
+                parse_float=_finite_float,
+                parse_constant=_reject_constant,
             )
-        except (OSError, UnicodeError, ValueError, json.JSONDecodeError) as exc:
+        except (OSError, UnicodeError, ValueError, RecursionError) as exc:
             return ProviderResult.unavailable(
                 self.name,
                 status="PARTIAL",
@@ -66,11 +88,11 @@ class JsonFileProvider:
                 source_reference=source_reference,
             )
 
-        if self._contains_nonfinite(data):
+        if self._contains_unsafe_value(data):
             return ProviderResult.unavailable(
                 self.name,
                 status="PARTIAL",
-                reason="source JSON contains a non-finite numeric value",
+                reason="source JSON contains a non-finite value or exceeds the nesting limit",
                 source_reference=source_reference,
             )
 
@@ -82,12 +104,17 @@ class JsonFileProvider:
         )
 
     @classmethod
-    def _contains_nonfinite(cls, value: Any) -> bool:
-        if isinstance(value, float):
-            return not math.isfinite(value)
-        if isinstance(value, dict):
-            return any(cls._contains_nonfinite(item) for item in value.values())
-        if isinstance(value, list):
-            return any(cls._contains_nonfinite(item) for item in value)
+    def _contains_unsafe_value(cls, value: Any) -> bool:
+        pending = [(value, 0)]
+        while pending:
+            item, depth = pending.pop()
+            if isinstance(item, float) and not math.isfinite(item):
+                return True
+            if depth > _MAX_JSON_DEPTH:
+                return True
+            if isinstance(item, dict):
+                pending.extend((child, depth + 1) for child in item.values())
+            elif isinstance(item, list):
+                pending.extend((child, depth + 1) for child in item)
         return False
 
