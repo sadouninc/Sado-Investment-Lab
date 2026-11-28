@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, timedelta
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -43,13 +44,16 @@ class SectorRotationProvider:
             for line in self.path.read_text(encoding="utf-8").splitlines():
                 if not line.strip():
                     continue
-                row = json.loads(line)
+                row = json.loads(
+                    line,
+                    parse_constant=lambda value: (_ for _ in ()).throw(ValueError(f"non-finite JSON number: {value}")),
+                )
                 if isinstance(row, dict) and row.get("kind") == "SECTOR":
                     rows.append(row)
-        except (OSError, json.JSONDecodeError) as exc:
+        except (OSError, UnicodeError, ValueError, json.JSONDecodeError) as exc:
             return ProviderResult.unavailable(
                 self.name,
-                reason=f"failed to read Sector Money Flow history: {exc}",
+                reason=f"failed to read Sector Money Flow history: {exc.__class__.__name__}",
                 source_reference=str(self.path),
             )
 
@@ -66,12 +70,39 @@ class SectorRotationProvider:
 
         seen: set[str] = set()
         normalized: list[dict[str, Any]] = []
+        integrity_issues = 0
         for row in latest:
             entity_id = str(row.get("id") or "").strip()
-            if not entity_id or entity_id in seen:
+            if not entity_id:
+                integrity_issues += 1
+                continue
+            if entity_id in seen:
+                integrity_issues += 1
                 continue
             seen.add(entity_id)
-            scores = row.get("scores") if isinstance(row.get("scores"), dict) else {}
+            scores_value = row.get("scores")
+            if scores_value is None:
+                scores = {}
+            elif isinstance(scores_value, dict):
+                scores = scores_value
+            else:
+                scores = {}
+                integrity_issues += 1
+            evidence_value = row.get("evidence")
+            if evidence_value is None:
+                evidence = []
+            elif isinstance(evidence_value, list):
+                evidence = evidence_value
+            else:
+                evidence = []
+                integrity_issues += 1
+
+            flow_score, valid = self._finite_number_or_none(row.get("flow_score"))
+            integrity_issues += int(not valid)
+            normalized_scores: dict[str, int | float | None] = {}
+            for key in ("relative_strength", "activity", "breadth", "heat", "acceleration"):
+                normalized_scores[key], valid = self._finite_number_or_none(scores.get(key))
+                integrity_issues += int(not valid)
             normalized.append(
                 {
                     "id": entity_id,
@@ -79,16 +110,10 @@ class SectorRotationProvider:
                     "state": row.get("state"),
                     "previous_state": row.get("previous_state"),
                     "state_since": row.get("state_since"),
-                    "flow_score": row.get("flow_score"),
-                    "scores": {
-                        "relative_strength": scores.get("relative_strength"),
-                        "activity": scores.get("activity"),
-                        "breadth": scores.get("breadth"),
-                        "heat": scores.get("heat"),
-                        "acceleration": scores.get("acceleration"),
-                    },
+                    "flow_score": flow_score,
+                    "scores": normalized_scores,
                     "data_completeness": row.get("data_completeness"),
-                    "evidence": list(row.get("evidence") or []),
+                    "evidence": evidence,
                 }
             )
 
@@ -106,6 +131,16 @@ class SectorRotationProvider:
                 as_of=latest_as_of,
                 source_reference=str(self.path),
                 reason="Morning report date is required to verify Sector snapshot freshness",
+                data=payload,
+            )
+
+        if integrity_issues:
+            return ProviderResult.unavailable(
+                self.name,
+                status="PARTIAL",
+                as_of=latest_as_of,
+                source_reference=str(self.path),
+                reason=f"latest Sector set contains {integrity_issues} input integrity issue(s)",
                 data=payload,
             )
 
@@ -185,4 +220,15 @@ class SectorRotationProvider:
             as_of=latest_as_of,
             source_reference=str(self.path),
         )
+
+    @staticmethod
+    def _finite_number_or_none(value: Any) -> tuple[int | float | None, bool]:
+        if value is None:
+            return None, True
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return None, False
+        if isinstance(value, float) and not math.isfinite(value):
+            return None, False
+        return value, True
+
 
