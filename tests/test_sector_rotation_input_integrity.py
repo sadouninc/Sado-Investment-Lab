@@ -87,6 +87,53 @@ class SectorRotationInputIntegrityTests(unittest.TestCase):
                 self.assertNotEqual("OK", result.status)
                 self.assertNotIn("private", result.reason or "")
 
+    def test_huge_integer_in_otherwise_valid_row_is_non_ok(self) -> None:
+        huge = "9" * 5000
+        raw = (
+            '{"kind":"SECTOR","id":"sector:a","as_of":"2026-11-11",'
+            '"name":"A","state":"WARMING","previous_state":"COLD",'
+            '"state_since":"2026-11-11","flow_score":' + huge + ',"scores":{},'
+            '"data_completeness":"OK","evidence":[]}'
+        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "sector-history.jsonl"
+            path.write_text(raw, encoding="utf-8")
+            result = SectorRotationProvider(path=path, expected_count=1, report_date=date(2026, 11, 12)).collect()
+        self.assertNotEqual("OK", result.status)
+        self.assertIsNone(result.data)
+
+    def test_nested_nonfinite_metadata_is_rejected_at_decode(self) -> None:
+        raw = json.dumps(sector("sector:a"), ensure_ascii=False).replace('["fixture"]', '[{"value":1e400}]')
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "sector-history.jsonl"
+            path.write_text(raw, encoding="utf-8")
+            result = SectorRotationProvider(path=path, expected_count=1, report_date=date(2026, 11, 12)).collect()
+        self.assertNotEqual("OK", result.status)
+        self.assertIsNone(result.data)
+
+    def test_deep_evidence_and_non_string_id_are_partial(self) -> None:
+        deep = "leaf"
+        for _ in range(101):
+            deep = [deep]
+        rows = [sector("sector:valid"), sector("sector:deep", evidence=deep), sector("sector:bad-id")]
+        rows[2]["id"] = ["not", "a", "string"]
+        result = self.collect(rows, expected_count=2)
+        self.assertEqual("PARTIAL", result.status)
+        sectors = {row["id"]: row for row in result.data["sectors"]}
+        self.assertEqual([], sectors["sector:deep"]["evidence"])
+        json.dumps(result.data, allow_nan=False)
+
+    def test_mixed_valid_and_missing_or_invalid_as_of_is_partial(self) -> None:
+        valid = sector("sector:valid")
+        missing = sector("sector:missing")
+        missing.pop("as_of")
+        invalid = sector("sector:invalid")
+        invalid["as_of"] = "not-a-date"
+        result = self.collect([valid, missing, invalid], expected_count=1)
+        self.assertEqual("PARTIAL", result.status)
+        self.assertEqual(["sector:valid"], [row["id"] for row in result.data["sectors"]])
+        self.assertNotIn("not-a-date", result.reason or "")
+
 
 if __name__ == "__main__":
     unittest.main()
