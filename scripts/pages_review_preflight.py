@@ -15,6 +15,42 @@ def finding(rule: str, severity: str, route: str, evidence: str, recommendation:
             "evidence": evidence, "recommendation": recommendation}
 
 
+def _iso_date(value):
+    if not isinstance(value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def _finite_number(value):
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
+def _verified_candidate(item, as_of):
+    # Provider status OK is not the row-level research freshness enum.
+    if not isinstance(item, dict) or as_of is None:
+        return False
+    code = item.get("security_code")
+    name = item.get("company_name")
+    researched = _iso_date(item.get("last_researched_at"))
+    rank = item.get("rank")
+    return (
+        isinstance(code, str) and bool(re.fullmatch(r"[0-9][0-9A-Z][0-9][0-9A-Z]", code.strip()))
+        and isinstance(name, str) and bool(name.strip())
+        and item.get("status") == "CURRENT"
+        and _finite_number(item.get("total_priority"))
+        and _finite_number(rank) and rank > 0 and rank == int(rank)
+        and researched is not None and researched <= as_of
+    )
+
+
 def inspect(root: Path) -> dict:
     findings = []
     manifest = {"source": "repository_artifact", "ai_review": "NOT_RUN",
@@ -44,14 +80,12 @@ def inspect(root: Path) -> dict:
                     f"candidates {reason}",
                     "今日の検証済み注目銘柄は未確定（候補データなし／未取得）"))
             else:
-                def valid_priority(item):
-                    priority = item.get("total_priority")
-                    return (isinstance(priority, (int, float)) and not isinstance(priority, bool)
-                            and math.isfinite(priority))
-                if not any(isinstance(item, dict) and item.get("status") == "OK"
-                           and valid_priority(item) for item in candidates):
+                as_of = _iso_date(data.get("as_of"))
+                source = statuses.get("candidates", {})
+                if (source.get("status") != "OK"
+                        or not any(_verified_candidate(item, as_of) for item in candidates)):
                     findings.append(finding("NO_VERIFIED_FOCUS", "P0", "/",
-                        f"candidates={len(candidates)}; none with OK status and valid numeric priority",
+                        f"candidates={len(candidates)}; no verified CURRENT row with valid identity, priority, rank and research date under an OK candidate source",
                         "今日の検証済み注目候補は未確定と表示。過去の保有/Researchを新情報として昇格しない"))
         except (OSError, ValueError, TypeError, AttributeError) as ex:
             findings.append(finding("MORNING_DATA_UNREADABLE", "P0", "/",
