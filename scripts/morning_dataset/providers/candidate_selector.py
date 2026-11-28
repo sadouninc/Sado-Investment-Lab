@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -58,6 +59,7 @@ class CandidateSelectorProvider:
 
         eligible: list[dict[str, Any]] = []
         unresolved = 0
+        scored_count = 0
         for row in ranked:
             if not isinstance(row, dict):
                 continue
@@ -66,11 +68,19 @@ class CandidateSelectorProvider:
             if not isinstance(code, str) or not code.strip() or not isinstance(name, str) or not name.strip():
                 unresolved += 1
                 continue
+            priority = row.get("total_priority")
+            scored = (
+                isinstance(priority, (int, float))
+                and not isinstance(priority, bool)
+                and math.isfinite(priority)
+            )
+            if scored:
+                scored_count += 1
             eligible.append(
                 {
                     "security_code": code.strip(),
                     "company_name": name.strip(),
-                    "rank": len(eligible) + 1 if isinstance(row.get("total_priority"), (int, float)) and not isinstance(row.get("total_priority"), bool) else None,
+                    "rank": scored_count if scored else None,
                     "status": row.get("research_status") or "UNKNOWN",
                     "total_priority": row.get("total_priority"),
                     "owner_pick": bool(row.get("owner_pick")),
