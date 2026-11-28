@@ -117,11 +117,57 @@ def dataset_status_label(status: object) -> str:
     return labels.get(normalized, f"データ状態: 確認が必要 ({normalized})")
 
 
+UNVERIFIED_FOCUS_LABEL = "今日の検証済み注目銘柄は未確定"
+
+
+def focus_verified(diagnostics: object) -> bool:
+    """Only an explicit deterministic verification may present a focus as a pick.
+
+    Reports generated before diagnostics recorded ``candidate_focus`` (and any
+    malformed value) fail closed: their AI watch section is shown as an
+    unverified memo, never as today's verified stock pick.
+    """
+    if not isinstance(diagnostics, dict):
+        return False
+    focus = diagnostics.get("candidate_focus")
+    return isinstance(focus, dict) and focus.get("verified_focus_available") is True
+
+
+def watch_line(summary: dict[str, str], *, verified: bool) -> str:
+    watch = summary.get("watch") or ""
+    if verified:
+        return f"注目: {watch}"
+    return f"注目: {UNVERIFIED_FOCUS_LABEL}（AI候補メモ・未検証: {watch}）"
+
+
+def unverified_focus_notice(diagnostics: object) -> str:
+    focus = diagnostics.get("candidate_focus") if isinstance(diagnostics, dict) else None
+    reason = focus.get("reason") if isinstance(focus, dict) else None
+    detail = reason or "この日の候補が検証済みかどうかの記録がありません"
+    return (
+        f"> **{UNVERIFIED_FOCUS_LABEL}。** 以下はAIが候補データから書いたメモで、"
+        "今日の推奨・新しい材料・現在の保有を示すものではありません。"
+        f"（理由: {detail}）\n\n"
+    )
+
+
+def annotate_watch_section(text: str, diagnostics: object) -> str:
+    """Add a display-only notice above the watch section; the source report is not rewritten."""
+    if focus_verified(diagnostics):
+        return text
+    match = re.search(r"^##\s+(?:注目銘柄|Key Watch|Watchlist)\s*$", text, re.MULTILINE)
+    if not match:
+        return text
+    insert_at = match.end() + 1
+    return text[:insert_at] + "\n" + unverified_focus_notice(diagnostics) + text[insert_at:].lstrip("\n")
+
+
 def card_detail(
     summary: dict[str, str],
     status: object,
     *,
     generated_at: object = None,
+    verified_focus: bool = False,
 ) -> str:
     """Preserve the established decision summary while adding freshness metadata."""
     rows: list[str] = []
@@ -133,7 +179,7 @@ def card_detail(
     if summary.get("strategy"):
         rows.append(f"戦略: {summary['strategy']}")
     if summary.get("watch"):
-        rows.append(f"注目: {summary['watch']}")
+        rows.append(watch_line(summary, verified=verified_focus))
     elif summary.get("risk"):
         rows.append(f"リスク: {summary['risk']}")
     rows.append(dataset_status_label(status))
@@ -146,6 +192,7 @@ def latest_report_card(
     summary: dict[str, str],
     status: object,
     generated_at: object = None,
+    verified_focus: bool = False,
 ) -> str:
     """Render the latest decision-oriented report before any implementation explanation."""
     return (
@@ -153,7 +200,7 @@ def latest_report_card(
         '<h2 id="morning-latest">今日まず見る</h2>\n'
         f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
         f'<strong>最新レポート {html.escape(day)}</strong>'
-        f'<span>{card_detail(summary, status, generated_at=generated_at)}</span></a>\n'
+        f'<span>{card_detail(summary, status, generated_at=generated_at, verified_focus=verified_focus)}</span></a>\n'
         '</section>\n'
     )
 
@@ -161,7 +208,7 @@ def latest_report_card(
 def build() -> None:
     sources = sorted(REPORT_DIR.glob("*.md"), reverse=True) if REPORT_DIR.exists() else []
     cards: list[str] = []
-    latest: tuple[str, str, dict[str, str], object, object] | None = None
+    latest: tuple[str, str, dict[str, str], object, object, bool] | None = None
     for source in sources:
         day = report_date(source)
         url = f"/reports/morning/{day}/"
@@ -175,12 +222,13 @@ def build() -> None:
         generated_at = diagnostics.get("generated_at")
         report_text = source.read_text(encoding="utf-8")
         summary = report_card_summary(report_text)
+        verified = focus_verified(diagnostics)
         if latest is None:
-            latest = (day, url, summary, status, generated_at)
+            latest = (day, url, summary, status, generated_at, verified)
         else:
             cards.append(
                 f'<a class="content-card" href="{{{{ \'{url}\' | relative_url }}}}">'
-                f"<strong>{day}</strong><span>{card_detail(summary, status)}</span></a>"
+                f"<strong>{day}</strong><span>{card_detail(summary, status, verified_focus=verified)}</span></a>"
             )
         page = front_matter(
             f"朝の市場レポート {day}",
@@ -191,7 +239,7 @@ def build() -> None:
             '<p class="breadcrumb"><a href="{{ \'/reports/morning/\' | relative_url }}">'
             f"朝の市場レポート</a> / {day}</p>\n\n"
         )
-        page += strip_source_front_matter(report_text)
+        page += annotate_watch_section(strip_source_front_matter(report_text), diagnostics)
         if diagnostics:
             page += (
                 "\n\n## API Diagnostics\n\n"

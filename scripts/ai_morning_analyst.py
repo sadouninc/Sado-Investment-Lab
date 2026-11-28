@@ -5,6 +5,7 @@ import argparse
 from datetime import datetime
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -111,6 +112,58 @@ def estimate_cost(usage: dict[str, Any]) -> tuple[float | None, str]:
     return round(cost, 6), "estimated_from_repository_variables"
 
 
+def _finite_number(value: Any) -> bool:
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and math.isfinite(value)
+    )
+
+
+def candidate_focus_verification(dataset: dict[str, Any]) -> dict[str, Any]:
+    """Deterministically record whether the dataset supports a verified focus pick.
+
+    This mirrors the SYSTEM_PROMPT rule so that downstream renderers do not have
+    to trust AI prose: a verified focus needs an OK candidate source and at least
+    one candidate with a finite total_priority, a numeric rank and CURRENT status.
+    Anything else (STALE/PARTIAL/MISSING source, unscored or stale rows, or a
+    malformed payload) is recorded as not verified.
+    """
+    source = next(
+        (
+            row
+            for row in dataset.get("source_status") or []
+            if isinstance(row, dict) and row.get("name") == "candidates"
+        ),
+        {},
+    )
+    source_status = str(source.get("status") or "UNKNOWN").upper()
+    rows = dataset.get("candidates")
+    rows = [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
+    scored = [row for row in rows if _finite_number(row.get("total_priority")) and _finite_number(row.get("rank"))]
+    current_scored = [row for row in scored if str(row.get("status") or "").upper() == "CURRENT"]
+    verified = source_status == "OK" and bool(current_scored)
+    if verified:
+        reason = None
+    elif not rows:
+        reason = "候補データがありません"
+    elif source_status != "OK":
+        reason = f"候補データの状態が {source_status} です"
+    elif not scored:
+        reason = "優先度を算出できた候補がありません"
+    else:
+        reason = "優先度のある候補の根拠がすべて古い（STALE等）です"
+    return {
+        "verified_focus_available": verified,
+        "candidate_source_status": source_status,
+        "candidate_source_as_of": source.get("as_of"),
+        "candidate_count": len(rows),
+        "scored_count": len(scored),
+        "current_scored_count": len(current_scored),
+        "reason": reason,
+    }
+
+
 def render_report(ai_markdown: str, dataset: dict[str, Any], model: str) -> str:
     generated_at = datetime.now().astimezone().isoformat(timespec="seconds")
     quality = dataset.get("data_quality", {})
@@ -174,6 +227,7 @@ def main() -> None:
         "estimated_cost_usd": estimated_cost,
         "cost_basis": cost_basis,
         "context_optimization": optimization,
+        "candidate_focus": candidate_focus_verification(dataset),
         "optimized_dataset_path": str(optimized_path),
         "report_path": str(report_path),
         "status": "OK",
