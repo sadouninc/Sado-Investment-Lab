@@ -25,15 +25,19 @@ Input document (local JSON, no network)::
 
 Rules (each failure is a HOLD reason; nothing is ever PASS by default):
 
-* every dependency must have exactly one PR snapshot that is merged with a
-  well-formed ``merge_commit_sha``;
+* every dependency must have exactly one PR snapshot with ``merged: true``,
+  ``state: "closed"`` and a well-formed ``merge_commit_sha``;
+* the target must have exactly one PR snapshot that is ``open``, not merged,
+  and whose ``head_sha`` equals ``target.head_sha``;
 * the integration run must list each dependency at its merge SHA (or at its
-  final head SHA when that equals the merged head) and the target at its
-  current head; an older target head is ``STALE_TARGET_HEAD``;
+  final head SHA) and the target at its current head; an older target head is
+  ``STALE_TARGET_HEAD``.  Accepting the dependency's final head is NOT proof
+  that the integration base contains the merge (ancestry is not checked);
 * the integration run must report ``passed > 0`` with zero failures/errors;
 * CI must be for the current target head and every required check must have
   concluded ``success``;
-* duplicate or contradictory entries and malformed values are HOLD.
+* duplicate (even identical) or contradictory entries and malformed values
+  are HOLD.
 
 The report always carries ``merge_authorized: false``.  Even
 ``EVIDENCE_COMPLETE`` only means the listed evidence is internally
@@ -49,7 +53,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 STATUS_COMPLETE = "EVIDENCE_COMPLETE"
 STATUS_HOLD = "HOLD"
@@ -65,7 +69,7 @@ EVIDENCE_LIMITS = (
 
 
 def _is_sha(value: Any) -> bool:
-    return isinstance(value, str) and bool(_SHA_RE.match(value))
+    return isinstance(value, str) and _SHA_RE.fullmatch(value) is not None
 
 
 def _is_pr(value: Any) -> bool:
@@ -145,8 +149,17 @@ def build_report(doc: Any) -> dict[str, Any]:
         if snap is None:
             _hold(reasons, "DEPENDENCY_SNAPSHOT_MISSING", f"no PR snapshot for dependency #{num}", pr=num)
             continue
-        if snap.get("merged") is not True:
+        if not isinstance(snap.get("merged"), bool):
+            _hold(reasons, "MALFORMED", f"dependency PR #{num} snapshot merged must be boolean", pr=num)
+            continue
+        if snap["merged"] is not True:
             _hold(reasons, "DEPENDENCY_NOT_MERGED", f"dependency PR #{num} is not merged", pr=num)
+            continue
+        if snap.get("state") != "closed":
+            _hold(
+                reasons, "CONTRADICTORY_SNAPSHOT",
+                f"dependency PR #{num} merged but state {snap.get('state')!r}", pr=num,
+            )
             continue
         merge_sha = snap.get("merge_commit_sha")
         if not _is_sha(merge_sha):
@@ -161,10 +174,21 @@ def build_report(doc: Any) -> dict[str, Any]:
 
     if target_pr is not None:
         tsnap = snapshots.get(target_pr)
-        if tsnap is not None:
-            if tsnap.get("merged") is True:
+        if tsnap is None:
+            _hold(reasons, "TARGET_SNAPSHOT_MISSING", f"no PR snapshot for target #{target_pr}", pr=target_pr)
+        else:
+            if not isinstance(tsnap.get("merged"), bool):
+                _hold(reasons, "MALFORMED", f"target PR #{target_pr} snapshot merged must be boolean", pr=target_pr)
+            elif tsnap["merged"]:
                 _hold(reasons, "TARGET_ALREADY_MERGED", f"target PR #{target_pr} already merged", pr=target_pr)
-            if tsnap.get("head_sha") is not None and tsnap.get("head_sha") != target_head:
+            if tsnap.get("state") != "open":
+                _hold(
+                    reasons, "TARGET_NOT_OPEN",
+                    f"target PR #{target_pr} state {tsnap.get('state')!r}", pr=target_pr,
+                )
+            if not _is_sha(tsnap.get("head_sha")):
+                _hold(reasons, "MALFORMED", f"target PR #{target_pr} snapshot head_sha must be 40-hex", pr=target_pr)
+            elif tsnap["head_sha"] != target_head:
                 _hold(reasons, "STALE_TARGET_HEAD", "target head_sha differs from PR snapshot head", pr=target_pr)
 
     # --- integration run -------------------------------------------------------
@@ -184,8 +208,11 @@ def build_report(doc: Any) -> dict[str, Any]:
                 _hold(reasons, "MALFORMED", f"integration.refs[{pos}] must have pr and 40-hex sha")
                 continue
             num = ref["pr"]
-            if num in integ_refs and integ_refs[num] != ref["sha"]:
-                _hold(reasons, "CONFLICTING_INTEGRATION_REF", f"PR #{num} listed at two shas", pr=num)
+            if num in integ_refs:
+                if integ_refs[num] != ref["sha"]:
+                    _hold(reasons, "CONFLICTING_INTEGRATION_REF", f"PR #{num} listed at two shas", pr=num)
+                else:
+                    _hold(reasons, "DUPLICATE_INTEGRATION_REF", f"PR #{num} listed more than once", pr=num)
                 continue
             integ_refs[num] = ref["sha"]
         counts = {k: integ.get(k) for k in ("passed", "failed", "errors")}
@@ -232,15 +259,27 @@ def build_report(doc: Any) -> dict[str, Any]:
             _hold(reasons, "MALFORMED", "ci.required_checks must be non-empty strings and ci.checks a list")
         else:
             ci_out["required"] = sorted(set(required))
-            results: dict[str, set[Any]] = {}
-            for chk in checks:
-                if isinstance(chk, dict) and isinstance(chk.get("name"), str):
-                    results.setdefault(chk["name"], set()).add(chk.get("conclusion"))
+            for name in sorted({r for r in required if required.count(r) > 1}):
+                _hold(reasons, "DUPLICATE_REQUIRED_CHECK", f"required check {name!r} listed more than once")
+            results: dict[str, list[str]] = {}
+            for pos, chk in enumerate(checks):
+                if (
+                    not isinstance(chk, dict)
+                    or not isinstance(chk.get("name"), str)
+                    or not chk["name"]
+                    or not (chk.get("conclusion") is None or isinstance(chk.get("conclusion"), str))
+                ):
+                    _hold(reasons, "MALFORMED", f"ci.checks[{pos}] must have string name and string/null conclusion")
+                    continue
+                results.setdefault(chk["name"], []).append(chk.get("conclusion"))
+            for name, got in sorted(results.items()):
+                if len(got) > 1:
+                    _hold(reasons, "DUPLICATE_CHECK", f"check {name!r} reported {len(got)} times")
             for name in ci_out["required"]:
                 got = results.get(name)
-                if got != {"success"}:
+                if got != ["success"]:
                     ci_out["missing_or_failed"].append(name)
-                    detail = "missing" if not got else f"conclusions {sorted(map(str, got))}"
+                    detail = "missing" if not got else f"conclusions {[str(g) for g in got]}"
                     _hold(reasons, "CI_NOT_GREEN", f"required check {name!r} {detail}")
 
     reasons.sort(key=lambda r: (r["code"], r.get("pr", 0), r["detail"]))

@@ -4,6 +4,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from scripts.provider_rollout_evidence import STATUS_COMPLETE, STATUS_HOLD, build_report, main
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -207,7 +209,7 @@ def test_multiple_dependencies_each_checked():
     s["dependencies"].append({"pr": 11, "provider": "market"})
     r = build_report(s)
     assert "DEPENDENCY_SNAPSHOT_MISSING" in codes(r)
-    s["prs"].append({"number": 11, "merged": True, "head_sha": sha("2"), "merge_commit_sha": sha("3")})
+    s["prs"].append({"number": 11, "state": "closed", "merged": True, "head_sha": sha("2"), "merge_commit_sha": sha("3")})
     assert "INTEGRATION_REF_MISSING" in codes(build_report(s))
     s["integration"]["refs"].append({"pr": 11, "sha": sha("3")})
     assert build_report(s)["status"] == STATUS_COMPLETE
@@ -252,3 +254,89 @@ def test_cli_runs_as_module(tmp_path):
     )
     assert proc.returncode == 0, proc.stderr
     assert json.loads(proc.stdout)["merge_authorized"] is False
+
+
+# --- review 6099042165 regressions ------------------------------------------------
+
+
+@pytest.mark.parametrize("conclusion", [["success"], {"x": 1}, 1, True])
+def test_non_string_ci_conclusion_does_not_raise(conclusion):
+    s = snapshot()
+    s["ci"]["checks"][0]["conclusion"] = conclusion
+    r = build_report(s)
+    assert r["status"] == STATUS_HOLD
+    assert "MALFORMED" in codes(r)
+
+
+@pytest.mark.parametrize("bad", [None, "build", {"conclusion": "success"}, {"name": "", "conclusion": "success"}])
+def test_malformed_check_entry_is_hold_not_ignored(bad):
+    s = snapshot()
+    s["ci"]["checks"].append(bad)
+    assert "MALFORMED" in codes(build_report(s))
+
+
+def test_duplicate_same_sha_integration_ref():
+    s = snapshot()
+    s["integration"]["refs"].append({"pr": 10, "sha": DEP_MERGE})
+    assert "DUPLICATE_INTEGRATION_REF" in codes(build_report(s))
+
+
+def test_duplicate_required_and_same_result_checks():
+    s = snapshot()
+    s["ci"]["required_checks"].append("build")
+    assert "DUPLICATE_REQUIRED_CHECK" in codes(build_report(s))
+    s = snapshot()
+    s["ci"]["checks"].append({"name": "build", "conclusion": "success"})
+    r = build_report(s)
+    assert {"DUPLICATE_CHECK", "CI_NOT_GREEN"} <= codes(r)
+
+
+@pytest.mark.parametrize("state", ["open", None, "merged"])
+def test_dependency_merged_but_not_closed_is_contradictory(state):
+    s = snapshot()
+    s["prs"][0]["state"] = state
+    assert "CONTRADICTORY_SNAPSHOT" in codes(build_report(s))
+
+
+@pytest.mark.parametrize("merged", ["true", 1, None])
+def test_non_boolean_merged_flag(merged):
+    s = snapshot()
+    s["prs"][0]["merged"] = merged
+    assert "MALFORMED" in codes(build_report(s))
+    s = snapshot()
+    s["prs"][1]["merged"] = merged
+    assert "MALFORMED" in codes(build_report(s))
+
+
+def test_target_snapshot_absent_holds():
+    s = snapshot()
+    del s["prs"][1]
+    assert "TARGET_SNAPSHOT_MISSING" in codes(build_report(s))
+
+
+@pytest.mark.parametrize("state", ["closed", None])
+def test_target_closed_or_unknown_state_holds(state):
+    s = snapshot()
+    s["prs"][1]["state"] = state
+    assert "TARGET_NOT_OPEN" in codes(build_report(s))
+
+
+def test_target_snapshot_without_head_holds():
+    s = snapshot()
+    del s["prs"][1]["head_sha"]
+    assert "MALFORMED" in codes(build_report(s))
+
+
+def test_sha_with_trailing_newline_rejected():
+    s = snapshot()
+    s["target"]["head_sha"] = TARGET_HEAD + "\n"
+    assert "MALFORMED" in codes(build_report(s))
+    s = snapshot()
+    s["prs"][0]["merge_commit_sha"] = DEP_MERGE + "\n"
+    assert "MALFORMED" in codes(build_report(s))
+
+
+def test_ancestry_limit_is_documented():
+    r = build_report(snapshot())
+    assert any("ancestry" in limit for limit in r["evidence_limits"])
+    assert r["merge_authorized"] is False
