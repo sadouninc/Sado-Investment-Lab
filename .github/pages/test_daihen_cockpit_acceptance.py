@@ -247,9 +247,40 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         model["expectations"]["warnings"] = ["NEW_WARNING_CODE"]
         summary = BUILDER._attention_summary(model)
         visible = summary.split("<details", 1)[0]
-        self.assertIn("new_component の情報鮮度を確認できません", visible)
-        self.assertIn("expectations に未確認事項があります", visible)
+        self.assertIn("情報鮮度を確認できない項目があります", visible)
+        self.assertIn("追加の未確認事項があります", visible)
+        self.assertNotIn("new_component", visible)
+        self.assertNotIn("NEW_WARNING_CODE", visible)
         self.assertIn("NEW_WARNING_CODE", summary)
+
+    def test_healthy_model_does_not_claim_partial_or_error(self):
+        model = copy.deepcopy(self.model)
+        model["overall_status"] = "OK"
+        model["freshness"].update({
+            "overall": "CURRENT",
+            "unknown_components": [],
+            "stale_components": [],
+        })
+        for name in ("earnings_driver", "valuation", "expectations"):
+            model[name]["warnings"] = []
+        summary = BUILDER._attention_summary(model)
+        self.assertIn("現在、重要な未確認事項はありません", summary)
+        self.assertNotIn("一部の情報が不足", summary)
+        self.assertNotIn("エラーではなく", summary)
+
+    def test_unknown_or_unavailable_state_is_not_blanket_labeled_non_error(self):
+        model = copy.deepcopy(self.model)
+        model["overall_status"] = "UNAVAILABLE"
+        model["freshness"].update({
+            "overall": "UNKNOWN",
+            "unknown_components": [],
+            "stale_components": [],
+        })
+        for name in ("earnings_driver", "valuation", "expectations"):
+            model[name]["warnings"] = []
+        summary = BUILDER._attention_summary(model)
+        self.assertIn("取得状態に確認が必要な項目があります", summary)
+        self.assertNotIn("エラーではなく", summary)
 
     def test_portfolio_not_run_is_not_presented_as_safe(self):
         self.assertEqual(self.model["portfolio_preflight"]["status"], "NOT_RUN")
