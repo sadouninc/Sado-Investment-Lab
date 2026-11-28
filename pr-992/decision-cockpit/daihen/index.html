@@ -27,7 +27,7 @@
 <body>
 <div id="sado-pr-preview-banner" role="status" aria-label="Pull request preview">
   <strong>PR PREVIEW · #992 · NOT PRODUCTION</strong>
-  <span>Head ca84619cb3a9 · Built 2026-11-28T13:59:44Z</span>
+  <span>Head ea7bb2bab5b6 · Built 2026-11-28T14:07:16Z</span>
 </div>
 <style>
   #sado-pr-preview-banner {
@@ -213,10 +213,17 @@
 <ul>
   <li>全体状態: 一部情報不足 <code>PARTIAL</code></li>
   <li>情報鮮度: 一部情報不足 <code>PARTIAL</code></li>
-  <li>古いcomponent: なし</li>
-  <li>鮮度不明component: portfolio_preflight</li>
 </ul>
-<ul><li>earnings_driver: DRIVER_COVERAGE_PARTIAL</li><li>expectations: SECONDARY_SOURCE</li><li>expectations: CONSENSUS_IS_PROXY_NOT_TRUTH</li></ul>
+
+<div class="notice-card cockpit-attention-summary">
+  <strong>この表示はエラーではなく、未確認情報を隠さないための注意です。</strong>
+  <ul><li>一部の情報が不足しているため、画面全体を確定済みとは扱いません。</li><li>売買条件が未入力のため、保有資産への影響はまだ確認していません。売買を検討するときに数量などを入力して確認してください。</li><li>利益予想を説明する事業別の根拠が一部不足しています。利益予想の根拠欄で取得済み資料と未確認部分を確認してください。</li><li>市場予想は二次情報を使った参考値です。一次資料の確定値ではありません。</li><li>表示中の市場予想は観測可能な参考値で、市場全体の確定的な期待値ではありません。</li></ul>
+</div>
+<details class="cockpit-attention-codes">
+  <summary>内部状態コードを見る</summary>
+  <p>調査・保守用の識別子です。投資判断の結論ではありません。</p>
+  <ul><li>鮮度不明: portfolio_preflight</li><li>earnings_driver: DRIVER_COVERAGE_PARTIAL</li><li>expectations: SECONDARY_SOURCE</li><li>expectations: CONSENSUS_IS_PROXY_NOT_TRUTH</li></ul>
+</details>
 
 <h2 id="1-利益予想--なぜこのbase">1. 利益予想 — なぜこのBase？</h2>
 <div class="content-grid"><div class="content-card"><strong>Base純利益</strong><span>17,000百万円</span><span>一部情報不足 <code>PARTIAL</code></span></div><div class="content-card"><strong>Base EPS</strong><span>144.02円</span><span>対象: FY2027</span></div><div class="content-card"><strong>会社予想 純利益</strong><span>20,000百万円</span><span>説明coverage: <code>PARTIAL</code></span></div></div>
