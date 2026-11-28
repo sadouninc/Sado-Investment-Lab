@@ -11,6 +11,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+import unittest.mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -150,18 +151,104 @@ class ProducerCompatibilityTests(unittest.TestCase):
             root = Path(tmp)
             (root / "index.html").write_text("x")
             (root / "preview-metadata.json").write_text("{broken")
-            pac.main(["--root", str(root), "--expected-pr", "986", "--expected-head", HEAD,
-                      "--output", str(Path(outside) / "r.json")])
+            rc = pac.main(["--root", str(root), "--expected-pr", "986", "--expected-head", HEAD,
+                           "--output", str(Path(outside) / "r.json")])
+            self.assertEqual(rc, 0)
             self.assertEqual(json.loads((Path(outside) / "r.json").read_text())["verdict"], "FAIL")  # routes missing
             (root / "preview-metadata.json").write_text(json.dumps(meta(html_files=1)))
             (root / "concepts/investment-decision-cockpit").mkdir(parents=True)
             (root / "concepts/investment-decision-cockpit/index.html").write_text("c")
             os.symlink(outside, root / "leak")
             files = pac.list_artifact(root)
-            self.assertTrue(any(f.startswith("../symlink-escape/") for f in files))
+            self.assertTrue(any(f.startswith("../symlink-rejected/") for f in files))
             report = pac.check_artifact(meta(html_files=2), files, expected_pr=986, expected_head=HEAD)
             self.assertEqual(report["verdict"], "FAIL")
             self.assertIsNone(pac.list_artifact(root / "missing"))
+
+
+class SymlinkAndRobustnessTests(unittest.TestCase):
+    """❤️レイ review 6098961241 counterexamples."""
+
+    def _artifact(self, root: Path) -> None:
+        (root / "concepts/investment-decision-cockpit").mkdir(parents=True)
+        (root / "index.html").write_text("x")
+        (root / "concepts/investment-decision-cockpit/index.html").write_text("c")
+        (root / "preview-metadata.json").write_text(json.dumps(meta()))
+
+    def _cli(self, root: Path, out: Path) -> dict:
+        rc = pac.main(["--root", str(root), "--expected-pr", "986", "--expected-head", HEAD, "--output", str(out)])
+        self.assertEqual(rc, 0)
+        return json.loads(out.read_text())
+
+    def test_escaping_metadata_symlink_is_never_read(self):
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as outside:
+            root = Path(tmp)
+            self._artifact(root)
+            (root / "preview-metadata.json").unlink()
+            (Path(outside) / "meta.json").write_text(json.dumps(meta()))
+            os.symlink(Path(outside) / "meta.json", root / "preview-metadata.json")
+            self.assertIsNone(pac.read_metadata(root))
+            report = self._cli(root, Path(outside) / "r.json")
+            self.assertNotEqual(report["verdict"], "PASS")
+            self.assertEqual(statuses(report, "metadata"), ["UNKNOWN"])
+
+    def test_dangling_and_internal_symlink_routes_are_not_present(self):
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as out:
+            root = Path(tmp)
+            self._artifact(root)
+            cockpit = root / "concepts/investment-decision-cockpit/index.html"
+            cockpit.unlink()
+            os.symlink(root / "concepts/missing.html", cockpit)  # dangling, inside root
+            report = self._cli(root, Path(out) / "r.json")
+            self.assertEqual(report["verdict"], "FAIL")
+            self.assertTrue(any("missing route: concepts" in c["detail"] for c in report["checks"]))
+            cockpit.unlink()
+            os.symlink(root / "index.html", cockpit)  # internal, existing target
+            self.assertEqual(self._cli(root, Path(out) / "r2.json")["verdict"], "FAIL")
+
+    def test_symlink_loop_does_not_raise(self):
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as out:
+            root = Path(tmp)
+            self._artifact(root)
+            os.symlink(root / "loop-b", root / "loop-a")
+            os.symlink(root / "loop-a", root / "loop-b")
+            self.assertEqual(self._cli(root, Path(out) / "r.json")["verdict"], "FAIL")
+
+    def test_walk_errors_make_listing_unknown(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self._artifact(root)
+            real_walk = os.walk
+
+            def failing_walk(top, **kwargs):
+                kwargs["onerror"](PermissionError("denied"))
+                return real_walk(top, **{k: v for k, v in kwargs.items() if k != "onerror"})
+
+            with unittest.mock.patch.object(pac.os, "walk", side_effect=failing_walk):
+                self.assertIsNone(pac.list_artifact(root))
+            self.assertIsNone(pac.list_artifact(root / "nope"))
+            link = Path(tmp + "-link")
+            os.symlink(root, link)
+            try:
+                self.assertIsNone(pac.list_artifact(link))  # root itself must not be a symlink
+            finally:
+                link.unlink()
+
+    def test_malformed_or_empty_route_manifest_is_unknown_not_typeerror(self):
+        for routes in (None, [], (), "index.html", 5):
+            report = check(required_routes=routes)
+            self.assertNotEqual(report["verdict"], "PASS", routes)
+            self.assertIn("UNKNOWN", statuses(report, "route"), routes)
+
+    def test_deeply_nested_metadata_json_is_unknown(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "preview-metadata.json").write_text("[" * 100000 + "]" * 100000)
+            self.assertIsNone(pac.read_metadata(root))
+
+    def test_namespace_is_explicitly_unknown_when_expectation_malformed(self):
+        report = check(expected_pr=0)
+        self.assertEqual(statuses(report, "metadata.namespace"), ["UNKNOWN"])
 
 
 if __name__ == "__main__":

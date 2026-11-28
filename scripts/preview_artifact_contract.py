@@ -136,7 +136,9 @@ def check_artifact(
         namespace = metadata.get("namespace")
         if not isinstance(namespace, str):
             checks.append(_check("metadata.namespace", "UNKNOWN", "namespace missing"))
-        elif expected_pr is not None:
+        elif expected_pr is None:
+            checks.append(_check("metadata.namespace", "UNKNOWN", "no valid expected PR to compare namespace with"))
+        else:
             want = f"pr-{expected_pr}"
             checks.append(_check("metadata.namespace", "PASS" if namespace == want else "FAIL",
                                  f"namespace={namespace!r} expected={want!r}"))
@@ -160,7 +162,13 @@ def check_artifact(
     paths, file_checks = check_files(files)
     checks.extend(file_checks)
 
-    routes = list(required_routes) if not isinstance(required_routes, (str, bytes)) else [required_routes]
+    if isinstance(required_routes, (list, tuple)) and required_routes:
+        routes = list(required_routes)
+    else:
+        # The required-route contract cannot be silently emptied or replaced
+        # by a malformed value.
+        checks.append(_check("route", "UNKNOWN", f"route manifest missing, empty or malformed: {type(required_routes).__name__}"))
+        routes = []
     if paths is not None:
         for raw in routes:
             route, problem = normalize_path(raw)
@@ -200,23 +208,39 @@ def check_artifact(
 
 
 def list_artifact(root: Path) -> list[str] | None:
-    """Read-only listing of files under root. Symlinks are reported as traversal."""
-    if not root.is_dir():
+    """Read-only listing of regular files under ``root``.
+
+    Every symlink (file or directory, internal, dangling, escaping or looping)
+    is reported as a traversal entry, which makes the check FAIL; symlinks are
+    never followed or resolved. Any enumeration error makes the listing
+    unavailable (None -> UNKNOWN) instead of being silently skipped.
+    """
+    if root.is_symlink() or not root.is_dir():
         return None
     files: list[str] = []
-    base = root.resolve()
-    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+    errors: list[OSError] = []
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False, onerror=errors.append):
         for name in list(dirnames) + filenames:
             full = Path(dirpath) / name
-            rel = full.relative_to(root).as_posix()
+            rel = full.relative_to(root).as_posix()  # os.walk keeps the lexical root prefix
             if full.is_symlink():
-                target = full.resolve()
-                if base != target and base not in target.parents:
-                    files.append(f"../symlink-escape/{rel}")  # forces a traversal FAIL
-                    continue
-            if name in filenames:
+                files.append(f"../symlink-rejected/{rel}")  # forces a traversal FAIL
+            elif name in filenames and full.is_file():
                 files.append(rel)
+    if errors:
+        return None
     return sorted(files)
+
+
+def read_metadata(root: Path) -> Any:
+    """Read preview-metadata.json only if it is a regular, non-symlink file inside root."""
+    path = root / "preview-metadata.json"
+    try:
+        if root.is_symlink() or path.is_symlink() or not path.is_file():
+            return None
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeDecodeError, RecursionError):
+        return None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -230,13 +254,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
 
-    metadata: Any = None
-    try:
-        metadata = json.loads((args.root / "preview-metadata.json").read_text(encoding="utf-8"))
-    except (OSError, ValueError, UnicodeDecodeError):
-        metadata = None
     report = check_artifact(
-        metadata,
+        read_metadata(args.root),
         list_artifact(args.root),
         expected_pr=args.expected_pr,
         expected_head=args.expected_head,
