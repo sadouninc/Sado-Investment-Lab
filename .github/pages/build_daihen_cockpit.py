@@ -279,6 +279,84 @@ def _decision_history_summary(model: Mapping[str, Any]) -> str:
 """
 
 
+def _attention_summary(model: Mapping[str, Any]) -> str:
+    freshness = model["freshness"]
+    overall_status = str(model.get("overall_status") or "UNKNOWN")
+    freshness_status = str(freshness.get("overall") or "UNKNOWN")
+    warning_messages = {
+        "DRIVER_COVERAGE_PARTIAL": (
+            "利益予想を説明する事業別の根拠が一部不足しています。"
+            "利益予想の根拠欄で取得済み資料と未確認部分を確認してください。"
+        ),
+        "SECONDARY_SOURCE": "市場予想は二次情報を使った参考値です。一次資料の確定値ではありません。",
+        "CONSENSUS_IS_PROXY_NOT_TRUTH": (
+            "表示中の市場予想は観測可能な参考値で、市場全体の確定的な期待値ではありません。"
+        ),
+    }
+    component_messages = {
+        "portfolio_preflight": (
+            "売買条件が未入力のため、保有資産への影響はまだ確認していません。"
+            "売買を検討するときに数量などを入力して確認してください。"
+        ),
+    }
+    warnings = [
+        (section, str(code))
+        for section in ("earnings_driver", "valuation", "expectations")
+        for code in (model[section].get("warnings") or [])
+    ]
+    unknown = [str(component) for component in (freshness.get("unknown_components") or [])]
+    stale = [str(component) for component in (freshness.get("stale_components") or [])]
+    has_attention = bool(
+        warnings
+        or unknown
+        or stale
+        or overall_status != "OK"
+        or freshness_status != "CURRENT"
+    )
+    summary_items = []
+    if overall_status == "PARTIAL" or freshness_status == "PARTIAL":
+        summary_items.append("一部の情報が不足しているため、画面全体を確定済みとは扱いません。")
+    elif has_attention:
+        summary_items.append("取得状態を確認できない情報があります。表示内容と基準日を確認してください。")
+    summary_items.extend(
+        component_messages.get(component, "情報鮮度を確認できない項目があります。")
+        for component in unknown
+    )
+    summary_items.extend(
+        "古い情報があるため、最新情報の確認が必要です。"
+        for component in stale
+    )
+    summary_items.extend(
+        warning_messages.get(code, "追加の未確認事項があります。")
+        for section, code in warnings
+    )
+    raw_items = [f"鮮度不明: {component}" for component in unknown]
+    raw_items.extend(f"古い情報: {component}" for component in stale)
+    raw_items.extend(f"{section}: {code}" for section, code in warnings)
+    if not has_attention:
+        return """
+<div class="notice-card cockpit-attention-summary">
+  <strong>現在、重要な未確認事項はありません。</strong>
+</div>
+"""
+    heading = (
+        "この表示はエラーではなく、未確認情報を隠さないための注意です。"
+        if overall_status == "PARTIAL" or freshness_status == "PARTIAL"
+        else "取得状態に確認が必要な項目があります。"
+    )
+    return f"""
+<div class="notice-card cockpit-attention-summary">
+  <strong>{heading}</strong>
+  {_list(summary_items, "現在、重要な未確認事項はありません。")}
+</div>
+<details class="cockpit-attention-codes">
+  <summary>内部状態コードを見る</summary>
+  <p>調査・保守用の識別子です。投資判断の結論ではありません。</p>
+  {_list(raw_items, "内部コードなし")}
+</details>
+"""
+
+
 def page_content(model: Mapping[str, Any]) -> str:
     review = model["review_context"]
     earnings = model["earnings_driver"]
@@ -302,9 +380,7 @@ def page_content(model: Mapping[str, Any]) -> str:
     scenario_html = "".join([_scenario_card("Bear", valuation.get("bear") or {}), _scenario_card("Base", valuation.get("base") or {}), _scenario_card("Bull", valuation.get("bull") or {})])
     delta_html = _scenario_delta_html(model)
     expectation_html = _expectation_first_view(expectations)
-    warning_html = _list(warnings, "重大warningなし")
-    stale = freshness.get("stale_components") or []
-    unknown = freshness.get("unknown_components") or []
+    attention_html = _attention_summary(model)
     price_as_of = valuation.get("price_as_of") or "取得できません"
     warning_count = len(warnings)
     judgment_summary_html = _judgment_summary(model)
@@ -341,9 +417,7 @@ permalink: /decision-cockpit/daihen/
 ## ⚠ 先に確認する注意点
 - 全体状態: {_status(model.get('overall_status'))}
 - 情報鮮度: {_status(freshness.get('overall'))}
-- 古いcomponent: {_e(', '.join(stale) if stale else 'なし')}
-- 鮮度不明component: {_e(', '.join(unknown) if unknown else 'なし')}
-{warning_html}
+{attention_html}
 
 ## 1. 利益予想 — なぜこのBase？
 <div class="content-grid"><div class="content-card"><strong>Base純利益</strong><span>{_e(base_profit_text)}</span><span>{_status(earnings.get('status'))}</span></div><div class="content-card"><strong>Base EPS</strong><span>{_e(base_eps_text)}</span><span>対象: {_e(base_eps.get('target_fiscal_year') or '不明')}</span></div><div class="content-card"><strong>会社予想 純利益</strong><span>{_e(guidance_text)}</span><span>説明coverage: <code>{_e(earnings.get('explanation_coverage') or 'UNKNOWN')}</code></span></div></div>
@@ -436,3 +510,4 @@ def build() -> None:
 
 if __name__ == "__main__":
     build()
+

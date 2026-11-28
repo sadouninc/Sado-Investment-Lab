@@ -223,6 +223,65 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         self.assertNotIn("推奨: BUY", page)
         self.assertNotIn("推奨: SELL", page)
 
+    def test_attention_summary_explains_partial_state_in_japanese(self):
+        section = self.page.split("## ⚠ 先に確認する注意点", 1)[1].split("## 1.", 1)[0]
+        visible = section.split("<details", 1)[0]
+        self.assertIn("エラーではなく、未確認情報を隠さないための注意", visible)
+        self.assertIn("売買条件が未入力", visible)
+        self.assertIn("利益予想を説明する事業別の根拠が一部不足", visible)
+        self.assertIn("市場予想は二次情報を使った参考値", visible)
+        self.assertIn("市場全体の確定的な期待値ではありません", visible)
+        for code in (
+            "portfolio_preflight",
+            "DRIVER_COVERAGE_PARTIAL",
+            "SECONDARY_SOURCE",
+            "CONSENSUS_IS_PROXY_NOT_TRUTH",
+        ):
+            self.assertNotIn(code, visible)
+            self.assertIn(code, section)
+        self.assertIn("内部状態コードを見る", section)
+
+    def test_unknown_attention_codes_fail_closed_with_generic_japanese_message(self):
+        model = copy.deepcopy(self.model)
+        model["freshness"]["unknown_components"] = ["new_component"]
+        model["expectations"]["warnings"] = ["NEW_WARNING_CODE"]
+        summary = BUILDER._attention_summary(model)
+        visible = summary.split("<details", 1)[0]
+        self.assertIn("情報鮮度を確認できない項目があります", visible)
+        self.assertIn("追加の未確認事項があります", visible)
+        self.assertNotIn("new_component", visible)
+        self.assertNotIn("NEW_WARNING_CODE", visible)
+        self.assertIn("NEW_WARNING_CODE", summary)
+
+    def test_healthy_model_does_not_claim_partial_or_error(self):
+        model = copy.deepcopy(self.model)
+        model["overall_status"] = "OK"
+        model["freshness"].update({
+            "overall": "CURRENT",
+            "unknown_components": [],
+            "stale_components": [],
+        })
+        for name in ("earnings_driver", "valuation", "expectations"):
+            model[name]["warnings"] = []
+        summary = BUILDER._attention_summary(model)
+        self.assertIn("現在、重要な未確認事項はありません", summary)
+        self.assertNotIn("一部の情報が不足", summary)
+        self.assertNotIn("エラーではなく", summary)
+
+    def test_unknown_or_unavailable_state_is_not_blanket_labeled_non_error(self):
+        model = copy.deepcopy(self.model)
+        model["overall_status"] = "UNAVAILABLE"
+        model["freshness"].update({
+            "overall": "UNKNOWN",
+            "unknown_components": [],
+            "stale_components": [],
+        })
+        for name in ("earnings_driver", "valuation", "expectations"):
+            model[name]["warnings"] = []
+        summary = BUILDER._attention_summary(model)
+        self.assertIn("取得状態に確認が必要な項目があります", summary)
+        self.assertNotIn("エラーではなく", summary)
+
     def test_portfolio_not_run_is_not_presented_as_safe(self):
         self.assertEqual(self.model["portfolio_preflight"]["status"], "NOT_RUN")
         self.assertIn("まだ確認を実行していません", self.page)
@@ -278,3 +337,4 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
