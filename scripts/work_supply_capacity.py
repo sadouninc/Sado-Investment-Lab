@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
 
-from scripts.queue_owner_inventory_pilot import _paths_overlap
+from scripts.queue_owner_inventory_pilot import paths_overlap
 
 PREPARED_TARGET_MIN = 10
 PREPARED_TARGET_MAX = 20
@@ -222,11 +222,17 @@ def _validate_open_prs(
             errors.append("MALFORMED_OPEN_PR_WAIT_STATE")
             continue
 
+        owner_slice = pr.get("owner_slice")
+        if owner_slice is not None and not _is_nonempty_str(owner_slice):
+            errors.append("MALFORMED_OPEN_PR_OWNER")
+            continue
+
         pr_record = {
             "number": pr_num,
             "paths": [p.strip() for p in paths],
             "linked_issues": sorted(set(linked_raw)),
             "wait_state": wait_state.strip() if isinstance(wait_state, str) else None,
+            "owner_slice": owner_slice.strip() if isinstance(owner_slice, str) else None,
             "updated_at": pr.get("updated_at"),
         }
         prs_by_number[pr_num] = pr_record
@@ -273,14 +279,15 @@ def _classify_linked_pr_bucket(
     item_state: str | None,
     linked_prs: list[dict[str, Any]],
 ) -> tuple[str, list[str]]:
-    if item_state in ACTIVE_IMPLEMENTATION_STATES:
+    pr_states = [pr["wait_state"] for pr in linked_prs if pr["wait_state"] is not None]
+    # Active/revision evidence wins over a raw WAIT snapshot.  Otherwise a
+    # stale issue state could hide current revision work and free capacity.
+    if item_state in ACTIVE_IMPLEMENTATION_STATES or any(
+        state in ACTIVE_IMPLEMENTATION_STATES for state in pr_states
+    ):
         return "active_implementation", ["OPEN_PR_ACTIVE_IMPLEMENTATION"]
     if item_state in WAIT_STATES:
         return "ci_review_merge_wait", ["OPEN_PR_LINKED_WAIT"]
-
-    pr_states = [pr["wait_state"] for pr in linked_prs if pr["wait_state"] is not None]
-    if any(s in ACTIVE_IMPLEMENTATION_STATES for s in pr_states):
-        return "active_implementation", ["OPEN_PR_REVISION_OR_ACTIVE"]
     if any(s in WAIT_STATES for s in pr_states):
         return "ci_review_merge_wait", ["OPEN_PR_CI_REVIEW_MERGE_WAIT"]
     return "unknown", ["OPEN_PR_WAIT_STATE_UNKNOWN"]
@@ -372,11 +379,11 @@ def _classify_item(
         block_reasons.append("DEPENDENCY_BLOCKED")
     if owner_slice in active_owners:
         block_reasons.append("OWNER_CONFLICT")
-    if any(_paths_overlap(p, other) for p in allowed_paths for other in non_79_open_pr_paths):
+    if any(paths_overlap(p, other) for p in allowed_paths for other in non_79_open_pr_paths):
         block_reasons.append("OPEN_PR_PATH_CONFLICT")
-    if any(_paths_overlap(p, other) for p in allowed_paths for other in excluded_79_pr_paths):
+    if any(paths_overlap(p, other) for p in allowed_paths for other in excluded_79_pr_paths):
         block_reasons.append("ISSUE_79_PR_PATH_CONFLICT")
-    if any(_paths_overlap(p, other) for p in allowed_paths for other in active_paths):
+    if any(paths_overlap(p, other) for p in allowed_paths for other in active_paths):
         block_reasons.append("ACTIVE_PATH_CONFLICT")
 
     if block_reasons:
@@ -517,6 +524,30 @@ def classify_work_supply_capacity(snapshot: Any) -> dict[str, Any]:
             excluded_79_pr_paths.extend(pr["paths"])
         else:
             non_79_open_pr_paths.extend(pr["paths"])
+
+    # A standalone active PR is part of the owner-conflict inventory even when
+    # no normalized item links to it.  Without explicit owner evidence the
+    # inventory cannot attest that any READY candidate is conflict-free.
+    represented_pr_numbers = {
+        pr_num
+        for pr_num, issues in pr_to_explicit_items.items()
+        if issues
+    }
+    represented_pr_numbers.update(
+        pr["number"]
+        for pr in prs_by_number.values()
+        if any(issue in {item["issue"] for item in valid_items} for issue in pr["linked_issues"])
+    )
+    for pr_num, pr in prs_by_number.items():
+        if (
+            pr_num not in excluded_79_pr_numbers
+            and pr_num not in represented_pr_numbers
+            and pr["wait_state"] in ACTIVE_IMPLEMENTATION_STATES
+        ):
+            if not _is_nonempty_str(pr.get("owner_slice")):
+                active_conflict_inventory_unknown = True
+            else:
+                active_owners.add(pr["owner_slice"])
 
     issues_by_bucket: dict[str, list[int]] = {
         "verified_ready": [],
@@ -727,3 +758,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
