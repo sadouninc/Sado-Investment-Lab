@@ -97,7 +97,7 @@ class MorningReportCardTests(unittest.TestCase):
             self.assertIn("市場: AI半導体は底堅い", index)
             self.assertIn("戦略: 押し目候補を優先", index)
             # Legacy diagnostics have no candidate_focus record: fail closed.
-            self.assertIn("注目: 今日の検証済み注目銘柄は未確定（AI候補メモ・未検証: 4063 信越化学", index)
+            self.assertIn("注目: 今日の検証済み注目銘柄は未確定（未検証のAI候補メモは詳細ページで確認）", index)
             self.assertNotIn("注目: 4063 信越化学", index)
             self.assertIn("データ状態: 一部取得できていません", index)
             self.assertLess(index.index("今日まず見る"), index.index("このレポートについて"))

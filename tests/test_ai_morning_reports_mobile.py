@@ -50,7 +50,8 @@ def test_latest_card_prioritizes_update_market_watch_and_status():
     assert "更新: 2026-08-14 11:40 JST" in card
     assert "市場: 日経平均は反発" in card
     # #949: without a deterministic verification record the watch line fails closed.
-    assert "注目: 今日の検証済み注目銘柄は未確定（AI候補メモ・未検証: ダイヘン）" in card
+    assert "注目: 今日の検証済み注目銘柄は未確定（未検証のAI候補メモは詳細ページで確認）" in card
+    assert "ダイヘン" not in card
     assert "注目: ダイヘン" not in card
     assert "データ状態: 一部取得できていません" in card
     verified = module.latest_report_card(
@@ -62,7 +63,7 @@ def test_latest_card_prioritizes_update_market_watch_and_status():
         (("6622", "ダイヘン"),),
     )
     # Verified focus comes from canonical pairs only; AI prose is not shown as a pick.
-    assert "注目（候補データで検証済み）: 6622 ダイヘン" in verified
+    assert "注目（候補データで検証済み・投資推奨ではありません）: 6622 ダイヘン" in verified
     assert "4063" not in verified
     assert "未確定" not in verified
     assert "Data quality" not in card
