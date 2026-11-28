@@ -302,5 +302,56 @@ needs-review
         self.assertEqual("OK", result.status)
         self.assertEqual(12345678901234567890, result.data["positions"][0]["quantity"])
 
+    def test_nonfinite_numbers_anywhere_in_json_are_rejected(self):
+        base = '{"as_of": "2026-08-08", "verification_status": "VERIFIED", '
+        cases = {
+            "nested NaN quantity": base + '"positions": [{"security_code": "4063", "quantity": NaN}]}',
+            "Infinity base_snapshot": base + '"base_snapshot": {"value": Infinity}, "positions": [{"security_code": "4063", "quantity": 1}]}',
+            "-Infinity diff": base + '"verification_diff": [{"difference": -Infinity}], "positions": [{"security_code": "4063", "quantity": 1}]}',
+            "exponent overflow": base + '"positions": [{"security_code": "4063", "price": {"close": 1e400}}]}',
+        }
+        for label, raw in cases.items():
+            with self.subTest(label=label):
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = Path(tmp) / "current.json"
+                    path.write_text(raw, encoding="utf-8")
+                    result = PortfolioProvider(path, today=date(2026, 8, 8)).collect()
+                self.assertEqual("MISSING", result.status)
+                self.assertIsNone(result.data)
+                self.assertIn("invalid", result.reason)
+
+    def test_true_zero_and_finite_floats_are_preserved_and_strict_json_safe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "current.json"
+            path.write_text('{"as_of": "2026-08-08", "verification_status": "VERIFIED", "positions": ['
+                            '{"security_code": "4063", "quantity": 0, "average_price": 0.0, "weight": 1.5e2}]}', encoding="utf-8")
+            result = PortfolioProvider(path, today=date(2026, 8, 8)).collect()
+        self.assertEqual("OK", result.status)
+        position = result.data["positions"][0]
+        self.assertEqual((0, 0.0, 150.0), (position["quantity"], position["average_price"], position["weight"]))
+        self.assertIsInstance(position["quantity"], int)
+        json.dumps(result.data, allow_nan=False)
+
+    def test_present_invalid_verification_as_of_does_not_fall_back(self):
+        for value in (False, "", 0, "garbage", ["2026-08-08"]):
+            with self.subTest(value=value):
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = self.write_json(Path(tmp), {"as_of": "2026-08-08", "verification_as_of": value,
+                                                        "verification_status": "VERIFIED", "positions": [self.POSITION]})
+                    result = PortfolioProvider(path, today=date(2026, 8, 8)).collect()
+                self.assertEqual("PARTIAL", result.status)
+                self.assertIn("verification_as_of is present", result.reason)
+                self.assertNotEqual("2026-08-08", result.as_of)
+
+    def test_absent_or_null_verification_as_of_uses_as_of(self):
+        for extra in ({}, {"verification_as_of": None}):
+            with self.subTest(extra=extra):
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = self.write_json(Path(tmp), dict({"as_of": "2026-08-08", "verification_status": "VERIFIED",
+                                                            "positions": [self.POSITION]}, **extra))
+                    result = PortfolioProvider(path, today=date(2026, 8, 8)).collect()
+                self.assertEqual("OK", result.status)
+                self.assertEqual("2026-08-08", result.as_of)
+
 if __name__ == "__main__":
     unittest.main()

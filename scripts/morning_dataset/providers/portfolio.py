@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 import json
+import math
 import re
 
 from .base import ProviderResult
@@ -86,7 +87,12 @@ class PortfolioProvider:
 
     def _collect_canonical_json(self) -> ProviderResult:
         try:
-            payload = json.loads(self.path.read_text(encoding="utf-8"), parse_int=_bounded_int)
+            payload = json.loads(
+                self.path.read_text(encoding="utf-8"),
+                parse_int=_bounded_int,
+                parse_float=_finite_float,
+                parse_constant=_reject_constant,
+            )
         except (OSError, UnicodeDecodeError, ValueError, RecursionError) as exc:
             # ValueError covers json.JSONDecodeError and oversized integer literals.
             return ProviderResult.unavailable(
@@ -101,7 +107,14 @@ class PortfolioProvider:
                 reason="canonical portfolio JSON must be an object",
             )
         raw_positions = payload.get("positions")
-        raw_as_of = payload.get("verification_as_of") or payload.get("as_of")
+        # verification_as_of is authoritative when declared. Fall back to as_of
+        # only when it is absent or explicitly null (unset); a present but
+        # invalid value (false, "", 0, garbage) must not be bypassed.
+        declared_verification = payload.get("verification_as_of")
+        invalid_verification_as_of = declared_verification is not None and (
+            not isinstance(declared_verification, str) or _iso_date(declared_verification) is None
+        )
+        raw_as_of = declared_verification if declared_verification is not None else payload.get("as_of")
         # Report a declared as_of only when it is text; other types are not
         # silently converted into a freshness date.
         as_of = raw_as_of if isinstance(raw_as_of, str) else None
@@ -149,6 +162,12 @@ class PortfolioProvider:
             return ProviderResult.unavailable(
                 self.name, status="PARTIAL", as_of=as_of, source_reference=str(self.path),
                 reason=f"unknown portfolio verification status: {status!r}", data=data,
+            )
+        if invalid_verification_as_of:
+            return ProviderResult.unavailable(
+                self.name, status="PARTIAL", as_of=as_of, source_reference=str(self.path),
+                reason="canonical portfolio verification_as_of is present but not a valid YYYY-MM-DD date; as_of is not used as a substitute",
+                data=data,
             )
         if as_of is None:
             return ProviderResult.unavailable(
@@ -220,3 +239,16 @@ def _bounded_int(text: str) -> int:
     if len(text.lstrip("+-")) > _MAX_INT_DIGITS:
         raise ValueError(f"integer literal longer than {_MAX_INT_DIGITS} digits")
     return int(text)
+
+
+def _finite_float(text: str) -> float:
+    # json.loads turns literals such as 1e400 into inf; reject them so no
+    # non-finite number can reach the strict Morning Dataset JSON output.
+    value = float(text)
+    if not math.isfinite(value):
+        raise ValueError(f"non-finite number literal: {text[:40]}")
+    return value
+
+
+def _reject_constant(name: str) -> float:
+    raise ValueError(f"non-standard JSON constant is not allowed: {name}")
