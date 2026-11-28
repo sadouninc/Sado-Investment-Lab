@@ -180,7 +180,7 @@ def portfolio_candidates(path: Path, *, as_of: date, code_map: dict[str, str]) -
         # This source is a dated snapshot, not a live broker position.
         # Preserve the source observation date and freshness verdict wherever
         # the row is reused (shortlist, Morning AI prompt, or report).
-        snapshot_date = result.as_of or "UNKNOWN"
+        snapshot_date = str(result.as_of) if result.as_of is not None else "UNKNOWN"
         reason = (
             f"Portfolio snapshot holding (as_of={snapshot_date}; "
             f"source_status={result.status}; NOT current-position verification)"
