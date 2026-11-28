@@ -235,6 +235,28 @@ class DaihenCockpitMachineAcceptanceTests(unittest.TestCase):
         self.assertIn(history["comparison_ref"], self.page)
         self.assertIn("過去snapshotを現在のResearch / Valuationで書き換えません", self.page)
 
+    def test_section_six_prioritizes_japanese_decision_summary_before_refs(self):
+        section = self.page.split("## 6. 前回判断と現在を分けて確認", 1)[1].split("## 7.", 1)[0]
+        previous = section.index("前回の判断")
+        change = section.index("今回変わった点")
+        next_check = section.index("次に確認すること")
+        evidence = section.index("判断履歴の根拠IDを見る")
+        self.assertLess(previous, change)
+        self.assertLess(change, next_check)
+        self.assertLess(next_check, evidence)
+        self.assertIn("2026-08-09時点のBase判断", section)
+        self.assertIn("Base維持", section)
+        self.assertIn("EPSは 144.02→144.02円", section)
+        self.assertIn("Forward PERは 16.53→16.68倍（+0.15倍）", section)
+
+    def test_section_six_missing_history_fails_closed_without_reconstruction(self):
+        model = copy.deepcopy(self.model)
+        model["decision_history"].pop("previous_snapshot")
+        section = BUILDER._decision_history_summary(model)
+        self.assertIn("同一条件で比較できる前回判断を取得できません", section)
+        self.assertIn("現在値から過去値を推測しません", section)
+        self.assertNotIn("16.53→16.68", section)
+
     def test_no_trade_recommendation_is_generated(self):
         self.assertIn("この画面は売買指示を生成しません", self.page)
         for forbidden in ("推奨: BUY", "推奨: SELL", "買い推奨", "売り推奨"):

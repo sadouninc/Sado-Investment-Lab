@@ -231,6 +231,54 @@ def _judgment_summary(model: Mapping[str, Any]) -> str:
 """
 
 
+def _decision_history_summary(model: Mapping[str, Any]) -> str:
+    history = model["decision_history"]
+    previous = history.get("previous_snapshot") or {}
+    delta = _scenario_delta(model)
+    comparable = all(
+        value is not None
+        for value in (
+            delta.previous.eps,
+            delta.current.eps,
+            delta.previous.forward_per,
+            delta.current.forward_per,
+        )
+    )
+    if comparable:
+        previous_decision = (
+            f"{previous.get('as_of') or '日付不明'}時点の"
+            f"{previous.get('scenario') or 'シナリオ不明'}判断です。"
+        )
+        per_change = float(delta.current.forward_per) - float(delta.previous.forward_per)
+        current_change = (
+            f"{delta.scenario_transition}。EPSは "
+            f"{float(delta.previous.eps):,.2f}→{float(delta.current.eps):,.2f}円、"
+            f"Forward PERは {float(delta.previous.forward_per):,.2f}→"
+            f"{float(delta.current.forward_per):,.2f}倍（{per_change:+.2f}倍）です。"
+        )
+    else:
+        previous_decision = "同一条件で比較できる前回判断を取得できません。"
+        current_change = "前回との差は比較できません。現在値から過去値を推測しません。"
+
+    return f"""
+<div class="content-card cockpit-decision-history-summary">
+  <p><strong>前回の判断:</strong> {_e(previous_decision)}</p>
+  <p><strong>今回変わった点:</strong> {_e(current_change)}</p>
+  <p><strong>次に確認すること:</strong> 最新株価と市場期待を確認し、前回判断を更新する必要があるか検討します。</p>
+</div>
+<details class="cockpit-decision-history-evidence">
+  <summary>判断履歴の根拠IDを見る</summary>
+  <ul>
+    <li>最新判断の参照先: {_refs([history.get('latest_decision_ref')] if history.get('latest_decision_ref') else [])}</li>
+    <li>現在の検討期間: {_refs([history.get('latest_episode_ref')] if history.get('latest_episode_ref') else [])}</li>
+    <li>前回比較の参照先: {_refs([history.get('comparison_ref')] if history.get('comparison_ref') else [])}</li>
+    <li>変更しない過去snapshot: {_refs([history.get('historical_snapshot_ref')] if history.get('historical_snapshot_ref') else [])}</li>
+  </ul>
+</details>
+過去snapshotを現在のResearch / Valuationで書き換えません。
+"""
+
+
 def page_content(model: Mapping[str, Any]) -> str:
     review = model["review_context"]
     earnings = model["earnings_driver"]
@@ -260,6 +308,7 @@ def page_content(model: Mapping[str, Any]) -> str:
     price_as_of = valuation.get("price_as_of") or "取得できません"
     warning_count = len(warnings)
     judgment_summary_html = _judgment_summary(model)
+    decision_history_html = _decision_history_summary(model)
     first_view_html = render_first_view(
         LiveCockpitFirstView(
             company_name="ダイヘン",
@@ -344,11 +393,7 @@ Challenging evidence: {_refs(hypothesis.get('challenging_evidence_refs'))}
 未設定ルールや未実行preflightから安全/危険を推測しません。
 
 ## 6. 前回判断と現在を分けて確認
-- 最新Decision: {_refs([history.get('latest_decision_ref')] if history.get('latest_decision_ref') else [])}
-- Investment Episode: {_refs([history.get('latest_episode_ref')] if history.get('latest_episode_ref') else [])}
-- Current comparison: {_refs([history.get('comparison_ref')] if history.get('comparison_ref') else [])}
-- **Historical immutable snapshot**: {_refs([history.get('historical_snapshot_ref')] if history.get('historical_snapshot_ref') else [])}
-過去snapshotを現在のResearch / Valuationで書き換えません。
+{decision_history_html}
 
 ## 7. 次に確認する場所
 - 利益予想の根拠: {_refs(earnings.get('driver_refs'))}
